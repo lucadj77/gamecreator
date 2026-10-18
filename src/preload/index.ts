@@ -4,7 +4,8 @@ import type { Api } from '../shared/api'
 
 const api: Api = {
   chooseProjectFolder: () => ipcRenderer.invoke('project:choose-folder'),
-  loadProject: (folder) => ipcRenderer.invoke('project:load', folder)
+  loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
+  saveTemplate: (template) => ipcRenderer.invoke('template:save', template)
 }
 
 if (process.contextIsolated) {

@@ -105,6 +105,8 @@ export type LayerType = Layer['type']
 
 export interface Template {
   name: string
+  /** Nome del file in templates/ senza estensione, se diverso dal nome; non si salva */
+  file?: string
   width: number
   height: number
   bleed: number

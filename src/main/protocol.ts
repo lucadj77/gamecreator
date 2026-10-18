@@ -12,6 +12,10 @@ export function setProjectFolder(folder: string): void {
   projectFolder = folder
 }
 
+export function getProjectFolder(): string | null {
+  return projectFolder
+}
+
 export function registerAssetScheme(): void {
   protocol.registerSchemesAsPrivileged([
     { scheme: ASSET_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }

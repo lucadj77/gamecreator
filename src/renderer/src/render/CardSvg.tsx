@@ -1,7 +1,8 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { resolveAsset } from '../../../shared/model/assets'
+import { anchorPoint } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
-import { AssetsContext, assetUrl } from './assets'
+import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import type {
   GroupLayer,
   ImageLayer,
@@ -90,21 +91,10 @@ function LayerList({ layers, uid }: { layers: Layer[]; uid: string }): React.JSX
   )
 }
 
-function anchorPoint(l: LayerBase): [number, number] {
-  const [v, h] = l.anchor.includes('-')
-    ? (l.anchor.split('-') as [string, string])
-    : l.anchor === 'top' || l.anchor === 'bottom'
-      ? [l.anchor, 'center']
-      : ['middle', l.anchor]
-  const x = h === 'left' ? l.x : h === 'right' ? l.x + l.w : l.x + l.w / 2
-  const y = v === 'top' ? l.y : v === 'bottom' ? l.y + l.h : l.y + l.h / 2
-  return [x, y]
-}
-
 function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.Element | null {
   if (!l.visible) return null
   const id = `${uid}-${l.id}`
-  const [ax, ay] = anchorPoint(l)
+  const { x: ax, y: ay } = anchorPoint(l)
   return (
     <g
       transform={l.rotation ? `rotate(${l.rotation} ${ax} ${ay})` : undefined}
@@ -203,9 +193,13 @@ const PRESERVE: Record<ImageLayer['fit'], string> = {
 function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.JSX.Element | null {
   const assets = useContext(AssetsContext)
   const { t } = useI18n()
+  const showEmpty = useContext(ShowEmptyContext)
   const res = resolveAsset(l.src, assets)
   if (!res.ok) {
+    if (res.reason === 'empty' && showEmpty) return <Placeholder layer={l} label={l.name} />
     if (l.missing === 'hide' || res.reason === 'empty') return null
+    // nel template il nome viene spesso da un campo: si mostra il campo, non un errore
+    if (/\{[^}]+\}/.test(l.src)) return <Placeholder layer={l} label={l.src} />
     const key = res.reason === 'ambiguous' ? 'asset.ambiguous' : 'asset.missing'
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
   }
@@ -289,6 +283,8 @@ const VALIGN: Record<TextLayer['valign'], string> = {
 }
 
 function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
+  const showEmpty = useContext(ShowEmptyContext)
+  const empty = showEmpty && !l.text.trim()
   const boxRef = useRef<HTMLDivElement>(null)
   const [fitted, setFitted] = useState<{ key: string; size: number } | null>(null)
   const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.lineHeight}|${l.fit}`
@@ -341,8 +337,8 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
             paintOrder: 'stroke fill'
           }}
         >
-          <div>
-            {l.text.split('\n').map((p, i) => (
+          <div style={empty ? { opacity: 0.35, fontStyle: 'italic' } : undefined}>
+            {(empty ? l.name : l.text).split('\n').map((p, i) => (
               <p key={i} style={{ margin: 0, marginTop: i ? l.paragraphSpacing * s : 0 }}>
                 {p || ' '}
               </p>

@@ -100,19 +100,32 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
       return { ...base, ...IMAGE_DEFAULTS, ...(raw as Partial<ImageLayer>), type: 'image' }
     case 'shape':
       return { ...base, ...SHAPE_DEFAULTS, ...(raw as Partial<ShapeLayer>), type: 'shape' }
-    case 'group':
+    case 'group': {
+      const children = (raw.children ?? []).map(normalizeLayer)
       return {
         ...base,
         clip: false,
         ...(raw as Partial<GroupLayer>),
         type: 'group',
-        children: (raw.children ?? []).map(normalizeLayer)
+        children,
+        // il riquadro di un gruppo è sempre l'ingombro dei figli
+        ...extent(children)
       }
+    }
     default:
       throw new MessageError(
         msg('template.unknownLayerType', { layer: base.name, type: String(raw.type) })
       )
   }
+}
+
+function extent(layers: Layer[]): Partial<LayerBase> {
+  if (!layers.length) return {}
+  const x = Math.min(...layers.map((l) => l.x))
+  const y = Math.min(...layers.map((l) => l.y))
+  const w = Math.max(...layers.map((l) => l.x + l.w)) - x
+  const h = Math.max(...layers.map((l) => l.y + l.h)) - y
+  return { x, y, w, h }
 }
 
 export function normalizeTemplate(raw: RawTemplate): Template {
@@ -142,4 +155,54 @@ export function duplicateNames(t: Template): string[] {
     seen.add(l.name)
   }
   return [...dup]
+}
+
+const TYPE_DEFAULTS: Record<Layer['type'], Record<string, unknown>> = {
+  text: TEXT_DEFAULTS,
+  image: IMAGE_DEFAULTS,
+  shape: SHAPE_DEFAULTS,
+  group: { clip: false }
+}
+
+/** Arrotonda ai millesimi: dopo spostamenti e scalature restano code come 12.000000001 */
+function tidy(v: unknown): unknown {
+  if (typeof v === 'number') return Math.round(v * 1000) / 1000
+  if (Array.isArray(v)) return v.map(tidy)
+  if (v && typeof v === 'object')
+    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, tidy(x)]))
+  return v
+}
+
+/** Inverso di normalizeLayer: solo le proprietà diverse dai default, senza id */
+export function denormalizeLayer(l: Layer): RawLayer {
+  const defaults: Record<string, unknown> = { ...BASE_DEFAULTS, ...TYPE_DEFAULTS[l.type] }
+  const out: RawLayer = { type: l.type, name: l.name }
+  for (const [k, v] of Object.entries(l)) {
+    if (k === 'id' || k === 'type' || k === 'name' || k === 'children') continue
+    // il riquadro di un gruppo si ricava dai figli
+    if (l.type === 'group' && ['x', 'y', 'w', 'h'].includes(k)) continue
+    const value = tidy(v)
+    if (k in defaults && JSON.stringify(value) === JSON.stringify(defaults[k])) continue
+    out[k] = value
+  }
+  if (l.type === 'group') out.children = l.children.map(denormalizeLayer)
+  return out
+}
+
+export function denormalizeTemplate(t: Template): RawTemplate {
+  return {
+    name: t.name,
+    width: t.width,
+    height: t.height,
+    bleed: t.bleed,
+    safeMargin: t.safeMargin,
+    cornerRadius: t.cornerRadius,
+    front: t.front.map(denormalizeLayer),
+    back: t.back.map(denormalizeLayer)
+  }
+}
+
+/** Il nome di un template è anche il nome del suo file */
+export function isValidTemplateName(name: string): boolean {
+  return /^[^\\/:*?"<>|.][^\\/:*?"<>|]*$/.test(name) && name.trim() === name
 }

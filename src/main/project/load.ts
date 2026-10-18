@@ -7,6 +7,10 @@ import {
   type ProjectFile
 } from '../../shared/project'
 import { readSpreadsheet } from './spreadsheet'
+import { listAssets } from './assets'
+import { duplicateNames, normalizeTemplate } from '../../shared/model/normalize'
+import type { Template } from '../../shared/model/template'
+import { MessageError, messageFromError, msg, type Message } from '../../shared/messages'
 
 export async function loadProject(folder: string): Promise<LoadedProject> {
   let file: ProjectFile
@@ -15,15 +19,15 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
   } catch (e) {
     const err = e as NodeJS.ErrnoException
     if (err.code === 'ENOENT')
-      throw new Error(`La cartella non contiene ${PROJECT_FILE}`, { cause: e })
-    throw new Error(`${PROJECT_FILE} non è leggibile: ${err.message}`, { cause: e })
+      throw new MessageError(msg('load.noProjectFile', { file: PROJECT_FILE }))
+    throw new MessageError(
+      msg('load.unreadableProjectFile', { file: PROJECT_FILE, error: err.message })
+    )
   }
 
-  const warnings: string[] = []
+  const warnings: Message[] = []
   if (file.formatVersion > FORMAT_VERSION) {
-    warnings.push(
-      `Il progetto usa il formato ${file.formatVersion}, più recente di questa versione dell'app`
-    )
+    warnings.push(msg('load.newerFormat', { version: file.formatVersion }))
   }
 
   const sheets = await readSpreadsheet(join(folder, file.dataFile))
@@ -31,22 +35,16 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
 
   const sets = (file.sets ?? []).map((def) => {
     const data = byName.get(def.sheet ?? def.name) ?? null
-    if (!data) warnings.push(`Il set "${def.name}" non trova il foglio "${def.sheet ?? def.name}"`)
+    if (!data)
+      warnings.push(msg('load.missingSheet', { set: def.name, sheet: def.sheet ?? def.name }))
     return { ...def, data }
   })
   const used = new Set(sets.map((s) => s.data?.name))
 
-  let templates: string[] = []
-  try {
-    templates = (await readdir(join(folder, 'templates')))
-      .filter((f) => f.endsWith('.json'))
-      .map((f) => f.slice(0, -5))
-  } catch {
-    // cartella templates assente: va bene finché non si arriva all'editor
-  }
+  const templates = await loadTemplates(folder, warnings)
   for (const s of sets) {
-    if (!templates.includes(s.template)) {
-      warnings.push(`Il set "${s.name}" usa il template "${s.template}", che non esiste`)
+    if (!templates.some((t) => t.name === s.template)) {
+      warnings.push(msg('load.missingTemplate', { set: s.name, template: s.template }))
     }
   }
 
@@ -56,6 +54,35 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     sets,
     unusedSheets: sheets.map((s) => s.name).filter((n) => !used.has(n)),
     templates,
+    assets: await listAssets(folder),
     warnings
   }
+}
+
+async function loadTemplates(folder: string, warnings: Message[]): Promise<Template[]> {
+  let files: string[]
+  try {
+    files = (await readdir(join(folder, 'templates'))).filter((f) => f.endsWith('.json'))
+  } catch {
+    return []
+  }
+  const templates: Template[] = []
+  for (const f of files.sort()) {
+    try {
+      const raw = JSON.parse(await readFile(join(folder, 'templates', f), 'utf8'))
+      const t = normalizeTemplate({ ...raw, name: raw.name ?? f.slice(0, -5) })
+      const dup = duplicateNames(t)
+      if (dup.length)
+        warnings.push(msg('load.duplicateLayers', { template: t.name, names: dup.join(', ') }))
+      templates.push(t)
+    } catch (e) {
+      const m = messageFromError(e)
+      warnings.push(
+        m.key === 'error.generic'
+          ? msg('load.unreadableTemplate', { file: f, error: String(m.params?.text) })
+          : { ...m, params: { ...m.params, file: f } }
+      )
+    }
+  }
+  return templates
 }

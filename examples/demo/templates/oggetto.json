@@ -1,8 +1,19 @@
 {
   "name": "oggetto",
-  "sizeMm": [63, 88],
-  "bleedMm": 3,
-  "cornerRadiusMm": 3,
-  "front": [],
-  "back": []
+  "width": 63,
+  "height": 88,
+  "bleed": 3,
+  "cornerRadius": 3,
+  "front": [
+    { "type": "text", "name": "costo", "x": 47, "y": 4, "w": 12, "h": 12, "text": "0", "weight": 800, "size": 13, "color": "#FFFFFF", "align": "center", "valign": "middle" },
+    { "type": "shape", "name": "costo_bg", "shape": "polygon", "sides": 4, "x": 46, "y": 3, "w": 14, "h": 14, "fill": "#B07A1E", "stroke": { "color": "#FFFFFF", "width": 0.5 } },
+    { "type": "text", "name": "nome", "x": 6, "y": 6, "w": 40, "h": 8, "text": "Oggetto", "weight": 800, "size": 13, "color": "#2A241C", "valign": "middle", "fit": "shrink" },
+    { "type": "image", "name": "icona", "x": 16.5, "y": 20, "w": 30, "h": 30, "src": "", "fit": "contain", "tint": "#5E5446" },
+    { "type": "text", "name": "effetto", "x": 6, "y": 56, "w": 51, "h": 26, "text": "", "weight": 600, "size": 9, "color": "#2A241C", "align": "center", "valign": "middle", "lineHeight": 1.3, "fit": "shrink" },
+    { "type": "shape", "name": "riquadro", "x": 4, "y": 53, "w": 55, "h": 31, "radius": 2, "fill": "#EDE4D3" },
+    { "type": "shape", "name": "sfondo", "x": -3, "y": -3, "w": 69, "h": 94, "fill": "#F4EFE4", "locked": true }
+  ],
+  "back": [
+    { "type": "shape", "name": "retro_sfondo", "x": -3, "y": -3, "w": 69, "h": 94, "fill": "#5E4421" }
+  ]
 }

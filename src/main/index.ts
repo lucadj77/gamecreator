@@ -3,6 +3,9 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
+import { handleAssetProtocol, registerAssetScheme, setProjectFolder } from './protocol'
+
+registerAssetScheme()
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -43,7 +46,11 @@ function registerIpc(): void {
     return result.canceled ? null : result.filePaths[0]
   })
 
-  ipcMain.handle('project:load', (_, folder: string) => loadProject(folder))
+  ipcMain.handle('project:load', async (_, folder: string) => {
+    const project = await loadProject(folder)
+    setProjectFolder(folder)
+    return project
+  })
 }
 
 app.whenReady().then(() => {
@@ -53,6 +60,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  handleAssetProtocol()
   registerIpc()
   createWindow()
 

@@ -194,3 +194,147 @@ th {
   place-items: center;
   color: var(--muted);
 }
+
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.sidebar h2 + ul {
+  margin-bottom: 16px;
+}
+
+.sidebar li.static {
+  padding: 4px 12px;
+}
+
+.set-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.set-header h1 {
+  margin: 0;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+  background: var(--panel);
+  align-self: center;
+}
+
+.segmented button {
+  border: none;
+  background: none;
+  padding: 3px 12px;
+  border-radius: 4px;
+}
+
+.segmented button.active {
+  background: var(--accent-soft);
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr.selected td {
+  background: var(--accent-soft);
+}
+
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-content: flex-start;
+}
+
+.card-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.card-cell svg {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+.card-cell.selected {
+  background: var(--accent-soft);
+}
+
+.card-caption {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.problem-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5484d;
+}
+
+.preview {
+  width: 320px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  padding: 12px 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-header h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+}
+
+.preview-card {
+  display: flex;
+  justify-content: center;
+}
+
+.preview-card svg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.problems h3 {
+  font-size: 13px;
+  margin: 0 0 4px;
+  color: #e5484d;
+}
+
+.problems ul {
+  margin: 0;
+  padding-left: 18px;
+}

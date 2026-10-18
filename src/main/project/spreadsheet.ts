@@ -3,12 +3,13 @@ import { extname } from 'path'
 import ExcelJS from 'exceljs'
 import Papa from 'papaparse'
 import type { Sheet } from '../../shared/project'
+import { MessageError, msg } from '../../shared/messages'
 
 export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   const ext = extname(path).toLowerCase()
   if (ext === '.xlsx') return readXlsx(path)
   if (ext === '.csv') return [await readCsv(path)]
-  throw new Error(`Formato del file dati non supportato: ${ext} (usa .xlsx o .csv)`)
+  throw new MessageError(msg('load.unsupportedDataFile', { ext }))
 }
 
 async function readXlsx(path: string): Promise<Sheet[]> {

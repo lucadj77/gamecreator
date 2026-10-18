@@ -32,24 +32,31 @@ interface Props {
   scale: number
   /** 'trim': carta rifilata con angoli arrotondati; 'bleed': con abbondanza e linea di taglio */
   mode?: 'trim' | 'bleed'
+  /**
+   * Area in mm da disegnare intorno alla carta, nell'editor: ciò che esce dalla carta si vede
+   * tenue, così un livello spostato fuori per errore si ritrova.
+   */
+  pasteboard?: { x: number; y: number; w: number; h: number }
 }
 
 export default function CardSvg({
   template: t,
   side = 'front',
   scale,
-  mode = 'trim'
+  mode = 'trim',
+  pasteboard
 }: Props): React.JSX.Element {
   const uid = useId().replace(/:/g, '')
   const b = mode === 'bleed' ? t.bleed : 0
   const layers = side === 'front' ? t.front : t.back
   const vw = t.width + 2 * b
   const vh = t.height + 2 * b
+  const box = pasteboard ?? { x: -b, y: -b, w: vw, h: vh }
   return (
     <svg
-      width={vw * scale}
-      height={vh * scale}
-      viewBox={`${-b} ${-b} ${vw} ${vh}`}
+      width={box.w * scale}
+      height={box.h * scale}
+      viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
       xmlns="http://www.w3.org/2000/svg"
       style={{ display: 'block' }}
     >
@@ -61,7 +68,28 @@ export default function CardSvg({
             <rect x={-b} y={-b} width={vw} height={vh} />
           )}
         </clipPath>
+        {pasteboard && (
+          <filter id={`${uid}-lift`} x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx={0} dy={0.6} stdDeviation={1} floodOpacity={0.3} />
+          </filter>
+        )}
       </defs>
+      {pasteboard && (
+        <>
+          <g opacity={0.35}>
+            <LayerList layers={layers} uid={`${uid}p`} />
+          </g>
+          <rect
+            x={-b}
+            y={-b}
+            width={vw}
+            height={vh}
+            rx={mode === 'trim' ? t.cornerRadius : 0}
+            fill="#FFFFFF"
+            filter={`url(#${uid}-lift)`}
+          />
+        </>
+      )}
       <g clipPath={`url(#${uid}-card)`}>
         <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />
         <LayerList layers={layers} uid={uid} />
@@ -93,7 +121,7 @@ function LayerList({ layers, uid }: { layers: Layer[]; uid: string }): React.JSX
 }
 
 function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.Element | null {
-  if (!l.visible) return null
+  if (!l.visible || l.type === 'value') return null
   const id = `${uid}-${l.id}`
   const { x: ax, y: ay } = anchorPoint(l)
   return (

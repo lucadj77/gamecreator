@@ -22,7 +22,7 @@ import {
   type Handle,
   type Point
 } from '../../../shared/model/geometry'
-import type { GroupLayer, Layer, Template } from '../../../shared/model/template'
+import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../shared/model/template'
 import CardSvg from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
@@ -35,6 +35,8 @@ const ROTATE_PX = 22
 const ZOOMS = [2, 3, 4, 6, 8, 12, 16]
 const MIN_SCALE = 1
 const MAX_SCALE = 60
+/** Margine in mm intorno alla carta; si allarga per contenere i livelli usciti */
+const PASTEBOARD = 10
 
 type Gesture =
   | { kind: 'move'; start: Template; ids: string[]; frame: GroupLayer[]; p0: Point; ref: Layer }
@@ -59,6 +61,8 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const [fitScale, setFitScale] = useState(4)
   const [zoom, setZoom] = useState<number | null>(null)
   const [guides, setGuides] = useState(loadGuides)
+  // durante un gesto l'area intorno alla carta resta ferma, altrimenti la carta scivolerebbe
+  const [frozen, setFrozen] = useState<Bounds | null>(null)
   const toggleGuide = (key: keyof Guides): void => {
     const next = { ...guides, [key]: !guides[key] }
     setGuides(next)
@@ -74,17 +78,29 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const vw = tpl.width + 2 * b
   const vh = tpl.height + 2 * b
   const scale = zoom ?? fitScale
+  const layers = tpl[side]
+  const card = { x: -b, y: -b, w: vw, h: vh }
+  // l'abbondanza fa parte della carta anche quando la guida è nascosta
+  const bleedBox = {
+    x: -tpl.bleed - 0.01,
+    y: -tpl.bleed - 0.01,
+    w: tpl.width + 2 * tpl.bleed + 0.02,
+    h: tpl.height + 2 * tpl.bleed + 0.02
+  }
+  const stage = frozen ?? stageBounds(card, layers)
 
   useLayoutEffect(() => {
     const el = viewportRef.current
     if (!el) return
     const update = (): void =>
-      setFitScale(Math.max(1, Math.min((el.clientWidth - 64) / vw, (el.clientHeight - 64) / vh)))
+      setFitScale(
+        Math.max(1, Math.min((el.clientWidth - 32) / stage.w, (el.clientHeight - 32) / stage.h))
+      )
     update()
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [vw, vh])
+  }, [stage.w, stage.h])
 
   // zoom con Cmd/Ctrl + rotella o con il pizzico sul trackpad, tenendo fermo il punto sotto il puntatore
   const scaleRef = useRef(scale)
@@ -97,9 +113,9 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     if (!a || !vp || !ov) return
     anchor.current = null
     const r = ov.getBoundingClientRect()
-    vp.scrollLeft += r.left + (a.mm.x + b) * scale - a.cx
-    vp.scrollTop += r.top + (a.mm.y + b) * scale - a.cy
-  }, [scale, b])
+    vp.scrollLeft += r.left + (a.mm.x - stage.x) * scale - a.cx
+    vp.scrollTop += r.top + (a.mm.y - stage.y) * scale - a.cy
+  }, [scale, stage.x, stage.y])
   useEffect(() => {
     const vp = viewportRef.current
     if (!vp) return
@@ -111,7 +127,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       const s = scaleRef.current
       const r = ov.getBoundingClientRect()
       anchor.current = {
-        mm: { x: (e.clientX - r.left) / s - b, y: (e.clientY - r.top) / s - b },
+        mm: { x: (e.clientX - r.left) / s + stage.x, y: (e.clientY - r.top) / s + stage.y },
         cx: e.clientX,
         cy: e.clientY
       }
@@ -121,14 +137,12 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     }
     vp.addEventListener('wheel', onWheel, { passive: false })
     return () => vp.removeEventListener('wheel', onWheel)
-  }, [b])
-
-  const layers = tpl[side]
+  }, [stage.x, stage.y])
 
   /** Punto della carta in mm sotto il puntatore */
   const cardPoint = (e: React.PointerEvent | React.MouseEvent): Point => {
     const r = overlayRef.current!.getBoundingClientRect()
-    return { x: (e.clientX - r.left) / scale - b, y: (e.clientY - r.top) / scale - b }
+    return { x: (e.clientX - r.left) / scale + stage.x, y: (e.clientY - r.top) / scale + stage.y }
   }
 
   /** Livello colpito, prima nel gruppo in cui si è entrati e poi al primo livello */
@@ -146,6 +160,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
 
   const begin = (e: React.PointerEvent, g: Gesture): void => {
     gesture.current = g
+    setFrozen(stage)
     overlayRef.current!.setPointerCapture(e.pointerId)
     dispatch({ type: 'gestureStart' })
   }
@@ -158,6 +173,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       // sul vuoto si trascina un rettangolo di selezione
       if (!e.shiftKey) dispatch({ type: 'select', ids: [], scope })
       marqueeStart.current = { p0: p, base: e.shiftKey ? selection : [] }
+      setFrozen(stage)
       overlayRef.current!.setPointerCapture(e.pointerId)
       return
     }
@@ -207,7 +223,9 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       const list = group?.type === 'group' ? group.children : layers
       const chain = group?.type === 'group' ? [...frameOf(group.id), group] : []
       const inside = list
-        .filter((l) => l.visible && !l.locked && intersects(worldBounds(l, chain), box))
+        .filter(
+          (l) => isDrawn(l) && l.visible && !l.locked && intersects(worldBounds(l, chain), box)
+        )
         .map((l) => l.id)
       dispatch({ type: 'select', ids: [...new Set([...m.base, ...inside])] })
       return
@@ -242,11 +260,13 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     if (marqueeStart.current) {
       marqueeStart.current = null
       setMarquee(null)
+      setFrozen(null)
       overlayRef.current?.releasePointerCapture(e.pointerId)
       return
     }
     if (!gesture.current) return
     gesture.current = null
+    setFrozen(null)
     overlayRef.current?.releasePointerCapture(e.pointerId)
     dispatch({ type: 'gestureEnd' })
   }
@@ -264,7 +284,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const px = 1 / scale
   const selected = selection
     .map((id) => findLayer(layers, id))
-    .filter((l): l is Layer => l !== null)
+    .filter((l): l is Layer => l !== null && isDrawn(l))
   const scopeGroup = scope ? findLayer(layers, scope) : null
 
   return (
@@ -277,24 +297,26 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
           if (e.target !== e.currentTarget || e.button !== 0) return
           if (!e.shiftKey) dispatch({ type: 'select', ids: [], scope: null })
           marqueeStart.current = { p0: cardPoint(e), base: e.shiftKey ? selection : [] }
+          setFrozen(stage)
           overlayRef.current?.setPointerCapture(e.pointerId)
         }}
       >
-        <div className="canvas-stage" style={{ width: vw * scale, height: vh * scale }}>
+        <div className="canvas-stage" style={{ width: stage.w * scale, height: stage.h * scale }}>
           <ShowEmptyContext.Provider value={true}>
             <CardSvg
               template={display}
               side={side}
               scale={scale}
               mode={guides.bleed ? 'bleed' : 'trim'}
+              pasteboard={stage}
             />
           </ShowEmptyContext.Provider>
           <svg
             ref={overlayRef}
             className="canvas-overlay"
-            width={vw * scale}
-            height={vh * scale}
-            viewBox={`${-b} ${-b} ${vw} ${vh}`}
+            width={stage.w * scale}
+            height={stage.h * scale}
+            viewBox={`${stage.x} ${stage.y} ${stage.w} ${stage.h}`}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -310,6 +332,14 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                 vectorEffect="non-scaling-stroke"
               />
             )}
+            {/* i livelli che escono dalla carta hanno un contorno: si ritrovano anche se chiari */}
+            {layers
+              .filter((l) => isDrawn(l) && l.visible && !inside(worldBounds(l, []), bleedBox))
+              .map((l) => (
+                <Framed key={l.id} chain={[]} layer={l}>
+                  <Outline b={l} className="outside-outline" />
+                </Framed>
+              ))}
             {marquee && (
               <rect
                 x={marquee.x}
@@ -467,6 +497,27 @@ function worldBounds(l: Layer, chain: GroupLayer[]): Bounds {
   const x = Math.min(...xs)
   const y = Math.min(...ys)
   return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y }
+}
+
+/** Carta con un margine, allargata ai livelli che ne escono */
+function stageBounds(card: Bounds, layers: Layer[]): Bounds {
+  let x1 = card.x - PASTEBOARD
+  let y1 = card.y - PASTEBOARD
+  let x2 = card.x + card.w + PASTEBOARD
+  let y2 = card.y + card.h + PASTEBOARD
+  for (const l of layers) {
+    if (!isDrawn(l) || !l.visible) continue
+    const w = worldBounds(l, [])
+    x1 = Math.min(x1, w.x - 2)
+    y1 = Math.min(y1, w.y - 2)
+    x2 = Math.max(x2, w.x + w.w + 2)
+    y2 = Math.max(y2, w.y + w.h + 2)
+  }
+  return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 }
+}
+
+function inside(a: Bounds, b: Bounds): boolean {
+  return a.x >= b.x && a.y >= b.y && a.x + a.w <= b.x + b.w && a.y + a.h <= b.y + b.h
 }
 
 function intersects(a: Bounds, b: Bounds): boolean {

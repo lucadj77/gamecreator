@@ -109,8 +109,9 @@ export default function TemplateEditor({
   const display = useMemo(() => {
     const data = previewSet?.data
     const row = data?.rows[preview?.row ?? -1]
-    if (!data || !row) return null
-    return bindCard(state.template, rowToCard(data.headers, row))
+    // senza riga si applicano i soli valori del template: le formule mostrano il risultato
+    const card = data && row ? rowToCard(data.headers, row) : { fields: {}, amount: 1 }
+    return bindCard(state.template, card)
   }, [state.template, previewSet, preview?.row])
 
   const tools: [string, () => void, string][] = [
@@ -118,7 +119,12 @@ export default function TemplateEditor({
     ['▣', () => cmd.add('image'), t('tool.image')],
     ...(['rect', 'ellipse', 'polygon', 'star', 'line'] as ShapeKind[]).map<
       [string, () => void, string]
-    >((s) => [SHAPE_ICONS[s], () => cmd.add('shape', s), t(`tool.${s}` as Parameters<typeof t>[0])])
+    >((s) => [
+      SHAPE_ICONS[s],
+      () => cmd.add('shape', s),
+      t(`tool.${s}` as Parameters<typeof t>[0])
+    ]),
+    ['=', () => cmd.add('value'), t('tool.value')]
   ]
 
   return (
@@ -195,8 +201,8 @@ export default function TemplateEditor({
         <LayersPanel state={state} dispatch={dispatch} cmd={cmd} width={layersWidth} />
         <Resizer width={layersWidth} onChange={setLayersWidth} edge="left" />
         <div className="editor-center">
-          <Canvas state={state} display={display?.template ?? state.template} dispatch={dispatch} />
-          {display && display.problems.length > 0 && (
+          <Canvas state={state} display={display.template} dispatch={dispatch} />
+          {display.problems.length > 0 && (
             <div className="canvas-problems">
               {display.problems.map((p, i) => (
                 <div key={i}>{t(p)}</div>

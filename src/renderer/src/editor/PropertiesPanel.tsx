@@ -9,11 +9,13 @@ import type {
   ShapeKind,
   ShapeLayer,
   Template,
-  TextLayer
+  TextLayer,
+  ValueLayer
 } from '../../../shared/model/template'
+import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
-import { rowToCard } from '../../../shared/model/bind'
+import { cardFields, rowToCard } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext } from '../render/assets'
 import {
@@ -81,7 +83,12 @@ export default function PropertiesPanel({
           )}
         </>
       ) : (
-        <TemplateProperties template={tpl} dispatch={dispatch} onResize={onResize} />
+        <TemplateProperties
+          template={tpl}
+          dispatch={dispatch}
+          sheets={sheets}
+          onResize={onResize}
+        />
       )}
     </aside>
   )
@@ -90,10 +97,12 @@ export default function PropertiesPanel({
 function TemplateProperties({
   template: tpl,
   dispatch,
+  sheets,
   onResize
 }: {
   template: Template
   dispatch: React.Dispatch<EditorAction>
+  sheets: Props['sheets']
   onResize(width: number, height: number): void
 }): React.JSX.Element {
   const { t } = useI18n()
@@ -111,6 +120,7 @@ function TemplateProperties({
         value={tpl.width}
         min={5}
         unit="mm"
+        deferred
         onChange={(w) => onResize(w, tpl.height)}
       />
       <NumberField
@@ -118,6 +128,7 @@ function TemplateProperties({
         value={tpl.height}
         min={5}
         unit="mm"
+        deferred
         onChange={(h) => onResize(tpl.width, h)}
       />
       <NumberField
@@ -141,9 +152,30 @@ function TemplateProperties({
         unit="mm"
         onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
       />
+      <SelectField<string>
+        label={t('prop.labelField')}
+        hint={t('editor.labelFieldHint')}
+        value={tpl.labelField ?? ''}
+        options={[
+          ['', t('editor.labelFieldAuto')],
+          ...labelChoices(tpl, sheets).map((f): [string, string] => [f, f])
+        ]}
+        onChange={(f) => set({ labelField: f || null }, 'labelField')}
+      />
       <p className="muted small">{t('editor.noSelectionHint')}</p>
     </>
   )
+}
+
+/** Campi che possono dare il nome alle carte: colonne dei fogli e livelli del template */
+function labelChoices(tpl: Template, sheets: Props['sheets']): string[] {
+  const headers = sheets.flatMap((s) => s.headers).filter((h) => h !== 'amount' && !h.includes('.'))
+  const layers = walkLayers([...tpl.front, ...tpl.back])
+    .filter((l) => l.type !== 'group')
+    .map((l) => l.name)
+  const all = [...new Set([...headers, ...layers])]
+  if (tpl.labelField && !all.includes(tpl.labelField)) all.push(tpl.labelField)
+  return all
 }
 
 function LayerProperties({
@@ -174,6 +206,9 @@ function LayerProperties({
     return null
   }
 
+  // con una formula il valore principale è calcolato: il campo del valore non serve
+  const computed = l.source.kind === 'formula'
+
   return (
     <>
       <h2>
@@ -187,11 +222,12 @@ function LayerProperties({
         validate={validateName}
         onChange={(name) => set({ name })}
       />
-      <ValueSource layer={l} sheets={sheets} set={set} />
+      <ValueSource layer={l} template={tpl} sheets={sheets} set={set} />
 
-      {l.type === 'text' && <TextProperties l={l} set={set} col={col} />}
-      {l.type === 'image' && <ImageProperties l={l} set={set} col={col} />}
-      {l.type === 'shape' && <ShapeProperties l={l} set={set} col={col} />}
+      {l.type === 'text' && <TextProperties l={l} set={set} col={col} computed={computed} />}
+      {l.type === 'image' && <ImageProperties l={l} set={set} col={col} computed={computed} />}
+      {l.type === 'shape' && <ShapeProperties l={l} set={set} col={col} computed={computed} />}
+      {l.type === 'value' && <ValueProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'group' && (
         <CheckField
           label={t('prop.clip')}
@@ -201,6 +237,16 @@ function LayerProperties({
         />
       )}
 
+      {l.type !== 'value' && <DrawnProperties l={l} set={set} col={col} />}
+    </>
+  )
+}
+
+/** Geometria e aspetto: i livelli valore non li hanno */
+function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): React.JSX.Element {
+  const { t } = useI18n()
+  return (
+    <>
       <h3>{t('editor.geometry')}</h3>
       <div className="field-grid">
         <NumberField label="X" hint={col('x')} value={l.x} unit="mm" onChange={(x) => set({ x })} />
@@ -256,6 +302,7 @@ function LayerProperties({
       <CheckField
         label={t('prop.visible')}
         hint={l.type === 'group' ? col() : col('visible')}
+        disabled={l.type === 'group' && l.source.kind === 'formula'}
         value={l.visible}
         onChange={(visible) => set({ visible })}
       />
@@ -274,6 +321,8 @@ interface TypeProps<T> {
   l: T
   set: SetFn<Layer>
   col(prop?: string): string
+  /** Il valore principale viene da una formula */
+  computed: boolean
 }
 
 function options<T extends string>(
@@ -297,17 +346,22 @@ const ANCHORS: Anchor[] = [
 ]
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 
-function TextProperties({ l, set: setLayer, col }: TypeProps<TextLayer>): React.JSX.Element {
+function TextProperties({
+  l,
+  set: setLayer,
+  col,
+  computed
+}: TypeProps<TextLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<TextLayer>
   return (
     <>
       <TextField
         label={t('prop.text')}
-        hint={col()}
+        hint={computed ? t('source.computedHint') : col()}
+        disabled={computed}
         value={l.text}
         multiline
-        live
         onChange={(text) => set({ text })}
       />
       <h3>{t('editor.typography')}</h3>
@@ -438,7 +492,12 @@ function useAssetNames(): string[] {
   }, [assets])
 }
 
-function ImageProperties({ l, set: setLayer, col }: TypeProps<ImageLayer>): React.JSX.Element {
+function ImageProperties({
+  l,
+  set: setLayer,
+  col,
+  computed
+}: TypeProps<ImageLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<ImageLayer>
   const names = useAssetNames()
@@ -449,7 +508,8 @@ function ImageProperties({ l, set: setLayer, col }: TypeProps<ImageLayer>): Reac
     <>
       <TextField
         label={t('prop.src')}
-        hint={col()}
+        hint={computed ? t('source.computedHint') : col()}
+        disabled={computed}
         value={l.src}
         list={listId}
         placeholder={t('editor.srcPlaceholder')}
@@ -460,7 +520,7 @@ function ImageProperties({ l, set: setLayer, col }: TypeProps<ImageLayer>): Reac
           <option key={n} value={n} />
         ))}
       </datalist>
-      {!res.ok && res.reason !== 'empty' && !l.src.includes('{') && (
+      {!computed && !res.ok && res.reason !== 'empty' && !l.src.includes('{') && (
         <p className="field-note">
           {res.reason === 'ambiguous'
             ? t('editor.srcAmbiguous', { files: res.candidates.join(', ') })
@@ -518,9 +578,36 @@ function ImageProperties({ l, set: setLayer, col }: TypeProps<ImageLayer>): Reac
   )
 }
 
+function ValueProperties({
+  l,
+  set: setLayer,
+  col,
+  computed
+}: TypeProps<ValueLayer>): React.JSX.Element {
+  const { t } = useI18n()
+  const set = setLayer as SetFn<ValueLayer>
+  return (
+    <>
+      <TextField
+        label={t('prop.value')}
+        hint={computed ? t('source.computedHint') : col()}
+        disabled={computed}
+        value={l.value}
+        onChange={(value) => set({ value })}
+      />
+      <p className="small muted">{t('editor.valueHint', { name: l.name })}</p>
+    </>
+  )
+}
+
 const SHAPES: ShapeKind[] = ['rect', 'ellipse', 'polygon', 'star', 'line', 'path']
 
-function ShapeProperties({ l, set: setLayer, col }: TypeProps<ShapeLayer>): React.JSX.Element {
+function ShapeProperties({
+  l,
+  set: setLayer,
+  col,
+  computed
+}: TypeProps<ShapeLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<ShapeLayer>
   return (
@@ -534,7 +621,8 @@ function ShapeProperties({ l, set: setLayer, col }: TypeProps<ShapeLayer>): Reac
       />
       <ColorField
         label={t('prop.fill')}
-        hint={col()}
+        hint={computed ? t('source.computedHint') : col()}
+        disabled={computed}
         value={l.fill}
         nullable
         fallback="#CCCCCC"
@@ -596,10 +684,12 @@ function ShapeProperties({ l, set: setLayer, col }: TypeProps<ShapeLayer>): Reac
 /** Valore principale sulle carte: colonna del foglio, valore fisso o formula */
 function ValueSource({
   layer: l,
+  template,
   sheets,
   set
 }: {
   layer: Layer
+  template: Template
   sheets: Props['sheets']
   set(patch: Partial<Layer>): void
 }): React.JSX.Element {
@@ -613,11 +703,17 @@ function ValueSource({
   const headers = [...new Set(sheets.flatMap((s) => s.headers))].filter(
     (h) => h !== 'amount' && !h.includes('.')
   )
-  // anteprima della formula sulla prima riga disponibile
+  // anteprima della formula sulla prima riga disponibile, o con i soli valori del template
   const sample = sheets.find((s) => s.rows.length)
   const preview =
-    src.kind === 'formula' && sample
-      ? evaluateFormula(src.expr, rowToCard(sample.headers, sample.rows[0]).fields)
+    src.kind === 'formula'
+      ? evaluateFormula(
+          src.expr,
+          cardFields(
+            template,
+            sample ? rowToCard(sample.headers, sample.rows[0]) : { fields: {}, amount: 1 }
+          )
+        )
       : null
   const listId = `columns-${l.id}`
 
@@ -664,19 +760,26 @@ function ValueSource({
           label={t('source.formula')}
           value={src.expr}
           hint={t('source.formulaHint')}
+          multiline
+          rows={3}
           onChange={(expr) => set({ source: { kind: 'formula', expr } })}
         />
       )}
+      {src.kind === 'formula' && <p className="small muted">{t('source.formulaHelp')}</p>}
       <p className="small muted">
         {src.kind === 'fixed'
           ? t('source.fixedNote')
           : src.kind === 'formula'
-            ? preview
-              ? t('source.formulaPreview', { value: preview.value || '∅', set: sample!.set })
-              : t('source.formulaNote')
-            : found.length
-              ? t('source.columnFound', { column, sets: found.join(', ') })
-              : t('source.columnMissing', { column })}
+            ? preview?.error
+              ? t('source.formulaError', { error: preview.error })
+              : sample
+                ? t('source.formulaPreview', { value: preview?.value || '∅', set: sample.set })
+                : t('source.formulaPreviewDefaults', { value: preview?.value || '∅' })
+            : l.type === 'value' && !found.length && !src.column
+              ? t('source.valueColumn', { column })
+              : found.length
+                ? t('source.columnFound', { column, sets: found.join(', ') })
+                : t('source.columnMissing', { column })}
         {others.length > 0 && (
           <>
             <br />

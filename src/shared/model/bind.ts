@@ -1,5 +1,6 @@
 import { msg, type Message } from '../messages'
 import { evaluateFormula } from './formula'
+import { walkLayers } from './normalize'
 import { PRIMARY_PROPERTY, type Layer, type Shadow, type Stroke, type Template } from './template'
 
 // Applica una riga del foglio a un template: vedi docs/formato.md, "Fogli dati".
@@ -14,6 +15,8 @@ export interface BoundCard {
   template: Template
   amount: number
   problems: Message[]
+  /** Nome della carta: il campo scelto nel template, o la prima colonna non vuota */
+  label: string
 }
 
 export function rowToCard(headers: string[], row: string[]): CardData {
@@ -35,6 +38,7 @@ export function bindCard(template: Template, card: CardData): BoundCard {
     overrides.get(layer)!.set(prop ?? '', value)
   }
 
+  const fields = cardFields(template, card)
   const apply = (layers: Layer[]): Layer[] =>
     layers.map((layer) => {
       let out: Layer = layer
@@ -44,7 +48,7 @@ export function bindCard(template: Template, card: CardData): BoundCard {
       // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
       if (src.kind === 'fixed') props.delete('')
       if (src.kind === 'formula') {
-        const r = evaluateFormula(src.expr, card.fields)
+        const r = evaluateFormula(src.expr, fields)
         for (const f of r.missing)
           problems.push(msg('bind.formulaField', { layer: layer.name, field: f }))
         if (r.value.trim() !== '') props.set('', r.value)
@@ -65,8 +69,8 @@ export function bindCard(template: Template, card: CardData): BoundCard {
         }
         out = { ...layer, ...patch } as Layer
       }
-      if (out.type === 'text') out = { ...out, text: substituteFields(out.text, card.fields) }
-      if (out.type === 'image') out = { ...out, src: substituteFields(out.src, card.fields) }
+      if (out.type === 'text') out = { ...out, text: substituteFields(out.text, fields) }
+      if (out.type === 'image') out = { ...out, src: substituteFields(out.src, fields) }
       if (out.type === 'group') out = { ...out, children: apply(out.children) }
       return out
     })
@@ -74,8 +78,59 @@ export function bindCard(template: Template, card: CardData): BoundCard {
   return {
     template: { ...template, front: apply(template.front), back: apply(template.back) },
     amount: card.amount,
-    problems
+    problems,
+    label: cardLabel(template, card, fields)
   }
+}
+
+function cardLabel(template: Template, card: CardData, fields: Record<string, string>): string {
+  if (template.labelField) return fields[template.labelField] ?? ''
+  const first = Object.entries(card.fields).find(
+    ([h, v]) => h !== 'amount' && !h.includes('.') && v.trim() !== ''
+  )
+  return first?.[1] ?? ''
+}
+
+/** Valore principale di un livello come testo, quello che vale se la riga non lo cambia */
+function defaultValue(l: Layer): string | null {
+  switch (l.type) {
+    case 'text':
+      return l.text
+    case 'image':
+      return l.src
+    case 'shape':
+      return l.fill ?? ''
+    case 'value':
+      return l.value
+    default:
+      return null
+  }
+}
+
+/**
+ * Campi disponibili per formule e {campo}: i valori del template come base, sopra le celle non
+ * vuote della riga, poi i livelli valore calcolati in ordine (uno può usare i precedenti).
+ */
+export function cardFields(template: Template, card: CardData): Record<string, string> {
+  const all = walkLayers([...template.front, ...template.back])
+  const fields: Record<string, string> = {}
+  for (const l of all) {
+    const v = defaultValue(l)
+    if (v !== null) fields[l.name] = v
+  }
+  for (const [k, v] of Object.entries(card.fields))
+    if (v.trim() !== '' || !(k in fields)) fields[k] = v
+  for (const l of all) {
+    if (l.type !== 'value') continue
+    const src = l.source
+    if (src.kind === 'fixed') fields[l.name] = l.value
+    else if (src.kind === 'formula') fields[l.name] = evaluateFormula(src.expr, fields).value
+    else if (src.column) {
+      const cell = card.fields[src.column]
+      fields[l.name] = cell?.trim() ? cell : l.value
+    }
+  }
+  return fields
 }
 
 /** Sostituisce {campo} con il valore della riga; le altre graffe restano per le variabili */

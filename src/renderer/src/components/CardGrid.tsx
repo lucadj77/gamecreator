@@ -23,8 +23,9 @@ function CardGrid({ cards, side, selected, onSelect, scale }: Props): React.JSX.
           onClick={() => onSelect(i)}
         >
           <CardSvg template={c.template} side={side} scale={scale} />
-          <span className="card-caption">
-            {i + 1} <span className="muted">{t('set.copies', { n: c.amount })}</span>
+          <span className="card-caption" title={`${i + 1}`}>
+            <span className="card-label">{c.label || i + 1}</span>
+            {c.amount !== 1 && <span className="muted"> {t('set.copies', { n: c.amount })}</span>}
             {c.problems.length > 0 && <span className="problem-dot" aria-label="!" />}
           </span>
         </button>

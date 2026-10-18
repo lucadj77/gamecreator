@@ -26,3 +26,35 @@ describe('formule', () => {
     expect(arithmetic('abc')).toBeNull()
   })
 })
+
+describe('espressioni con =', () => {
+  const f = { forza: '4', nome: 'Drago', costo: '', tipo: 'mostro' }
+  const ev = (e: string): string => evaluateFormula(e, f).value
+
+  it('IF con confronti, testo e numeri', () => {
+    expect(ev('=IF({forza}>3; "Forte"; "Debole")')).toBe('Forte')
+    expect(ev('=IF({forza}>=5, "Forte", "Debole")')).toBe('Debole')
+    expect(ev('=IF({tipo}="MOSTRO"; 1; 0)')).toBe('1')
+    expect(ev('=IF(ISBLANK({costo}); "gratis"; {costo})')).toBe('gratis')
+  })
+
+  it('aritmetica, concatenazione e funzioni', () => {
+    expect(ev('={forza}*2+1')).toBe('9')
+    expect(ev('={nome} & " (" & {forza} & ")"')).toBe('Drago (4)')
+    expect(ev('=ROUND(10/3; 2)')).toBe('3.33')
+    expect(ev('=UPPER({nome})')).toBe('DRAGO')
+    expect(ev('=AND({forza}>1; NOT({tipo}="eroe"))')).toBe('true')
+    expect(ev('=MAX({forza}; 7)')).toBe('7')
+  })
+
+  it('IF non calcola il ramo scartato', () => {
+    expect(evaluateFormula('=IF(FALSE; 1/0; "ok")', f).error).toBeUndefined()
+  })
+
+  it('segnala errori e campi mancanti', () => {
+    expect(evaluateFormula('=IF({forza}>3; "a"', f).error).toBeTruthy()
+    expect(evaluateFormula('=PIPPO(1)', f).error).toContain('PIPPO')
+    expect(evaluateFormula('={x}+1', f).missing).toEqual(['x'])
+    expect(evaluateFormula('={nome}+1', f).error).toBeTruthy()
+  })
+})

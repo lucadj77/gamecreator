@@ -6,8 +6,10 @@ import type {
   LayerBase,
   ShapeLayer,
   Template,
-  TextLayer
+  TextLayer,
+  ValueLayer
 } from './template'
+import { isDrawn } from './template'
 
 // Nei file i livelli riportano solo le proprietà diverse dai default; qui si completano.
 
@@ -119,6 +121,14 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
         id: base.id,
         type: 'shape'
       }
+    case 'value':
+      return {
+        ...base,
+        value: '',
+        ...(raw as Partial<ValueLayer>),
+        id: base.id,
+        type: 'value'
+      }
     case 'group': {
       const children = (raw.children ?? []).map(normalizeLayer)
       return {
@@ -139,7 +149,8 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
   }
 }
 
-function extent(layers: Layer[]): Partial<LayerBase> {
+function extent(all: Layer[]): Partial<LayerBase> {
+  const layers = all.filter(isDrawn)
   if (!layers.length) return {}
   const x = Math.min(...layers.map((l) => l.x))
   const y = Math.min(...layers.map((l) => l.y))
@@ -181,7 +192,8 @@ const TYPE_DEFAULTS: Record<Layer['type'], Record<string, unknown>> = {
   text: TEXT_DEFAULTS,
   image: IMAGE_DEFAULTS,
   shape: SHAPE_DEFAULTS,
-  group: { clip: false }
+  group: { clip: false },
+  value: { value: '' }
 }
 
 /** Arrotonda ai millesimi: dopo spostamenti e scalature restano code come 12.000000001 */
@@ -200,7 +212,9 @@ export function denormalizeLayer(l: Layer): RawLayer {
   for (const [k, v] of Object.entries(l)) {
     if (k === 'id' || k === 'type' || k === 'name' || k === 'children') continue
     // il riquadro di un gruppo si ricava dai figli
-    if (l.type === 'group' && ['x', 'y', 'w', 'h'].includes(k)) continue
+    if ((l.type === 'group' || l.type === 'value') && ['x', 'y', 'w', 'h'].includes(k)) continue
+    // un valore non si disegna: delle proprietà comuni conta solo la fonte
+    if (l.type === 'value' && k !== 'source' && k !== 'value') continue
     const value = tidy(v)
     if (k in defaults && JSON.stringify(value) === JSON.stringify(defaults[k])) continue
     out[k] = value
@@ -217,6 +231,7 @@ export function denormalizeTemplate(t: Template): RawTemplate {
     bleed: t.bleed,
     safeMargin: t.safeMargin,
     cornerRadius: t.cornerRadius,
+    ...(t.labelField ? { labelField: t.labelField } : {}),
     front: t.front.map(denormalizeLayer),
     back: t.back.map(denormalizeLayer)
   }

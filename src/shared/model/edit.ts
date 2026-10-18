@@ -1,5 +1,12 @@
 import { normalizeLayer, walkLayers } from './normalize'
-import type { GroupLayer, Layer, LayerType, Side, Template } from './template'
+import {
+  isDrawn,
+  type GroupLayer,
+  type Layer,
+  type LayerType,
+  type Side,
+  type Template
+} from './template'
 
 // Operazioni sui livelli di un template. Tutte pure: restituiscono un nuovo template.
 // I figli di un gruppo hanno coordinate assolute sulla carta; il riquadro del gruppo
@@ -61,7 +68,8 @@ export function patchLayer(t: Template, side: Side, id: string, patch: Partial<L
 }
 
 /** Ingombro di un insieme di livelli, senza tener conto della rotazione */
-export function boundsOf(layers: Layer[]): Bounds {
+export function boundsOf(all: Layer[]): Bounds {
+  const layers = all.filter(isDrawn)
   if (!layers.length) return { x: 0, y: 0, w: 0, h: 0 }
   const x1 = Math.min(...layers.map((l) => l.x))
   const y1 = Math.min(...layers.map((l) => l.y))
@@ -71,7 +79,7 @@ export function boundsOf(layers: Layer[]): Bounds {
 }
 
 function fitGroup(g: GroupLayer): GroupLayer {
-  if (!g.children.length) return g
+  if (!g.children.some(isDrawn)) return g
   // un gruppo ritagliato occupa solo la sua maschera, il livello in fondo
   if (g.clip && g.children.length > 1) return { ...g, ...boundsOf(g.children.slice(-1)) }
   return { ...g, ...boundsOf(g.children) }
@@ -272,6 +280,8 @@ export function newLayer(t: Template, type: LayerType, shape?: string): Layer {
       return normalizeLayer({ type, name: uniqueName(t, 'text'), text: 'Text', ...base }, 0)
     case 'image':
       return normalizeLayer({ type, name: uniqueName(t, 'image'), ...base }, 0)
+    case 'value':
+      return normalizeLayer({ type, name: uniqueName(t, 'value') }, 0)
     default:
       return normalizeLayer(
         { type: 'shape', shape: shape ?? 'rect', name: uniqueName(t, shape ?? 'shape'), ...base },

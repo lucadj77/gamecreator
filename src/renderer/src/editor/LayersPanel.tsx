@@ -23,7 +23,8 @@ const ICONS: Record<string, string> = {
   polygon: '⬢',
   star: '★',
   line: '╱',
-  path: '✎'
+  path: '✎',
+  value: '='
 }
 
 export default function LayersPanel({ state, dispatch, cmd, width }: Props): React.JSX.Element {

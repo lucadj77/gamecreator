@@ -108,7 +108,16 @@ export interface GroupLayer extends LayerBase {
   children: Layer[]
 }
 
-export type Layer = TextLayer | ImageLayer | ShapeLayer | GroupLayer
+/**
+ * Valore della carta senza rappresentazione: non si disegna, ma il suo risultato si può usare
+ * come {nome} nelle formule e nei testi degli altri livelli.
+ */
+export interface ValueLayer extends LayerBase {
+  type: 'value'
+  value: string
+}
+
+export type Layer = TextLayer | ImageLayer | ShapeLayer | GroupLayer | ValueLayer
 export type LayerType = Layer['type']
 
 export interface Template {
@@ -120,6 +129,8 @@ export interface Template {
   bleed: number
   safeMargin: number
   cornerRadius: number
+  /** Campo che dà il nome alle carte nelle anteprime dei set; null usa la prima colonna */
+  labelField?: string | null
   front: Layer[]
   back: Layer[]
 }
@@ -129,5 +140,9 @@ export const PRIMARY_PROPERTY: Record<LayerType, string> = {
   text: 'text',
   image: 'src',
   shape: 'fill',
-  group: 'visible'
+  group: 'visible',
+  value: 'value'
 }
+
+/** I livelli valore non hanno riquadro: non si disegnano, non si selezionano sulla carta */
+export const isDrawn = (l: Layer): boolean => l.type !== 'value'

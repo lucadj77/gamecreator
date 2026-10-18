@@ -94,3 +94,52 @@ describe('fonte del valore', () => {
     expect(bound.problems.map((p) => p.params?.field)).toEqual(['forza'])
   })
 })
+
+describe('valori predefiniti e livelli valore', () => {
+  const t = normalizeTemplate({
+    name: 'v',
+    front: [
+      { type: 'value', name: 'forza', value: '3' },
+      { type: 'value', name: 'doppia', source: { kind: 'formula', expr: '={forza}*2' } },
+      {
+        type: 'text',
+        name: 'giudizio',
+        source: { kind: 'formula', expr: '=IF({doppia}>6; "Forte"; "Debole")' }
+      },
+      { type: 'text', name: 'titolo', text: 'Drago' },
+      { type: 'text', name: 'eco', source: { kind: 'formula', expr: '{titolo}!' } }
+    ]
+  })
+  const text = (b: ReturnType<typeof bindCard>, i: number): string =>
+    (b.template.front[i] as TextLayer).text
+
+  it('senza riga usa i valori del template', () => {
+    const b = bindCard(t, { fields: {}, amount: 1 })
+    expect(text(b, 2)).toBe('Debole')
+    expect(text(b, 4)).toBe('Drago!')
+    expect(b.problems).toEqual([])
+  })
+
+  it('la riga cambia i valori e i livelli valore si ricalcolano', () => {
+    const b = bindCard(t, rowToCard(['forza', 'titolo'], ['5', 'Orco']))
+    expect(text(b, 2)).toBe('Forte')
+    expect(text(b, 4)).toBe('Orco!')
+  })
+
+  it('un livello valore non ha riquadro e non sposta i gruppi', () => {
+    const g = normalizeTemplate({
+      name: 'g',
+      front: [
+        {
+          type: 'group',
+          name: 'gr',
+          children: [
+            { type: 'value', name: 'v' },
+            { type: 'shape', name: 's', x: 10, y: 10, w: 5, h: 5 }
+          ]
+        }
+      ]
+    }).front[0]
+    expect([g.x, g.y, g.w, g.h]).toEqual([10, 10, 5, 5])
+  })
+})

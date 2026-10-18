@@ -55,7 +55,7 @@ export function toFrame(p: Point, chain: GroupLayer[]): Point {
 const HIT_PAD = 0.6
 
 export function hitTest(l: Layer, p: Point): boolean {
-  if (!l.visible) return false
+  if (!l.visible || l.type === 'value') return false
   const q = toLocal(l, p)
   if (l.type === 'group') return l.children.some((c) => hitTest(c, q))
   const px = l.w < 2 * HIT_PAD ? HIT_PAD : 0

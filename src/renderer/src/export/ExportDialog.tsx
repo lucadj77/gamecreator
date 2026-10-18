@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
+import type { Side } from '../../../shared/model/template'
 import { bindCard, cardFields, rowToCard } from '../../../shared/model/bind'
 import { walkLayers } from '../../../shared/model/normalize'
 import { resolveAsset } from '../../../shared/model/assets'
@@ -9,6 +10,7 @@ import {
   DEFAULT_PDF,
   DEFAULT_TTS,
   pdfGrid,
+  sidesOf,
   type ExportJob,
   type ExportKind,
   type ExportProfiles,
@@ -153,9 +155,15 @@ export default function ExportDialog({
         styles: project.file.styles ?? {},
         variables: project.file.variables ?? {}
       })
-      const missing = missingImages(project, sets)
+      const sides: Side[] =
+        kind === 'images'
+          ? sidesOf(img.sides)
+          : kind === 'pdf' && pdf.duplex === 'none'
+            ? sidesOf(pdf.sides)
+            : ['front', 'back']
+      const missing = missingImages(project, sets, sides)
       if (missing.length)
-        r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join(', ') } })
+        r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join('; ') } })
       const fonts = missingFonts(project, sets, hasFont)
       if (fonts.length)
         r.warnings.push({ key: 'export.missingFonts', params: { fonts: fonts.join(', ') } })
@@ -743,23 +751,31 @@ export default function ExportDialog({
   )
 }
 
-/** Carte con immagini che mancano in assets/: nell'esportazione restano i segnaposto */
-function missingImages(project: LoadedProject, sets: ExportSet[]): string[] {
-  const out: string[] = []
+/**
+ * Immagini che mancano in assets/ nei lati esportati, ognuna con le carte che la usano:
+ * nell'esportazione restano i segnaposto
+ */
+function missingImages(project: LoadedProject, sets: ExportSet[], sides: Side[]): string[] {
+  const byImage = new Map<string, string[]>()
   for (const set of sets)
     for (const c of set.cards) {
-      const layers = walkLayers([...c.template.front, ...c.template.back])
-      const missing = layers.some(
-        (l) =>
-          l.type === 'image' &&
-          l.visible &&
-          l.missing !== 'hide' &&
-          l.src.trim() !== '' &&
-          !resolveAsset(l.src, project.assets).ok
+      const layers = walkLayers(sides.flatMap((side) => c.template[side]))
+      const names = new Set(
+        layers
+          .filter(
+            (l) =>
+              l.type === 'image' &&
+              l.visible &&
+              l.missing !== 'hide' &&
+              l.src.trim() !== '' &&
+              !resolveAsset(l.src, project.assets).ok
+          )
+          .map((l) => (l.type === 'image' ? l.src.trim() : ''))
       )
-      if (missing) out.push(`${set.name} ${c.n}${c.label ? ` (${c.label})` : ''}`)
+      const card = `${set.name} ${c.n}${c.label ? ` (${c.label})` : ''}`
+      for (const name of names) byImage.set(name, [...(byImage.get(name) ?? []), card])
     }
-  return out
+  return [...byImage].map(([name, cards]) => `"${name}": ${cards.join(', ')}`)
 }
 
 /** Font usati dalle carte esportate che non sono né nel progetto né installati */

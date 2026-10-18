@@ -53,6 +53,7 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     file,
     sets,
     unusedSheets: sheets.map((s) => s.name).filter((n) => !used.has(n)),
+    unusedData: sheets.filter((s) => !used.has(s.name)),
     templates,
     assets: await listAssets(folder),
     warnings

@@ -6,6 +6,7 @@ const api: Api = {
   chooseProjectFolder: () => ipcRenderer.invoke('project:choose-folder'),
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
   saveTemplate: (template) => ipcRenderer.invoke('template:save', template),
+  saveData: (changes) => ipcRenderer.invoke('data:save', changes),
   setUiZoom: (factor) => webFrame.setZoomFactor(factor)
 }
 

@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
 import { saveTemplate } from './project/templates'
+import { saveData, type DataChanges } from './project/save'
 import {
   getProjectFolder,
   handleAssetProtocol,
@@ -65,6 +66,12 @@ function registerIpc(): void {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     await saveTemplate(folder, template)
+  })
+
+  ipcMain.handle('data:save', async (_, changes: DataChanges) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await saveData(folder, changes)
   })
 }
 

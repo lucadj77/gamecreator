@@ -41,6 +41,8 @@ export interface LoadedProject {
   sets: LoadedSet[]
   /** Fogli del file dati non collegati a nessun set */
   unusedSheets: string[]
+  /** Contenuto dei fogli non collegati: un set nuovo può riprenderli */
+  unusedData: Sheet[]
   /** Template letti da templates/ */
   templates: Template[]
   /** File sotto assets/, percorsi relativi */

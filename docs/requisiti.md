@@ -18,6 +18,8 @@ Scelta: l'anteprima è renderizzata in SVG/DOM, non su canvas. In questo modo l'
 
 Rischio da verificare: la riscrittura dell'xlsx con exceljs può perdere parte della formattazione del file (formattazione condizionale, grafici). I dati e le formule restano.
 
+Scelta (passo 5): nella tabella del set si modificano celle, righe (aggiungi, duplica, elimina, trascina per riordinare) e colonne; accanto all'anteprima c'è il modulo con i campi della carta selezionata, e un clic su un livello della carta porta al suo campo. Un solo comando Salva (⌘S) scrive template, fogli e `gamecreator.json`. Nell'xlsx si riscrivono solo le colonne con intestazione: formattazione delle celle, altri fogli e colonne senza intestazione restano; una cella con formula resta formula se il risultato non cambia. Le righe vuote in mezzo ai dati spariscono al salvataggio. Un set nuovo crea il suo foglio con le colonne dei testi, delle immagini e dei valori del template, oppure riprende un foglio non ancora collegato. Con un file dati CSV c'è un solo set.
+
 ## Colonne della tabella
 
 - Per ogni livello è visibile di base solo la colonna del valore (per esempio `nome`), con un pulsante + accanto all'intestazione.
@@ -36,3 +38,5 @@ Richieste da affrontare quando l'app copre già il flusso base (template, carte,
 
 - Importazione di icone negli asset da game-icons.net e da altri repository liberi, con ricerca dall'app. L'icona scaricata va in `assets/` con il nome e i dati di licenza e attribuzione richiesti dalla fonte (game-icons.net usa CC BY 3.0, che chiede di citare l'autore).
 - Accesso agevole ai font Google: ricerca e anteprima dall'app, con scaricamento dei file in `assets/fonts/` così che il progetto funzioni anche senza rete e l'esportazione usi gli stessi font.
+- Sfumature in tutti i campi colore (riempimento, testo, contorno, colorazione, ombra): lineari e radiali, con più punti di colore e angolo. Nel foglio si scrivono come testo, per esempio `linear(90, #A33A2A, #2F5DA8)`, così una colonna può cambiarle carta per carta.
+- Insieme alle sfumature, la dissolvenza dell'opacità di un livello (o di un gruppo): una maschera a sfumatura lineare o radiale che porta il livello da opaco a trasparente, per esempio un'immagine che sfuma verso il basso.

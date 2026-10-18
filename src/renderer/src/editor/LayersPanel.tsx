@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { findParent, isNameTaken, moveLayerTo, patchLayer } from '../../../shared/model/edit'
 import type { Layer } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
-import { ImageIcon } from '../components/icons'
+import { ColumnIcon, FixedIcon, ImageIcon } from '../components/icons'
 import type { Commands } from './commands'
 import type { EditorAction, EditorState } from './useEditor'
 
@@ -132,6 +132,26 @@ export default function LayersPanel({ state, dispatch, cmd, width }: Props): Rea
               />
             ) : (
               <span className="layer-name">{l.name}</span>
+            )}
+            {l.type !== 'group' && (
+              <span
+                className={`layer-source ${l.source.kind}`}
+                title={
+                  l.source.kind === 'column'
+                    ? t('layers.sourceColumn', { column: l.source.column ?? l.name })
+                    : l.source.kind === 'formula'
+                      ? t('layers.sourceFormula', { expr: l.source.expr })
+                      : t('layers.sourceFixed')
+                }
+              >
+                {l.source.kind === 'column' ? (
+                  <ColumnIcon />
+                ) : l.source.kind === 'formula' ? (
+                  'ƒx'
+                ) : (
+                  <FixedIcon />
+                )}
+              </span>
             )}
             <button
               className={`icon-btn${l.locked ? ' on' : ''}`}

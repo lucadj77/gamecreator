@@ -311,15 +311,30 @@ function Ref({
   const res = name ? resolveAsset(v?.src ?? name, assets) : null
   const set = mergeImageSettings(v, image)
   const size = useImageSize(res?.ok && set.tint ? assetUrl(res.path) : null)
+  const scale = set.scale ?? 1
+  const height = 1.15 * scale
   if (!res?.ok)
-    return (
+    return v ? (
+      // variabile immagine con il file mancante: un riquadro al posto dell'icona
+      <span
+        title={`${name}: ${v.src}`}
+        style={{
+          display: 'inline-block',
+          width: `${height * 0.8}em`,
+          height: `${height * 0.8}em`,
+          verticalAlign: `${-0.12 * scale}em`,
+          margin: '0 0.04em',
+          border: '0.06em dashed #E5484D',
+          borderRadius: '0.15em',
+          boxSizing: 'border-box'
+        }}
+      />
+    ) : (
       <span style={{ textDecoration: 'underline wavy #E5484D', textDecorationSkipInk: 'none' }}>
         {raw}
       </span>
     )
   const url = assetUrl(res.path)
-  const scale = set.scale ?? 1
-  const height = 1.15 * scale
   const transform = [
     set.rotate ? `rotate(${set.rotate}deg)` : '',
     set.flip ? `scale(${set.flip.includes('h') ? -1 : 1}, ${set.flip.includes('v') ? -1 : 1})` : ''

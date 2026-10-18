@@ -135,11 +135,19 @@ function textProblems(layer: string, text: string, ctx: BindContext): Message[] 
   )
   if (ctx.assets)
     for (const name of new Set(markupRefs(text))) {
-      if (!name || imageVariable(name, ctx.variables)) continue
-      const r = resolveAsset(name, ctx.assets)
-      if (!r.ok)
+      if (!name) continue
+      // di una variabile immagine si controlla il file
+      const v = imageVariable(name, ctx.variables)
+      const r = resolveAsset(v ? v.src : name, ctx.assets)
+      if (r.ok) continue
+      if (v && r.reason !== 'ambiguous')
+        out.push(msg('bind.missingVariableImage', { layer, name, src: v.src }))
+      else
         out.push(
-          msg(r.reason === 'ambiguous' ? 'bind.ambiguousRef' : 'bind.unknownRef', { layer, name })
+          msg(r.reason === 'ambiguous' ? 'bind.ambiguousRef' : 'bind.unknownRef', {
+            layer,
+            name: v ? v.src : name
+          })
         )
     }
   return out

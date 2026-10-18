@@ -40,6 +40,7 @@ import VariableDialog, { VariableSwatch } from './components/VariableDialog'
 import type { Variable, Variables } from '../../shared/model/variables'
 import FormatDialog from './components/FormatDialog'
 import ExportDialog from './export/ExportDialog'
+import ImportTtcDialog from './components/ImportTtcDialog'
 import Tooltip from './components/Tooltip'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
@@ -99,6 +100,7 @@ function App(): React.JSX.Element {
   const [editingVariable, setEditingVariable] = useState<string | null>(null)
   const [creatingSet, setCreatingSet] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [importing, setImporting] = useState(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
   const [dirtySheets, setDirtySheets] = useState<Set<string>>(new Set())
@@ -558,6 +560,9 @@ function App(): React.JSX.Element {
                 <button onClick={open} title={t('tip.openProject')}>
                   {t('app.openProject')}
                 </button>
+                <button onClick={() => setImporting(true)} title={t('tip.importTtc')}>
+                  {t('app.importTtc')}
+                </button>
                 {project && (
                   <>
                     <button
@@ -732,6 +737,16 @@ function App(): React.JSX.Element {
                 />
               )}
             </div>
+            {importing && (
+              <ImportTtcDialog
+                onOpen={(folder) => {
+                  if (!discardOk()) return
+                  setImporting(false)
+                  load(folder)
+                }}
+                onClose={() => setImporting(false)}
+              />
+            )}
             {exporting && project && (
               <ExportDialog
                 project={project}

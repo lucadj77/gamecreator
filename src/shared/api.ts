@@ -73,4 +73,6 @@ export interface TtcImportResult {
   notes: Message[]
   /** Icone della libreria non trovate, come categoria/nome */
   missingIcons: string[]
+  /** Caratteri usati dai testi, da installare nel sistema se mancano */
+  fonts: string[]
 }

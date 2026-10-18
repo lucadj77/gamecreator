@@ -383,6 +383,8 @@ export const it: Record<MessageKey, string> = {
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
   'bind.markup': 'Livello {layer}: {problem}',
   'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
+  'bind.missingVariableImage':
+    "Livello {layer}: l'immagine della variabile {name} ({src}) non è negli asset",
   'bind.ambiguousRef':
     "Livello {layer}: {{name}} corrisponde a più immagini; aggiungi l'estensione o la cartella",
   'markup.unknownAttribute': 'attributo “{name}” sconosciuto',
@@ -624,5 +626,55 @@ export const it: Record<MessageKey, string> = {
   'variable.sampleBefore': 'Guadagna 2',
   'variable.sampleAfter': 'in questo turno.',
   'variable.delete': 'Elimina variabile',
-  'variable.save': 'Salva variabile'
+  'variable.save': 'Salva variabile',
+  'app.importTtc': 'Importa…',
+  'tip.importTtc':
+    "Importa da Tabletop Creator: converte un progetto in un nuovo progetto GameCreator; l'originale non cambia",
+  'ttc.title': 'Importa da Tabletop Creator',
+  'ttc.intro':
+    'Il progetto si converte in una cartella nuova: template, set, variabili e immagini. La cartella di Tabletop Creator viene solo letta.',
+  'ttc.source': 'Progetto Tabletop Creator',
+  'ttc.sourceHint': 'La cartella con il file .tcp e la cartella data',
+  'ttc.target': 'Cartella del nuovo progetto',
+  'ttc.targetHint': "Si crea se non c'è; deve essere vuota",
+  'ttc.icons': 'Cartella delle icone (facoltativa)',
+  'ttc.iconsHint':
+    'Dove cercare le icone della libreria di Tabletop Creator (game-icons.net, Kenney…), per nome in tutte le sottocartelle',
+  'ttc.import': 'Importa',
+  'ttc.running': 'Importazione…',
+  'ttc.done':
+    'Importati {templates} template, {sets} set con {cards} righe, {assets} immagini e {variables} variabili.',
+  'ttc.notes': 'Convertito solo in parte',
+  'ttc.missingIcons': 'Icone della libreria non trovate ({count})',
+  'ttc.missingIconsHint':
+    'Si vedono come un quadrato tratteggiato. Metti i file in assets/library/<categoria>/ oppure importa di nuovo indicando una cartella che le contiene.',
+  'ttc.fonts': 'Caratteri usati',
+  'ttc.fontsHint':
+    'I testi usano questi caratteri: installa nel sistema quelli che mancano, altrimenti si usa un carattere predefinito.',
+  'ttc.open': 'Apri il progetto',
+  'ttc.close': 'Chiudi',
+  'ttc.notTtcProject':
+    '{folder} non è un progetto Tabletop Creator (manca la cartella data/blueprints o un file .tcp)',
+  'ttc.targetNotEmpty': 'La cartella {folder} non è vuota: scegline una nuova o vuota',
+  'ttc.unreadableFile': 'Impossibile leggere il file {file}: {error}',
+  'ttc.renamedVariable': 'Variabile {code} rinominata {name}, perché il nome è usato dal markup',
+  'ttc.missingBlueprint': 'Set {set}: template {blueprint} non trovato, set saltato',
+  'ttc.unsupportedTags': 'Tag del testo non convertiti: {tags}',
+  'ttc.unsupportedCells': 'Set {set}: valori non convertiti per {fields}',
+  'ttc.unsupported.noWrap':
+    '{template}: il testo senza a capo non è supportato, va a capo ({layers})',
+  'ttc.unsupported.fitSide':
+    "{template}: adatta alla larghezza o all'altezza è diventato adatta dentro ({layers})",
+  'ttc.unsupported.imageRotation':
+    "{template}: la rotazione dell'immagine dentro il riquadro è ignorata ({layers})",
+  'ttc.unsupported.mask': '{template}: le maschere delle immagini sono ignorate ({layers})',
+  'ttc.unsupported.sliced': '{template}: le immagini a 9 sezioni sono disegnate stirate ({layers})',
+  'ttc.unsupported.cornerRadii':
+    '{template}: raggi diversi per angolo sono diventati un raggio unico ({layers})',
+  'ttc.unsupported.panelType': '{template}: tipi di pannello non convertiti: {layers}',
+  'ttc.unsupported.roundness':
+    "{template}: l'arrotondamento degli angoli dei poligoni è ignorato ({layers})",
+  'ttc.unsupported.falloff': '{template}: i bordi sfumati (falloff) sono ignorati ({layers})',
+  'ttc.unsupported.cardShape':
+    '{template}: la forma della carta non è un rettangolo; è stata importata come rettangolo'
 }

@@ -379,6 +379,8 @@ export const en = {
   'bind.invalidValue': 'Column {column}: invalid value "{value}"',
   'bind.markup': 'Layer {layer}: {problem}',
   'bind.unknownRef': 'Layer {layer}: {{name}} is not a field or an image in assets',
+  'bind.missingVariableImage':
+    'Layer {layer}: the image of variable {name} ({src}) is not in assets',
   'bind.ambiguousRef':
     'Layer {layer}: {{name}} matches more than one image; add the extension or the folder',
   'markup.unknownAttribute': 'unknown attribute “{name}”',
@@ -616,7 +618,55 @@ export const en = {
   'variable.sampleBefore': 'Gain 2',
   'variable.sampleAfter': 'this turn.',
   'variable.delete': 'Delete variable',
-  'variable.save': 'Save variable'
+  'variable.save': 'Save variable',
+  'app.importTtc': 'Import…',
+  'tip.importTtc':
+    'Import from Tabletop Creator: convert a project into a new GameCreator project; the original is not changed',
+  'ttc.title': 'Import from Tabletop Creator',
+  'ttc.intro':
+    'The project is converted into a new folder: templates, sets, variables and images. The Tabletop Creator folder is only read.',
+  'ttc.source': 'Tabletop Creator project',
+  'ttc.sourceHint': 'The folder with the .tcp file and the data folder',
+  'ttc.target': 'New project folder',
+  'ttc.targetHint': 'Created if missing; it must be empty',
+  'ttc.icons': 'Icon folder (optional)',
+  'ttc.iconsHint':
+    'Where to look for icons of the Tabletop Creator library (game-icons.net, Kenney…), searched by name in all subfolders',
+  'ttc.import': 'Import',
+  'ttc.running': 'Importing…',
+  'ttc.done':
+    'Imported {templates} templates, {sets} sets with {cards} rows, {assets} images and {variables} variables.',
+  'ttc.notes': 'Converted only partly',
+  'ttc.missingIcons': 'Library icons not found ({count})',
+  'ttc.missingIconsHint':
+    'They show as a dashed square. Put the files in assets/library/<category>/ or import again with an icon folder that contains them.',
+  'ttc.fonts': 'Fonts used',
+  'ttc.fontsHint':
+    'Texts use these fonts: install the missing ones in the system, otherwise a default font is used.',
+  'ttc.open': 'Open project',
+  'ttc.close': 'Close',
+  'ttc.notTtcProject':
+    '{folder} is not a Tabletop Creator project (no data/blueprints folder or .tcp file)',
+  'ttc.targetNotEmpty': 'The folder {folder} is not empty: choose a new or empty folder',
+  'ttc.unreadableFile': 'File {file} could not be read: {error}',
+  'ttc.renamedVariable': 'Variable {code} renamed {name}, because the name is used by the markup',
+  'ttc.missingBlueprint': 'Set {set}: template {blueprint} not found, set skipped',
+  'ttc.unsupportedTags': 'Text tags not converted: {tags}',
+  'ttc.unsupportedCells': 'Set {set}: values not converted for {fields}',
+  'ttc.unsupported.noWrap':
+    '{template}: text without wrapping is not supported, text wraps ({layers})',
+  'ttc.unsupported.fitSide': '{template}: fit to width or height became fit inside ({layers})',
+  'ttc.unsupported.imageRotation':
+    '{template}: rotation of the image inside its frame is ignored ({layers})',
+  'ttc.unsupported.mask': '{template}: image masks are ignored ({layers})',
+  'ttc.unsupported.sliced': '{template}: sliced (9-slice) images are drawn stretched ({layers})',
+  'ttc.unsupported.cornerRadii':
+    '{template}: different radii per corner became a single radius ({layers})',
+  'ttc.unsupported.panelType': '{template}: panel types not converted: {layers}',
+  'ttc.unsupported.roundness': '{template}: corner roundness of polygons is ignored ({layers})',
+  'ttc.unsupported.falloff': '{template}: soft edges (falloff) are ignored ({layers})',
+  'ttc.unsupported.cardShape':
+    '{template}: the card shape is not a rectangle; it was imported as a rectangle'
 }
 
 export type MessageKey = keyof typeof en

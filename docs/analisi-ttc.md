@@ -61,3 +61,37 @@ progetto/
 - Le celle vuote lasciano il valore del template.
 
 Punti da decidere: se tenere un file xlsx per set o un unico xlsx con un foglio per set; se supportare anche la scrittura nel formato TTC (export inverso) o solo l'import.
+
+## Importazione in GameCreator
+
+Il comando "Importa…" della barra in alto converte un progetto Tabletop Creator in una cartella nuova; la cartella di origine si legge soltanto. Codice: `src/shared/import/ttc.ts` (conversione dei dati), `src/shared/import/richText.ts` (testo formattato), `src/main/import/ttc.ts` (lettura e scrittura dei file).
+
+### Cosa si converte
+
+| Tabletop Creator                         | GameCreator                                                                                                    |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| blueprint                                | template, con dimensioni, abbondanza, raggio degli angoli e campo che dà il nome alle carte                    |
+| gruppo di pannelli                       | livello gruppo                                                                                                 |
+| pannello testo                           | livello testo: carattere, dimensione, grassetto, colore, allineamenti, interlinea, spaziatura, contorno        |
+| dimensione automatica                    | "riduci per stare nel riquadro", con dimensione massima e minima                                               |
+| pannello immagine e icona                | livello immagine: adattamento, zoom, spostamento, ribaltamento, tinta, raggio, ombra                           |
+| pannello procedurale                     | livello forma (rettangolo, ellisse, poligono, stella), con riempimento e bordo                                 |
+| pannello valore                          | livello valore                                                                                                 |
+| set                                      | foglio del file `data/cards.xlsx`, con la colonna `amount` e una colonna per proprietà cambiata (`layer.prop`) |
+| variabile con immagine                   | variabile immagine, con tinta e dimensione; le icone della libreria vanno in `assets/library/<categoria>/`     |
+| variabile con testo                      | variabile di testo                                                                                             |
+| tag `<b>`, `<i>`, `<color>`, `<size>`... | markup (docs/specifica.md, 2.1)                                                                                |
+
+La posizione di Tabletop Creator è il riquadro che contiene il pannello ruotato: si converte nel riquadro del livello ruotato intorno al centro. Le icone `{nome}` che non sono variabili diventano variabili immagine con il colore del testo, come in Tabletop Creator.
+
+### Cosa non si converte
+
+Finisce nelle note mostrate a fine importazione:
+
+- testo senza a capo (va a capo), adattamento alla sola larghezza o altezza (diventa "adatta dentro");
+- rotazione dell'immagine dentro il riquadro, maschere, immagini a 9 sezioni, raggi diversi per angolo;
+- arrotondamento degli angoli dei poligoni e bordi sfumati delle forme;
+- carte non rettangolari (importate come rettangoli);
+- tag del testo senza equivalente e valori delle carte per proprietà non supportate.
+
+Le icone della libreria interna di Tabletop Creator (game-icons.net, Kenney) non sono nel progetto: si cercano per nome nella cartella delle icone indicata nel dialogo, e quelle non trovate compaiono come un quadrato tratteggiato. I caratteri usati si elencano a fine importazione: Nunito è incluso nell'app, gli altri vanno installati nel sistema.

@@ -1,9 +1,9 @@
 import { copyFile, mkdir, readFile, readdir, stat, writeFile } from 'fs/promises'
 import { basename, dirname, extname, join } from 'path'
 import { MessageError, msg, type Message } from '../../shared/messages'
-import { normalizeTemplate } from '../../shared/model/normalize'
+import { normalizeTemplate, type RawLayer, type RawTemplate } from '../../shared/model/normalize'
 import { LIBRARY_FOLDER, convertTtcProject, parseTtcJson } from '../../shared/import/ttc'
-import { PROJECT_FILE } from '../../shared/project'
+import { PROJECT_FILE, type Sheet } from '../../shared/project'
 import type { TtcImportOptions, TtcImportResult } from '../../shared/api'
 import { listAssets } from '../project/assets'
 import { saveTemplate } from '../project/templates'
@@ -119,9 +119,32 @@ export async function importTtc(opts: TtcImportOptions): Promise<TtcImportResult
     assets: assets.length,
     variables: Object.keys(result.file.variables ?? {}).length,
     notes,
-    missingIcons: missing
+    missingIcons: missing,
+    fonts: usedFonts(result.templates, result.sheets)
   }
 }
+
+/** Caratteri usati, tranne Nunito che è incluso nell'app */
+function usedFonts(templates: RawTemplate[], sheets: Sheet[]): string[] {
+  const out = new Set<string>()
+  const walk = (layers: RawLayer[] | undefined): void =>
+    layers?.forEach((l) => {
+      if (typeof l.font === 'string' && l.font) out.add(l.font)
+      walk(l.children)
+    })
+  for (const tpl of templates) {
+    walk(tpl.front)
+    walk(tpl.back)
+  }
+  for (const sheet of sheets)
+    sheet.headers.forEach((h, i) => {
+      if (h.endsWith('.font')) for (const row of sheet.rows) if (row[i]) out.add(row[i])
+    })
+  out.delete(DEFAULT_FONT)
+  return [...out].sort()
+}
+
+const DEFAULT_FONT = 'Nunito'
 
 const ICON_EXT = ['.svg', '.png', '.webp', '.jpg', '.jpeg']
 

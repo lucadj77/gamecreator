@@ -2,7 +2,16 @@
 
 App desktop per creare carte e altri elementi di gioco a partire da fogli di calcolo, ispirata a Tabletop Creator. Funziona su file locali.
 
-Stato: prima base. Apre una cartella di progetto e mostra le carte di ogni set lette dal file dati. Editor dei template, esportazione PNG/PDF e import dei progetti Tabletop Creator sono i prossimi passi.
+Stato: prima base. Apre una cartella di progetto e mostra le carte di ogni set lette dal file dati.
+
+Prossimi passi:
+
+1. editor dei template a livelli (testo, immagine, forma, gruppi), con anteprima delle carte;
+2. modifica delle carte da tabella o direttamente sulla carta, colonne espandibili, campi calcolati;
+3. esportazione PNG e PDF di stampa;
+4. import dei progetti Tabletop Creator.
+
+I requisiti sono in [docs/requisiti.md](docs/requisiti.md).
 
 ## Sviluppo
 

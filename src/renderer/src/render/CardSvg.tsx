@@ -357,6 +357,10 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
   )
 }
 
+/**
+ * Con "ritaglia" il livello in fondo al gruppo fa da maschera: non si disegna e i livelli
+ * sopra si vedono solo dentro la sua forma.
+ */
 function GroupView({
   layer: l,
   id,
@@ -366,16 +370,26 @@ function GroupView({
   id: string
   uid: string
 }): React.JSX.Element {
-  if (!l.clip) return <LayerList layers={l.children} uid={uid} />
+  const mask = l.clip ? l.children[l.children.length - 1] : undefined
+  if (!mask || l.children.length < 2) return <LayerList layers={l.children} uid={uid} />
+  const a = anchorPoint(mask)
   return (
     <>
       <defs>
-        <clipPath id={`${id}-clip`}>
-          <rect x={l.x} y={l.y} width={l.w} height={l.h} />
+        {/* dentro clipPath non sono ammessi i <g>: la rotazione va sul clipPath */}
+        <clipPath
+          id={`${id}-clip`}
+          transform={mask.rotation ? `rotate(${mask.rotation} ${a.x} ${a.y})` : undefined}
+        >
+          {mask.type === 'shape' && mask.shape !== 'line' ? (
+            <ShapeView layer={mask} />
+          ) : (
+            <rect x={mask.x} y={mask.y} width={mask.w} height={mask.h} />
+          )}
         </clipPath>
       </defs>
       <g clipPath={`url(#${id}-clip)`}>
-        <LayerList layers={l.children} uid={uid} />
+        <LayerList layers={l.children.slice(0, -1)} uid={uid} />
       </g>
     </>
   )

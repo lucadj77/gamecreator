@@ -50,7 +50,8 @@ export function updateLayers(t: Template, side: Side, fn: (l: Layer) => Layer): 
 export function patchLayer(t: Template, side: Side, id: string, patch: Partial<Layer>): Template {
   return updateLayers(t, side, (l) => {
     if (l.id !== id) return l
-    const next = { ...l, ...patch } as Layer
+    let next = { ...l, ...patch } as Layer
+    if (next.type === 'group' && 'clip' in patch) next = fitGroup(next)
     // spostare o ridimensionare un gruppo dal pannello proprietà trascina i figli
     if (l.type === 'group' && ('x' in patch || 'y' in patch || 'w' in patch || 'h' in patch)) {
       return transformInto(l, next as Bounds)
@@ -71,6 +72,8 @@ export function boundsOf(layers: Layer[]): Bounds {
 
 function fitGroup(g: GroupLayer): GroupLayer {
   if (!g.children.length) return g
+  // un gruppo ritagliato occupa solo la sua maschera, il livello in fondo
+  if (g.clip && g.children.length > 1) return { ...g, ...boundsOf(g.children.slice(-1)) }
   return { ...g, ...boundsOf(g.children) }
 }
 

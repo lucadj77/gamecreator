@@ -62,3 +62,35 @@ describe('substituteFields', () => {
     expect(substituteFields('{a} {b} {spada*3} \\{a}', { a: '1' })).toBe('1 {b} {spada*3} \\{a}')
   })
 })
+
+describe('fonte del valore', () => {
+  const t = normalizeTemplate({
+    name: 't',
+    front: [
+      { type: 'text', name: 'fisso', text: 'sempre', source: { kind: 'fixed' } },
+      { type: 'text', name: 'altro', text: '', source: { kind: 'column', column: 'titolo' } },
+      { type: 'text', name: 'energia', text: '', source: { kind: 'formula', expr: '{forza}+2' } },
+      { type: 'image', name: 'cover', source: { kind: 'formula', expr: '{nome}.png' } }
+    ]
+  })
+  const texts = (headers: string[], row: string[]): string[] =>
+    bindCard(t, rowToCard(headers, row)).template.front.map((l) =>
+      l.type === 'text' ? l.text : l.type === 'image' ? l.src : ''
+    )
+
+  it('fisso ignora la colonna, colonna può avere un altro nome, formula calcola', () => {
+    expect(
+      texts(['fisso', 'titolo', 'forza', 'nome', 'fisso.color'], ['no', 'Re', '3', 'Drago', '#F00'])
+    ).toEqual(['sempre', 'Re', '5', 'Drago.png'])
+  })
+
+  it('le colonne delle proprietà valgono anche con valore fisso', () => {
+    const bound = bindCard(t, rowToCard(['fisso.color'], ['#FF0000']))
+    expect((bound.template.front[0] as TextLayer).color).toBe('#FF0000')
+  })
+
+  it('segnala i campi mancanti nelle formule', () => {
+    const bound = bindCard(t, rowToCard(['nome'], ['x']))
+    expect(bound.problems.map((p) => p.params?.field)).toEqual(['forza'])
+  })
+})

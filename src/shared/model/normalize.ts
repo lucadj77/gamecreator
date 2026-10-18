@@ -22,7 +22,8 @@ const BASE_DEFAULTS: Omit<LayerBase, 'id' | 'name'> = {
   anchor: 'center',
   opacity: 1,
   shadow: null,
-  exposed: []
+  exposed: [],
+  source: { kind: 'column', column: null }
 }
 
 const TEXT_DEFAULTS: Omit<TextLayer, keyof LayerBase | 'type'> = {
@@ -95,21 +96,40 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
   }
   switch (raw.type) {
     case 'text':
-      return { ...base, ...TEXT_DEFAULTS, ...(raw as Partial<TextLayer>), type: 'text' }
+      return {
+        ...base,
+        ...TEXT_DEFAULTS,
+        ...(raw as Partial<TextLayer>),
+        id: base.id,
+        type: 'text'
+      }
     case 'image':
-      return { ...base, ...IMAGE_DEFAULTS, ...(raw as Partial<ImageLayer>), type: 'image' }
+      return {
+        ...base,
+        ...IMAGE_DEFAULTS,
+        ...(raw as Partial<ImageLayer>),
+        id: base.id,
+        type: 'image'
+      }
     case 'shape':
-      return { ...base, ...SHAPE_DEFAULTS, ...(raw as Partial<ShapeLayer>), type: 'shape' }
+      return {
+        ...base,
+        ...SHAPE_DEFAULTS,
+        ...(raw as Partial<ShapeLayer>),
+        id: base.id,
+        type: 'shape'
+      }
     case 'group': {
       const children = (raw.children ?? []).map(normalizeLayer)
       return {
         ...base,
         clip: false,
         ...(raw as Partial<GroupLayer>),
+        id: base.id,
         type: 'group',
         children,
-        // il riquadro di un gruppo è sempre l'ingombro dei figli
-        ...extent(children)
+        // il riquadro di un gruppo è l'ingombro dei figli, o della maschera se ritaglia
+        ...extent(raw.clip && children.length > 1 ? children.slice(-1) : children)
       }
     }
     default:

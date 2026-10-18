@@ -28,7 +28,7 @@ Rischio da verificare: la riscrittura dell'xlsx con exceljs può perdere parte d
 - Un campo può essere calcolato dagli altri campi della stessa carta, per esempio `energia = {forza} + 2`.
 - Un campo immagine può comporre il nome del file o della variabile da altri campi, per esempio `cover = {nome}.png`, che per la carta Cavaliere diventa `Cavaliere.png`.
 
-Scelta: le formule sono definite a livello di set nel progetto (valgono per tutte le righe) e compaiono in tabella come colonne di sola lettura. Una cella compilata a mano in quella colonna sostituisce il valore calcolato per quella carta. Le formule di Excel restano comunque utilizzabili nel foglio: l'app ne legge il risultato.
+Scelta (rivista il 2026-10-18 su richiesta di Luca): la fonte del valore si imposta per livello nel template, con tre possibilità: colonna del foglio (di base quella con il nome del livello, ma se ne può indicare un'altra), valore fisso, formula. Una formula usa `{campo}` per i valori della riga e si calcola quando contiene + - * / e il risultato è numerico, altrimenti compone testo (`{nome}.png`). Le colonne delle altre proprietà (`nome.color`) valgono qualunque sia la fonte. Le formule di Excel restano utilizzabili nel foglio: l'app ne legge il risultato.
 
 ## Dopo la prima versione funzionante
 

@@ -15,6 +15,7 @@ import {
   hitTest,
   normalizeAngle,
   resizeWithHandle,
+  rotateAround,
   snap,
   toFrame,
   toLocal,
@@ -53,6 +54,8 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const viewportRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<SVGSVGElement>(null)
   const gesture = useRef<Gesture | null>(null)
+  const marqueeStart = useRef<{ p0: Point; base: string[] } | null>(null)
+  const [marquee, setMarquee] = useState<Bounds | null>(null)
   const [fitScale, setFitScale] = useState(4)
   const [zoom, setZoom] = useState<number | null>(null)
   const [guides, setGuides] = useState(loadGuides)
@@ -152,7 +155,10 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const p = cardPoint(e)
     const { hit, scope: hitScope } = pick(p)
     if (!hit) {
-      if (!e.shiftKey) dispatch({ type: 'select', ids: [], scope: null })
+      // sul vuoto si trascina un rettangolo di selezione
+      if (!e.shiftKey) dispatch({ type: 'select', ids: [], scope })
+      marqueeStart.current = { p0: p, base: e.shiftKey ? selection : [] }
+      overlayRef.current!.setPointerCapture(e.pointerId)
       return
     }
     const sameContainer = hitScope === scope
@@ -187,6 +193,25 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   }
 
   const onPointerMove = (e: React.PointerEvent): void => {
+    const m = marqueeStart.current
+    if (m) {
+      const p = cardPoint(e)
+      const box = {
+        x: Math.min(m.p0.x, p.x),
+        y: Math.min(m.p0.y, p.y),
+        w: Math.abs(p.x - m.p0.x),
+        h: Math.abs(p.y - m.p0.y)
+      }
+      setMarquee(box)
+      const group = scope ? findLayer(layers, scope) : null
+      const list = group?.type === 'group' ? group.children : layers
+      const chain = group?.type === 'group' ? [...frameOf(group.id), group] : []
+      const inside = list
+        .filter((l) => l.visible && !l.locked && intersects(worldBounds(l, chain), box))
+        .map((l) => l.id)
+      dispatch({ type: 'select', ids: [...new Set([...m.base, ...inside])] })
+      return
+    }
     const g = gesture.current
     if (!g) return
     const q = toFrame(cardPoint(e), g.frame)
@@ -214,6 +239,12 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   }
 
   const onPointerUp = (e: React.PointerEvent): void => {
+    if (marqueeStart.current) {
+      marqueeStart.current = null
+      setMarquee(null)
+      overlayRef.current?.releasePointerCapture(e.pointerId)
+      return
+    }
     if (!gesture.current) return
     gesture.current = null
     overlayRef.current?.releasePointerCapture(e.pointerId)
@@ -242,7 +273,11 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         className="canvas-viewport"
         ref={viewportRef}
         onPointerDown={(e) => {
-          if (e.target === e.currentTarget) dispatch({ type: 'select', ids: [], scope: null })
+          // anche fuori dalla carta si può iniziare un rettangolo di selezione
+          if (e.target !== e.currentTarget || e.button !== 0) return
+          if (!e.shiftKey) dispatch({ type: 'select', ids: [], scope: null })
+          marqueeStart.current = { p0: cardPoint(e), base: e.shiftKey ? selection : [] }
+          overlayRef.current?.setPointerCapture(e.pointerId)
         }}
       >
         <div className="canvas-stage" style={{ width: vw * scale, height: vh * scale }}>
@@ -272,6 +307,16 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                 width={tpl.width - 2 * tpl.safeMargin}
                 height={tpl.height - 2 * tpl.safeMargin}
                 className="safe-area"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
+            {marquee && (
+              <rect
+                x={marquee.x}
+                y={marquee.y}
+                width={marquee.w}
+                height={marquee.h}
+                className="marquee"
                 vectorEffect="non-scaling-stroke"
               />
             )}
@@ -405,6 +450,27 @@ function Outline({ b, className }: { b: Bounds; className: string }): React.JSX.
       vectorEffect="non-scaling-stroke"
     />
   )
+}
+
+/** Riquadro sulla carta di un livello, con le rotazioni sue e dei gruppi che lo contengono */
+function worldBounds(l: Layer, chain: GroupLayer[]): Bounds {
+  const corners = [
+    { x: l.x, y: l.y },
+    { x: l.x + l.w, y: l.y },
+    { x: l.x, y: l.y + l.h },
+    { x: l.x + l.w, y: l.y + l.h }
+  ].map((p) =>
+    [l, ...[...chain].reverse()].reduce((q, c) => rotateAround(q, anchorPoint(c), c.rotation), p)
+  )
+  const xs = corners.map((p) => p.x)
+  const ys = corners.map((p) => p.y)
+  const x = Math.min(...xs)
+  const y = Math.min(...ys)
+  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y }
+}
+
+function intersects(a: Bounds, b: Bounds): boolean {
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
 }
 
 function applyBounds(l: Layer, b: Bounds): Layer {

@@ -1,4 +1,5 @@
 import { msg, type Message } from '../messages'
+import { evaluateFormula } from './formula'
 import { PRIMARY_PROPERTY, type Layer, type Shadow, type Stroke, type Template } from './template'
 
 // Applica una riga del foglio a un template: vedi docs/formato.md, "Fogli dati".
@@ -37,18 +38,29 @@ export function bindCard(template: Template, card: CardData): BoundCard {
   const apply = (layers: Layer[]): Layer[] =>
     layers.map((layer) => {
       let out: Layer = layer
-      const props = overrides.get(layer.name)
-      if (props) {
+      const src = layer.source
+      const column = src.kind === 'column' && src.column ? src.column : layer.name
+      const props = new Map(overrides.get(column))
+      // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
+      if (src.kind === 'fixed') props.delete('')
+      if (src.kind === 'formula') {
+        const r = evaluateFormula(src.expr, card.fields)
+        for (const f of r.missing)
+          problems.push(msg('bind.formulaField', { layer: layer.name, field: f }))
+        if (r.value.trim() !== '') props.set('', r.value)
+        else props.delete('')
+      }
+      if (props.size) {
         const patch: Record<string, unknown> = {}
         for (const [prop, raw] of props) {
           const key = prop || PRIMARY_PROPERTY[layer.type]
           if (!(key in layer)) {
-            problems.push(msg('bind.unknownProperty', { column: `${layer.name}.${key}` }))
+            problems.push(msg('bind.unknownProperty', { column: `${column}.${key}` }))
             continue
           }
           const parsed = parseValue(key, (layer as unknown as Record<string, unknown>)[key], raw)
           if (parsed === undefined)
-            problems.push(msg('bind.invalidValue', { column: `${layer.name}.${key}`, value: raw }))
+            problems.push(msg('bind.invalidValue', { column: `${column}.${key}`, value: raw }))
           else patch[key] = parsed
         }
         out = { ...layer, ...patch } as Layer

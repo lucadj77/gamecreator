@@ -29,6 +29,13 @@ export interface Shadow {
   dy: number
 }
 
+/**
+ * Da dove arriva il valore principale del livello sulle carte: una colonna del foglio
+ * (di base quella con il nome del livello), il valore fisso del template o una formula.
+ */
+export type ValueSource =
+  { kind: 'column'; column: string | null } | { kind: 'fixed' } | { kind: 'formula'; expr: string }
+
 export interface LayerBase {
   id: string
   /** Univoco nel template: è anche il nome della colonna nel foglio */
@@ -45,6 +52,7 @@ export interface LayerBase {
   shadow: Shadow | null
   /** Proprietà esposte in tabella oltre al valore principale */
   exposed: string[]
+  source: ValueSource
 }
 
 export interface TextLayer extends LayerBase {

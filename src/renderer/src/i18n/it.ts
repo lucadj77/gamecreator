@@ -16,6 +16,7 @@ export const it: Record<MessageKey, string> = {
   'set.noData': 'Nessun dato per questo set.',
   'set.table': 'Tabella',
   'set.grid': 'Griglia',
+  'set.thumbSize': 'Dimensione delle carte (anche ⌘/Ctrl + rotella o pizzico)',
   'set.copies': '× {n}',
 
   'preview.title': 'Anteprima',
@@ -45,6 +46,8 @@ export const it: Record<MessageKey, string> = {
   'editor.nameTaken': 'Un altro livello ha già questo nome',
   'editor.anchorHint': 'Punto intorno a cui ruota il livello',
   'editor.lockedHint': 'Un livello bloccato non si seleziona né si sposta sulla carta',
+  'editor.clipHint':
+    'Metti in fondo al gruppo una forma (es. un cerchio): i livelli sopra si vedono solo dentro quella forma, che non viene disegnata.',
   'editor.pathHint':
     'Forma libera descritta come tracciato SVG (comandi M, L, C, Z) in coordinate da 0 a 1 rispetto al riquadro: per esempio M0 0 L1 0 L0.5 1 Z è un triangolo. Serve per forme importate da TTC o copiate da un programma di disegno; uno strumento per disegnarle arriverà più avanti.',
   'editor.srcPlaceholder': "nome dell'immagine, o {campo}",
@@ -73,13 +76,24 @@ export const it: Record<MessageKey, string> = {
   'editor.multiSelectionTitle': '{n} livelli selezionati',
   'editor.multiSelection':
     'Spostali insieme sulla carta, o raggruppali per trattarli come un solo livello.',
-  'source.column':
-    'Sulle carte: dalla colonna «{column}» ({sets}). Una cella vuota tiene il valore impostato qui.',
-  'source.fields':
-    'Sulle carte: composto dai campi {fields} di ogni riga. Una colonna «{column}» lo sostituirebbe.',
-  'source.fixed':
-    'Sulle carte: il valore impostato qui, uguale per tutte. Aggiungi al foglio una colonna «{column}» per farlo variare.',
   'source.properties': 'Altre colonne di questo livello: {columns}',
+  'source.label': 'Valore sulle carte',
+  'source.kind.column': 'Colonna del foglio',
+  'source.kind.fixed': 'Fisso',
+  'source.kind.formula': 'Formula',
+  'source.column': 'Colonna',
+  'source.columnHint': 'Vuoto: la colonna con lo stesso nome del livello',
+  'source.formula': 'Formula',
+  'source.formulaHint':
+    '{campo} prende il valore della riga. Con + - * / e un risultato numerico si calcola: {forza}+2, {nome}.png',
+  'source.fixedNote':
+    'Il valore impostato qui sotto, uguale su tutte le carte. Le colonne delle altre proprietà (es. nome.color) valgono comunque.',
+  'source.formulaNote': 'Calcolato per ogni carta dai campi della sua riga.',
+  'source.formulaPreview': 'Prima carta di {set}: {value}',
+  'source.columnFound':
+    'Dalla colonna «{column}» ({sets}). Una cella vuota tiene il valore impostato qui sotto.',
+  'source.columnMissing':
+    'Nessun foglio ha ancora una colonna «{column}»: tutte le carte mostrano il valore impostato qui sotto.',
   'layers.title': 'Livelli',
   'layers.empty': 'Nessun livello. Aggiungine uno dalla barra degli strumenti.',
   'layers.up': 'Porta avanti',
@@ -154,7 +168,7 @@ export const it: Record<MessageKey, string> = {
   'prop.points': 'Punte',
   'prop.innerRatio': 'Raggio interno',
   'prop.path': 'Tracciato',
-  'prop.clip': 'Ritaglia al riquadro',
+  'prop.clip': 'Livello in fondo come maschera',
   'anchor.top-left': 'In alto a sinistra',
   'anchor.top': 'In alto',
   'anchor.top-right': 'In alto a destra',
@@ -228,5 +242,6 @@ export const it: Record<MessageKey, string> = {
   'template.unknownLayerType':
     'Template {file}: il livello "{layer}" ha un tipo sconosciuto "{type}"',
   'bind.unknownProperty': 'Colonna {column}: proprietà inesistente',
+  'bind.formulaField': 'Livello {layer}: la formula usa il campo "{field}", che questa riga non ha',
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"'
 }

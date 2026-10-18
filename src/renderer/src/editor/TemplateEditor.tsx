@@ -5,6 +5,8 @@ import type { LoadedSet } from '../../../shared/project'
 import type { ShapeKind, Side, Template } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
+import Resizer from '../components/Resizer'
+import { usePanelWidth } from '../components/usePanelWidth'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
 import PropertiesPanel from './PropertiesPanel'
@@ -36,6 +38,8 @@ export default function TemplateEditor({
   const [preview, setPreview] = useState<{ set: number; row: number } | null>(null)
   const [saving, setSaving] = useState(false)
   const cmd = commands(state, dispatch)
+  const [layersWidth, setLayersWidth] = usePanelWidth('layers', 230)
+  const [propsWidth, setPropsWidth] = usePanelWidth('properties', 320)
 
   // le modifiche risalgono subito all'app: le anteprime dei set le mostrano prima del salvataggio
   const initial = useRef(template)
@@ -188,7 +192,8 @@ export default function TemplateEditor({
         </button>
       </div>
       <div className="editor-body">
-        <LayersPanel state={state} dispatch={dispatch} cmd={cmd} />
+        <LayersPanel state={state} dispatch={dispatch} cmd={cmd} width={layersWidth} />
+        <Resizer width={layersWidth} onChange={setLayersWidth} edge="left" />
         <div className="editor-center">
           <Canvas state={state} display={display?.template ?? state.template} dispatch={dispatch} />
           {display && display.problems.length > 0 && (
@@ -199,11 +204,15 @@ export default function TemplateEditor({
             </div>
           )}
         </div>
+        <Resizer width={propsWidth} onChange={setPropsWidth} edge="right" min={260} />
         <PropertiesPanel
+          width={propsWidth}
           state={state}
           dispatch={dispatch}
           cmd={cmd}
-          sheets={sets.flatMap((s) => (s.data ? [{ set: s.name, headers: s.data.headers }] : []))}
+          sheets={sets.flatMap((s) =>
+            s.data ? [{ set: s.name, headers: s.data.headers, rows: s.data.rows }] : []
+          )}
           onResize={(w, h) => setResizing([w, h])}
         />
       </div>

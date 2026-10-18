@@ -861,3 +861,29 @@ textarea.invalid {
   margin: 2px 0 8px;
   color: var(--muted);
 }
+
+.marquee {
+  fill: rgba(47, 111, 222, 0.08);
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.resizer {
+  flex: 0 0 5px;
+  margin: 0 -2px;
+  cursor: col-resize;
+  position: relative;
+  z-index: 2;
+}
+
+.resizer:hover,
+.resizer:active {
+  background: var(--accent-soft);
+}
+
+.thumb-size {
+  width: 120px;
+  align-self: center;
+}

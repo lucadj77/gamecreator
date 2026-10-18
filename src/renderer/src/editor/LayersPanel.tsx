@@ -9,6 +9,7 @@ interface Props {
   state: EditorState
   dispatch: React.Dispatch<EditorAction>
   cmd: Commands
+  width: number
 }
 
 type DropWhere = 'before' | 'after' | 'inside'
@@ -25,7 +26,7 @@ const ICONS: Record<string, string> = {
   path: '✎'
 }
 
-export default function LayersPanel({ state, dispatch, cmd }: Props): React.JSX.Element {
+export default function LayersPanel({ state, dispatch, cmd, width }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [renaming, setRenaming] = useState<string | null>(null)
@@ -158,7 +159,7 @@ export default function LayersPanel({ state, dispatch, cmd }: Props): React.JSX.
 
   const none = selection.length === 0
   return (
-    <aside className="layers">
+    <aside className="layers" style={{ width }}>
       <h2>{t('layers.title')}</h2>
       <div className="layers-list">
         {layers.length ? (

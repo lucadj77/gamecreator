@@ -86,6 +86,14 @@ describe('modifiche', () => {
     expect([g.x, g.y]).toEqual([5, 20])
   })
 
+  it('un gruppo ritagliato occupa la sua maschera', () => {
+    const { template, groupId } = groupLayers(base, 'front', ['a', 'b'])
+    const out = patchLayer(template, 'front', groupId!, { clip: true } as Partial<GroupLayer>)
+    const g = findLayer(out.front, groupId!)!
+    // la maschera è "banda", il livello in fondo
+    expect([g.x, g.y, g.w, g.h]).toEqual([0, 30, 63, 10])
+  })
+
   it('ridimensionare un gruppo scala i figli', () => {
     const { template, groupId } = groupLayers(base, 'front', ['a', 'b'])
     const out = patchLayer(template, 'front', groupId!, { w: 126 })
@@ -99,6 +107,8 @@ describe('modifiche', () => {
     const copy = duplicateLayer(base, base.front[0])
     expect(copy.name).toBe('nome_2')
     expect(copy.id).not.toBe('a')
+    // un id mancante bloccava l'interfaccia
+    expect(copy.id).toBeTruthy()
     expect([copy.x, copy.y]).toEqual([12, 12])
   })
 

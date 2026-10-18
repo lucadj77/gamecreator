@@ -12,6 +12,8 @@ import type {
   TextLayer
 } from '../../../shared/model/template'
 import { useI18n, type Translate } from '../i18n/context'
+import { evaluateFormula } from '../../../shared/model/formula'
+import { rowToCard } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext } from '../render/assets'
 import {
@@ -31,7 +33,8 @@ interface Props {
   dispatch: React.Dispatch<EditorAction>
   cmd: Commands
   /** Intestazioni dei fogli dei set che usano il template */
-  sheets: { set: string; headers: string[] }[]
+  sheets: { set: string; headers: string[]; rows: string[][] }[]
+  width: number
   /** Cambio di formato: chiede se scalare i livelli */
   onResize(width: number, height: number): void
 }
@@ -41,6 +44,7 @@ export default function PropertiesPanel({
   dispatch,
   cmd,
   sheets,
+  width,
   onResize
 }: Props): React.JSX.Element {
   const { t } = useI18n()
@@ -48,7 +52,7 @@ export default function PropertiesPanel({
   const layer = selection.length === 1 ? findLayer(tpl[side], selection[0]) : null
 
   return (
-    <aside className="properties">
+    <aside className="properties" style={{ width }}>
       {selection.length > 1 ? (
         <>
           <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
@@ -183,7 +187,7 @@ function LayerProperties({
         validate={validateName}
         onChange={(name) => set({ name })}
       />
-      <ValueSource layer={l} sheets={sheets} />
+      <ValueSource layer={l} sheets={sheets} set={set} />
 
       {l.type === 'text' && <TextProperties l={l} set={set} col={col} />}
       {l.type === 'image' && <ImageProperties l={l} set={set} col={col} />}
@@ -191,7 +195,7 @@ function LayerProperties({
       {l.type === 'group' && (
         <CheckField
           label={t('prop.clip')}
-          hint={col('clip')}
+          hint={t('editor.clipHint')}
           value={(l as GroupLayer).clip}
           onChange={(clip) => set({ clip } as Partial<GroupLayer>)}
         />
@@ -589,34 +593,99 @@ function ShapeProperties({ l, set: setLayer, col }: TypeProps<ShapeLayer>): Reac
   )
 }
 
-/** Da dove arriva il valore del livello sulle carte: fisso nel template o da una colonna */
+/** Valore principale sulle carte: colonna del foglio, valore fisso o formula */
 function ValueSource({
   layer: l,
-  sheets
+  sheets,
+  set
 }: {
   layer: Layer
   sheets: Props['sheets']
+  set(patch: Partial<Layer>): void
 }): React.JSX.Element {
   const { t } = useI18n()
-  const main = sheets.filter((s) => s.headers.includes(l.name)).map((s) => s.set)
+  const src = l.source
+  const column = src.kind === 'column' && src.column ? src.column : l.name
+  const found = sheets.filter((s) => s.headers.includes(column)).map((s) => s.set)
   const others = [
-    ...new Set(sheets.flatMap((s) => s.headers.filter((h) => h.startsWith(l.name + '.'))))
+    ...new Set(sheets.flatMap((s) => s.headers.filter((h) => h.startsWith(column + '.'))))
   ]
-  const value = l.type === 'text' ? l.text : l.type === 'image' ? l.src : ''
-  const fields = [...new Set([...value.matchAll(/\{([^{}*]+)\}/g)].map((m) => m[1].trim()))]
+  const headers = [...new Set(sheets.flatMap((s) => s.headers))].filter(
+    (h) => h !== 'amount' && !h.includes('.')
+  )
+  // anteprima della formula sulla prima riga disponibile
+  const sample = sheets.find((s) => s.rows.length)
+  const preview =
+    src.kind === 'formula' && sample
+      ? evaluateFormula(src.expr, rowToCard(sample.headers, sample.rows[0]).fields)
+      : null
+  const listId = `columns-${l.id}`
+
   return (
-    <p className="value-source small">
-      {main.length
-        ? t('source.column', { column: l.name, sets: main.join(', ') })
-        : fields.length
-          ? t('source.fields', { fields: fields.join(', '), column: l.name })
-          : t('source.fixed', { column: l.name })}
-      {others.length > 0 && (
+    <div className="value-source">
+      <SelectField<ValueSourceKind>
+        label={t('source.label')}
+        value={src.kind}
+        options={[
+          ['column', t('source.kind.column')],
+          ['fixed', t('source.kind.fixed')],
+          ['formula', t('source.kind.formula')]
+        ]}
+        onChange={(kind) =>
+          set({
+            source:
+              kind === 'column'
+                ? { kind, column: null }
+                : kind === 'formula'
+                  ? { kind, expr: src.kind === 'formula' ? src.expr : `{${l.name}}` }
+                  : { kind }
+          })
+        }
+      />
+      {src.kind === 'column' && (
         <>
-          <br />
-          {t('source.properties', { columns: others.join(', ') })}
+          <TextField
+            label={t('source.column')}
+            value={src.column ?? ''}
+            placeholder={l.name}
+            list={listId}
+            hint={t('source.columnHint')}
+            onChange={(c) => set({ source: { kind: 'column', column: c.trim() || null } })}
+          />
+          <datalist id={listId}>
+            {headers.map((h) => (
+              <option key={h} value={h} />
+            ))}
+          </datalist>
         </>
       )}
-    </p>
+      {src.kind === 'formula' && (
+        <TextField
+          label={t('source.formula')}
+          value={src.expr}
+          hint={t('source.formulaHint')}
+          onChange={(expr) => set({ source: { kind: 'formula', expr } })}
+        />
+      )}
+      <p className="small muted">
+        {src.kind === 'fixed'
+          ? t('source.fixedNote')
+          : src.kind === 'formula'
+            ? preview
+              ? t('source.formulaPreview', { value: preview.value || '∅', set: sample!.set })
+              : t('source.formulaNote')
+            : found.length
+              ? t('source.columnFound', { column, sets: found.join(', ') })
+              : t('source.columnMissing', { column })}
+        {others.length > 0 && (
+          <>
+            <br />
+            {t('source.properties', { columns: others.join(', ') })}
+          </>
+        )}
+      </p>
+    </div>
   )
 }
+
+type ValueSourceKind = Layer['source']['kind']

@@ -16,6 +16,7 @@ export const en = {
   'set.noData': 'No data for this set.',
   'set.table': 'Table',
   'set.grid': 'Grid',
+  'set.thumbSize': 'Card size (also ⌘/Ctrl + mouse wheel or pinch)',
   'set.copies': '× {n}',
 
   'preview.title': 'Preview',
@@ -44,6 +45,8 @@ export const en = {
   'editor.nameTaken': 'Another layer already has this name',
   'editor.anchorHint': 'Point the layer rotates around',
   'editor.lockedHint': 'A locked layer cannot be selected or moved on the card',
+  'editor.clipHint':
+    'Put a shape (e.g. a circle) at the bottom of the group: the layers above it show only inside that shape, and the shape itself is not drawn.',
   'editor.pathHint':
     'Free shape described as an SVG path (commands M, L, C, Z) in 0–1 coordinates of the layer box, e.g. M0 0 L1 0 L0.5 1 Z is a triangle. Meant for shapes imported from TTC or copied from a drawing program; a drawing tool will come later.',
   'editor.srcPlaceholder': 'image name, or {field}',
@@ -71,13 +74,23 @@ export const en = {
   'editor.multiSelectionTitle': '{n} layers selected',
   'editor.multiSelection':
     'Move them together on the card, or group them to treat them as one layer.',
-  'source.column':
-    'On the cards: from column “{column}” ({sets}). An empty cell keeps the value set here.',
-  'source.fields':
-    'On the cards: built from the fields {fields} of each row. A column named “{column}” would replace it.',
-  'source.fixed':
-    'On the cards: the value set here, the same on every card. Add a column named “{column}” to the sheet to vary it.',
   'source.properties': 'Other columns for this layer: {columns}',
+  'source.label': 'Value on cards',
+  'source.kind.column': 'Sheet column',
+  'source.kind.fixed': 'Fixed',
+  'source.kind.formula': 'Formula',
+  'source.column': 'Column',
+  'source.columnHint': 'Empty: the column with the same name as the layer',
+  'source.formula': 'Formula',
+  'source.formulaHint':
+    '{field} takes the value from the row. With + - * / and a numeric result it is calculated: {forza}+2, {nome}.png',
+  'source.fixedNote':
+    'The value set below, the same on every card. Columns for the other properties (e.g. name.color) still apply.',
+  'source.formulaNote': 'Calculated for each card from the fields of its row.',
+  'source.formulaPreview': 'First card of {set}: {value}',
+  'source.columnFound': 'From column “{column}” ({sets}). An empty cell keeps the value set below.',
+  'source.columnMissing':
+    'No sheet has a column “{column}” yet: every card shows the value set below.',
   'layers.title': 'Layers',
   'layers.empty': 'No layers. Add one with the toolbar.',
   'layers.up': 'Bring forward',
@@ -152,7 +165,7 @@ export const en = {
   'prop.points': 'Points',
   'prop.innerRatio': 'Inner radius',
   'prop.path': 'Path',
-  'prop.clip': 'Clip to bounds',
+  'prop.clip': 'Bottom layer is a mask',
   'anchor.top-left': 'Top left',
   'anchor.top': 'Top',
   'anchor.top-right': 'Top right',
@@ -224,6 +237,8 @@ export const en = {
   'load.unreadableTemplate': 'Template {file} cannot be read: {error}',
   'template.unknownLayerType': 'Template {file}: layer "{layer}" has unknown type "{type}"',
   'bind.unknownProperty': 'Column {column}: no such property',
+  'bind.formulaField':
+    'Layer {layer}: the formula uses field "{field}", which this row does not have',
   'bind.invalidValue': 'Column {column}: invalid value "{value}"'
 }
 

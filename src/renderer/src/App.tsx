@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedProject, LoadedSet } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
 import { bindCard, rowToCard, type BoundCard } from '../../shared/model/bind'
@@ -6,6 +6,8 @@ import type { Side, Template } from '../../shared/model/template'
 import { normalizeTemplate } from '../../shared/model/normalize'
 import DataTable from './components/DataTable'
 import Segmented from './components/Segmented'
+import Resizer from './components/Resizer'
+import { usePanelWidth } from './components/usePanelWidth'
 import TemplateEditor from './editor/TemplateEditor'
 import { NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
@@ -28,6 +30,7 @@ function App(): React.JSX.Element {
   /** Template modificati e non ancora salvati */
   const [dirty, setDirty] = useState<Set<string>>(new Set())
   const [creating, setCreating] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = usePanelWidth('sidebar', 220)
 
   const load = useCallback(async (folder: string) => {
     setLoading(true)
@@ -165,7 +168,7 @@ function App(): React.JSX.Element {
 
         {project ? (
           <main className="workspace">
-            <nav className="sidebar">
+            <nav className="sidebar" style={{ width: sidebarWidth }}>
               <h2>{t('sidebar.sets')}</h2>
               <ul>
                 {project.sets.map((s, i) => (
@@ -218,6 +221,7 @@ function App(): React.JSX.Element {
                 </p>
               )}
             </nav>
+            <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="left" max={400} />
             {editing ? (
               <TemplateEditor
                 key={editing.name}
@@ -256,6 +260,27 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
   const { t } = useI18n()
   const [selected, setSelected] = useState(0)
   const [side, setSide] = useState<Side>('front')
+  const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
+  // dimensione delle miniature: pixel per millimetro
+  const [thumb, setThumb] = usePanelWidth('thumbScale', 2.6)
+  const contentRef = useRef<HTMLElement>(null)
+  const thumbRef = useRef(thumb)
+  useEffect(() => {
+    thumbRef.current = thumb
+  }, [thumb])
+  useEffect(() => {
+    const el = contentRef.current
+    if (!el) return
+    // Cmd/Ctrl + rotella o pizzico sul trackpad ingrandiscono le miniature
+    const onWheel = (e: WheelEvent): void => {
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      const d = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 50)
+      setThumb(clampThumb(thumbRef.current * Math.exp(-d * 0.004)))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  })
   const [view, setViewState] = useState<View>(() =>
     localStorage.getItem(VIEW_KEY) === 'grid' ? 'grid' : 'table'
   )
@@ -282,7 +307,7 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
 
   return (
     <>
-      <section className="content">
+      <section className="content" ref={contentRef}>
         <div className="set-header">
           <h1>{set.name}</h1>
           <span className="muted">
@@ -290,6 +315,18 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
             {t('set.counts', { rows: set.data.rows.length, cards: countCards(set.data) })}
           </span>
           <span className="spacer" />
+          {view === 'grid' && (
+            <input
+              type="range"
+              className="thumb-size"
+              min={THUMB_MIN}
+              max={THUMB_MAX}
+              step={0.1}
+              value={thumb}
+              title={t('set.thumbSize')}
+              onChange={(e) => setThumb(Number(e.target.value))}
+            />
+          )}
           <Segmented<View>
             value={view}
             options={[
@@ -307,11 +344,12 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
             side={side}
             selected={selected}
             onSelect={setSelected}
-            scale={2.6}
+            scale={thumb}
           />
         )}
       </section>
-      <aside className="preview">
+      <Resizer width={previewWidth} onChange={setPreviewWidth} edge="right" min={240} max={640} />
+      <aside className="preview" style={{ width: previewWidth }}>
         <div className="preview-header">
           <h2>{t('preview.title')}</h2>
           <Segmented<Side>
@@ -347,6 +385,13 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
       </aside>
     </>
   )
+}
+
+const THUMB_MIN = 1.2
+const THUMB_MAX = 8
+
+function clampThumb(v: number): number {
+  return Math.min(THUMB_MAX, Math.max(THUMB_MIN, v))
 }
 
 /** Numero di carte del set, sommando la colonna amount quando presente */

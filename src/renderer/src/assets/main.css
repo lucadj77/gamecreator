@@ -134,21 +134,34 @@ button {
 }
 
 .sidebar li {
-  position: relative;
+  display: flex;
+  align-items: center;
 }
 
+.sidebar li > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* duplica: accanto alla riga, non sopra il conteggio; visibile al passaggio e sulla riga scelta */
 .sidebar li button.item-dup {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
   width: auto;
-  display: none;
-  background: var(--panel);
+  flex-shrink: 0;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  color: var(--text);
 }
 
-.sidebar li:hover button.item-dup {
-  display: block;
+.sidebar li:hover button.item-dup,
+.sidebar li button.active + button.item-dup {
+  opacity: 0.8;
+}
+
+.sidebar li button.item-dup:hover {
+  opacity: 1;
+  background: var(--accent-soft);
 }
 
 .sidebar li button.active {
@@ -1029,4 +1042,31 @@ th.prop-col {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.layer-source {
+  width: 16px;
+  flex-shrink: 0;
+  display: inline-flex;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.layer-source.formula {
+  font-family: Georgia, serif;
+  font-style: italic;
+  color: var(--accent);
+}
+
+.card-cell.dragging {
+  opacity: 0.4;
+}
+
+.card-cell.drop-before {
+  box-shadow: -3px 0 0 var(--accent);
+}
+
+.card-cell.drop-after {
+  box-shadow: 3px 0 0 var(--accent);
 }

@@ -8,6 +8,7 @@ import {
   duplicateRows,
   insertRow,
   isValidSheetName,
+  moveRow,
   newSheet,
   removeRows
 } from '../../shared/model/sheet'
@@ -707,7 +708,9 @@ function SetView({
           </button>
           <span className="sep" />
           <button onClick={() => setAddingColumn(true)}>{t('set.addColumn')}</button>
-          <span className="muted small">{t('set.editHint')}</span>
+          <span className="muted small">
+            {view === 'grid' && template ? t('set.gridHint') : t('set.editHint')}
+          </span>
         </div>
         {view === 'table' || !template ? (
           <DataTable
@@ -722,6 +725,10 @@ function SetView({
             side={side}
             selected={current}
             onSelect={(i) => setSelection([i])}
+            onMove={(from, to) => {
+              onChange(moveRow(sheet, from, to))
+              setSelection([to])
+            }}
             scale={thumb}
           />
         )}

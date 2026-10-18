@@ -49,6 +49,10 @@ export const en = {
   'duplicate.templateTitle': 'Duplicate template',
   'duplicate.ok': 'Duplicate',
   'duplicate.suffix': 'copy',
+  'layers.sourceColumn': 'Value from column “{column}”',
+  'layers.sourceFormula': 'Value from formula: {expr}',
+  'layers.sourceFixed': 'Fixed value, the same on every card',
+  'set.gridHint': 'Drag a card to move it.',
   'app.language': 'Language',
 
   'sidebar.sets': 'Sets',

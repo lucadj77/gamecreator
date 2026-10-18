@@ -49,6 +49,10 @@ export const it: Record<MessageKey, string> = {
   'duplicate.templateTitle': 'Duplica template',
   'duplicate.ok': 'Duplica',
   'duplicate.suffix': 'copia',
+  'layers.sourceColumn': 'Valore dalla colonna “{column}”',
+  'layers.sourceFormula': 'Valore dalla formula: {expr}',
+  'layers.sourceFixed': 'Valore fisso, uguale su tutte le carte',
+  'set.gridHint': 'Trascina una carta per spostarla.',
   'app.language': 'Lingua',
 
   'sidebar.sets': 'Set',

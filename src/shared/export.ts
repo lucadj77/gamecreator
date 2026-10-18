@@ -3,6 +3,7 @@
 
 import type { Side, Template } from './model/template'
 import type { Message } from './messages'
+import type { Variables } from './model/variables'
 
 export type ExportKind = 'images' | 'pdf' | 'tts'
 export type SidesChoice = 'front' | 'back' | 'both'
@@ -167,6 +168,7 @@ export type ExportJob =
 export interface ExportContext {
   assets: string[]
   styles: Record<string, string>
+  variables?: Variables
 }
 
 export interface ExportResult {

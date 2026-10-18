@@ -125,7 +125,7 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 
 Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala.
 
-Finché non ci sono le variabili del progetto (sezione 6.1), `{nome}` che non è un campo si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
+`{nome}` che non è né un campo né una variabile si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
 
 #### Aiuto alla scrittura
 
@@ -216,6 +216,8 @@ Definite a livello di progetto, si richiamano con `{nome}` in qualunque testo e 
 | valore           | testo o numero costante                                        | `{max_mano}` → 7                                |
 
 Ogni variabile ha un'anteprima nell'elenco. Rinominare una variabile aggiorna i riferimenti in template e fogli.
+
+Stato attuale: le variabili sono nella sezione "Variabili" della barra laterale, con un editor che mostra l'anteprima in una frase di prova, e si salvano in `gamecreator.json` (docs/formato.md). Le variabili immagine hanno file, tinta, dimensione rispetto alla riga e spostamento verticale; quelle di testo possono contenere markup e richiamare altre variabili; quelle valore entrano nelle formule come i campi; quelle colore valgono in ogni proprietà colore dei livelli e negli attributi del markup (`color=`, `bg-color=`, `fill=`, `border=`, `highlight=`), scritte come `rosso` o `{rosso}`, e compaiono tra i suggerimenti. Rinominare una variabile per ora non aggiorna i riferimenti.
 
 ### 6.2 Stili di testo
 

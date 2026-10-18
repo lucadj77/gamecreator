@@ -1,0 +1,229 @@
+import { useContext, useMemo, useState } from 'react'
+import { substituteFields } from '../../../shared/model/bind'
+import {
+  VARIABLE_TYPES,
+  emptyVariable,
+  isValidVariableName,
+  palette,
+  resolveColor,
+  variableFields,
+  type Variable,
+  type VariableType,
+  type Variables
+} from '../../../shared/model/variables'
+import { Dialog } from '../editor/dialogs'
+import { ColorField, NumberField, TextField } from '../editor/fields'
+import { useI18n } from '../i18n/context'
+import MarkupText from '../render/MarkupText'
+import { AssetsContext, VariablesContext } from '../render/assets'
+import Segmented from './Segmented'
+
+// Editor di una variabile del progetto (docs/specifica.md, 6.1), con l'anteprima in una frase.
+
+const IMAGE_LIST = 'variable-images'
+
+export default function VariableDialog({
+  name: initialName,
+  onSave,
+  onDelete,
+  onClose
+}: {
+  /** '' per una variabile nuova */
+  name: string
+  onSave(name: string, v: Variable): void
+  onDelete(): void
+  onClose(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const variables = useContext(VariablesContext)
+  const assets = useContext(AssetsContext)
+  const [name, setName] = useState(initialName)
+  const [v, setV] = useState<Variable>(variables[initialName] ?? emptyVariable('image'))
+  // si tiene il contenuto di ogni tipo, così cambiare tipo per prova non lo perde
+  const [byType, setByType] = useState<Partial<Record<VariableType, Variable>>>({})
+  const changeType = (type: VariableType): void => {
+    setByType((b) => ({ ...b, [v.type]: v }))
+    setV(byType[type] ?? emptyVariable(type))
+  }
+
+  const nameError = !name
+    ? null
+    : !isValidVariableName(name)
+      ? t('variable.invalidName')
+      : name !== initialName && name in variables
+        ? t('variable.exists')
+        : null
+
+  // l'anteprima usa la versione in modifica al posto di quella salvata
+  const draft = useMemo<Variables>(() => {
+    const out = { ...variables }
+    delete out[initialName]
+    out[name || '_'] = v
+    return out
+  }, [variables, initialName, name, v])
+  const ref = `{${name || '_'}}`
+  const sample =
+    v.type === 'color'
+      ? `[${t('variable.sampleText')}]{color=${name || '_'}} [ 7 ]{bg=circle bg-color=${name || '_'} color=white}`
+      : substituteFields(`${t('variable.sampleBefore')} ${ref} ${t('variable.sampleAfter')}`, {
+          ...variableFields(draft)
+        })
+
+  const images = [
+    ...new Set(
+      assets.map((p) => {
+        const base = p.slice(p.lastIndexOf('/') + 1)
+        return base.slice(0, base.lastIndexOf('.'))
+      })
+    )
+  ].sort()
+
+  return (
+    <Dialog title={t('variable.title')} onClose={onClose}>
+      <div className="format-dialog">
+        <div className="format-preview">
+          <VariablesContext.Provider value={draft}>
+            <MarkupText text={sample} unit={4} ratio={1} paragraphSpacing={0} />
+          </VariablesContext.Provider>
+        </div>
+        <div className="format-fields">
+          <TextField
+            label={t('variable.name')}
+            hint={t('variable.nameHint')}
+            value={name}
+            validate={(x) => (!x || isValidVariableName(x) ? null : t('variable.invalidName'))}
+            onChange={setName}
+          />
+          <div className="field">
+            <span className="field-label">{t('variable.type')}</span>
+            <span className="field-control">
+              <Segmented<VariableType>
+                value={v.type}
+                options={VARIABLE_TYPES.map((x) => [x, t(`variable.type.${x}`)])}
+                onChange={changeType}
+              />
+            </span>
+          </div>
+          {v.type === 'image' && (
+            <>
+              <TextField
+                label={t('variable.src')}
+                hint={t('variable.srcHint')}
+                value={v.src}
+                list={IMAGE_LIST}
+                onChange={(src) => setV({ ...v, src })}
+              />
+              <datalist id={IMAGE_LIST}>
+                {images.map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
+              <ColorField
+                label={t('variable.tint')}
+                hint={t('variable.tintHint')}
+                value={v.tint ?? null}
+                nullable
+                onChange={(tint) => setV({ ...v, tint })}
+              />
+              <NumberField
+                label={t('variable.scale')}
+                hint={t('variable.scaleHint')}
+                value={v.scale ?? 1}
+                factor={100}
+                step={5}
+                min={0.1}
+                unit="%"
+                onChange={(scale) => setV({ ...v, scale })}
+              />
+              <NumberField
+                label={t('variable.raise')}
+                hint={t('variable.raiseHint')}
+                value={v.raise ?? 0}
+                step={5}
+                unit="%"
+                onChange={(raise) => setV({ ...v, raise })}
+              />
+            </>
+          )}
+          {v.type === 'text' && (
+            <TextField
+              label={t('variable.text')}
+              hint={t('variable.textHint')}
+              value={v.text}
+              multiline
+              markupFields={[]}
+              onChange={(text) => setV({ ...v, text })}
+            />
+          )}
+          {v.type === 'color' && (
+            <ColorField
+              label={t('variable.color')}
+              value={v.color}
+              onChange={(color) => setV({ ...v, color: color ?? '#000000' })}
+            />
+          )}
+          {v.type === 'value' && (
+            <TextField
+              label={t('variable.value')}
+              hint={t('variable.valueHint')}
+              value={v.value}
+              onChange={(value) => setV({ ...v, value })}
+            />
+          )}
+        </div>
+        <div className="dialog-buttons">
+          {initialName && (
+            <button className="spacer-right danger" onClick={onDelete}>
+              {t('variable.delete')}
+            </button>
+          )}
+          <button onClick={onClose}>{t('format.cancel')}</button>
+          <button
+            className="primary"
+            disabled={!name || !!nameError}
+            onClick={() => onSave(name, clean(v))}
+          >
+            {t('variable.save')}
+          </button>
+        </div>
+        {nameError && <span className="field-error">{nameError}</span>}
+      </div>
+    </Dialog>
+  )
+}
+
+/** Nel file si scrivono solo i valori diversi dai default */
+function clean(v: Variable): Variable {
+  if (v.type !== 'image') return v
+  const out: Variable = { type: 'image', src: v.src.trim() }
+  if (v.tint) out.tint = v.tint
+  if (v.scale !== undefined && v.scale !== 1) out.scale = v.scale
+  if (v.raise) out.raise = v.raise
+  return out
+}
+
+/** Anteprima di una riga nell'elenco della barra laterale */
+export function VariableSwatch({
+  v,
+  variables
+}: {
+  v: Variable
+  variables: Variables
+}): React.JSX.Element {
+  if (v.type === 'color')
+    return (
+      <span
+        className="variable-swatch"
+        style={{ background: resolveColor(v.color, palette(variables)) }}
+      />
+    )
+  if (v.type === 'image')
+    return (
+      <span className="variable-icon">
+        <VariablesContext.Provider value={{ ...variables, _: v }}>
+          <MarkupText text="{_}" unit={3} ratio={1} paragraphSpacing={0} />
+        </VariablesContext.Provider>
+      </span>
+    )
+  return <span className="muted small variable-text">{v.type === 'text' ? v.text : v.value}</span>
+}

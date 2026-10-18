@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ExportContext, Scene, ScenePage } from '../../../shared/export'
 import CardSvg from '../render/CardSvg'
-import { AssetsContext, StylesContext } from '../render/assets'
+import { AssetsContext, StylesContext, VariablesContext } from '../render/assets'
 
 // Pagina della finestra nascosta di esportazione: disegna le scene che arrivano dal processo
 // principale e avvisa quando sono complete, così si possono catturare o stampare.
 
 const EMPTY: ExportContext = { assets: [], styles: {} }
+const NO_VARIABLES = {}
 
 export default function ExportPage(): React.JSX.Element {
   const [context, setContext] = useState<ExportContext>(EMPTY)
@@ -37,17 +38,19 @@ export default function ExportPage(): React.JSX.Element {
   return (
     <AssetsContext.Provider value={context.assets}>
       <StylesContext.Provider value={context.styles}>
-        <style>{`
+        <VariablesContext.Provider value={context.variables ?? NO_VARIABLES}>
+          <style>{`
           @page { size: ${first?.width ?? 210}mm ${first?.height ?? 297}mm; margin: 0 }
           html, body, #root { background: ${bg}; margin: 0; height: auto; overflow: hidden }
           .export-page { position: relative; overflow: hidden; break-after: page }
           .export-page:last-child { break-after: auto }
         `}</style>
-        <div ref={rootRef} key={job?.id}>
-          {scene?.pages.map((p, i) => (
-            <Page key={i} page={p} scene={scene} />
-          ))}
-        </div>
+          <div ref={rootRef} key={job?.id}>
+            {scene?.pages.map((p, i) => (
+              <Page key={i} page={p} scene={scene} />
+            ))}
+          </div>
+        </VariablesContext.Provider>
       </StylesContext.Provider>
     </AssetsContext.Provider>
   )

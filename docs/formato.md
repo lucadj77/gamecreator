@@ -32,6 +32,24 @@ progetto/
 }
 ```
 
+`variables` (facoltativo) contiene le variabili del progetto (docs/specifica.md, 6.1), una per nome, con un campo `type`:
+
+```json
+"variables": {
+  "spada": { "type": "image", "src": "spada", "tint": "rosso", "scale": 1.2, "raise": 10 },
+  "pino": { "type": "text", "text": "[pino]{color=green weight=700}" },
+  "rosso": { "type": "color", "color": "#A33A2A" },
+  "mano": { "type": "value", "value": "7" }
+}
+```
+
+- `image`: `src` è il nome di un file in `assets/`; `tint` (facoltativo) ricolora l'icona; `scale` è l'altezza rispetto alle icone normali nel testo (1 = normale); `raise` sposta l'icona in alto, in % della riga.
+- `text`: testo con markup che prende il posto di `{nome}`.
+- `color`: un colore usabile per nome in ogni proprietà colore; un nome standard (`red`) ridefinito qui cambia in tutto il progetto.
+- `value`: testo o numero costante, usabile nei testi e nelle formule.
+
+Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
+
 `export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`. La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
 
 ## Fogli dati

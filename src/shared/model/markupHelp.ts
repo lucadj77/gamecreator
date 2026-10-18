@@ -1,9 +1,11 @@
 import { NAMED_COLORS } from './colors'
+import type { Variables } from './variables'
 import { ATTRIBUTES, BUILTIN_SHAPES, BUILTIN_STYLES, type AttributeName } from './markup'
 
 // Aiuto alla scrittura del markup (docs/specifica.md, 2.1): cosa proporre dove si trova il cursore.
 
-export type SuggestionKind = 'attribute' | 'style' | 'color' | 'shape' | 'image' | 'field' | 'value'
+export type SuggestionKind =
+  'attribute' | 'style' | 'color' | 'shape' | 'image' | 'field' | 'value' | 'variable'
 
 export interface Suggestion {
   kind: SuggestionKind
@@ -15,6 +17,8 @@ export interface Suggestion {
   more?: boolean
   /** Attributo: chiave della spiegazione di una riga */
   attribute?: AttributeName
+  /** Colore del campione, se diverso dall'etichetta (colori del progetto) */
+  swatch?: string
 }
 
 export interface SuggestionResult {
@@ -31,6 +35,8 @@ export interface HelpContext {
   assets: string[]
   /** Stili del progetto */
   styles: string[]
+  /** Variabili del progetto */
+  variables?: Variables
 }
 
 const MAX = 40
@@ -128,10 +134,23 @@ function refs(
     insert: f + close
   }))
   const fieldSet = new Set(ctx.fields)
+  const vars = Object.entries(ctx.variables ?? {})
+    .filter(([n, v]) => v.type !== 'color' && !fieldSet.has(n))
+    .map(([n]) => n)
+  const varItems = unique(vars).map((n): Suggestion => ({
+    kind: 'variable',
+    label: n,
+    insert: n + close
+  }))
+  const taken = new Set([...ctx.fields, ...vars])
   const images = unique(ctx.assets.map(imageName))
-    .filter((n) => !fieldSet.has(n))
+    .filter((n) => !taken.has(n))
     .map((n): Suggestion => ({ kind: 'image', label: n, insert: n + close }))
-  return { from: open + 1, to: end, items: rank([...fields, ...images], typed.trim()) }
+  return {
+    from: open + 1,
+    to: end,
+    items: rank([...fields, ...varItems, ...images], typed.trim())
+  }
 }
 
 function attributes(typed: string, ctx: HelpContext, paragraph: boolean): Suggestion[] {
@@ -165,16 +184,26 @@ function values(key: string, typed: string, ctx: HelpContext): Suggestion[] {
   switch (kind) {
     case 'color':
     case 'stroke':
-    case 'border':
-      return rank(COLOR_ITEMS, typed)
+    case 'border': {
+      // prima i colori del progetto, che possono anche ridefinire un nome standard
+      const own = Object.entries(ctx.variables ?? {}).flatMap(([n, v]) =>
+        v.type === 'color'
+          ? [{ kind: 'variable' as const, label: n, insert: n, swatch: v.color }]
+          : []
+      )
+      const names = new Set(own.map((o) => o.label))
+      return rank([...own, ...COLOR_ITEMS.filter((c) => !names.has(c.label))], typed)
+    }
     case 'image': {
       const shapes = BUILTIN_SHAPES.map((s): Suggestion => ({ kind: 'shape', label: s, insert: s }))
-      const images = unique(ctx.assets.map(imageName)).map((n): Suggestion => ({
-        kind: 'image',
-        label: n,
-        insert: n
-      }))
-      return rank([...shapes, ...images], typed)
+      const vars = Object.entries(ctx.variables ?? {})
+        .filter(([, v]) => v.type === 'image')
+        .map(([n]): Suggestion => ({ kind: 'variable', label: n, insert: n }))
+      const taken = new Set(vars.map((v) => v.label))
+      const images = unique(ctx.assets.map(imageName))
+        .filter((n) => !taken.has(n))
+        .map((n): Suggestion => ({ kind: 'image', label: n, insert: n }))
+      return rank([...shapes, ...vars, ...images], typed)
     }
     case 'radius':
       return rank([{ kind: 'value', label: 'round', insert: 'round' }], typed)

@@ -3,6 +3,7 @@
 import type { Template } from './model/template'
 import type { Message } from './messages'
 import type { ExportProfiles } from './export'
+import type { Variables } from './model/variables'
 
 export const PROJECT_FILE = 'gamecreator.json'
 export const FORMAT_VERSION = 1
@@ -27,6 +28,8 @@ export interface ProjectFile {
    * heading1, heading2 e note esistono sempre e si possono ridefinire.
    */
   styles?: Record<string, string>
+  /** Variabili del progetto: nome → definizione (docs/specifica.md, 6.1) */
+  variables?: Variables
   /** Ultime opzioni usate per ogni tipo di esportazione */
   export?: ExportProfiles
 }

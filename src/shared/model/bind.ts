@@ -3,6 +3,7 @@ import { resolveAsset } from './assets'
 import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
+import { imageVariable, palette, resolveColor, variableFields, type Variables } from './variables'
 import {
   PRIMARY_PROPERTY,
   type Layer,
@@ -39,6 +40,7 @@ export function rowToCard(headers: string[], row: string[]): CardData {
 export interface BindContext {
   styles?: Record<string, string>
   assets?: string[]
+  variables?: Variables
 }
 
 export function bindCard(template: Template, card: CardData, ctx: BindContext = {}): BoundCard {
@@ -53,7 +55,8 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
     overrides.get(layer)!.set(prop ?? '', value)
   }
 
-  const fields = cardFields(template, card)
+  const fields = cardFields(template, card, ctx.variables)
+  const pal = palette(ctx.variables)
   const apply = (layers: Layer[]): Layer[] =>
     layers.map((layer) => {
       let out: Layer = layer
@@ -88,9 +91,14 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         out = { ...out, text: substituteFields(out.text, fields) }
         if (out.visible) problems.push(...textProblems(out.name, out.text, ctx))
       }
-      if (out.type === 'image') out = { ...out, src: substituteFields(out.src, fields) }
+      if (out.type === 'image') {
+        out = { ...out, src: substituteFields(out.src, fields) }
+        // una variabile immagine prevale su un file con lo stesso nome
+        const v = imageVariable(out.src, ctx.variables)
+        if (v) out = { ...out, src: v.src, tint: out.tint ?? v.tint ?? null }
+      }
       if (out.type === 'group') out = { ...out, children: apply(out.children) }
-      return out
+      return paintLayer(out, pal)
     })
 
   return {
@@ -108,7 +116,7 @@ function textProblems(layer: string, text: string, ctx: BindContext): Message[] 
   )
   if (ctx.assets)
     for (const name of new Set(markupRefs(text))) {
-      if (!name) continue
+      if (!name || imageVariable(name, ctx.variables)) continue
       const r = resolveAsset(name, ctx.assets)
       if (!r.ok)
         out.push(
@@ -158,9 +166,14 @@ export function switchSource(l: Layer, kind: ValueSource['kind']): ValueSource {
  * Campi disponibili per formule e {campo}: i valori del template come base, sopra le celle non
  * vuote della riga, poi i livelli valore calcolati in ordine (uno può usare i precedenti).
  */
-export function cardFields(template: Template, card: CardData): Record<string, string> {
+export function cardFields(
+  template: Template,
+  card: CardData,
+  variables?: Variables
+): Record<string, string> {
   const all = walkLayers([...template.front, ...template.back])
-  const fields: Record<string, string> = {}
+  // le variabili di testo e valore valgono come campi, ma un campo con lo stesso nome vince
+  const fields: Record<string, string> = variableFields(variables)
   for (const l of all) {
     const v = defaultValue(l)
     if (v !== null) fields[l.name] = v
@@ -191,6 +204,29 @@ export function substituteFields(text: string, fields: Record<string, string>): 
     .replace(/(?<!\\)\{([^{}*]+)\*([^{}*]+)\}/g, (m, name: string, count: string) =>
       has(count) ? `{${name}*${fields[count.trim()].trim()}}` : m
     )
+}
+
+/** Colori del livello con i nomi della tavolozza del progetto sostituiti dal loro valore */
+function paintLayer(l: Layer, pal: Record<string, string>): Layer {
+  if (!Object.keys(pal).length) return l
+  const stroke = (s: Stroke | null): Stroke | null =>
+    s && { ...s, color: resolveColor(s.color, pal) }
+  const shadow = l.shadow && { ...l.shadow, color: resolveColor(l.shadow.color, pal) }
+  switch (l.type) {
+    case 'text':
+      return { ...l, shadow, color: resolveColor(l.color, pal), stroke: stroke(l.stroke) }
+    case 'shape':
+      return {
+        ...l,
+        shadow,
+        fill: l.fill && resolveColor(l.fill, pal),
+        stroke: stroke(l.stroke)
+      }
+    case 'image':
+      return { ...l, shadow, tint: l.tint && resolveColor(l.tint, pal), stroke: stroke(l.stroke) }
+    default:
+      return { ...l, shadow }
+  }
 }
 
 const NULLABLE = new Set(['fill', 'tint', 'style', 'stroke', 'shadow'])

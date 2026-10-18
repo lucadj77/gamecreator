@@ -11,8 +11,27 @@
   color-scheme: light dark;
 }
 
+/* tema scelto nell'app (data-theme) oppure quello del sistema */
+:root[data-theme='dark'] {
+  --bg: #1b1b1d;
+  --panel: #242427;
+  --text: #ececec;
+  --muted: #9a9aa0;
+  --border: #3a3a3e;
+  --accent: #6f9cf0;
+  --accent-soft: #2a3550;
+  --warning-bg: #4a3d14;
+  --error-bg: #4d2120;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #1b1b1d;
     --panel: #242427;
     --text: #ececec;
@@ -1051,6 +1070,62 @@ th.prop-col {
   justify-content: center;
   color: var(--muted);
   font-size: 11px;
+}
+
+.layer-source-wrap {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+button.layer-source {
+  width: 20px;
+  height: 18px;
+  padding: 0;
+  align-items: center;
+  border: 1px solid transparent;
+  background: none;
+  border-radius: 4px;
+}
+
+button.layer-source:hover,
+button.layer-source.open {
+  border-color: var(--border);
+  background: var(--panel);
+}
+
+.source-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 130px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.source-menu button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.source-menu button:hover {
+  background: var(--accent-soft);
+}
+
+.source-menu button.on {
+  font-weight: 600;
 }
 
 .layer-source.formula {

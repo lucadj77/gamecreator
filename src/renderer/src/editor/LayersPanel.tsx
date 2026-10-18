@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { findParent, isNameTaken, moveLayerTo, patchLayer } from '../../../shared/model/edit'
-import type { Layer } from '../../../shared/model/template'
+import { switchSource } from '../../../shared/model/bind'
+import type { Layer, ValueSource } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import { ColumnIcon, FixedIcon, ImageIcon } from '../components/icons'
 import type { Commands } from './commands'
@@ -28,14 +29,51 @@ const ICONS: Record<string, React.ReactNode> = {
   value: '#'
 }
 
+const SOURCE_KINDS: ValueSource['kind'][] = ['column', 'fixed', 'formula']
+
+function SourceIcon({ kind }: { kind: ValueSource['kind'] }): React.ReactNode {
+  return kind === 'column' ? <ColumnIcon /> : kind === 'formula' ? 'ƒx' : <FixedIcon />
+}
+
 export default function LayersPanel({ state, dispatch, cmd, width }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [renaming, setRenaming] = useState<string | null>(null)
   const [dragging, setDragging] = useState<string | null>(null)
   const [drop, setDrop] = useState<{ id: string; where: DropWhere } | null>(null)
+  const [sourceMenu, setSourceMenu] = useState<string | null>(null)
   const { template: tpl, side, selection } = state
   const layers = tpl[side]
+
+  // il menu della fonte si chiude con un clic altrove o con Esc
+  useEffect(() => {
+    if (!sourceMenu) return
+    const close = (e: Event): void => {
+      if (e instanceof KeyboardEvent && e.key !== 'Escape') return
+      if (e.target instanceof Element && e.target.closest('.source-menu')) return
+      setSourceMenu(null)
+    }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', close)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', close)
+    }
+  }, [sourceMenu])
+
+  // si seleziona il livello, così il pannello proprietà mostra la colonna o la formula
+  const changeSource = (l: Layer, kind: ValueSource['kind']): void => {
+    setSourceMenu(null)
+    const source = switchSource(l, kind)
+    const parent = findParent(layers, l.id)?.id ?? null
+    if (source === l.source) dispatch({ type: 'select', ids: [l.id], scope: parent })
+    else
+      dispatch({
+        type: 'change',
+        template: patchLayer(tpl, side, l.id, { source }),
+        selection: [l.id]
+      })
+  }
 
   const select = (l: Layer, e: React.MouseEvent): void => {
     const parent = findParent(layers, l.id)?.id ?? null
@@ -134,22 +172,41 @@ export default function LayersPanel({ state, dispatch, cmd, width }: Props): Rea
               <span className="layer-name">{l.name}</span>
             )}
             {l.type !== 'group' && (
-              <span
-                className={`layer-source ${l.source.kind}`}
-                title={
-                  l.source.kind === 'column'
-                    ? t('layers.sourceColumn', { column: l.source.column ?? l.name })
-                    : l.source.kind === 'formula'
-                      ? t('layers.sourceFormula', { expr: l.source.expr })
-                      : t('layers.sourceFixed')
-                }
-              >
-                {l.source.kind === 'column' ? (
-                  <ColumnIcon />
-                ) : l.source.kind === 'formula' ? (
-                  'ƒx'
-                ) : (
-                  <FixedIcon />
+              <span className="layer-source-wrap">
+                <button
+                  className={`layer-source ${l.source.kind}${sourceMenu === l.id ? ' open' : ''}`}
+                  title={`${
+                    l.source.kind === 'column'
+                      ? t('layers.sourceColumn', { column: l.source.column ?? l.name })
+                      : l.source.kind === 'formula'
+                        ? t('layers.sourceFormula', { expr: l.source.expr })
+                        : t('layers.sourceFixed')
+                  }\n${t('layers.sourceChange')}`}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSourceMenu(sourceMenu === l.id ? null : l.id)
+                  }}
+                >
+                  <SourceIcon kind={l.source.kind} />
+                </button>
+                {sourceMenu === l.id && (
+                  <div className="source-menu" role="menu" onClick={(e) => e.stopPropagation()}>
+                    {SOURCE_KINDS.map((kind) => (
+                      <button
+                        key={kind}
+                        role="menuitemradio"
+                        aria-checked={l.source.kind === kind}
+                        className={l.source.kind === kind ? 'on' : undefined}
+                        onClick={() => changeSource(l, kind)}
+                      >
+                        <span className={`layer-source ${kind}`}>
+                          <SourceIcon kind={kind} />
+                        </span>
+                        {t(`source.kind.${kind}`)}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </span>
             )}

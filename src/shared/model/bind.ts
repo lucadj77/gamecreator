@@ -1,7 +1,14 @@
 import { msg, type Message } from '../messages'
 import { evaluateFormula } from './formula'
 import { walkLayers } from './normalize'
-import { PRIMARY_PROPERTY, type Layer, type Shadow, type Stroke, type Template } from './template'
+import {
+  PRIMARY_PROPERTY,
+  type Layer,
+  type Shadow,
+  type Stroke,
+  type Template,
+  type ValueSource
+} from './template'
 
 // Applica una riga del foglio a un template: vedi docs/formato.md, "Fogli dati".
 
@@ -105,6 +112,18 @@ export function defaultValue(l: Layer): string | null {
     default:
       return null
   }
+}
+
+/**
+ * Fonte del livello dopo il cambio di tipo. Passando a formula si parte dal valore attuale,
+ * così la carta non cambia; restando sullo stesso tipo non cambia nulla.
+ */
+export function switchSource(l: Layer, kind: ValueSource['kind']): ValueSource {
+  if (l.source.kind === kind) return l.source
+  if (kind === 'column') return { kind, column: null }
+  if (kind === 'fixed') return { kind }
+  const v = defaultValue(l)
+  return { kind, expr: v?.trim() ? v : `{${l.name}}` }
 }
 
 /**

@@ -30,6 +30,8 @@ import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/set
 import CardSvg from './render/CardSvg'
 import { AssetsContext } from './render/assets'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
+import { THEMES, applyTheme, loadTheme } from './theme/theme'
+import type { Theme } from '../../shared/api'
 
 const LAST_FOLDER_KEY = 'lastProjectFolder'
 const VIEW_KEY = 'setView'
@@ -63,6 +65,11 @@ function App(): React.JSX.Element {
     } catch {
       // preferenza non essenziale
     }
+  }
+  const [theme, setTheme] = useState(loadTheme)
+  const changeTheme = (th: Theme): void => {
+    setTheme(th)
+    applyTheme(th)
   }
   const [project, setProject] = useState<LoadedProject | null>(null)
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
@@ -383,6 +390,16 @@ function App(): React.JSX.Element {
               {UI_ZOOMS.map((z) => (
                 <option key={z} value={z}>
                   {Math.round(z * 100)}%
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="muted">
+            {t('app.theme')}{' '}
+            <select value={theme} onChange={(e) => changeTheme(e.target.value as Theme)}>
+              {THEMES.map((th) => (
+                <option key={th} value={th}>
+                  {t(`app.theme.${th}`)}
                 </option>
               ))}
             </select>

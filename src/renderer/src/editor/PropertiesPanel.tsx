@@ -15,7 +15,7 @@ import type {
 import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
-import { cardFields, defaultValue, rowToCard, substituteFields } from '../../../shared/model/bind'
+import { cardFields, rowToCard, substituteFields, switchSource } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext } from '../render/assets'
 import {
@@ -732,16 +732,7 @@ function ValueSource({
           ['fixed', t('source.kind.fixed')],
           ['formula', t('source.kind.formula')]
         ]}
-        onChange={(kind) =>
-          set({
-            source:
-              kind === 'column'
-                ? { kind, column: null }
-                : kind === 'formula'
-                  ? { kind, expr: src.kind === 'formula' ? src.expr : startingFormula(l) }
-                  : { kind }
-          })
-        }
+        onChange={(kind) => set({ source: switchSource(l, kind) })}
       />
       {src.kind === 'column' && (
         <>
@@ -797,9 +788,3 @@ function ValueSource({
 }
 
 type ValueSourceKind = Layer['source']['kind']
-
-/** Passando a formula si parte dal valore attuale, così la carta non cambia */
-function startingFormula(l: Layer): string {
-  const v = defaultValue(l)
-  return v?.trim() ? v : `{${l.name}}`
-}

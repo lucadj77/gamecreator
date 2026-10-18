@@ -7,7 +7,8 @@ const api: Api = {
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
   saveTemplate: (template) => ipcRenderer.invoke('template:save', template),
   saveData: (changes) => ipcRenderer.invoke('data:save', changes),
-  setUiZoom: (factor) => webFrame.setZoomFactor(factor)
+  setUiZoom: (factor) => webFrame.setZoomFactor(factor),
+  setTheme: (theme) => ipcRenderer.send('theme:set', theme)
 }
 
 if (process.contextIsolated) {

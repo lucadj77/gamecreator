@@ -51,8 +51,13 @@ export const en = {
   'duplicate.suffix': 'copy',
   'layers.sourceColumn': 'Value from column “{column}”',
   'layers.sourceFormula': 'Value from formula: {expr}',
+  'layers.sourceChange': 'Click to change the source',
   'layers.sourceFixed': 'Fixed value, the same on every card',
   'set.gridHint': 'Drag a card to move it.',
+  'app.theme': 'Theme',
+  'app.theme.system': 'System',
+  'app.theme.light': 'Light',
+  'app.theme.dark': 'Dark',
   'app.language': 'Language',
 
   'sidebar.sets': 'Sets',

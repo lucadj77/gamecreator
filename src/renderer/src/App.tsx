@@ -21,8 +21,15 @@ import {
 import DataTable from './components/DataTable'
 import Segmented from './components/Segmented'
 import Resizer from './components/Resizer'
-import { usePanelSide, usePanelWidth } from './components/usePanelWidth'
+import {
+  useClosedSections,
+  usePanelCompact,
+  usePanelSide,
+  usePanelWidth
+} from './components/usePanelWidth'
 import PanelSideButton from './components/PanelSideButton'
+import SidebarSection from './components/SidebarSection'
+import { PanelIcon, SetsIcon, StylesIcon, TemplateIcon, VariablesIcon } from './components/icons'
 import TemplateEditor from './editor/TemplateEditor'
 import { NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
@@ -135,6 +142,8 @@ function App(): React.JSX.Element {
   const anyDirty = dirty.size > 0 || dirtySheets.size > 0 || fileDirty
   const [sidebarWidth, setSidebarWidth] = usePanelWidth('sidebar', 220)
   const [sidebarSide, toggleSidebarSide] = usePanelSide('sidebar', 'left')
+  const [sidebarCompact, setSidebarCompact] = usePanelCompact('sidebar')
+  const [closedSections, setSectionClosed] = useClosedSections('sidebar')
 
   const load = useCallback(async (folder: string) => {
     setLoading(true)
@@ -444,130 +453,219 @@ function App(): React.JSX.Element {
   const styleList = Object.keys(allStyles).sort()
   const variables = project?.file.variables ?? NO_VARIABLES
   const variableList = Object.entries(variables).sort(([a], [b]) => a.localeCompare(b))
-  const sidebar = project && (
-    <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
-      <h2 className="with-action">
-        {t('sidebar.sets')}
-        <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
+  // sezioni della barra laterale, per la versione ridotta a icone
+  const sidebarSections: [string, React.ReactNode, string][] = [
+    ['sets', <SetsIcon key="sets" />, t('sidebar.sets')],
+    ['templates', <TemplateIcon key="templates" />, t('sidebar.templates')],
+    ['styles', <StylesIcon key="styles" />, t('sidebar.styles')],
+    ['variables', <VariablesIcon key="variables" />, t('sidebar.variables')]
+  ]
+  const sidebar =
+    project && sidebarCompact ? (
+      <nav className="sidebar compact" data-side={sidebarSide}>
         <button
-          className="icon-btn"
-          title={t('sidebar.newSet')}
-          onClick={() => setCreatingSet(true)}
+          className="icon-btn sidebar-compact-btn"
+          title={t('sidebar.expand')}
+          onClick={() => setSidebarCompact(false)}
         >
-          +
+          <PanelIcon />
         </button>
-      </h2>
-      <ul>
-        {project.sets.map((s, i) => (
-          <li key={s.name}>
-            <button
-              className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
-              onClick={() => setSelected({ kind: 'set', index: i })}
-              title={t('tip.openSet')}
-            >
-              <span>
-                {s.name}
-                {s.data && dirtySheets.has(s.data.name) && (
-                  <span className="dirty-dot" title={t('app.unsaved')} />
-                )}
-              </span>
-              <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
-            </button>
-            <button
-              className="icon-btn item-dup"
-              title={t('sidebar.duplicate')}
-              onClick={() => setDuplicating({ kind: 'set', index: i })}
-            >
-              ⧉
-            </button>
-          </li>
+        {sidebarSections.map(([id, icon, title]) => (
+          <button
+            key={id}
+            className="sidebar-icon"
+            title={title}
+            onClick={() => {
+              // apre il pannello sulla sezione scelta
+              setSectionClosed(id, false)
+              setSidebarCompact(false)
+              requestAnimationFrame(() =>
+                document.getElementById(`sidebar-${id}`)?.scrollIntoView({ block: 'start' })
+              )
+            }}
+          >
+            {icon}
+          </button>
         ))}
-      </ul>
-      <h2 className="with-action">
-        {t('sidebar.templates')}
-        <button
-          className="icon-btn"
-          title={t('sidebar.newTemplate')}
-          onClick={() => setCreating(true)}
-        >
-          +
-        </button>
-      </h2>
-      <ul>
-        {project.templates.map((tpl) => (
-          <li key={tpl.name}>
+      </nav>
+    ) : (
+      project && (
+        <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
+          <div className="sidebar-bar">
             <button
-              className={selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''}
-              onClick={() => setSelected({ kind: 'template', name: tpl.name })}
-              title={t('tip.openTemplate')}
+              className="icon-btn sidebar-compact-btn"
+              title={t('sidebar.compact')}
+              onClick={() => setSidebarCompact(true)}
             >
-              <span>
-                {tpl.name}
-                {dirty.has(tpl.name) && <span className="dirty-dot" title={t('app.unsaved')} />}
-              </span>
-              <span className="muted">
-                {tpl.width}×{tpl.height}
-              </span>
+              <PanelIcon />
             </button>
-            <button
-              className="icon-btn item-dup"
-              title={t('sidebar.duplicate')}
-              onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
-            >
-              ⧉
-            </button>
-          </li>
-        ))}
-      </ul>
-      <h2 className="with-action">
-        {t('sidebar.styles')}
-        <button
-          className="icon-btn"
-          title={t('sidebar.newStyle')}
-          onClick={() => setEditingStyle('')}
-        >
-          +
-        </button>
-      </h2>
-      <ul>
-        {styleList.map((name) => (
-          <li key={name}>
-            <button onClick={() => setEditingStyle(name)} title={allStyles[name]}>
-              <span>.{name}</span>
-              {!(name in (project.file.styles ?? {})) && (
-                <span className="muted small">{t('sidebar.builtinStyle')}</span>
-              )}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <h2 className="with-action">
-        {t('sidebar.variables')}
-        <button
-          className="icon-btn"
-          title={t('sidebar.newVariable')}
-          onClick={() => setEditingVariable('')}
-        >
-          +
-        </button>
-      </h2>
-      <ul>
-        {variableList.map(([name, v]) => (
-          <li key={name}>
-            <button onClick={() => setEditingVariable(name)} title={t(`variable.type.${v.type}`)}>
-              <span>{`{${name}}`}</span>
-              <VariableSwatch v={v} variables={variables} />
-            </button>
-          </li>
-        ))}
-      </ul>
-      {project.unusedSheets.length > 0 && (
-        <p className="muted small">
-          {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
-        </p>
-      )}
-    </nav>
-  )
+            <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
+          </div>
+          <SidebarSection
+            id="sets"
+            icon={<SetsIcon />}
+            title={t('sidebar.sets')}
+            open={!closedSections.has('sets')}
+            onToggle={(open) => setSectionClosed('sets', !open)}
+            actions={
+              <>
+                <button
+                  className="icon-btn"
+                  title={t('sidebar.newSet')}
+                  onClick={() => setCreatingSet(true)}
+                >
+                  +
+                </button>
+              </>
+            }
+          >
+            <ul>
+              {project.sets.map((s, i) => (
+                <li key={s.name}>
+                  <button
+                    className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
+                    onClick={() => setSelected({ kind: 'set', index: i })}
+                    title={t('tip.openSet')}
+                  >
+                    <span>
+                      {s.name}
+                      {s.data && dirtySheets.has(s.data.name) && (
+                        <span className="dirty-dot" title={t('app.unsaved')} />
+                      )}
+                    </span>
+                    <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
+                  </button>
+                  <button
+                    className="icon-btn item-dup"
+                    title={t('sidebar.duplicate')}
+                    onClick={() => setDuplicating({ kind: 'set', index: i })}
+                  >
+                    ⧉
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </SidebarSection>
+          <SidebarSection
+            id="templates"
+            icon={<TemplateIcon />}
+            title={t('sidebar.templates')}
+            open={!closedSections.has('templates')}
+            onToggle={(open) => setSectionClosed('templates', !open)}
+            actions={
+              <>
+                <button
+                  className="icon-btn"
+                  title={t('sidebar.newTemplate')}
+                  onClick={() => setCreating(true)}
+                >
+                  +
+                </button>
+              </>
+            }
+          >
+            <ul>
+              {project.templates.map((tpl) => (
+                <li key={tpl.name}>
+                  <button
+                    className={
+                      selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''
+                    }
+                    onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+                    title={t('tip.openTemplate')}
+                  >
+                    <span>
+                      {tpl.name}
+                      {dirty.has(tpl.name) && (
+                        <span className="dirty-dot" title={t('app.unsaved')} />
+                      )}
+                    </span>
+                    <span className="muted">
+                      {tpl.width}×{tpl.height}
+                    </span>
+                  </button>
+                  <button
+                    className="icon-btn item-dup"
+                    title={t('sidebar.duplicate')}
+                    onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
+                  >
+                    ⧉
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </SidebarSection>
+          <SidebarSection
+            id="styles"
+            icon={<StylesIcon />}
+            title={t('sidebar.styles')}
+            open={!closedSections.has('styles')}
+            onToggle={(open) => setSectionClosed('styles', !open)}
+            actions={
+              <>
+                <button
+                  className="icon-btn"
+                  title={t('sidebar.newStyle')}
+                  onClick={() => setEditingStyle('')}
+                >
+                  +
+                </button>
+              </>
+            }
+          >
+            <ul>
+              {styleList.map((name) => (
+                <li key={name}>
+                  <button onClick={() => setEditingStyle(name)} title={allStyles[name]}>
+                    <span>.{name}</span>
+                    {!(name in (project.file.styles ?? {})) && (
+                      <span className="muted small">{t('sidebar.builtinStyle')}</span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </SidebarSection>
+          <SidebarSection
+            id="variables"
+            icon={<VariablesIcon />}
+            title={t('sidebar.variables')}
+            open={!closedSections.has('variables')}
+            onToggle={(open) => setSectionClosed('variables', !open)}
+            actions={
+              <>
+                <button
+                  className="icon-btn"
+                  title={t('sidebar.newVariable')}
+                  onClick={() => setEditingVariable('')}
+                >
+                  +
+                </button>
+              </>
+            }
+          >
+            <ul>
+              {variableList.map(([name, v]) => (
+                <li key={name}>
+                  <button
+                    onClick={() => setEditingVariable(name)}
+                    title={t(`variable.type.${v.type}`)}
+                  >
+                    <span>{`{${name}}`}</span>
+                    <VariableSwatch v={v} variables={variables} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </SidebarSection>
+          {project.unusedSheets.length > 0 && (
+            <p className="muted small">
+              {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
+            </p>
+          )}
+        </nav>
+      )
+    )
 
   /** Dimensione dell'interfaccia, tema e lingua: nella schermata di ingresso e nel progetto */
   const settings = (
@@ -656,12 +754,14 @@ function App(): React.JSX.Element {
                   {sidebarSide === 'left' && (
                     <>
                       {sidebar}
-                      <Resizer
-                        width={sidebarWidth}
-                        onChange={setSidebarWidth}
-                        edge="left"
-                        max={400}
-                      />
+                      {!sidebarCompact && (
+                        <Resizer
+                          width={sidebarWidth}
+                          onChange={setSidebarWidth}
+                          edge="left"
+                          max={400}
+                        />
+                      )}
                     </>
                   )}
                   {editing ? (
@@ -707,12 +807,14 @@ function App(): React.JSX.Element {
                   )}
                   {sidebarSide === 'right' && (
                     <>
-                      <Resizer
-                        width={sidebarWidth}
-                        onChange={setSidebarWidth}
-                        edge="right"
-                        max={400}
-                      />
+                      {!sidebarCompact && (
+                        <Resizer
+                          width={sidebarWidth}
+                          onChange={setSidebarWidth}
+                          edge="right"
+                          max={400}
+                        />
+                      )}
                       {sidebar}
                     </>
                   )}

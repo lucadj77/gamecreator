@@ -661,6 +661,8 @@ export const en = {
   'export.gridOverflow':
     'Set “{set}”: the cards do not fit on the page, change margins, page or layout.',
   'sidebar.variables': 'Variables',
+  'sidebar.compact': 'Collapse panel to icons',
+  'sidebar.expand': 'Expand panel',
   'sidebar.newVariable': 'New variable',
   'variable.title': 'Variable',
   'variable.name': 'Name',

@@ -671,6 +671,8 @@ export const it: Record<MessageKey, string> = {
   'export.gridOverflow':
     'Set «{set}»: le carte non stanno nella pagina, cambia margini, pagina o disposizione.',
   'sidebar.variables': 'Variabili',
+  'sidebar.compact': 'Riduci il pannello a icone',
+  'sidebar.expand': 'Mostra il pannello',
   'sidebar.newVariable': 'Nuova variabile',
   'variable.title': 'Variabile',
   'variable.name': 'Nome',

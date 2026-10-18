@@ -2107,3 +2107,80 @@ div.font-row {
   color: var(--text);
   font-size: 14px;
 }
+
+/* barra laterale: sezioni che si chiudono e versione ridotta a icone */
+.sidebar-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -4px -4px 6px;
+}
+
+.sidebar-bar .icon-btn,
+.sidebar-compact-btn {
+  font-size: 14px;
+  padding: 3px 4px;
+}
+
+.sidebar-section h2 {
+  margin-bottom: 6px;
+}
+
+.sidebar-section.closed h2 {
+  margin-bottom: 10px;
+}
+
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  padding: 2px 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  text-align: left;
+}
+
+.section-toggle:hover {
+  color: var(--text);
+}
+
+.section-icon {
+  display: inline-flex;
+  font-size: 14px;
+}
+
+.sidebar.compact {
+  width: 44px;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sidebar.compact .sidebar-compact-btn {
+  margin-bottom: 6px;
+}
+
+.sidebar-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 17px;
+  color: var(--muted);
+}
+
+.sidebar-icon:hover {
+  background: var(--accent-soft);
+  color: var(--text);
+}

@@ -3,10 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <title>GameCreator</title>
+    <!-- font usati dal progetto demo; in seguito i font del progetto si caricheranno da assets/fonts -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,800;1,600&display=swap"
+    />
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com gc-asset:; img-src 'self' data: gc-asset:"
     />
   </head>
 

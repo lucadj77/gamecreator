@@ -1,5 +1,8 @@
 // Formato di progetto GameCreator: vedi docs/formato.md
 
+import type { Template } from './model/template'
+import type { Message } from './messages'
+
 export const PROJECT_FILE = 'gamecreator.json'
 export const FORMAT_VERSION = 1
 
@@ -38,7 +41,9 @@ export interface LoadedProject {
   sets: LoadedSet[]
   /** Fogli del file dati non collegati a nessun set */
   unusedSheets: string[]
-  /** Template trovati in templates/, per nome */
-  templates: string[]
-  warnings: string[]
+  /** Template letti da templates/ */
+  templates: Template[]
+  /** File sotto assets/, percorsi relativi */
+  assets: string[]
+  warnings: Message[]
 }

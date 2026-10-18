@@ -39,6 +39,46 @@ Il file dati di riferimento resta `.xlsx`. È uno standard pubblico (ECMA-376, I
 
 ## Template
 
-Struttura in definizione (passo 3). Le unità sono millimetri.
+Un file JSON per template in `templates/`. Le unità sono millimetri, la dimensione del testo è in punti. Ogni livello riporta solo le proprietà diverse dai default: l'elenco completo è in `src/shared/model/template.ts` e i default in `src/shared/model/normalize.ts`.
+
+```json
+{
+  "name": "personaggio",
+  "width": 63,
+  "height": 88,
+  "bleed": 3,
+  "cornerRadius": 3,
+  "front": [
+    {
+      "type": "text",
+      "name": "nome",
+      "x": 6,
+      "y": 4.5,
+      "w": 51,
+      "h": 9.5,
+      "size": 14,
+      "weight": 800,
+      "fit": "shrink"
+    },
+    { "type": "image", "name": "cover", "x": 4, "y": 15.5, "w": 55, "h": 31, "src": "{nome}" },
+    {
+      "type": "shape",
+      "name": "banda",
+      "x": 4,
+      "y": 4,
+      "w": 55,
+      "h": 10.5,
+      "radius": 2,
+      "fill": "#2F5DA8"
+    }
+  ],
+  "back": []
+}
+```
+
+- Il primo livello dell'elenco è quello in cima.
+- Tipi: `text`, `image`, `shape` (`rect`, `ellipse`, `polygon`, `star`, `line`, `path`), `group` (con `children`).
+- La colonna con il nome del livello ne sostituisce il valore principale: il testo per `text`, il file per `image`, il riempimento per `shape`, la visibilità per `group`.
+- In testi e nomi di file, `{campo}` prende il valore di quella colonna della stessa riga.
 
 L'analisi del formato di Tabletop Creator da cui deriva questa struttura è in [analisi-ttc.md](analisi-ttc.md).

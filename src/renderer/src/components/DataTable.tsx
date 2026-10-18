@@ -2,9 +2,11 @@ import type { Sheet } from '../../../shared/project'
 
 interface Props {
   sheet: Sheet
+  selected: number
+  onSelect(index: number): void
 }
 
-function DataTable({ sheet }: Props): React.JSX.Element {
+function DataTable({ sheet, selected, onSelect }: Props): React.JSX.Element {
   return (
     <div className="table-wrap">
       <table>
@@ -18,7 +20,7 @@ function DataTable({ sheet }: Props): React.JSX.Element {
         </thead>
         <tbody>
           {sheet.rows.map((row, i) => (
-            <tr key={i}>
+            <tr key={i} className={i === selected ? 'selected' : ''} onClick={() => onSelect(i)}>
               <td className="row-num">{i + 1}</td>
               {row.map((cell, j) => (
                 <td key={j}>{cell}</td>

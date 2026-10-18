@@ -85,7 +85,7 @@ Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come forma
 | `font=`                                 | `{font=Cinzel}` · `{font=Open_Sans}`          | famiglia; `_` al posto degli spazi                                              |
 | `weight=`                               | `{weight=800}`                                | peso del carattere                                                              |
 | `stroke=`                               | `{stroke=white/0.3}` · `{stroke=white/8%}`    | contorno delle lettere: colore/spessore in mm o in % della dimensione del testo |
-| `spacing=`                              | `{spacing=50}`                                | spaziatura caratteri in ‰                                                       |
+| `spacing=`                              | `{spacing=50}`                                | spaziatura caratteri in ‰, vale anche per le immagini nel testo                 |
 | `raise=`                                | `{raise=1}`                                   | spostamento dalla linea di base in pt                                           |
 | `upper`, `lower`, `smallcaps`           | `[Fase]{smallcaps}`                           | trasformazione                                                                  |
 | `bold`, `italic`, `underline`, `strike` | `{.flavor italic}`                            | come i segni Markdown, utili negli stili                                        |
@@ -359,12 +359,13 @@ Proposta completa e motivazioni in `proposta-icone-font.md` (cartella condivisa 
 
 ### 10.1 Icone di game-icons.net
 
-Dalla finestra di scelta delle immagini, **Importa icone…** apre il catalogo di game-icons.net (circa 4200 icone, 36 autori), costruito dal repository ufficiale per avere l'autore di ogni icona.
+Dalla finestra di scelta delle immagini e dalla finestra di una variabile icona, **Importa icone…** apre il catalogo di game-icons.net (circa 4200 icone, 36 autori), costruito dal repository ufficiale per avere l'autore di ogni icona.
 
 - A sinistra i tag del sito (134, in 19 gruppi), tradotti in italiano; i tag sono stati raccolti una volta dalle pagine del sito e si aggiornano con `scripts/fetch-icon-tags.mjs`.
 - La ricerca è approssimata (tollera errori di battitura) e guarda il nome inglese dell'icona, i tag in inglese e in italiano, alcune parole italiane associate ai tag (per esempio "spada" per le lame) e l'autore. Il nome dell'icona pesa più dei tag.
 - La tinta e lo sfondo scuro servono solo all'anteprima: il file si salva nero, e il colore sulla carta si sceglie con il livello come per ogni SVG.
 - Si possono scegliere più icone e rinominarle prima di importarle. Un nome non valido o ripetuto blocca l'importazione; se il file esiste già o il nome breve diventa ambiguo, compare un avviso ma si può procedere.
+- Importando una sola icona, la si assegna subito al livello o alla variabile; una variabile nuova senza nome prende il nome dell'icona.
 - Le icone si salvano in `assets/icons/<nome>.svg` (viewBox 512 × 512, un solo tracciato) con una voce in `assets/sources.json`.
 
 Licenza: CC BY 3.0, tranne due autori in CC0. CC BY chiede di citare l'autore: vedi 10.3.

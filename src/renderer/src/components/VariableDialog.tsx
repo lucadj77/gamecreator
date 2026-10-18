@@ -17,7 +17,10 @@ import { ColorField, NumberField, TextField } from '../editor/fields'
 import { useI18n } from '../i18n/context'
 import MarkupText from '../render/MarkupText'
 import { AssetsContext, VariablesContext } from '../render/assets'
+import AssetPicker from './AssetPicker'
+import IconBrowser from './IconBrowser'
 import Segmented from './Segmented'
+import { ImageIcon } from './icons'
 
 // Editor di una variabile del progetto (docs/specifica.md, 6.1), con l'anteprima in una frase.
 
@@ -42,6 +45,13 @@ export default function VariableDialog({
   const [v, setV] = useState<Variable>(variables[initialName] ?? emptyVariable('image'))
   // si tiene il contenuto di ogni tipo, così cambiare tipo per prova non lo perde
   const [byType, setByType] = useState<Partial<Record<VariableType, Variable>>>({})
+  const [picking, setPicking] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const pickImage = (src: string): void => {
+    setV((cur) => (cur.type === 'image' ? { ...cur, src } : cur))
+    // una variabile nuova senza nome prende quello dell'immagine
+    setName((n) => n || (isValidVariableName(src) && !(src in variables) ? src : n))
+  }
   const changeType = (type: VariableType): void => {
     setByType((b) => ({ ...b, [v.type]: v }))
     setV(byType[type] ?? emptyVariable(type))
@@ -113,7 +123,22 @@ export default function VariableDialog({
                 value={v.src}
                 list={IMAGE_LIST}
                 onChange={(src) => setV({ ...v, src })}
+                action={
+                  <button
+                    className="pick-btn"
+                    title={t('assetPicker.open')}
+                    onClick={() => setPicking(true)}
+                  >
+                    <ImageIcon />
+                  </button>
+                }
               />
+              <div className="field">
+                <span className="field-label" />
+                <span className="field-control">
+                  <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
+                </span>
+              </div>
               <datalist id={IMAGE_LIST}>
                 {images.map((n) => (
                   <option key={n} value={n} />
@@ -221,6 +246,19 @@ export default function VariableDialog({
         </div>
         {nameError && <span className="field-error">{nameError}</span>}
       </div>
+      {picking && (
+        <AssetPicker
+          value={v.type === 'image' ? v.src : ''}
+          onPick={pickImage}
+          onClose={() => setPicking(false)}
+        />
+      )}
+      {importing && (
+        <IconBrowser
+          onImported={(names) => names.length === 1 && pickImage(names[0])}
+          onClose={() => setImporting(false)}
+        />
+      )}
     </Dialog>
   )
 }

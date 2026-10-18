@@ -240,6 +240,9 @@ const SHAPES: Record<string, (p: React.SVGProps<SVGElement>) => React.JSX.Elemen
   )
 }
 
+/** Spazio dopo un'immagine nel testo: come tra due lettere, più la spaziatura del testo */
+const INLINE_GAP = 'calc(0.04em + var(--gc-ls, 0px))'
+
 const FILL: CSSProperties = { position: 'absolute', inset: 0, width: '100%', height: '100%' }
 
 /** Sfondo del riquadro: una forma predefinita o un'immagine degli asset, colorabile */
@@ -323,7 +326,7 @@ function Ref({
           width: `${height * 0.8}em`,
           height: `${height * 0.8}em`,
           verticalAlign: `${-0.12 * scale}em`,
-          margin: '0 0.04em',
+          margin: `0 ${INLINE_GAP} 0 0.04em`,
           border: '0.06em dashed #E5484D',
           borderRadius: '0.15em',
           boxSizing: 'border-box'
@@ -344,7 +347,7 @@ function Ref({
   const style: CSSProperties = {
     height: `${height}em`,
     verticalAlign: `${-0.22 * scale + (set.raise ?? 0) / 100}em`,
-    margin: '0 0.04em',
+    margin: `0 ${INLINE_GAP} 0 0.04em`,
     transform: transform || undefined,
     opacity: set.opacity
   }
@@ -408,7 +411,10 @@ function textStyle(a: Attrs, k: Scale): CSSProperties {
     s.WebkitTextStroke = `${w} ${resolveColor(a.stroke.color, k.pal)}`
     s.paintOrder = 'stroke fill'
   }
-  if (a.spacing !== undefined) s.letterSpacing = `${a.spacing / 1000}em`
+  if (a.spacing !== undefined) {
+    s.letterSpacing = `${a.spacing / 1000}em`
+    ;(s as Record<string, string>)['--gc-ls'] = `${a.spacing / 1000}em`
+  }
   if (a.raise) {
     s.position = 'relative'
     s.top = `${-a.raise * pt}px`

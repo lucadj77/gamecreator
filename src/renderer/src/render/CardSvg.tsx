@@ -31,8 +31,13 @@ interface Props {
   side?: Side
   /** Pixel per millimetro */
   scale: number
-  /** 'trim': carta rifilata con angoli arrotondati; 'bleed': con abbondanza e linea di taglio */
-  mode?: 'trim' | 'bleed'
+  /**
+   * 'trim': carta rifilata con angoli arrotondati; 'cut': rettangolo di taglio, senza angoli
+   * arrotondati (stampa); 'bleed': con l'abbondanza
+   */
+  mode?: 'trim' | 'cut' | 'bleed'
+  /** Con l'abbondanza, la linea di taglio tratteggiata; nelle esportazioni non c'è */
+  guides?: boolean
   /**
    * Area in mm da disegnare intorno alla carta, nell'editor: ciò che esce dalla carta si vede
    * tenue, così un livello spostato fuori per errore si ritrova.
@@ -45,6 +50,7 @@ export default function CardSvg({
   side = 'front',
   scale,
   mode = 'trim',
+  guides = true,
   pasteboard
 }: Props): React.JSX.Element {
   const uid = useId().replace(/:/g, '')
@@ -63,8 +69,8 @@ export default function CardSvg({
     >
       <defs>
         <clipPath id={`${uid}-card`}>
-          {mode === 'trim' ? (
-            <rect width={t.width} height={t.height} rx={t.cornerRadius} />
+          {mode !== 'bleed' ? (
+            <rect width={t.width} height={t.height} rx={mode === 'trim' ? t.cornerRadius : 0} />
           ) : (
             <rect x={-b} y={-b} width={vw} height={vh} />
           )}
@@ -95,7 +101,7 @@ export default function CardSvg({
         <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />
         <LayerList layers={layers} uid={uid} />
       </g>
-      {mode === 'bleed' && (
+      {mode === 'bleed' && guides && (
         <rect
           width={t.width}
           height={t.height}

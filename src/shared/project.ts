@@ -2,6 +2,7 @@
 
 import type { Template } from './model/template'
 import type { Message } from './messages'
+import type { ExportProfiles } from './export'
 
 export const PROJECT_FILE = 'gamecreator.json'
 export const FORMAT_VERSION = 1
@@ -26,6 +27,8 @@ export interface ProjectFile {
    * heading1, heading2 e note esistono sempre e si possono ridefinire.
    */
   styles?: Record<string, string>
+  /** Ultime opzioni usate per ogni tipo di esportazione */
+  export?: ExportProfiles
 }
 
 export interface Sheet {

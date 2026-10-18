@@ -14,6 +14,14 @@ import {
 import { MessageError, msg } from '../shared/messages'
 import type { Template } from '../shared/model/template'
 import type { Theme } from '../shared/api'
+import { runExport } from './export/run'
+import { saveExportProfiles } from './project/exportProfiles'
+import {
+  defaultTtsFolder,
+  type ExportContext,
+  type ExportJob,
+  type ExportProfiles
+} from '../shared/export'
 
 registerAssetScheme()
 
@@ -74,6 +82,46 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     await saveData(folder, changes)
   })
+
+  let cancelExport = false
+  ipcMain.handle('export:run', async (event, job: ExportJob, context: ExportContext) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    cancelExport = false
+    return runExport(job, {
+      projectFolder: folder,
+      platform: process.platform,
+      home: app.getPath('home'),
+      documents: app.getPath('documents'),
+      context,
+      onProgress: (p) => !event.sender.isDestroyed() && event.sender.send('export:progress', p),
+      isCancelled: () => cancelExport
+    })
+  })
+  ipcMain.on('export:cancel', () => (cancelExport = true))
+
+  ipcMain.handle('export:choose-folder', async (_, current: string) => {
+    const result = await dialog.showOpenDialog({
+      defaultPath: current || undefined,
+      properties: ['openDirectory', 'createDirectory']
+    })
+    return result.canceled ? null : result.filePaths[0]
+  })
+
+  ipcMain.handle('export:save-profiles', async (_, profiles: ExportProfiles) => {
+    const folder = getProjectFolder()
+    if (folder) await saveExportProfiles(folder, profiles)
+  })
+
+  ipcMain.handle('export:default-folders', () => {
+    const folder = getProjectFolder()
+    return {
+      export: folder ? join(folder, 'export') : '',
+      tts: defaultTtsFolder(process.platform, app.getPath('home'), app.getPath('documents'))
+    }
+  })
+
+  ipcMain.handle('shell:show-folder', (_, path: string) => shell.openPath(path))
 
   // il renderer segue prefers-color-scheme, che Chromium ricava da themeSource
   ipcMain.on('theme:set', (_, theme: Theme) => {

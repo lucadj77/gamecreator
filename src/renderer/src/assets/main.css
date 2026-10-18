@@ -1366,3 +1366,76 @@ button.layer-source.open {
 button.danger {
   color: #e5484d;
 }
+
+.dialog:has(.export-dialog) {
+  max-width: 600px;
+  width: 600px;
+}
+
+.export-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-fields {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.export-fields .field-label {
+  width: 130px;
+}
+
+.export-fields .field-note.export-note {
+  margin: 0 0 0 138px;
+  flex-basis: 100%;
+}
+
+.export-sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+label.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.export-result p {
+  margin: 0 0 4px;
+}
+
+.export-result button.link {
+  display: block;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  text-align: left;
+  word-break: break-all;
+}
+
+.export-progress {
+  margin-right: auto;
+  align-self: center;
+}
+
+.card-form .color-cell {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.card-form .field-control .color-cell input[type='color'] {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: none;
+}

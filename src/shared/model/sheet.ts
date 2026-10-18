@@ -120,3 +120,26 @@ export function newSheet(name: string, t: Template | null): Sheet {
 /** Nome di un set o di un foglio: niente caratteri che Excel non accetta nei fogli */
 export const isValidSheetName = (n: string): boolean =>
   n.trim() === n && n.length > 0 && n.length <= 31 && !/[\\/?*[\]:]/.test(n)
+
+/** Proprietà che contengono un colore, per tipo di livello */
+const COLOR_PROPERTIES: Record<string, string[]> = {
+  text: ['color'],
+  image: ['tint'],
+  shape: ['fill']
+}
+
+/**
+ * Colonne che contengono un colore, con il colore del template come valore di partenza:
+ * `nome.color`, `icona.tint`, `banda.fill` e il valore principale delle forme (il riempimento).
+ */
+export function colorColumns(t: Template): Map<string, string | null> {
+  const out = new Map<string, string | null>()
+  for (const l of walkLayers([...t.front, ...t.back])) {
+    const props = COLOR_PROPERTIES[l.type] ?? []
+    const column = l.source.kind === 'column' && l.source.column ? l.source.column : l.name
+    const values = l as unknown as Record<string, string | null>
+    for (const p of props) out.set(`${column}.${p}`, values[p] ?? null)
+    if (l.type === 'shape' && l.source.kind === 'column') out.set(column, l.fill)
+  }
+  return out
+}

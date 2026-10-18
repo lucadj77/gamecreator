@@ -1,0 +1,199 @@
+import { useState } from 'react'
+import type { Sheet } from '../../../shared/project'
+import { propertyColumns, templateColumns } from '../../../shared/model/sheet'
+import { walkLayers } from '../../../shared/model/normalize'
+import type { Template } from '../../../shared/model/template'
+import { Dialog } from '../editor/dialogs'
+import { useI18n } from '../i18n/context'
+
+/** Nome di un set o di un foglio: niente caratteri che Excel non accetta nei fogli */
+const isValidSheetName = (n: string): boolean =>
+  n.trim() === n && n.length > 0 && n.length <= 31 && !/[\\/?*[\]:]/.test(n)
+
+export function NewSetDialog({
+  templates,
+  existing,
+  unusedSheets,
+  onCreate,
+  onClose
+}: {
+  templates: Template[]
+  /** Nomi già usati da set e fogli */
+  existing: string[]
+  unusedSheets: string[]
+  onCreate(name: string, template: string, sheet: string | null): void
+  onClose(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const [name, setName] = useState('')
+  const [template, setTemplate] = useState(templates[0]?.name ?? '')
+  // foglio esistente non collegato, oppure '' per crearne uno nuovo
+  const [sheet, setSheet] = useState('')
+  const error = !name
+    ? null
+    : !isValidSheetName(name)
+      ? t('newSet.invalidName')
+      : existing.includes(name) && name !== sheet
+        ? t('newSet.exists')
+        : null
+  const valid = !!name && !error && !!template
+  const tpl = templates.find((x) => x.name === template)
+
+  return (
+    <Dialog title={t('newSet.title')} onClose={onClose}>
+      <form
+        className="dialog-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (valid) onCreate(name, template, sheet || null)
+        }}
+      >
+        <label>
+          {t('prop.name')}
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        {error && <p className="field-error">{error}</p>}
+        <label>
+          {t('newSet.template')}
+          <select value={template} onChange={(e) => setTemplate(e.target.value)}>
+            {templates.map((x) => (
+              <option key={x.name} value={x.name}>
+                {x.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {!templates.length && <p className="field-error">{t('newSet.noTemplates')}</p>}
+        {unusedSheets.length > 0 && (
+          <label>
+            {t('newSet.sheet')}
+            <select
+              value={sheet}
+              onChange={(e) => {
+                setSheet(e.target.value)
+                if (e.target.value && !name) setName(e.target.value)
+              }}
+            >
+              <option value="">{t('newSet.newSheet')}</option>
+              {unusedSheets.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {!sheet && tpl && (
+          <p className="muted small">
+            {t('newSet.columns', { columns: templateColumns(tpl).join(', ') })}
+          </p>
+        )}
+        <div className="dialog-buttons">
+          <button type="button" onClick={onClose}>
+            {t('dialog.cancel')}
+          </button>
+          <button type="submit" className="primary" disabled={!valid}>
+            {t('newSet.create')}
+          </button>
+        </div>
+      </form>
+    </Dialog>
+  )
+}
+
+/** Aggiunge una colonna: quelle che il template legge e mancano, le proprietà dei livelli, o libera */
+export function AddColumnDialog({
+  sheet,
+  template,
+  onAdd,
+  onClose
+}: {
+  sheet: Sheet
+  template: Template | null
+  onAdd(header: string): void
+  onClose(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const [name, setName] = useState('')
+  const [layer, setLayer] = useState('')
+  const missing = template
+    ? templateColumns(template).filter((c) => !sheet.headers.includes(c))
+    : []
+  const layers = template
+    ? walkLayers([...template.front, ...template.back]).map((l) => l.name)
+    : []
+  const propCols = layer
+    ? propertyColumns(template!, layer).filter((c) => !sheet.headers.includes(c))
+    : []
+  const clean = name.trim()
+  const error =
+    clean && sheet.headers.includes(clean)
+      ? t('addColumn.exists')
+      : clean && /[{}]/.test(clean)
+        ? t('addColumn.invalid')
+        : null
+
+  return (
+    <Dialog title={t('addColumn.title')} onClose={onClose}>
+      <div className="dialog-form">
+        {missing.length > 0 && (
+          <>
+            <p className="muted small">{t('addColumn.missing')}</p>
+            <div className="chips">
+              {missing.map((c) => (
+                <button key={c} onClick={() => onAdd(c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        {layers.length > 0 && (
+          <>
+            <label>
+              {t('addColumn.property')}
+              <select value={layer} onChange={(e) => setLayer(e.target.value)}>
+                <option value="">{t('addColumn.chooseLayer')}</option>
+                {layers.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {propCols.length > 0 && (
+              <div className="chips">
+                {propCols.map((c) => (
+                  <button key={c} onClick={() => onAdd(c)}>
+                    {c.slice(c.indexOf('.') + 1)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+        <form
+          className="dialog-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (clean && !error) onAdd(clean)
+          }}
+        >
+          <label>
+            {t('addColumn.custom')}
+            <input value={name} onChange={(e) => setName(e.target.value)} />
+          </label>
+          {error && <p className="field-error">{error}</p>}
+          <div className="dialog-buttons">
+            <button type="button" onClick={onClose}>
+              {t('dialog.cancel')}
+            </button>
+            <button type="submit" className="primary" disabled={!clean || !!error}>
+              {t('addColumn.add')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </Dialog>
+  )
+}

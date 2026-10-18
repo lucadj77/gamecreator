@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { LoadedProject, LoadedSet } from '../../shared/project'
+import type { LoadedProject, LoadedSet, ProjectFile, Sheet } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
 import { bindCard, rowToCard, type BoundCard } from '../../shared/model/bind'
-import type { Side, Template } from '../../shared/model/template'
+import type { Layer, Side, Template } from '../../shared/model/template'
+import { duplicateRows, insertRow, newSheet, removeRows, addColumn } from '../../shared/model/sheet'
+import { hitTest, toLocal } from '../../shared/model/geometry'
 import { normalizeTemplate } from '../../shared/model/normalize'
 import DataTable from './components/DataTable'
 import Segmented from './components/Segmented'
@@ -11,6 +13,8 @@ import { usePanelWidth } from './components/usePanelWidth'
 import TemplateEditor from './editor/TemplateEditor'
 import { NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
+import CardForm from './components/CardForm'
+import { AddColumnDialog, NewSetDialog } from './components/setDialogs'
 import CardSvg from './render/CardSvg'
 import { AssetsContext } from './render/assets'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
@@ -30,6 +34,9 @@ function loadUiZoom(): number {
 }
 
 type View = 'table' | 'grid'
+/** Stato dei dati per annulla/ripristina */
+type DataSnapshot = { sets: LoadedSet[]; file: ProjectFile }
+const COALESCE_MS = 1200
 type Selected = { kind: 'set'; index: number } | { kind: 'template'; name: string }
 
 function App(): React.JSX.Element {
@@ -52,6 +59,19 @@ function App(): React.JSX.Element {
   /** Template modificati e non ancora salvati */
   const [dirty, setDirty] = useState<Set<string>>(new Set())
   const [creating, setCreating] = useState(false)
+  const [creatingSet, setCreatingSet] = useState(false)
+  /** Fogli modificati e non ancora salvati, per nome del foglio */
+  const [dirtySheets, setDirtySheets] = useState<Set<string>>(new Set())
+  /** gamecreator.json da riscrivere (set nuovi) */
+  const [fileDirty, setFileDirty] = useState(false)
+  const [history, setHistory] = useState<{
+    past: DataSnapshot[]
+    future: DataSnapshot[]
+    key?: string
+    at: number
+  }>({ past: [], future: [], at: 0 })
+  const [saving, setSaving] = useState(false)
+  const anyDirty = dirty.size > 0 || dirtySheets.size > 0 || fileDirty
   const [sidebarWidth, setSidebarWidth] = usePanelWidth('sidebar', 220)
 
   const load = useCallback(async (folder: string) => {
@@ -61,6 +81,9 @@ function App(): React.JSX.Element {
       const loaded = await window.api.loadProject(folder)
       setProject(loaded)
       setDirty(new Set())
+      setDirtySheets(new Set())
+      setFileDirty(false)
+      setHistory({ past: [], future: [], at: 0 })
       setSelected((s) =>
         s.kind === 'set'
           ? { kind: 'set', index: s.index < loaded.sets.length ? s.index : 0 }
@@ -84,7 +107,7 @@ function App(): React.JSX.Element {
   }, [load])
 
   /** Chiede conferma prima di perdere modifiche non salvate */
-  const discardOk = (): boolean => dirty.size === 0 || window.confirm(t('app.discardChanges'))
+  const discardOk = (): boolean => !anyDirty || window.confirm(t('app.discardChanges'))
 
   const open = async (): Promise<void> => {
     if (!discardOk()) return
@@ -99,19 +122,126 @@ function App(): React.JSX.Element {
     setDirty((d) => (d.has(tpl.name) ? d : new Set(d).add(tpl.name)))
   }, [])
 
-  const saveTemplate = useCallback(async (tpl: Template) => {
+  /** Modifica del foglio di un set; le modifiche ravvicinate con la stessa chiave si annullano insieme */
+  const updateSheet = (index: number, sheet: Sheet, key?: string): void => {
+    if (!project) return
+    const now = Date.now()
+    const coalesce = key !== undefined && key === history.key && now - history.at < COALESCE_MS
+    setHistory((h) => ({
+      past: coalesce ? h.past : [...h.past.slice(-99), { sets: project.sets, file: project.file }],
+      future: [],
+      key,
+      at: now
+    }))
+    setProject({
+      ...project,
+      sets: project.sets.map((x, i) => (i === index ? { ...x, data: sheet } : x))
+    })
+    setDirtySheets((d) => (d.has(sheet.name) ? d : new Set(d).add(sheet.name)))
+  }
+
+  const undoData = (redo: boolean): void => {
+    if (!project) return
+    const from = redo ? history.future : history.past
+    const snap = from[from.length - 1]
+    if (!snap) return
+    const current = { sets: project.sets, file: project.file }
+    setHistory((h) =>
+      redo
+        ? { past: [...h.past, current], future: h.future.slice(0, -1), at: 0 }
+        : { past: h.past.slice(0, -1), future: [...h.future, current], at: 0 }
+    )
+    setProject({ ...project, ...snap })
+    // ciò che cambia tornando indietro va comunque salvato
+    setDirtySheets((d) => {
+      const next = new Set(d)
+      for (const x of [...snap.sets, ...project.sets]) {
+        const before = project.sets.find((y) => y.name === x.name)?.data
+        const after = snap.sets.find((y) => y.name === x.name)?.data
+        if (x.data && before !== after) next.add(x.data.name)
+      }
+      return next
+    })
+    if (snap.file !== project.file) setFileDirty(true)
+  }
+
+  /** Salva template, fogli e progetto modificati */
+  const saveAll = async (): Promise<void> => {
+    if (!project || saving) return
     setError(null)
+    setSaving(true)
     try {
-      await window.api.saveTemplate(tpl)
-      setDirty((d) => {
-        const next = new Set(d)
-        next.delete(tpl.name)
-        return next
-      })
+      for (const name of dirty) {
+        const tpl = project.templates.find((x) => x.name === name)
+        if (tpl) await window.api.saveTemplate(tpl)
+      }
+      setDirty(new Set())
+      const sheets = project.sets
+        .map((x) => x.data)
+        .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
+      if (sheets.length || fileDirty)
+        await window.api.saveData({ file: fileDirty ? project.file : undefined, sheets })
+      setDirtySheets(new Set())
+      setFileDirty(false)
     } catch (e) {
       setError(messageFromError(e))
+    } finally {
+      setSaving(false)
     }
-  }, [])
+  }
+
+  const createSet = (name: string, template: string, sheetName: string | null): void => {
+    if (!project) return
+    if (project.file.dataFile.toLowerCase().endsWith('.csv')) {
+      setError({ key: 'save.csvOneSheet' })
+      setCreatingSet(false)
+      return
+    }
+    const tpl = project.templates.find((x) => x.name === template) ?? null
+    // un foglio non collegato si riprende dal file con le sue righe; si rilegge al salvataggio
+    const data: Sheet = sheetName
+      ? (project.unusedData?.find((x) => x.name === sheetName) ?? newSheet(sheetName, tpl))
+      : newSheet(name, tpl)
+    const def = { name, template, ...(data.name !== name ? { sheet: data.name } : {}) }
+    setHistory((h) => ({
+      past: [...h.past, { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    setProject({
+      ...project,
+      file: { ...project.file, sets: [...project.file.sets, def] },
+      sets: [...project.sets, { ...def, data }],
+      unusedSheets: project.unusedSheets.filter((x) => x !== data.name)
+    })
+    if (!sheetName) setDirtySheets((d) => new Set(d).add(data.name))
+    setFileDirty(true)
+    setSelected({ kind: 'set', index: project.sets.length })
+    setCreatingSet(false)
+  }
+
+  // ⌘S salva tutto ovunque; ⌘Z nei set annulla le modifiche ai dati (nell'editor vale l'editor)
+  const onKey = (e: KeyboardEvent): void => {
+    const mod = e.metaKey || e.ctrlKey
+    if (!mod) return
+    const k = e.key.toLowerCase()
+    if (k === 's') {
+      e.preventDefault()
+      saveAll()
+      return
+    }
+    if (selected.kind !== 'set') return
+    const target = e.target as HTMLElement
+    if (target.closest('input, textarea, select, [role="dialog"]')) return
+    if (k === 'z') undoData(e.shiftKey)
+    else if (k === 'y') undoData(true)
+    else return
+    e.preventDefault()
+  }
+  useEffect(() => {
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
 
   const createTemplate = (name: string, width: number, height: number): void => {
     const tpl = normalizeTemplate({
@@ -169,6 +299,16 @@ function App(): React.JSX.Element {
           )}
           {loading && <span className="muted">{t('app.loading')}</span>}
           <span className="spacer" />
+          {project && (
+            <button
+              className="primary"
+              disabled={!anyDirty || saving}
+              title={t('app.saveHint')}
+              onClick={saveAll}
+            >
+              {anyDirty ? t('app.save') : t('app.saved')}
+            </button>
+          )}
           <label className="muted" title={t('app.uiSizeHint')}>
             {t('app.uiSize')}{' '}
             <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
@@ -201,7 +341,16 @@ function App(): React.JSX.Element {
         {project ? (
           <main className="workspace">
             <nav className="sidebar" style={{ width: sidebarWidth }}>
-              <h2>{t('sidebar.sets')}</h2>
+              <h2 className="with-action">
+                {t('sidebar.sets')}
+                <button
+                  className="icon-btn"
+                  title={t('sidebar.newSet')}
+                  onClick={() => setCreatingSet(true)}
+                >
+                  +
+                </button>
+              </h2>
               <ul>
                 {project.sets.map((s, i) => (
                   <li key={s.name}>
@@ -209,7 +358,12 @@ function App(): React.JSX.Element {
                       className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
                       onClick={() => setSelected({ kind: 'set', index: i })}
                     >
-                      <span>{s.name}</span>
+                      <span>
+                        {s.name}
+                        {s.data && dirtySheets.has(s.data.name) && (
+                          <span className="dirty-dot" title={t('app.unsaved')} />
+                        )}
+                      </span>
                       <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
                     </button>
                   </li>
@@ -259,12 +413,17 @@ function App(): React.JSX.Element {
                 key={editing.name}
                 template={editing}
                 sets={project.sets.filter((s) => s.template === editing.name)}
-                dirty={dirty.has(editing.name)}
                 onChange={updateTemplate}
-                onSave={saveTemplate}
               />
             ) : current ? (
-              <SetView key={current.name} set={current} templates={project.templates} />
+              <SetView
+                key={current.name}
+                set={current}
+                templates={project.templates}
+                onChange={(sheet, key) =>
+                  updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
+                }
+              />
             ) : (
               <section className="content" />
             )}
@@ -275,6 +434,19 @@ function App(): React.JSX.Element {
               <p>{t('app.empty')}</p>
             </div>
           )
+        )}
+        {creatingSet && project && (
+          <NewSetDialog
+            templates={project.templates}
+            existing={[
+              ...project.sets.map((x) => x.name),
+              ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
+              ...project.unusedSheets
+            ]}
+            unusedSheets={project.unusedSheets}
+            onCreate={createSet}
+            onClose={() => setCreatingSet(false)}
+          />
         )}
         {creating && project && (
           <NewTemplateDialog
@@ -288,10 +460,20 @@ function App(): React.JSX.Element {
   )
 }
 
-function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }): React.JSX.Element {
+function SetView({
+  set,
+  templates,
+  onChange
+}: {
+  set: LoadedSet
+  templates: Template[]
+  onChange(sheet: Sheet, key?: string): void
+}): React.JSX.Element {
   const { t } = useI18n()
-  const [selected, setSelected] = useState(0)
+  const [selection, setSelection] = useState<number[]>([0])
   const [side, setSide] = useState<Side>('front')
+  const [addingColumn, setAddingColumn] = useState(false)
+  const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
   const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
   // dimensione delle miniature: pixel per millimetro
   const [thumb, setThumb] = usePanelWidth('thumbScale', 2.6)
@@ -335,7 +517,43 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
       </section>
     )
   }
-  const card = cards[selected]
+  const sheet = set.data
+  const current = selection[0] ?? -1
+  const card = cards[current]
+  const none = current < 0 || current >= sheet.rows.length
+
+  const addCard = (): void => {
+    const at = none ? sheet.rows.length : Math.max(...selection) + 1
+    onChange(insertRow(sheet, at))
+    setSelection([at])
+  }
+  const duplicate = (): void => {
+    onChange(duplicateRows(sheet, selection))
+    setSelection([Math.max(...selection) + 1])
+  }
+  const remove = (): void => {
+    if (selection.length > 1 && !window.confirm(t('set.deleteConfirm', { n: selection.length })))
+      return
+    onChange(removeRows(sheet, selection))
+    setSelection([Math.min(Math.min(...selection), sheet.rows.length - selection.length - 1)])
+  }
+
+  /** Clic su un livello della carta in anteprima: si va al campo della sua colonna */
+  const pickField = (e: React.MouseEvent<HTMLDivElement>): void => {
+    if (!card) return
+    const svg = e.currentTarget.querySelector('svg')
+    if (!svg) return
+    const r = svg.getBoundingClientRect()
+    const p = { x: (e.clientX - r.left) / PREVIEW_SCALE, y: (e.clientY - r.top) / PREVIEW_SCALE }
+    const layers = side === 'front' ? card.template.front : card.template.back
+    for (const l of hitsAt(layers, p)) {
+      const column = l.source.kind === 'column' ? (l.source.column ?? l.name) : null
+      if (column && sheet.headers.includes(column)) {
+        setFocus({ column, seq: Date.now() })
+        return
+      }
+    }
+  }
 
   return (
     <>
@@ -344,7 +562,7 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
           <h1>{set.name}</h1>
           <span className="muted">
             {t('set.template', { name: set.template })} ·{' '}
-            {t('set.counts', { rows: set.data.rows.length, cards: countCards(set.data) })}
+            {t('set.counts', { rows: sheet.rows.length, cards: countCards(sheet) })}
           </span>
           <span className="spacer" />
           {view === 'grid' && (
@@ -368,14 +586,31 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
             onChange={setView}
           />
         </div>
+        <div className="set-actions">
+          <button onClick={addCard}>{t('set.addCard')}</button>
+          <button disabled={none} onClick={duplicate}>
+            {t('set.duplicate')}
+          </button>
+          <button disabled={none} onClick={remove}>
+            {t('set.delete')}
+          </button>
+          <span className="sep" />
+          <button onClick={() => setAddingColumn(true)}>{t('set.addColumn')}</button>
+          <span className="muted small">{t('set.editHint')}</span>
+        </div>
         {view === 'table' || !template ? (
-          <DataTable sheet={set.data} selected={selected} onSelect={setSelected} />
+          <DataTable
+            sheet={sheet}
+            selected={selection}
+            onSelect={setSelection}
+            onChange={onChange}
+          />
         ) : (
           <CardGrid
             cards={cards}
             side={side}
-            selected={selected}
-            onSelect={setSelected}
+            selected={current}
+            onSelect={(i) => setSelection([i])}
             scale={thumb}
           />
         )}
@@ -397,8 +632,8 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
           <p className="muted">{t('preview.noTemplate', { name: set.template })}</p>
         ) : card ? (
           <>
-            <div className="preview-card">
-              <CardSvg template={card.template} side={side} scale={4.4} />
+            <div className="preview-card" title={t('preview.clickHint')} onClick={pickField}>
+              <CardSvg template={card.template} side={side} scale={PREVIEW_SCALE} />
             </div>
             {card.problems.length > 0 && (
               <div className="problems">
@@ -414,9 +649,43 @@ function SetView({ set, templates }: { set: LoadedSet; templates: Template[] }):
         ) : (
           <p className="muted">{t('preview.selectRow')}</p>
         )}
+        {!none && (
+          <CardForm
+            key={current}
+            sheet={sheet}
+            row={current}
+            template={template}
+            focus={focus}
+            onChange={onChange}
+          />
+        )}
       </aside>
+      {addingColumn && (
+        <AddColumnDialog
+          sheet={sheet}
+          template={template}
+          onAdd={(h) => {
+            onChange(addColumn(sheet, h))
+            setAddingColumn(false)
+          }}
+          onClose={() => setAddingColumn(false)}
+        />
+      )}
     </>
   )
+}
+
+const PREVIEW_SCALE = 4.4
+
+/** Livelli sotto il punto, dal più in alto, entrando nei gruppi */
+function hitsAt(layers: Layer[], p: { x: number; y: number }): Layer[] {
+  const out: Layer[] = []
+  for (const l of layers) {
+    if (!hitTest(l, p)) continue
+    if (l.type === 'group') out.push(...hitsAt(l.children, toLocal(l, p)), l)
+    else out.push(l)
+  }
+  return out
 }
 
 const THUMB_MIN = 1.2

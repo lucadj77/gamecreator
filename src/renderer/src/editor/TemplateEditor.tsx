@@ -19,25 +19,16 @@ interface Props {
   template: Template
   /** Set che usano questo template: servono per l'anteprima con i dati */
   sets: LoadedSet[]
-  dirty: boolean
   onChange(template: Template): void
-  onSave(template: Template): Promise<void>
 }
 
 const NUDGE = 0.5
 
-export default function TemplateEditor({
-  template,
-  sets,
-  dirty,
-  onChange,
-  onSave
-}: Props): React.JSX.Element {
+export default function TemplateEditor({ template, sets, onChange }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [state, dispatch] = useEditor(template)
   const [resizing, setResizing] = useState<[number, number] | null>(null)
   const [preview, setPreview] = useState<{ set: number; row: number } | null>(null)
-  const [saving, setSaving] = useState(false)
   const cmd = commands(state, dispatch)
   const [layersWidth, setLayersWidth] = usePanelWidth('layers', 230)
   const [propsWidth, setPropsWidth] = usePanelWidth('properties', 320)
@@ -48,24 +39,12 @@ export default function TemplateEditor({
     if (state.template !== initial.current) onChange(state.template)
   }, [state.template, onChange])
 
-  const save = async (): Promise<void> => {
-    setSaving(true)
-    try {
-      await onSave(state.template)
-    } finally {
-      setSaving(false)
-    }
-  }
-
   // la tastiera: le scorciatoie usano Cmd su macOS e Ctrl altrove
   const onKey = (e: KeyboardEvent): void => {
     const mod = e.metaKey || e.ctrlKey
     const k = e.key.toLowerCase()
-    if (mod && k === 's') {
-      e.preventDefault()
-      save()
-      return
-    }
+    // ⌘S lo gestisce l'app: salva tutto
+    if (mod && k === 's') return
     const target = e.target as HTMLElement
     if (target.closest('input, textarea, select, [role="dialog"]')) return
     const layers = state.template[state.side]
@@ -194,9 +173,6 @@ export default function TemplateEditor({
             </select>
           )}
         </label>
-        <button className="primary" disabled={!dirty || saving} onClick={save}>
-          {dirty ? t('editor.save') : t('editor.saved')}
-        </button>
       </div>
       <div className="editor-body">
         <LayersPanel state={state} dispatch={dispatch} cmd={cmd} width={layersWidth} />

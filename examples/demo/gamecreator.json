@@ -1,0 +1,9 @@
+{
+  "formatVersion": 1,
+  "name": "Demo",
+  "dataFile": "data/carte.xlsx",
+  "sets": [
+    { "name": "Personaggi", "template": "personaggio" },
+    { "name": "Oggetti", "template": "oggetto" }
+  ]
+}

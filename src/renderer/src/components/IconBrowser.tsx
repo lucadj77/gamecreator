@@ -1,6 +1,11 @@
 import { useContext, useEffect, useMemo, useState } from 'react'
-import type { IconCatalog, IconImport } from '../../../shared/library'
-import { ICONS_FOLDER, isValidAssetName } from '../../../shared/library'
+import type { IconCatalog, IconCollection, IconImport } from '../../../shared/library'
+import {
+  ICON_COLLECTIONS,
+  collectionFolder,
+  iconExtension,
+  isValidAssetName
+} from '../../../shared/library'
 import { resolveAsset } from '../../../shared/model/assets'
 import { fuzzyScore } from '../../../shared/model/fuzzy'
 import { messageFromError, type Message } from '../../../shared/messages'
@@ -8,26 +13,48 @@ import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import { ICON_GROUPS_IT, ICON_TAG_WORDS_IT, ICON_TAGS_IT } from '../i18n/iconTags'
 import { AssetsContext, publishAssetsUpdate } from '../render/assets'
+import Segmented from './Segmented'
 
-// Finestra di importazione delle icone di game-icons.net: categorie a sinistra, ricerca
+// Finestra di importazione delle icone di game-icons.net e di Kenney: categorie a sinistra, ricerca
 // approssimata, anteprima con la tinta scelta. Vedi docs/specifica.md, sezione 10.1.
 
 const PAGE = 240
 const TINT_KEY = 'iconBrowserTint'
+const COLLECTION_KEY = 'iconBrowserCollection'
 
-let catalogPromise: Promise<IconCatalog> | null = null
+const catalogs = new Map<IconCollection, Promise<IconCatalog>>()
 
-function loadCatalog(): Promise<IconCatalog> {
-  catalogPromise ??= window.api.iconCatalog()
-  catalogPromise.catch(() => (catalogPromise = null))
-  return catalogPromise
+function loadCatalog(collection: IconCollection): Promise<IconCatalog> {
+  let p = catalogs.get(collection)
+  if (!p) {
+    p = window.api.iconCatalog(collection)
+    p.catch(() => catalogs.delete(collection))
+    catalogs.set(collection, p)
+  }
+  return p
+}
+
+function loadCollection(): IconCollection {
+  try {
+    const c = localStorage.getItem(COLLECTION_KEY)
+    return (ICON_COLLECTIONS as readonly string[]).includes(c ?? '')
+      ? (c as IconCollection)
+      : 'game-icons'
+  } catch {
+    return 'game-icons'
+  }
 }
 
 interface Icon {
+  /** Raccolta e id nel catalogo: "kenney-icons:icons/pawn" */
+  key: string
+  collection: IconCollection
   id: string
   name: string
   author: string
+  /** Tracciato nel riquadro 512 × 512, o data URL dell'immagine */
   d: string
+  image: boolean
   tags: string[]
   /** Testo su cui si cerca: nome, autore e nomi dei tag in inglese e in italiano */
   search: string
@@ -51,7 +78,8 @@ export default function IconBrowser({
 }): React.JSX.Element {
   const { t, lang } = useI18n()
   const assets = useContext(AssetsContext)
-  const [catalog, setCatalog] = useState<IconCatalog | null>(null)
+  const [collection, setCollectionState] = useState<IconCollection>(loadCollection)
+  const [catalog, setCatalog] = useState<{ c: IconCollection; catalog: IconCatalog } | null>(null)
   const [error, setError] = useState<Message | null>(null)
   const [query, setQuery] = useState('')
   const [tag, setTag] = useState<string | null>(null)
@@ -60,15 +88,30 @@ export default function IconBrowser({
   const [more, setMore] = useState({ view: '', limit: PAGE })
   const [tint, setTintState] = useState(loadTint)
   const [dark, setDark] = useState(false)
-  /** id → nome del file scelto */
-  const [chosen, setChosen] = useState<Map<string, string>>(new Map())
+  /** chiave → icona e nome del file scelto; si possono scegliere icone di più raccolte */
+  const [chosen, setChosen] = useState<Map<string, { icon: Icon; name: string }>>(new Map())
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    loadCatalog()
-      .then(setCatalog)
-      .catch((e) => setError(messageFromError(e)))
-  }, [])
+    let live = true
+    loadCatalog(collection)
+      .then((c) => live && setCatalog({ c: collection, catalog: c }))
+      .catch((e) => live && setError(messageFromError(e)))
+    return () => {
+      live = false
+    }
+  }, [collection])
+
+  const setCollection = (c: IconCollection): void => {
+    setCollectionState(c)
+    setTag(null)
+    setOpen(null)
+    try {
+      localStorage.setItem(COLLECTION_KEY, c)
+    } catch {
+      // preferenza non essenziale
+    }
+  }
 
   const setTint = (c: string): void => {
     setTintState(c)
@@ -84,7 +127,15 @@ export default function IconBrowser({
   const groupLabel = (label: string): string =>
     lang === 'it' ? (ICON_GROUPS_IT[label] ?? label) : label
 
+  // il catalogo mostrato è quello della raccolta scelta, appena è caricato
+  const current = catalog?.c === collection ? catalog.catalog : null
+  const imageCatalog = current?.kind === 'image'
+  const groups = current?.tags.groups ?? []
+  /** Un solo gruppo: i suoi tag si mostrano direttamente, senza doverlo aprire */
+  const flat = groups.length === 1
+
   const icons = useMemo<Icon[]>(() => {
+    const catalog = current
     if (!catalog) return []
     const labels = new Map(
       catalog.tags.groups.flatMap((g) =>
@@ -100,17 +151,20 @@ export default function IconBrowser({
     return catalog.icons.map(([id, d]) => {
       const [author, name] = id.split('/')
       const tags = catalog.tags.icons[id] ?? []
-      const authorName = catalog.authors[author]?.name ?? author
+      const authorName = catalog.author?.name ?? catalog.authors[author]?.name ?? author
       return {
+        key: `${collection}:${id}`,
+        collection,
         id,
         name,
         author: authorName,
         d,
+        image: catalog.kind === 'image',
         tags,
         search: `${name} ${authorName} ${tags.map((s) => labels.get(s) ?? s).join(' ')}`
       }
     })
-  }, [catalog])
+  }, [current, collection])
 
   const counts = useMemo(() => {
     const c = new Map<string, number>()
@@ -132,23 +186,31 @@ export default function IconBrowser({
       .map((r) => r.i)
   }, [icons, tag, query])
 
-  const view = `${tag}|${query}`
+  const view = `${collection}|${tag}|${query}`
   const limit = more.view === view ? more.limit : PAGE
   const toggle = (icon: Icon): void => {
     const next = new Map(chosen)
-    if (next.has(icon.id)) next.delete(icon.id)
-    else next.set(icon.id, icon.name)
+    if (next.has(icon.key)) next.delete(icon.key)
+    else next.set(icon.key, { icon, name: icon.name })
     setChosen(next)
   }
 
-  const rename = (id: string, name: string): void => setChosen(new Map(chosen).set(id, name))
+  const rename = (key: string, name: string): void => {
+    const c = chosen.get(key)
+    if (c) setChosen(new Map(chosen).set(key, { ...c, name }))
+  }
+
+  /** Percorso sotto assets/ del file che un'icona diventa */
+  const filePath = (icon: Icon, name: string): string =>
+    `${collectionFolder(icon.collection)}/${name}.${iconExtension(icon.d)}`
 
   /** Problema del nome scelto per un'icona, o null */
-  const nameIssue = (id: string, name: string): { text: string; blocking: boolean } | null => {
+  const nameIssue = (key: string, name: string): { text: string; blocking: boolean } | null => {
     if (!isValidAssetName(name)) return { text: t('icons.badName'), blocking: true }
-    const dup = [...chosen].some(([other, n]) => other !== id && n === name)
+    const icon = chosen.get(key)!.icon
+    const path = filePath(icon, name)
+    const dup = [...chosen].some(([other, c]) => other !== key && filePath(c.icon, c.name) === path)
     if (dup) return { text: t('icons.duplicateName'), blocking: true }
-    const path = `${ICONS_FOLDER}/${name}.svg`
     if (assets.includes(path)) return { text: t('icons.replaces'), blocking: false }
     const r = resolveAsset(name, assets)
     if (r.ok || r.reason === 'ambiguous')
@@ -159,16 +221,22 @@ export default function IconBrowser({
     return null
   }
 
-  const blocked = [...chosen].some(([id, n]) => nameIssue(id, n)?.blocking)
+  const blocked = [...chosen].some(([key, c]) => nameIssue(key, c.name)?.blocking)
 
   const run = async (): Promise<void> => {
     setBusy(true)
     setError(null)
     try {
-      const items: IconImport[] = [...chosen].map(([id, name]) => ({ id, name }))
-      const update = await window.api.importIcons(items)
-      publishAssetsUpdate(update)
-      onImported?.(items.map((i) => i.name))
+      // un'importazione per raccolta; l'ultima porta lo stato completo degli asset
+      const byCollection = new Map<IconCollection, IconImport[]>()
+      for (const { icon, name } of chosen.values())
+        byCollection.set(icon.collection, [
+          ...(byCollection.get(icon.collection) ?? []),
+          { id: icon.id, name }
+        ])
+      for (const [c, items] of byCollection)
+        publishAssetsUpdate(await window.api.importIcons(c, items))
+      onImported?.([...chosen.values()].map((c) => c.name))
       onClose()
     } catch (e) {
       setError(messageFromError(e))
@@ -177,12 +245,35 @@ export default function IconBrowser({
     }
   }
 
-  const byId = useMemo(() => new Map(icons.map((i) => [i.id, i])), [icons])
-  const author = (id: string): string => byId.get(id)?.author ?? ''
+  const preview = (i: Icon, size: number): React.JSX.Element =>
+    i.image ? (
+      <img src={i.d} alt="" style={{ maxWidth: size, maxHeight: size }} draggable={false} />
+    ) : (
+      <svg viewBox="0 0 512 512" width={size} height={size} aria-hidden="true">
+        <path d={i.d} fill={tint} />
+      </svg>
+    )
+  const kenneyChosen = [...chosen.values()].some((c) => c.icon.collection !== 'game-icons')
+  const gameIconsChosen = [...chosen.values()].some((c) => c.icon.collection === 'game-icons')
+
+  const tagButton = (x: { slug: string; label: string }, sub: boolean): React.JSX.Element => (
+    <button
+      key={x.slug}
+      className={[tag === x.slug ? 'on' : '', sub ? 'sub' : ''].join(' ').trim()}
+      onClick={() => setTag(x.slug)}
+    >
+      {tagLabel(x.slug, x.label)} <span className="muted">{counts.get(x.slug) ?? 0}</span>
+    </button>
+  )
 
   return (
     <Dialog title={t('icons.title')} onClose={busy ? () => undefined : onClose}>
       <div className="icon-browser">
+        <Segmented<IconCollection>
+          value={collection}
+          options={ICON_COLLECTIONS.map((c) => [c, t(`icons.collection.${c}`)])}
+          onChange={setCollection}
+        />
         <div className="asset-picker-bar">
           <input
             autoFocus
@@ -191,9 +282,11 @@ export default function IconBrowser({
             placeholder={t('icons.search')}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <label className="icon-tint" title={t('icons.tint')}>
-            <input type="color" value={tint} onChange={(e) => setTint(e.target.value)} />
-          </label>
+          {!imageCatalog && (
+            <label className="icon-tint" title={t('icons.tint')}>
+              <input type="color" value={tint} onChange={(e) => setTint(e.target.value)} />
+            </label>
+          )}
           <button className={dark ? 'small-btn on' : 'small-btn'} onClick={() => setDark(!dark)}>
             {t('icons.darkBackground')}
           </button>
@@ -203,47 +296,35 @@ export default function IconBrowser({
             <button className={tag === null ? 'on' : ''} onClick={() => setTag(null)}>
               {t('icons.allTags')} <span className="muted">{icons.length}</span>
             </button>
-            {catalog?.tags.groups.map((g) => (
-              <div key={g.label}>
-                <button
-                  className="icon-group"
-                  onClick={() => setOpen(open === g.label ? null : g.label)}
-                >
-                  {open === g.label ? '▾' : '▸'} {groupLabel(g.label)}
-                </button>
-                {open === g.label &&
-                  g.tags.map((x) => (
+            {flat
+              ? groups[0].tags.map((x) => tagButton(x, false))
+              : groups.map((g) => (
+                  <div key={g.label}>
                     <button
-                      key={x.slug}
-                      className={tag === x.slug ? 'on sub' : 'sub'}
-                      onClick={() => setTag(x.slug)}
+                      className="icon-group"
+                      onClick={() => setOpen(open === g.label ? null : g.label)}
                     >
-                      {tagLabel(x.slug, x.label)}{' '}
-                      <span className="muted">{counts.get(x.slug) ?? 0}</span>
+                      {open === g.label ? '▾' : '▸'} {groupLabel(g.label)}
                     </button>
-                  ))}
-              </div>
-            ))}
+                    {open === g.label && g.tags.map((x) => tagButton(x, true))}
+                  </div>
+                ))}
           </nav>
           <div className="icon-results">
-            {!catalog && !error && <p className="muted">{t('icons.loading')}</p>}
-            {catalog && shown.length === 0 && <p className="muted">{t('assetPicker.noMatch')}</p>}
+            {!current && !error && <p className="muted">{t('icons.loading')}</p>}
+            {current && shown.length === 0 && <p className="muted">{t('assetPicker.noMatch')}</p>}
             <div
               className={dark ? 'asset-grid icon-grid dark' : 'asset-grid icon-grid'}
               style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))' }}
             >
               {shown.slice(0, limit).map((i) => (
                 <button
-                  key={i.id}
-                  className={chosen.has(i.id) ? 'asset-tile on' : 'asset-tile'}
+                  key={i.key}
+                  className={chosen.has(i.key) ? 'asset-tile on' : 'asset-tile'}
                   title={`${i.name} · ${i.author}`}
                   onClick={() => toggle(i)}
                 >
-                  <span className="asset-thumb icon-thumb">
-                    <svg viewBox="0 0 512 512" width="56" height="56" aria-hidden="true">
-                      <path d={i.d} fill={tint} />
-                    </svg>
-                  </span>
+                  <span className="asset-thumb icon-thumb">{preview(i, 56)}</span>
                   <span className="asset-name">{i.name}</span>
                 </button>
               ))}
@@ -258,19 +339,19 @@ export default function IconBrowser({
         {chosen.size > 0 && (
           <div className="icon-chosen">
             <h3>{t('icons.chosen', { n: chosen.size })}</h3>
-            {[...chosen].map(([id, name]) => {
-              const issue = nameIssue(id, name)
+            {[...chosen].map(([key, { icon, name }]) => {
+              const issue = nameIssue(key, name)
               return (
-                <div key={id} className="icon-chosen-row">
-                  <svg viewBox="0 0 512 512" width="22" height="22" aria-hidden="true">
-                    <path d={byId.get(id)?.d} fill={tint} />
-                  </svg>
+                <div key={key} className="icon-chosen-row">
+                  {preview(icon, 22)}
                   <input
                     value={name}
-                    title={t('icons.fileName')}
-                    onChange={(e) => rename(id, e.target.value.trim())}
+                    title={t('icons.fileName', { folder: collectionFolder(icon.collection) })}
+                    onChange={(e) => rename(key, e.target.value.trim())}
                   />
-                  <span className="muted small">.svg · {author(id)}</span>
+                  <span className="muted small">
+                    .{iconExtension(icon.d)} · {icon.author}
+                  </span>
                   {issue && (
                     <span className={issue.blocking ? 'field-error' : 'field-warning'}>
                       {issue.text}
@@ -279,7 +360,7 @@ export default function IconBrowser({
                   <button
                     className="icon-btn"
                     title={t('icons.remove')}
-                    onClick={() => toggle(byId.get(id)!)}
+                    onClick={() => toggle(icon)}
                   >
                     ✕
                   </button>
@@ -290,7 +371,14 @@ export default function IconBrowser({
         )}
         {error && <p className="field-error">{t(error)}</p>}
         <div className="dialog-buttons">
-          <span className="muted small spacer-right">{t('icons.license')}</span>
+          <span className="muted small spacer-right">
+            {[
+              (gameIconsChosen || collection === 'game-icons') && t('icons.license'),
+              (kenneyChosen || collection !== 'game-icons') && t('icons.licenseKenney')
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          </span>
           <button onClick={onClose} disabled={busy}>
             {t('dialog.cancel')}
           </button>

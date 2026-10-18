@@ -156,7 +156,7 @@ export const it: Record<MessageKey, string> = {
   'fonts.network': 'Google Fonts non è raggiungibile: {error}',
   'fonts.httpError': 'Google Fonts ha risposto con errore {status} ({url})',
   'fonts.openPicker': 'Scegli con anteprima, o scarica da Google Fonts',
-  'icons.title': 'Importa icone da game-icons.net',
+  'icons.title': 'Importa icone',
   'icons.search': 'Cerca per nome, categoria o autore',
   'icons.tint': "Colore dell'anteprima",
   'icons.darkBackground': 'Sfondo scuro',
@@ -165,7 +165,7 @@ export const it: Record<MessageKey, string> = {
   'icons.more': 'Mostra altre ({n} rimaste)',
   'icons.chosen':
     "Da importare ({n}): il nome è quello con cui richiami l'icona, per esempio {spada}",
-  'icons.fileName': 'Nome del file in assets/icons',
+  'icons.fileName': 'Nome del file in assets/{folder}',
   'icons.remove': "Togli dall'elenco",
   'icons.badName': 'Usa lettere, cifre, spazi, - e _',
   'icons.duplicateName': 'Due icone con lo stesso nome',
@@ -173,6 +173,10 @@ export const it: Record<MessageKey, string> = {
   'icons.ambiguous': 'Stesso nome di {files}: quando la usi aggiungi la cartella',
   'icons.license':
     'CC BY 3.0: gli autori vanno citati (vedi Crediti nella finestra di esportazione)',
+  'icons.collection.game-icons': 'game-icons.net',
+  'icons.collection.kenney-icons': 'Kenney: icone e motivi',
+  'icons.collection.kenney-images': 'Kenney: carte, dadi e pedine',
+  'icons.licenseKenney': 'Kenney: CC0, non serve citare.',
   'icons.import': 'Importa {n}',
   'icons.unknown': "L'icona {id} non è nel catalogo",
   'icons.invalidName': "Nome dell'icona non valido: {name}",

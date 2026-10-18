@@ -1,4 +1,4 @@
-// Nomi italiani dei gruppi e dei tag di game-icons.net (in inglese valgono quelli del catalogo).
+// Nomi italiani dei gruppi e dei tag di game-icons.net e di Kenney (in inglese valgono quelli del catalogo).
 // Servono anche alla ricerca: "spada" trova il tag "Lame, spade e coltelli".
 
 export const ICON_GROUPS_IT: Record<string, string> = {
@@ -24,6 +24,23 @@ export const ICON_GROUPS_IT: Record<string, string> = {
 }
 
 export const ICON_TAGS_IT: Record<string, string> = {
+  // Kenney
+  'k-cards': 'Carte',
+  'k-dice': 'Dadi',
+  'k-pawns': 'Pedine e personaggi',
+  'k-tokens': 'Segnalini e monete',
+  'k-shapes': 'Forme e tessere',
+  'k-arrows': 'Frecce e direzioni',
+  'k-numbers': 'Etichette e numeri',
+  'k-time': 'Tempo',
+  'k-resources': 'Risorse ed edifici',
+  'k-objects': 'Oggetti',
+  'k-patterns': 'Motivi',
+  'k-patterns-extra': 'Motivi (extra)',
+  'k-cards-png': 'Carte da gioco',
+  'k-chips': 'Fiches',
+  'k-dice-png': 'Dadi',
+  'k-pieces': 'Pedine',
   abstract: 'Astratto',
   cross: 'Croci',
   gui: 'Interfaccia',
@@ -162,6 +179,23 @@ export const ICON_TAGS_IT: Record<string, string> = {
 
 /** Parole in più per la ricerca in italiano: il singolare dei nomi dei tag e qualche sinonimo */
 export const ICON_TAG_WORDS_IT: Record<string, string> = {
+  // Kenney
+  'k-cards': 'carta mazzo seme',
+  'k-dice': 'dado',
+  'k-pawns': 'pedina scacchi personaggio',
+  'k-tokens': 'segnalino gettone moneta',
+  'k-shapes': 'esagono tessera forma',
+  'k-arrows': 'freccia direzione',
+  'k-numbers': 'numero',
+  'k-time': 'clessidra timer tempo',
+  'k-resources': 'risorsa legno grano ferro casa torre',
+  'k-objects': 'oggetto',
+  'k-patterns': 'motivo trama texture sfondo',
+  'k-patterns-extra': 'motivo trama texture sfondo',
+  'k-cards-png': 'carta mazzo',
+  'k-chips': 'fiche gettone',
+  'k-dice-png': 'dado',
+  'k-pieces': 'pedina pezzo',
   cross: 'croce',
   star: 'stella sole',
   symbol: 'simbolo emblema stemma',

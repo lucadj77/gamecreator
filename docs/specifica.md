@@ -370,6 +370,15 @@ Dalla finestra di scelta delle immagini e dalla finestra di una variabile icona,
 
 Licenza: CC BY 3.0, tranne due autori in CC0. CC BY chiede di citare l'autore: vedi 10.3.
 
+### 10.1.1 Raccolte Kenney
+
+Nella stessa finestra, sopra la ricerca, si sceglie la raccolta: game-icons.net oppure due raccolte di Kenney (kenney.nl), costruite dai pacchetti ufficiali con `scripts/make-kenney-catalogs.mjs`.
+
+- **Icone e motivi**: le 255 icone di Board Game Icons, in 10 categorie (carte, dadi, pedine, segnalini...), e i 168 motivi ripetibili di Pattern Pack e Pattern Pack Extra. Diventano SVG a un colore come quelle di game-icons.net, quindi si colorano con la tinta. I motivi occupano tutto il riquadro, senza margine, perché affiancati non mostrino giunture; il bianco originale diventa trasparente.
+- **Carte, dadi e pedine**: le 523 immagini PNG del Boardgame Pack (carte da gioco, fiches, dadi, pedine in sette colori). Si salvano in `assets/images/` così come sono e non si ricolorano. Sono piccole (64 px i dadi, 140 × 190 px le carte): in stampa vanno usate a dimensioni ridotte.
+
+Licenza: CC0, non serve citare l'autore. La voce in `assets/sources.json` resta comunque, con il pacchetto di provenienza.
+
 ### 10.2 Font di Google Fonts
 
 Il pulsante **Aa** accanto al campo del font apre una finestra con due schede:

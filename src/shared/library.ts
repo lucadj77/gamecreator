@@ -32,10 +32,30 @@ export interface IconAuthor {
 
 export interface IconCatalog {
   source: string
+  /** "path": tracciati a un colore (il default); "image": immagini già pronte */
+  kind?: 'path' | 'image'
+  /** Autore di tutte le icone, quando è uno solo */
+  author?: IconAuthor
+  /** Autori per cartella: l'id è "cartella/nome" */
   authors: Record<string, IconAuthor>
-  /** [id "autore/nome", tracciato SVG in un riquadro 512 × 512] */
+  /** [id "cartella/nome", tracciato SVG in un riquadro 512 × 512, o data URL di un'immagine] */
   icons: [string, string][]
   tags: IconTags
+}
+
+/** Raccolte di icone incluse nell'app */
+export const ICON_COLLECTIONS = ['game-icons', 'kenney-icons', 'kenney-images'] as const
+export type IconCollection = (typeof ICON_COLLECTIONS)[number]
+
+/** Cartella di assets/ in cui finiscono le icone importate da una raccolta */
+export const collectionFolder = (c: IconCollection): string =>
+  c === 'kenney-images' ? IMAGES_FOLDER : ICONS_FOLDER
+
+/** Estensione del file di un'icona: svg per i tracciati, quella del data URL per le immagini */
+export function iconExtension(value: string): string {
+  const m = value.match(/^data:image\/(png|jpeg|webp|svg\+xml)[;,]/)
+  if (!m) return 'svg'
+  return m[1] === 'jpeg' ? 'jpg' : m[1] === 'svg+xml' ? 'svg' : m[1]
 }
 
 export interface IconTags {
@@ -73,6 +93,7 @@ export interface AssetsUpdate {
 }
 
 export const ICONS_FOLDER = 'icons'
+export const IMAGES_FOLDER = 'images'
 export const FONTS_FOLDER = 'fonts'
 
 /** Nome di file valido per un'icona: lettere, cifre, - e _ */

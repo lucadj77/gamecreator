@@ -9,7 +9,14 @@ import type {
   ExportResult,
   Scene
 } from './export'
-import type { AssetsUpdate, FontCatalog, FontVariant, IconCatalog, IconImport } from './library'
+import type {
+  AssetsUpdate,
+  FontCatalog,
+  FontVariant,
+  IconCatalog,
+  IconCollection,
+  IconImport
+} from './library'
 
 export type Theme = 'system' | 'light' | 'dark'
 
@@ -59,10 +66,10 @@ export interface Api {
   /** Cartelle predefinite: export/ del progetto e Saved Objects di Tabletop Simulator */
   defaultExportFolders(): Promise<{ export: string; tts: string }>
   showFolder(path: string): Promise<string>
-  /** Catalogo di game-icons.net incluso nell'app */
-  iconCatalog(): Promise<IconCatalog>
-  /** Copia le icone in assets/icons/ e ne registra la licenza */
-  importIcons(items: IconImport[]): Promise<AssetsUpdate>
+  /** Catalogo di una raccolta di icone inclusa nell'app (game-icons.net, Kenney) */
+  iconCatalog(collection: IconCollection): Promise<IconCatalog>
+  /** Copia le icone in assets/icons/ (o assets/images/) e ne registra la licenza */
+  importIcons(collection: IconCollection, items: IconImport[]): Promise<AssetsUpdate>
   /** Elenco dei font Google incluso nell'app */
   fontCatalog(): Promise<FontCatalog>
   /** Scarica le varianti di un font Google in assets/fonts/<famiglia>/ */

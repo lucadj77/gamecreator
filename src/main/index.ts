@@ -23,7 +23,7 @@ import { saveExportProfiles } from './project/exportProfiles'
 import { fontCatalog, iconCatalog } from './library/catalogs'
 import { importIcons } from './library/icons'
 import { downloadGoogleFont } from './library/googleFonts'
-import type { FontVariant, IconImport } from '../shared/library'
+import type { FontVariant, IconCollection, IconImport } from '../shared/library'
 import {
   defaultTtsFolder,
   type ExportContext,
@@ -149,14 +149,17 @@ function registerIpc(): void {
 
   ipcMain.handle('shell:show-folder', (_, path: string) => shell.openPath(path))
 
-  ipcMain.handle('library:icon-catalog', () => iconCatalog())
+  ipcMain.handle('library:icon-catalog', (_, collection: IconCollection) => iconCatalog(collection))
   ipcMain.handle('library:font-catalog', () => fontCatalog())
 
-  ipcMain.handle('library:import-icons', async (_, items: IconImport[]) => {
-    const folder = getProjectFolder()
-    if (!folder) throw new MessageError(msg('template.noProject'))
-    return importIcons(folder, items)
-  })
+  ipcMain.handle(
+    'library:import-icons',
+    async (_, collection: IconCollection, items: IconImport[]) => {
+      const folder = getProjectFolder()
+      if (!folder) throw new MessageError(msg('template.noProject'))
+      return importIcons(folder, collection, items)
+    }
+  )
 
   ipcMain.handle('library:download-font', async (_, family: string, variants: FontVariant[]) => {
     const folder = getProjectFolder()

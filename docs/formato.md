@@ -30,6 +30,13 @@ progetto/
 - Un'intestazione con il nome di un pannello del template ne sostituisce il valore; `pannello.proprietà` sostituisce un'altra proprietà (per esempio `nome.color`).
 - Le celle vuote lasciano il valore del template.
 
+### Perché xlsx
+
+Il file dati di riferimento resta `.xlsx`. È uno standard pubblico (ECMA-376, ISO/IEC 29500) ed è il formato letto e scritto meglio da Excel, Numbers, LibreOffice e Google Fogli. Inoltre tiene più set in un file, conserva le formule e non ha problemi di codifica o di separatore.
+
+- `.csv` è supportato per un singolo set, ma non regge più fogli e su Excel dà problemi con accenti e separatore (virgola o punto e virgola a seconda della lingua di sistema).
+- `.ods` (OpenDocument, ISO/IEC 26300) è aperto quanto xlsx, ma Excel lo gestisce peggio. Da aggiungere più avanti in lettura e scrittura.
+
 ## Template
 
 Struttura in definizione (passo 3). Le unità sono millimetri.

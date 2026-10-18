@@ -39,7 +39,7 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 | margini interni          | mm sui quattro lati                                                                |
 | trasformazione           | nessuna, MAIUSCOLO, minuscolo, Iniziali                                            |
 | decorazione              | sottolineato, barrato                                                              |
-| contorno del testo       | colore, spessore                                                                   |
+| contorno del testo       | colore, spessore in mm o in % della dimensione del testo                           |
 | adattamento              | nessuno, riduci per stare nel riquadro (dimensione minima e massima), tronca con … |
 | a capo                   | automatico, nessuno                                                                |
 | icone inline             | altezza rispetto alla riga (%), spostamento verticale                              |
@@ -73,18 +73,18 @@ Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come forma
 
 **Carattere**
 
-| Attributo            | Esempio                                       | Effetto                                       |
-| -------------------- | --------------------------------------------- | --------------------------------------------- |
-| `.name`              | `[pino]{.keyword}`                            | applica uno stile                             |
-| `color=`             | `[Attenzione]{color=red}` · `{color=#A33A2A}` | colore del testo, da palette o esadecimale    |
-| `highlight=`         | `[raro]{highlight=yellow}`                    | colore di evidenziazione dietro il testo      |
-| `size=`              | `{size=14}` · `{size=+2}` · `{size=80%}`      | dimensione in pt, relativa o in percentuale   |
-| `font=`              | `{font=Cinzel}`                               | famiglia                                      |
-| `weight=`            | `{weight=800}`                                | peso del carattere                            |
-| `stroke=`            | `{stroke=white/0.3}`                          | contorno delle lettere, colore/spessore in mm |
-| `spacing=`           | `{spacing=50}`                                | spaziatura caratteri in ‰                     |
-| `raise=`             | `{raise=1}`                                   | spostamento dalla linea di base in pt         |
-| `upper`, `smallcaps` | `[Fase]{smallcaps}`                           | trasformazione                                |
+| Attributo            | Esempio                                       | Effetto                                                                         |
+| -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| `.name`              | `[pino]{.keyword}`                            | applica uno stile                                                               |
+| `color=`             | `[Attenzione]{color=red}` · `{color=#A33A2A}` | colore del testo, da palette o esadecimale                                      |
+| `highlight=`         | `[raro]{highlight=yellow}`                    | colore di evidenziazione dietro il testo                                        |
+| `size=`              | `{size=14}` · `{size=+2}` · `{size=80%}`      | dimensione in pt, relativa o in percentuale                                     |
+| `font=`              | `{font=Cinzel}`                               | famiglia                                                                        |
+| `weight=`            | `{weight=800}`                                | peso del carattere                                                              |
+| `stroke=`            | `{stroke=white/0.3}` · `{stroke=white/8%}`    | contorno delle lettere: colore/spessore in mm o in % della dimensione del testo |
+| `spacing=`           | `{spacing=50}`                                | spaziatura caratteri in ‰                                                       |
+| `raise=`             | `{raise=1}`                                   | spostamento dalla linea di base in pt                                           |
+| `upper`, `smallcaps` | `[Fase]{smallcaps}`                           | trasformazione                                                                  |
 
 **Riquadro attorno al testo**
 
@@ -120,6 +120,14 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 
 Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala.
 
+#### Aiuto alla scrittura
+
+Nell'editor della carta, nei campi di testo del pannello e nelle celle della tabella:
+
+- digitando `{` compaiono variabili e campi, con anteprima;
+- dentro `{...}` dopo `]` compaiono gli attributi, ciascuno con una riga che spiega cosa fa, poi i valori possibili (stili dopo `.`, colori dopo `color=`, forme dopo `bg=`);
+- il markup è colorato e gli errori (attributo sconosciuto, variabile inesistente, immagine ambigua) sono sottolineati con la spiegazione al passaggio del mouse.
+
 #### Esempio completo
 
 ```
@@ -137,18 +145,28 @@ L'interfaccia è in inglese, con la traduzione italiana come prima lingua aggiun
 
 ## 3. Immagine
 
-| Proprietà                 | Valori                                                                                          |
-| ------------------------- | ----------------------------------------------------------------------------------------------- |
-| sorgente ◆                | file in `assets/`, variabile immagine, oppure colonna o formula che restituisce un nome di file |
-| adattamento               | riempi (ritaglia), adatta (bande vuote), allunga, dimensione originale, ripeti                  |
-| allineamento interno      | 9 posizioni                                                                                     |
-| zoom, spostamento x e y ◆ | %, mm                                                                                           |
-| specchia                  | orizzontale, verticale ◆                                                                        |
-| tinta ◆                   | colore e intensità; ricolora le icone monocromatiche                                            |
-| regolazioni               | scala di grigi, luminosità, contrasto, saturazione                                              |
-| raggio angoli             | mm                                                                                              |
-| contorno                  | colore, spessore                                                                                |
-| immagine mancante         | mostra segnaposto, nascondi livello                                                             |
+| Proprietà                 | Valori                                                                                                                              |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| sorgente ◆                | file in `assets/`, variabile immagine, oppure colonna o formula che restituisce un nome di file (risoluzione dei nomi: sezione 3.1) |
+| adattamento               | riempi (ritaglia), adatta (bande vuote), allunga, dimensione originale, ripeti                                                      |
+| allineamento interno      | 9 posizioni                                                                                                                         |
+| zoom, spostamento x e y ◆ | %, mm                                                                                                                               |
+| specchia                  | orizzontale, verticale ◆                                                                                                            |
+| tinta ◆                   | colore e intensità; ricolora le icone monocromatiche                                                                                |
+| regolazioni               | scala di grigi, luminosità, contrasto, saturazione                                                                                  |
+| raggio angoli             | mm                                                                                                                                  |
+| contorno                  | colore, spessore                                                                                                                    |
+| immagine mancante         | mostra segnaposto, nascondi livello                                                                                                 |
+
+### 3.1 Risoluzione dei nomi di file
+
+Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta il nome del file, senza percorso e senza estensione.
+
+1. Si cerca in tutto `assets/`, sottocartelle comprese.
+2. Un nome con estensione (`spada.png`) o con percorso (`icone/spada`) vale così com'è.
+3. Senza estensione si accettano `.svg`, `.png`, `.webp`, `.jpg`, `.jpeg`.
+4. Se il nome corrisponde a più file (`spada.png` e `spada.svg`, oppure `spada.png` in due sottocartelle) l'app non sceglie da sola: segnala l'ambiguità sulla carta e in tabella, e chiede di aggiungere estensione o percorso.
+5. Una variabile immagine con lo stesso nome di un file prevale sul file.
 
 ## 4. Forma
 
@@ -193,9 +211,11 @@ Uno stile raggruppa proprietà di carattere (font, peso, corsivo, dimensione, co
 - Modificare uno stile aggiorna tutte le carte che lo usano.
 - La formattazione locale prevale sullo stile.
 
-### 6.3 Palette
+### 6.3 Colori
 
-Colori con nome del progetto, usati da stili, forme e variabili colore. Coincidono con le variabili di tipo colore.
+- **Nomi predefiniti.** I nomi di colore standard del web (`red`, `yellow`, `blue`, `darkgreen`, ... sono 148 in tutto) funzionano ovunque senza creare variabili.
+- **Palette del progetto.** Le variabili di tipo colore formano la palette. Una variabile con lo stesso nome di un colore predefinito lo ridefinisce in tutto il progetto: per esempio `red` = `#A33A2A`.
+- **Selettore.** Ogni proprietà colore apre un selettore con campo per il codice (esadecimale, RGB, HSL), area saturazione/luminosità, cursori per tonalità e trasparenza, contagocce, palette del progetto e colori recenti.
 
 ## 7. Campi calcolati
 
@@ -209,24 +229,31 @@ Colori con nome del progetto, usati da stili, forme e variabili colore. Coincido
 
 ### 8.1 Template
 
-| Proprietà       | Valori                                                                                                              |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- |
-| dimensioni      | mm, con preset: poker 63×88, bridge 57×89, mini 44×63, tarocchi 70×120, quadrata 70×70, segnalino tondo, plancia A4 |
-| forma           | rettangolo con raggio, cerchio, esagono, tracciato personalizzato                                                   |
-| abbondanza      | mm (default 3)                                                                                                      |
-| area sicura     | mm dal bordo di taglio, solo come guida                                                                             |
-| retro           | nessuno, unico per il set, per carta (livelli del retro collegati al foglio)                                        |
-| griglia e guide | passo in mm, guide manuali                                                                                          |
+| Proprietà       | Valori                                                                                                                                                |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| dimensioni      | mm, scelte alla creazione e modificabili; preset: poker 63×88, bridge 57×89, mini 44×63, tarocchi 70×120, quadrata 70×70, segnalino tondo, plancia A4 |
+| forma           | rettangolo con raggio, cerchio, esagono, tracciato personalizzato                                                                                     |
+| abbondanza      | mm (default 3)                                                                                                                                        |
+| area sicura     | mm dal bordo di taglio, solo come guida                                                                                                               |
+| retro           | nessuno, unico per il set, per carta (livelli del retro collegati al foglio)                                                                          |
+| griglia e guide | passo in mm, guide manuali                                                                                                                            |
+
+Quando si cambiano le dimensioni di un template che contiene già livelli, l'app chiede cosa fare:
+
+- **ridimensiona in proporzione**: posizioni, dimensioni e testi scalano con il nuovo formato (se le proporzioni cambiano, si sceglie se adattare alla larghezza, all'altezza o deformare);
+- **mantieni**: i livelli restano dove sono e si applicano solo i vincoli di ciascun livello (sezione 1);
+- **annulla**.
 
 ### 8.2 Set
 
-| Proprietà            | Valori                                                                                                               |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| template             | uno per set                                                                                                          |
-| foglio               | foglio del file dati                                                                                                 |
-| copie                | colonna `amount` (1 se vuota)                                                                                        |
-| viste                | tabella con anteprima; griglia di anteprime (zoom, fronte/retro, filtro, selezione multipla per modifiche in blocco) |
-| ordinamento e filtro | per qualsiasi colonna, solo nella vista                                                                              |
+| Proprietà            | Valori                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| template             | uno per set                                                                                                                     |
+| foglio               | foglio del file dati                                                                                                            |
+| copie                | colonna `amount` (1 se vuota)                                                                                                   |
+| viste                | tabella con anteprima; griglia di anteprime (zoom, fronte/retro, filtro, selezione multipla per modifiche in blocco)            |
+| ordine delle carte   | manuale, trascinando righe in tabella o carte nella griglia; è l'ordine delle righe nel foglio e quello di esportazione         |
+| ordinamento e filtro | per qualsiasi colonna, solo nella vista, senza cambiare l'ordine salvato; si può rendere definitivo con "Applica questo ordine" |
 
 ## 9. Esportazione
 
@@ -261,13 +288,15 @@ Il PDF è vettoriale, con i font incorporati e in RGB. Il CMYK richiesto da alcu
 
 ### 9.3 Tabletop Simulator
 
-| Opzione            | Valori                                                                         |
-| ------------------ | ------------------------------------------------------------------------------ |
-| griglia            | fino a 10×7 carte per foglio, l'ultima posizione riservata alla carta nascosta |
-| dimensione massima | 4096 o 8192 px per lato                                                        |
-| retro              | unico o foglio dei retri                                                       |
-| destinazione       | cartella del progetto o cartella di Tabletop Simulator                         |
-| oggetto salvato    | file JSON del mazzo pronto da caricare                                         |
+| Opzione            | Valori                                                                                                                                                                            |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| griglia            | automatica per set (righe e colonne scelte in base al numero di carte, per ridurre gli spazi vuoti) oppure fissa, fino a 10×7; l'ultima posizione è riservata alla carta nascosta |
+| dimensione massima | 4096 o 8192 px per lato                                                                                                                                                           |
+| retro              | unico o foglio dei retri                                                                                                                                                          |
+| destinazione       | cartella del progetto, cartella di Tabletop Simulator, entrambe                                                                                                                   |
+| oggetto salvato    | file JSON del mazzo pronto da caricare                                                                                                                                            |
+| Nickname           | vuoto oppure da un campo a scelta (di base il primo campo di testo, per esempio `nome`)                                                                                           |
+| Description        | vuota oppure da un campo a scelta                                                                                                                                                 |
 
 ### 9.4 Preset per tipografie
 

@@ -11,7 +11,7 @@ Prossimi passi:
 3. esportazione PNG e PDF di stampa;
 4. import dei progetti Tabletop Creator.
 
-I requisiti sono in [docs/requisiti.md](docs/requisiti.md).
+I requisiti sono in [docs/requisiti.md](docs/requisiti.md), la specifica funzionale in [docs/specifica.md](docs/specifica.md).
 
 ## Sviluppo
 

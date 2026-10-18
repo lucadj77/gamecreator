@@ -231,7 +231,15 @@ function LayerProperties({
       />
       <ValueSource layer={l} template={tpl} sheets={sheets} set={set} />
 
-      {l.type === 'text' && <TextProperties l={l} set={set} col={col} computed={computed} />}
+      {l.type === 'text' && (
+        <TextProperties
+          l={l}
+          set={set}
+          col={col}
+          computed={computed}
+          fields={labelChoices(tpl, sheets)}
+        />
+      )}
       {l.type === 'image' && <ImageProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'shape' && <ShapeProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'value' && <ValueProperties l={l} set={set} col={col} computed={computed} />}
@@ -330,6 +338,8 @@ interface TypeProps<T> {
   col(prop?: string): string
   /** Il valore principale viene da una formula */
   computed: boolean
+  /** Campi della carta, per l'aiuto alla scrittura del markup */
+  fields?: string[]
 }
 
 function options<T extends string>(
@@ -357,7 +367,8 @@ function TextProperties({
   l,
   set: setLayer,
   col,
-  computed
+  computed,
+  fields
 }: TypeProps<TextLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<TextLayer>
@@ -370,6 +381,7 @@ function TextProperties({
           hint={col()}
           value={l.text}
           multiline
+          markupFields={fields}
           onChange={(text) => set({ text })}
         />
       )}

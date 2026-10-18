@@ -62,10 +62,13 @@ Il testo si salva, nel progetto e nel foglio, con un unico markup: Markdown per 
 | `> testo`                    | paragrafo con lo stile `note`                            |
 | `- voce` / `1. voce`         | elenco puntato / numerato                                |
 | `---`                        | linea separatrice                                        |
-| riga vuota                   | nuovo paragrafo                                          |
+| a capo                       | nuovo paragrafo                                          |
+| riga vuota                   | paragrafo vuoto (spazio verticale)                       |
 | `\` a fine riga              | a capo senza nuovo paragrafo                             |
 
 Gli stili `heading1`, `heading2` e `note` esistono in ogni progetto e si modificano come gli altri.
+
+Diversamente dal Markdown, ogni a capo inizia un nuovo paragrafo: è ciò che ci si aspetta scrivendo in una cella di Excel con Alt+Invio. Gli asterischi staccati dal testo (`3 * 4`) restano asterischi.
 
 #### Attributi: `[testo]{...}`
 
@@ -73,18 +76,20 @@ Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come forma
 
 **Carattere**
 
-| Attributo            | Esempio                                       | Effetto                                                                         |
-| -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------- |
-| `.name`              | `[pino]{.keyword}`                            | applica uno stile                                                               |
-| `color=`             | `[Attenzione]{color=red}` · `{color=#A33A2A}` | colore del testo, da palette o esadecimale                                      |
-| `highlight=`         | `[raro]{highlight=yellow}`                    | colore di evidenziazione dietro il testo                                        |
-| `size=`              | `{size=14}` · `{size=+2}` · `{size=80%}`      | dimensione in pt, relativa o in percentuale                                     |
-| `font=`              | `{font=Cinzel}`                               | famiglia                                                                        |
-| `weight=`            | `{weight=800}`                                | peso del carattere                                                              |
-| `stroke=`            | `{stroke=white/0.3}` · `{stroke=white/8%}`    | contorno delle lettere: colore/spessore in mm o in % della dimensione del testo |
-| `spacing=`           | `{spacing=50}`                                | spaziatura caratteri in ‰                                                       |
-| `raise=`             | `{raise=1}`                                   | spostamento dalla linea di base in pt                                           |
-| `upper`, `smallcaps` | `[Fase]{smallcaps}`                           | trasformazione                                                                  |
+| Attributo                               | Esempio                                       | Effetto                                                                         |
+| --------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| `.name`                                 | `[pino]{.keyword}`                            | applica uno stile                                                               |
+| `color=`                                | `[Attenzione]{color=red}` · `{color=#A33A2A}` | colore del testo, da palette o esadecimale                                      |
+| `highlight=`                            | `[raro]{highlight=yellow}`                    | colore di evidenziazione dietro il testo                                        |
+| `size=`                                 | `{size=14}` · `{size=+2}` · `{size=80%}`      | dimensione in pt, relativa o in percentuale                                     |
+| `font=`                                 | `{font=Cinzel}` · `{font=Open_Sans}`          | famiglia; `_` al posto degli spazi                                              |
+| `weight=`                               | `{weight=800}`                                | peso del carattere                                                              |
+| `stroke=`                               | `{stroke=white/0.3}` · `{stroke=white/8%}`    | contorno delle lettere: colore/spessore in mm o in % della dimensione del testo |
+| `spacing=`                              | `{spacing=50}`                                | spaziatura caratteri in ‰                                                       |
+| `raise=`                                | `{raise=1}`                                   | spostamento dalla linea di base in pt                                           |
+| `upper`, `lower`, `smallcaps`           | `[Fase]{smallcaps}`                           | trasformazione                                                                  |
+| `bold`, `italic`, `underline`, `strike` | `{.flavor italic}`                            | come i segni Markdown, utili negli stili                                        |
+| `left`, `center`, `right`, `justify`    | `{.flavor center}`                            | allineamento, solo per un paragrafo o in uno stile                              |
 
 **Riquadro attorno al testo**
 
@@ -120,6 +125,8 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 
 Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala.
 
+Finché non ci sono le variabili del progetto (sezione 6.1), `{nome}` che non è un campo si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
+
 #### Aiuto alla scrittura
 
 Nell'editor della carta, nei campi di testo del pannello e nelle celle della tabella:
@@ -127,6 +134,8 @@ Nell'editor della carta, nei campi di testo del pannello e nelle celle della tab
 - digitando `{` compaiono variabili e campi, con anteprima;
 - dentro `{...}` dopo `]` compaiono gli attributi, ciascuno con una riga che spiega cosa fa, poi i valori possibili (stili dopo `.`, colori dopo `color=`, forme dopo `bg=`);
 - il markup è colorato e gli errori (attributo sconosciuto, variabile inesistente, immagine ambigua) sono sottolineati con la spiegazione al passaggio del mouse.
+
+Stato attuale: i suggerimenti funzionano nel pannello proprietà, nei campi della carta e nelle celle della tabella (↑↓ per scegliere, Invio o Tab per inserire, Esc per chiudere); gli errori sono elencati sotto il campo e sotto la carta. La colorazione del markup dentro il campo e l'anteprima delle variabili sono da fare.
 
 #### Esempio completo
 

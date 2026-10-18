@@ -1192,3 +1192,79 @@ button.layer-source.open {
 .layers h2.with-action {
   padding-right: 8px;
 }
+
+/* aiuto alla scrittura del markup */
+.markup-input {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.markup-help {
+  position: fixed;
+  z-index: 100;
+  width: 290px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.markup-help ul {
+  list-style: none;
+  margin: 0;
+  padding: 3px;
+  max-height: 210px;
+  overflow-y: auto;
+}
+
+.markup-help li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.markup-help li.active {
+  background: var(--accent-soft);
+}
+
+.markup-help-label {
+  font-family: ui-monospace, Menlo, monospace;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.markup-help-kind {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.markup-help .swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.markup-help-detail {
+  margin: 0;
+  padding: 6px 9px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.markup-problems {
+  display: flex;
+  flex-direction: column;
+  color: #e5484d;
+  font-size: 11px;
+}

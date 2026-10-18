@@ -9,5 +9,12 @@
   "styles": {
     "keyword": "weight=800 color=#7A3FA0 smallcaps",
     "flavor": "italic size=90% color=#6B6255 center"
+  },
+  "variables": {
+    "spada": { "type": "image", "src": "spada", "tint": "rosso" },
+    "scudo": { "type": "image", "src": "scudo", "tint": "#2F5DA8", "scale": 1.2 },
+    "rosso": { "type": "color", "color": "#A33A2A" },
+    "mano": { "type": "value", "value": "7" },
+    "rapida": { "type": "text", "text": "[Rapida]{border=#7A3FA0/0.3 radius=round color=#7A3FA0}" }
   }
 }

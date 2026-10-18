@@ -125,7 +125,7 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 
 Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala.
 
-Finché non ci sono le variabili del progetto (sezione 6.1), `{nome}` che non è un campo si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
+`{nome}` che non è né un campo né una variabile si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
 
 #### Aiuto alla scrittura
 
@@ -217,14 +217,29 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 
 Definite a livello di progetto, si richiamano con `{nome}` in qualunque testo e in qualunque campo.
 
-| Tipo             | Contenuto                                                      | Esempio                                         |
-| ---------------- | -------------------------------------------------------------- | ----------------------------------------------- |
-| immagine         | file, tinta, altezza rispetto alla riga, spostamento verticale | `{spada}` → icona della spada in rosso          |
-| testo formattato | testo di sostituzione e stile o formattazione                  | `{pino}` → "pino" in verde e grassetto          |
-| colore           | un colore con nome                                             | `{rosso}` usabile in qualsiasi proprietà colore |
-| valore           | testo o numero costante                                        | `{max_mano}` → 7                                |
+| Tipo             | Contenuto                                                           | Esempio                                         |
+| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------- |
+| immagine         | file, tinta, altezza, spostamento, rotazione, ribaltamento, opacità | `{spada}` → icona della spada in rosso          |
+| testo formattato | testo di sostituzione e stile o formattazione                       | `{pino}` → "pino" in verde e grassetto          |
+| colore           | un colore con nome                                                  | `{rosso}` usabile in qualsiasi proprietà colore |
+| valore           | testo o numero costante                                             | `{max_mano}` → 7                                |
 
 Ogni variabile ha un'anteprima nell'elenco. Rinominare una variabile aggiorna i riferimenti in template e fogli.
+
+Stato attuale: le variabili sono nella sezione "Variabili" della barra laterale, con un editor che mostra l'anteprima in una frase di prova, e si salvano in `gamecreator.json` (docs/formato.md). Le variabili immagine hanno file, tinta, dimensione rispetto alla riga e spostamento verticale; quelle di testo possono contenere markup e richiamare altre variabili; quelle valore entrano nelle formule come i campi; quelle colore valgono in ogni proprietà colore dei livelli e negli attributi del markup (`color=`, `bg-color=`, `fill=`, `border=`, `highlight=`), scritte come `rosso` o `{rosso}`, e compaiono tra i suggerimenti. Rinominare una variabile per ora non aggiorna i riferimenti.
+
+Le immagini nel testo, variabili o file di `assets/`, accettano attributi dopo il nome, che per quel solo uso prevalgono su quelli della variabile: `{spada tint=red size=150% rotate=90 flip=h opacity=50%}`, anche con le ripetizioni (`{spada*3 tint=red}`).
+
+| Attributo  | Esempio       | Effetto                                                                                      |
+| ---------- | ------------- | -------------------------------------------------------------------------------------------- |
+| `tint=`    | `tint=red`    | ricolora l'immagine; `none` tiene i colori originali, `currentColor` usa il colore del testo |
+| `size=`    | `size=150%`   | altezza rispetto alle icone normali (anche `1.5`)                                            |
+| `raise=`   | `raise=10`    | spostamento verticale in % della riga; negativo abbassa                                      |
+| `rotate=`  | `rotate=90`   | rotazione in gradi, in senso orario                                                          |
+| `flip=`    | `flip=h`      | ribaltamento orizzontale (`h`), verticale (`v`), entrambi (`hv`) o `none`                    |
+| `opacity=` | `opacity=50%` | opacità                                                                                      |
+
+Se il nome è un campo, il suo valore diventa il nome dell'immagine: con `icona` = `spada`, `{icona tint=red}` dà `{spada tint=red}`. Una variabile immagine usata come sorgente di un livello immagine porta con sé tinta, ribaltamento e opacità; la rotazione è quella del livello.
 
 ### 6.2 Stili di testo
 

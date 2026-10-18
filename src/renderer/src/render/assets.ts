@@ -1,5 +1,8 @@
 import type { AssetsUpdate } from '../../../shared/library'
-import { createContext } from 'react'
+import { createContext, useContext, useMemo } from 'react'
+import type { BindContext } from '../../../shared/model/bind'
+import type { Variables } from '../../../shared/model/variables'
+import { useProjectFonts } from './fonts'
 
 /** File sotto assets/ del progetto aperto, per risolvere i nomi delle immagini */
 export const AssetsContext = createContext<string[]>([])
@@ -29,4 +32,19 @@ export function publishAssetsUpdate(u: AssetsUpdate): void {
 export function onAssetsUpdate(cb: (u: AssetsUpdate) => void): () => void {
   assetListeners.add(cb)
   return () => assetListeners.delete(cb)
+}
+
+/** Variabili del progetto aperto (docs/specifica.md, 6.1) */
+export const VariablesContext = createContext<Variables>({})
+
+/** Ciò che serve per applicare una riga a un template: immagini, stili e variabili */
+export function useBindContext(): BindContext {
+  const assets = useContext(AssetsContext)
+  const styles = useContext(StylesContext)
+  const variables = useContext(VariablesContext)
+  const { has: hasFont } = useProjectFonts()
+  return useMemo(
+    () => ({ assets, styles, variables, hasFont }),
+    [assets, styles, variables, hasFont]
+  )
 }

@@ -25,6 +25,9 @@ const api: Api = {
   fontCatalog: () => ipcRenderer.invoke('library:font-catalog'),
   downloadFont: (family, variants) => ipcRenderer.invoke('library:download-font', family, variants),
   saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),
+  chooseFolder: (current) => ipcRenderer.invoke('folder:choose', current),
+  defaultTtcTarget: (source) => ipcRenderer.invoke('ttc:default-target', source),
+  importTtc: (options) => ipcRenderer.invoke('ttc:import', options),
   exportPage: {
     onContext: (cb) => ipcRenderer.on('export:context', (_, c) => cb(c)),
     onScene: (cb) => ipcRenderer.on('export:scene', (_, id, scene) => cb(id, scene)),

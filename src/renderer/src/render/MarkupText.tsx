@@ -1,4 +1,4 @@
-import { useContext, type CSSProperties } from 'react'
+import { useContext, useMemo, type CSSProperties } from 'react'
 import { resolveAsset } from '../../../shared/model/assets'
 import {
   BLOCK_STYLE,
@@ -10,7 +10,15 @@ import {
   type Block,
   type Inline
 } from '../../../shared/model/markup'
-import { AssetsContext, StylesContext, assetUrl } from './assets'
+import {
+  imageVariable,
+  mergeImageSettings,
+  palette,
+  resolveColor,
+  type ImageSettings
+} from '../../../shared/model/variables'
+import { AssetsContext, StylesContext, VariablesContext, assetUrl } from './assets'
+import { useImageSize } from './imageSize'
 
 // Disegna il markup del testo (docs/specifica.md, 2.1) come HTML dentro il foreignObject del
 // livello. Le misure sono nel sistema scalato del livello: `unit` pixel per millimetro.
@@ -22,6 +30,8 @@ interface Scale {
   unit: number
   /** Riduzione applicata da "riduci per stare nel riquadro", per le dimensioni assolute */
   ratio: number
+  /** Colori con nome del progetto */
+  pal: Record<string, string>
 }
 
 export default function MarkupText({
@@ -37,8 +47,10 @@ export default function MarkupText({
   paragraphSpacing: number
 }): React.JSX.Element {
   const styles = useContext(StylesContext)
+  const variables = useContext(VariablesContext)
+  const pal = useMemo(() => palette(variables), [variables])
   const { blocks } = parseMarkup(text)
-  const k = { unit, ratio }
+  const k = { unit, ratio, pal }
   return (
     <>
       {blocks.map((b, i) => (
@@ -117,7 +129,7 @@ function Inlines({
           case 'br':
             return <br key={i} />
           case 'ref':
-            return <Ref key={i} name={n.name} count={n.count} raw={n.raw} />
+            return <Ref key={i} name={n.name} count={n.count} raw={n.raw} image={n.image} />
           default:
             return (
               <SpanView key={i} attrs={resolveStyles(n.attrs, styles)} k={k} styles={styles}>
@@ -150,9 +162,12 @@ function SpanView({
   const outer = textStyle({ ...rest, styles: [] }, k)
   const textOnly = textStyle({ styles: [], color, highlight }, k)
   const [pv, ph] = a.pad ?? (a.bg ? [0, 0.4] : [0.2, 0.6])
+  const fill = resolveColor(a.fill, k.pal)
   const radius =
     a.radius === 'round' ? '999px' : a.radius !== undefined ? `${a.radius * k.unit}px` : undefined
-  const border = a.border ? `${a.border.width * k.unit}px solid ${a.border.color}` : undefined
+  const border = a.border
+    ? `${a.border.width * k.unit}px solid ${resolveColor(a.border.color, k.pal)}`
+    : undefined
 
   if (!a.bg)
     return (
@@ -163,7 +178,7 @@ function SpanView({
           padding: `${pv * k.unit}px ${ph * k.unit}px`,
           border,
           borderRadius: radius,
-          background: a.fill,
+          background: fill,
           lineHeight: 1.15,
           textIndent: 0
         }}
@@ -191,11 +206,16 @@ function SpanView({
         verticalAlign: 'middle',
         lineHeight: 1,
         textIndent: 0,
-        background: a.fill,
+        background: fill,
         borderRadius: radius
       }}
     >
-      <Background name={a.bg} color={a.bgColor} border={a.border} unit={k.unit} />
+      <Background
+        name={a.bg}
+        color={resolveColor(a.bgColor, k.pal)}
+        border={a.border && { ...a.border, color: resolveColor(a.border.color, k.pal) }}
+        unit={k.unit}
+      />
       <span style={{ ...textOnly, position: 'relative' }}>{inner}</span>
     </span>
   )
@@ -235,6 +255,7 @@ function Background({
   unit: number
 }): React.JSX.Element {
   const assets = useContext(AssetsContext)
+  const variables = useContext(VariablesContext)
   const shape = SHAPES[name]
   if (shape)
     return (
@@ -251,16 +272,19 @@ function Background({
         })}
       </svg>
     )
-  const res = resolveAsset(name, assets)
+  // una variabile immagine prevale su un file con lo stesso nome, e porta la sua tinta
+  const v = imageVariable(name, variables)
+  const tint = color ?? (v?.tint ? resolveColor(v.tint, palette(variables)) : undefined)
+  const res = resolveAsset(v?.src ?? name, assets)
   if (!res.ok) return <span style={{ ...FILL, border: '1px dashed #E5484D' }} title={name} />
   const url = assetUrl(res.path)
   // con un colore l'immagine fa da maschera: ricolora le icone monocromatiche
-  if (color)
+  if (tint)
     return (
       <span
         style={{
           ...FILL,
-          background: color,
+          background: tint,
           WebkitMask: `url("${url}") center / contain no-repeat`
         }}
       />
@@ -272,31 +296,78 @@ function Background({
 function Ref({
   name,
   count,
-  raw
+  raw,
+  image
 }: {
   name: string
   count: number
   raw: string
+  /** Attributi scritti nel testo, che prevalgono su quelli della variabile */
+  image?: ImageSettings
 }): React.JSX.Element {
   const assets = useContext(AssetsContext)
-  const res = name ? resolveAsset(name, assets) : null
+  const variables = useContext(VariablesContext)
+  const v = imageVariable(name, variables)
+  const res = name ? resolveAsset(v?.src ?? name, assets) : null
+  const set = mergeImageSettings(v, image)
+  const size = useImageSize(res?.ok && set.tint ? assetUrl(res.path) : null)
+  const scale = set.scale ?? 1
+  const height = 1.15 * scale
   if (!res?.ok)
-    return (
+    return v ? (
+      // variabile immagine con il file mancante: un riquadro al posto dell'icona
+      <span
+        title={`${name}: ${v.src}`}
+        style={{
+          display: 'inline-block',
+          width: `${height * 0.8}em`,
+          height: `${height * 0.8}em`,
+          verticalAlign: `${-0.12 * scale}em`,
+          margin: '0 0.04em',
+          border: '0.06em dashed #E5484D',
+          borderRadius: '0.15em',
+          boxSizing: 'border-box'
+        }}
+      />
+    ) : (
       <span style={{ textDecoration: 'underline wavy #E5484D', textDecorationSkipInk: 'none' }}>
         {raw}
       </span>
     )
   const url = assetUrl(res.path)
+  const transform = [
+    set.rotate ? `rotate(${set.rotate}deg)` : '',
+    set.flip ? `scale(${set.flip.includes('h') ? -1 : 1}, ${set.flip.includes('v') ? -1 : 1})` : ''
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const style: CSSProperties = {
+    height: `${height}em`,
+    verticalAlign: `${-0.22 * scale + (set.raise ?? 0) / 100}em`,
+    margin: '0 0.04em',
+    transform: transform || undefined,
+    opacity: set.opacity
+  }
+  const tint = set.tint ? resolveColor(set.tint, palette(variables)) : null
   return (
     <>
-      {Array.from({ length: count }, (_, i) => (
-        <img
-          key={i}
-          src={url}
-          alt=""
-          style={{ height: '1.15em', width: 'auto', verticalAlign: '-0.22em', margin: '0 0.04em' }}
-        />
-      ))}
+      {Array.from({ length: count }, (_, i) =>
+        tint ? (
+          // la tinta usa l'immagine come maschera: serve la larghezza, presa dalle proporzioni
+          <span
+            key={i}
+            style={{
+              ...style,
+              display: 'inline-block',
+              width: `${size ? (height * size.w) / size.h : height}em`,
+              background: tint,
+              WebkitMask: `url("${url}") center / contain no-repeat`
+            }}
+          />
+        ) : (
+          <img key={i} src={url} alt="" style={{ ...style, width: 'auto' }} />
+        )
+      )}
     </>
   )
 }
@@ -305,9 +376,9 @@ function Ref({
 function textStyle(a: Attrs, k: Scale): CSSProperties {
   const pt = PT_TO_MM * k.unit
   const s: CSSProperties = {}
-  if (a.color) s.color = a.color
+  if (a.color) s.color = resolveColor(a.color, k.pal)
   if (a.highlight) {
-    s.backgroundColor = a.highlight
+    s.backgroundColor = resolveColor(a.highlight, k.pal)
     s.boxDecorationBreak = 'clone'
     s.WebkitBoxDecorationBreak = 'clone'
   }
@@ -334,7 +405,7 @@ function textStyle(a: Attrs, k: Scale): CSSProperties {
       typeof a.stroke.width === 'string'
         ? `${(parseFloat(a.stroke.width) / 100) * 2}em`
         : `${a.stroke.width * 2 * k.unit}px`
-    s.WebkitTextStroke = `${w} ${a.stroke.color}`
+    s.WebkitTextStroke = `${w} ${resolveColor(a.stroke.color, k.pal)}`
     s.paintOrder = 'stroke fill'
   }
   if (a.spacing !== undefined) s.letterSpacing = `${a.spacing / 1000}em`

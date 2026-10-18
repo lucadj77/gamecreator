@@ -1869,3 +1869,47 @@ div.font-row {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* variabili del progetto nella barra laterale */
+.variable-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.variable-icon {
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.variable-icon p {
+  margin: 0;
+}
+
+.variable-text {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-notes {
+  margin: 0;
+  padding-left: 18px;
+  max-height: 30vh;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.import-icons {
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.export-result h3 {
+  margin: 8px 0 4px;
+  font-size: 13px;
+}

@@ -14,7 +14,8 @@ import {
 } from './protocol'
 import { MessageError, msg } from '../shared/messages'
 import type { Template } from '../shared/model/template'
-import type { Theme } from '../shared/api'
+import type { Theme, TtcImportOptions } from '../shared/api'
+import { defaultTarget, importTtc } from './import/ttc'
 import { runExport } from './export/run'
 import { saveExportProfiles } from './project/exportProfiles'
 import { fontCatalog, iconCatalog } from './library/catalogs'
@@ -151,6 +152,17 @@ function registerIpc(): void {
     await writeFile(file, text)
     return file
   })
+  ipcMain.handle('folder:choose', async (_, current?: string) => {
+    const result = await dialog.showOpenDialog({
+      defaultPath: current || undefined,
+      properties: ['openDirectory', 'createDirectory']
+    })
+    return result.canceled ? null : result.filePaths[0]
+  })
+
+  ipcMain.handle('ttc:default-target', (_, source: string) => defaultTarget(source))
+  // l'importazione scrive solo nella cartella di destinazione, che deve essere nuova o vuota
+  ipcMain.handle('ttc:import', (_, options: TtcImportOptions) => importTtc(options))
 
   // il renderer segue prefers-color-scheme, che Chromium ricava da themeSource
   ipcMain.on('theme:set', (_, theme: Theme) => {

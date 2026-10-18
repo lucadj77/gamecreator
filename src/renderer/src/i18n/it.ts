@@ -464,6 +464,8 @@ export const it: Record<MessageKey, string> = {
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
   'bind.markup': 'Livello {layer}: {problem}',
   'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
+  'bind.missingVariableImage':
+    "Livello {layer}: l'immagine della variabile {name} ({src}) non è negli asset",
   'bind.ambiguousRef':
     "Livello {layer}: {{name}} corrisponde a più immagini; aggiungi l'estensione o la cartella",
   'bind.missingFont':
@@ -477,12 +479,14 @@ export const it: Record<MessageKey, string> = {
   'markup.unclosedBrace': '{ senza la } di chiusura',
   'markup.badRepeat': '{text}: le ripetizioni devono essere un numero o un campo numerico',
   'markup.emptyRef': 'graffe vuote {}',
+  'markup.badImageAttr': "attributo dell'immagine non valido: {text}",
   'markupHelp.kind.attribute': 'attributo',
   'markupHelp.kind.style': 'stile',
   'markupHelp.kind.color': 'colore',
   'markupHelp.kind.shape': 'forma',
   'markupHelp.kind.image': 'immagine',
   'markupHelp.kind.field': 'campo',
+  'markupHelp.kind.variable': 'variabile',
   'markupHelp.kind.value': 'valore',
   'markupHelp.attr.color': 'Colore del testo, da palette o esadecimale: color=red, color=#A33A2A',
   'markupHelp.attr.highlight': 'Colore di evidenziazione dietro il testo: highlight=yellow',
@@ -502,6 +506,15 @@ export const it: Record<MessageKey, string> = {
     'Immagine o forma di sfondo, con il testo centrato sopra: bg=circle, bg=shield',
   'markupHelp.attr.bg-color': "Tinta dell'immagine o della forma di sfondo: bg-color=blue",
   'markupHelp.attr.bg-size': 'Dimensione dello sfondo, in % della riga o in mm: bg-size=140%',
+  'markupHelp.attr.image.tint':
+    "Ricolora l'immagine; none tiene i suoi colori, currentColor usa il colore del testo",
+  'markupHelp.attr.image.size': "Dimensione rispetto all'altezza normale delle icone: size=150%",
+  'markupHelp.attr.image.raise':
+    'Spostamento verticale, in % della riga; negativo la abbassa: raise=10',
+  'markupHelp.attr.image.rotate': 'Rotazione in gradi, in senso orario: rotate=90',
+  'markupHelp.attr.image.flip':
+    'Ribalta in orizzontale (h), in verticale (v) o in entrambi i sensi (hv): flip=h',
+  'markupHelp.attr.image.opacity': 'Opacità da 0% a 100%: opacity=50%',
   'markupHelp.attr.bold': 'Grassetto',
   'markupHelp.attr.italic': 'Corsivo',
   'markupHelp.attr.underline': 'Sottolineato',
@@ -658,5 +671,95 @@ export const it: Record<MessageKey, string> = {
   'export.corners': 'Angoli',
   'export.rounded': 'Arrotondati come nel template',
   'export.gridOverflow':
-    'Set «{set}»: le carte non stanno nella pagina, cambia margini, pagina o disposizione.'
+    'Set «{set}»: le carte non stanno nella pagina, cambia margini, pagina o disposizione.',
+  'sidebar.variables': 'Variabili',
+  'sidebar.newVariable': 'Nuova variabile',
+  'variable.title': 'Variabile',
+  'variable.name': 'Nome',
+  'variable.nameHint': 'Scrivi {nome} in qualsiasi testo per usarla',
+  'variable.invalidName': 'Usa lettere, cifre, - e _, senza spazi',
+  'variable.exists': 'Esiste già una variabile con questo nome',
+  'variable.type': 'Tipo',
+  'variable.type.image': 'Icona',
+  'variable.type.text': 'Testo',
+  'variable.type.color': 'Colore',
+  'variable.type.value': 'Valore',
+  'variable.src': 'Immagine',
+  'variable.srcHint': 'Nome del file in assets/, senza estensione',
+  'variable.tint': 'Tinta',
+  'variable.tintHint': 'Ricolora le icone a un solo colore',
+  'variable.scale': 'Dimensione',
+  'variable.scaleHint': 'Altezza rispetto alla dimensione normale delle icone nel testo',
+  'variable.raise': 'Sposta in alto',
+  'variable.raiseHint': 'Spostamento verticale nel testo, in % della riga; negativo la abbassa',
+  'variable.rotate': 'Rotazione',
+  'variable.rotateHint': 'Gradi, in senso orario',
+  'variable.flip': 'Ribaltamento',
+  'variable.flip.none': 'Nessuno',
+  'variable.flip.h': 'Orizzontale',
+  'variable.flip.v': 'Verticale',
+  'variable.flip.hv': 'Entrambi',
+  'variable.opacity': 'Opacità',
+  'variable.attrsHint':
+    'Nel testo si possono cambiare per un singolo uso: {spada tint=red size=150% rotate=90 flip=h opacity=50%}',
+  'variable.text': 'Testo',
+  'variable.textHint': 'Sostituisce {nome}; può avere formattazione e altre variabili',
+  'variable.color': 'Colore',
+  'variable.value': 'Valore',
+  'variable.valueHint': 'Testo o numero, usabile nei testi e nelle formule',
+  'variable.sampleText': 'Testo di prova',
+  'variable.sampleBefore': 'Guadagna 2',
+  'variable.sampleAfter': 'in questo turno.',
+  'variable.delete': 'Elimina variabile',
+  'variable.save': 'Salva variabile',
+  'app.importTtc': 'Importa…',
+  'tip.importTtc':
+    "Importa da Tabletop Creator: converte un progetto in un nuovo progetto GameCreator; l'originale non cambia",
+  'ttc.title': 'Importa da Tabletop Creator',
+  'ttc.intro':
+    'Il progetto si converte in una cartella nuova: template, set, variabili e immagini. La cartella di Tabletop Creator viene solo letta.',
+  'ttc.source': 'Progetto Tabletop Creator',
+  'ttc.sourceHint': 'La cartella con il file .tcp e la cartella data',
+  'ttc.target': 'Cartella del nuovo progetto',
+  'ttc.targetHint': "Si crea se non c'è; deve essere vuota",
+  'ttc.icons': 'Cartella delle icone (facoltativa)',
+  'ttc.iconsHint':
+    'Dove cercare le icone della libreria di Tabletop Creator (game-icons.net, Kenney…), per nome in tutte le sottocartelle',
+  'ttc.import': 'Importa',
+  'ttc.running': 'Importazione…',
+  'ttc.done':
+    'Importati {templates} template, {sets} set con {cards} righe, {assets} immagini e {variables} variabili.',
+  'ttc.notes': 'Convertito solo in parte',
+  'ttc.missingIcons': 'Icone della libreria non trovate ({count})',
+  'ttc.missingIconsHint':
+    'Si vedono come un quadrato tratteggiato. Metti i file in assets/library/<categoria>/ oppure importa di nuovo indicando una cartella che le contiene.',
+  'ttc.fonts': 'Caratteri usati',
+  'ttc.fontsHint':
+    'I testi usano questi caratteri: installa nel sistema quelli che mancano, altrimenti si usa un carattere predefinito.',
+  'ttc.open': 'Apri il progetto',
+  'ttc.close': 'Chiudi',
+  'ttc.notTtcProject':
+    '{folder} non è un progetto Tabletop Creator (manca la cartella data/blueprints o un file .tcp)',
+  'ttc.targetNotEmpty': 'La cartella {folder} non è vuota: scegline una nuova o vuota',
+  'ttc.unreadableFile': 'Impossibile leggere il file {file}: {error}',
+  'ttc.renamedVariable': 'Variabile {code} rinominata {name}, perché il nome è usato dal markup',
+  'ttc.missingBlueprint': 'Set {set}: template {blueprint} non trovato, set saltato',
+  'ttc.unsupportedTags': 'Tag del testo non convertiti: {tags}',
+  'ttc.unsupportedCells': 'Set {set}: valori non convertiti per {fields}',
+  'ttc.unsupported.noWrap':
+    '{template}: il testo senza a capo non è supportato, va a capo ({layers})',
+  'ttc.unsupported.fitSide':
+    "{template}: adatta alla larghezza o all'altezza è diventato adatta dentro ({layers})",
+  'ttc.unsupported.imageRotation':
+    "{template}: la rotazione dell'immagine dentro il riquadro è ignorata ({layers})",
+  'ttc.unsupported.mask': '{template}: le maschere delle immagini sono ignorate ({layers})',
+  'ttc.unsupported.sliced': '{template}: le immagini a 9 sezioni sono disegnate stirate ({layers})',
+  'ttc.unsupported.cornerRadii':
+    '{template}: raggi diversi per angolo sono diventati un raggio unico ({layers})',
+  'ttc.unsupported.panelType': '{template}: tipi di pannello non convertiti: {layers}',
+  'ttc.unsupported.roundness':
+    "{template}: l'arrotondamento degli angoli dei poligoni è ignorato ({layers})",
+  'ttc.unsupported.falloff': '{template}: i bordi sfumati (falloff) sono ignorati ({layers})',
+  'ttc.unsupported.cardShape':
+    '{template}: la forma della carta non è un rettangolo; è stata importata come rettangolo'
 }

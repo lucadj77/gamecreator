@@ -1,4 +1,6 @@
-import { useId, useState } from 'react'
+import { useContext, useId, useMemo, useState } from 'react'
+import { palette, resolveColor } from '../../../shared/model/variables'
+import { VariablesContext } from '../render/assets'
 import type { Shadow, Stroke } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from '../components/MarkupTextarea'
@@ -295,10 +297,10 @@ function toHex6(c: string): string {
   return '#000000'
 }
 
-/** Codice esadecimale completo o nome di colore: le versioni a metà non si applicano */
+/** Codice esadecimale completo, nome di colore o colore del progetto: le versioni a metà non si applicano */
 const isColor = (t: string): boolean =>
   /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(t.trim()) ||
-  /^[a-z]{3,}$/i.test(t.trim())
+  /^\{?[\p{L}_][\p{L}\p{N}_-]*\}?$/u.test(t.trim())
 
 function ColorInput({
   value,
@@ -310,15 +312,30 @@ function ColorInput({
   disabled?: boolean
 }): React.JSX.Element {
   const live = useLive(value, (t) => t.trim() !== value && onChange(t.trim()), isColor)
+  // i colori del progetto si scrivono per nome: il campione mostra il colore che indicano
+  const variables = useContext(VariablesContext)
+  const pal = useMemo(() => palette(variables), [variables])
+  const listId = useId()
   return (
     <>
       <input
         type="color"
         disabled={disabled}
-        value={toHex6(value)}
+        value={toHex6(resolveColor(value, pal))}
         onChange={(e) => onChange(e.target.value.toUpperCase())}
       />
-      <input className="color-text" disabled={disabled} {...live.bind} onKeyDown={blurOnEnter} />
+      <input
+        className="color-text"
+        disabled={disabled}
+        list={listId}
+        {...live.bind}
+        onKeyDown={blurOnEnter}
+      />
+      <datalist id={listId}>
+        {Object.keys(pal).map((n) => (
+          <option key={n} value={n} />
+        ))}
+      </datalist>
     </>
   )
 }

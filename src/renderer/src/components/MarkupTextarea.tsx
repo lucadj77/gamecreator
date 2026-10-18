@@ -10,7 +10,7 @@ import {
 import { suggestAt, type Suggestion, type SuggestionResult } from '../../../shared/model/markupHelp'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
-import { AssetsContext, SaveStyleContext, StylesContext } from '../render/assets'
+import { AssetsContext, SaveStyleContext, StylesContext, VariablesContext } from '../render/assets'
 import FormatDialog from './FormatDialog'
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
@@ -42,6 +42,7 @@ export default function MarkupTextarea({
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
   const styles = useContext(StylesContext)
+  const variables = useContext(VariablesContext)
   const ref = useRef<HTMLTextAreaElement | null>(null)
   const [help, setHelp] = useState<(SuggestionResult & { index: number }) | null>(null)
   const [pos, setPos] = useState<{ x: number; y: number; top: number } | null>(null)
@@ -64,7 +65,8 @@ export default function MarkupTextarea({
     const r = suggestAt(el.value, el.selectionStart, {
       fields,
       assets,
-      styles: Object.keys(styles)
+      styles: Object.keys(styles),
+      variables
     })
     setHelp(r && r.items.length ? { ...r, index: 0 } : null)
     if (r) setPos(caretPosition(el, el.selectionStart))
@@ -174,7 +176,9 @@ export default function MarkupTextarea({
                 onMouseEnter={() => setHelp({ ...help, index: i })}
                 onClick={() => accept(s)}
               >
-                {s.kind === 'color' && <span className="swatch" style={{ background: s.label }} />}
+                {(s.kind === 'color' || s.swatch) && (
+                  <span className="swatch" style={{ background: s.swatch ?? s.label }} />
+                )}
                 <span className="markup-help-label">{s.label}</span>
                 <span className="markup-help-kind">
                   {t(`markupHelp.kind.${s.kind}` as MessageKey)}

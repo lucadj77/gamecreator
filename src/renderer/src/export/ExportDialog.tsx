@@ -32,7 +32,11 @@ const DPIS = [150, 300, 600]
 
 /** Le carte dei set scelti, con i valori della riga applicati al template */
 function buildSets(project: LoadedProject, names: string[]): ExportSet[] {
-  const ctx = { assets: project.assets, styles: project.file.styles }
+  const ctx = {
+    assets: project.assets,
+    styles: project.file.styles,
+    variables: project.file.variables
+  }
   return project.sets
     .filter((s) => !names.length || names.includes(s.name))
     .flatMap((s) => {
@@ -46,7 +50,7 @@ function buildSets(project: LoadedProject, names: string[]): ExportSet[] {
           n: i + 1,
           amount: card.amount,
           label: bound.label,
-          fields: cardFields(tpl, card),
+          fields: cardFields(tpl, card, ctx.variables),
           template: bound.template
         }
       })
@@ -146,7 +150,8 @@ export default function ExportDialog({
       const r = await window.api.runExport(job, {
         assets: project.assets,
         fonts: project.fonts,
-        styles: project.file.styles ?? {}
+        styles: project.file.styles ?? {},
+        variables: project.file.variables ?? {}
       })
       const missing = missingImages(project, sets)
       if (missing.length)

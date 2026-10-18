@@ -4,6 +4,7 @@
 import type { Side, Template } from './model/template'
 import type { Message } from './messages'
 import type { ProjectFont } from './project'
+import type { Variables } from './model/variables'
 
 export type ExportKind = 'images' | 'pdf' | 'tts'
 export type SidesChoice = 'front' | 'back' | 'both'
@@ -169,6 +170,7 @@ export interface ExportContext {
   assets: string[]
   fonts: ProjectFont[]
   styles: Record<string, string>
+  variables?: Variables
 }
 
 export interface ExportResult {

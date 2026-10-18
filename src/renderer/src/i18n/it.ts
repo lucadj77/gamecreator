@@ -54,6 +54,8 @@ export const it: Record<MessageKey, string> = {
   'layers.sourceChange': 'Clic per cambiare la fonte',
   'layers.sourceFixed': 'Valore fisso, uguale su tutte le carte',
   'set.gridHint': 'Trascina una carta per spostarla.',
+  'panel.moveRight': 'Sposta il pannello a destra',
+  'panel.moveLeft': 'Sposta il pannello a sinistra',
   'app.theme': 'Tema',
   'app.theme.system': 'Sistema',
   'app.theme.light': 'Chiaro',

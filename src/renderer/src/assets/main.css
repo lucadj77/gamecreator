@@ -1145,3 +1145,50 @@ button.layer-source.open {
 .card-cell.drop-after {
   box-shadow: 3px 0 0 var(--accent);
 }
+
+/* pannelli spostabili: il bordo sta sempre verso la tela */
+[data-side='left'] {
+  border-left: none;
+  border-right: 1px solid var(--border);
+}
+
+[data-side='right'] {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+.panel-side-btn {
+  margin-left: auto;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.panel-side-btn:hover {
+  color: var(--text);
+}
+
+.sidebar h2.with-action .panel-side-btn + .icon-btn {
+  margin-left: 2px;
+}
+
+.properties {
+  position: relative;
+}
+
+.panel-side-btn.corner {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+.layers h2.with-action,
+.preview-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.layers h2.with-action {
+  padding-right: 8px;
+}

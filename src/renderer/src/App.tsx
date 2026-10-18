@@ -21,7 +21,8 @@ import {
 import DataTable from './components/DataTable'
 import Segmented from './components/Segmented'
 import Resizer from './components/Resizer'
-import { usePanelWidth } from './components/usePanelWidth'
+import { usePanelSide, usePanelWidth } from './components/usePanelWidth'
+import PanelSideButton from './components/PanelSideButton'
 import TemplateEditor from './editor/TemplateEditor'
 import { NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
@@ -93,6 +94,7 @@ function App(): React.JSX.Element {
   const [saving, setSaving] = useState(false)
   const anyDirty = dirty.size > 0 || dirtySheets.size > 0 || fileDirty
   const [sidebarWidth, setSidebarWidth] = usePanelWidth('sidebar', 220)
+  const [sidebarSide, toggleSidebarSide] = usePanelSide('sidebar', 'left')
 
   const load = useCallback(async (folder: string) => {
     setLoading(true)
@@ -425,88 +427,97 @@ function App(): React.JSX.Element {
 
         {project ? (
           <main className="workspace">
-            <nav className="sidebar" style={{ width: sidebarWidth }}>
-              <h2 className="with-action">
-                {t('sidebar.sets')}
-                <button
-                  className="icon-btn"
-                  title={t('sidebar.newSet')}
-                  onClick={() => setCreatingSet(true)}
-                >
-                  +
-                </button>
-              </h2>
-              <ul>
-                {project.sets.map((s, i) => (
-                  <li key={s.name}>
+            {sidebarSide === 'left' && (
+              <>
+                <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
+                  <h2 className="with-action">
+                    {t('sidebar.sets')}
+                    <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
                     <button
-                      className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
-                      onClick={() => setSelected({ kind: 'set', index: i })}
+                      className="icon-btn"
+                      title={t('sidebar.newSet')}
+                      onClick={() => setCreatingSet(true)}
                     >
-                      <span>
-                        {s.name}
-                        {s.data && dirtySheets.has(s.data.name) && (
-                          <span className="dirty-dot" title={t('app.unsaved')} />
-                        )}
-                      </span>
-                      <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
+                      +
                     </button>
+                  </h2>
+                  <ul>
+                    {project.sets.map((s, i) => (
+                      <li key={s.name}>
+                        <button
+                          className={
+                            selected.kind === 'set' && i === selected.index ? 'active' : ''
+                          }
+                          onClick={() => setSelected({ kind: 'set', index: i })}
+                        >
+                          <span>
+                            {s.name}
+                            {s.data && dirtySheets.has(s.data.name) && (
+                              <span className="dirty-dot" title={t('app.unsaved')} />
+                            )}
+                          </span>
+                          <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
+                        </button>
+                        <button
+                          className="icon-btn item-dup"
+                          title={t('sidebar.duplicate')}
+                          onClick={() => setDuplicating({ kind: 'set', index: i })}
+                        >
+                          ⧉
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <h2 className="with-action">
+                    {t('sidebar.templates')}
                     <button
-                      className="icon-btn item-dup"
-                      title={t('sidebar.duplicate')}
-                      onClick={() => setDuplicating({ kind: 'set', index: i })}
+                      className="icon-btn"
+                      title={t('sidebar.newTemplate')}
+                      onClick={() => setCreating(true)}
                     >
-                      ⧉
+                      +
                     </button>
-                  </li>
-                ))}
-              </ul>
-              <h2 className="with-action">
-                {t('sidebar.templates')}
-                <button
-                  className="icon-btn"
-                  title={t('sidebar.newTemplate')}
-                  onClick={() => setCreating(true)}
-                >
-                  +
-                </button>
-              </h2>
-              <ul>
-                {project.templates.map((tpl) => (
-                  <li key={tpl.name}>
-                    <button
-                      className={
-                        selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''
-                      }
-                      onClick={() => setSelected({ kind: 'template', name: tpl.name })}
-                    >
-                      <span>
-                        {tpl.name}
-                        {dirty.has(tpl.name) && (
-                          <span className="dirty-dot" title={t('app.unsaved')} />
-                        )}
-                      </span>
-                      <span className="muted">
-                        {tpl.width}×{tpl.height}
-                      </span>
-                    </button>
-                    <button
-                      className="icon-btn item-dup"
-                      title={t('sidebar.duplicate')}
-                      onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
-                    >
-                      ⧉
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              {project.unusedSheets.length > 0 && (
-                <p className="muted small">
-                  {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
-                </p>
-              )}
-            </nav>
-            <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="left" max={400} />
+                  </h2>
+                  <ul>
+                    {project.templates.map((tpl) => (
+                      <li key={tpl.name}>
+                        <button
+                          className={
+                            selected.kind === 'template' && selected.name === tpl.name
+                              ? 'active'
+                              : ''
+                          }
+                          onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+                        >
+                          <span>
+                            {tpl.name}
+                            {dirty.has(tpl.name) && (
+                              <span className="dirty-dot" title={t('app.unsaved')} />
+                            )}
+                          </span>
+                          <span className="muted">
+                            {tpl.width}×{tpl.height}
+                          </span>
+                        </button>
+                        <button
+                          className="icon-btn item-dup"
+                          title={t('sidebar.duplicate')}
+                          onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
+                        >
+                          ⧉
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {project.unusedSheets.length > 0 && (
+                    <p className="muted small">
+                      {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
+                    </p>
+                  )}
+                </nav>
+                <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="left" max={400} />
+              </>
+            )}
             {editing ? (
               <TemplateEditor
                 key={editing.name}
@@ -525,6 +536,97 @@ function App(): React.JSX.Element {
               />
             ) : (
               <section className="content" />
+            )}
+            {sidebarSide === 'right' && (
+              <>
+                <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="right" max={400} />
+                <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
+                  <h2 className="with-action">
+                    {t('sidebar.sets')}
+                    <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
+                    <button
+                      className="icon-btn"
+                      title={t('sidebar.newSet')}
+                      onClick={() => setCreatingSet(true)}
+                    >
+                      +
+                    </button>
+                  </h2>
+                  <ul>
+                    {project.sets.map((s, i) => (
+                      <li key={s.name}>
+                        <button
+                          className={
+                            selected.kind === 'set' && i === selected.index ? 'active' : ''
+                          }
+                          onClick={() => setSelected({ kind: 'set', index: i })}
+                        >
+                          <span>
+                            {s.name}
+                            {s.data && dirtySheets.has(s.data.name) && (
+                              <span className="dirty-dot" title={t('app.unsaved')} />
+                            )}
+                          </span>
+                          <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
+                        </button>
+                        <button
+                          className="icon-btn item-dup"
+                          title={t('sidebar.duplicate')}
+                          onClick={() => setDuplicating({ kind: 'set', index: i })}
+                        >
+                          ⧉
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <h2 className="with-action">
+                    {t('sidebar.templates')}
+                    <button
+                      className="icon-btn"
+                      title={t('sidebar.newTemplate')}
+                      onClick={() => setCreating(true)}
+                    >
+                      +
+                    </button>
+                  </h2>
+                  <ul>
+                    {project.templates.map((tpl) => (
+                      <li key={tpl.name}>
+                        <button
+                          className={
+                            selected.kind === 'template' && selected.name === tpl.name
+                              ? 'active'
+                              : ''
+                          }
+                          onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+                        >
+                          <span>
+                            {tpl.name}
+                            {dirty.has(tpl.name) && (
+                              <span className="dirty-dot" title={t('app.unsaved')} />
+                            )}
+                          </span>
+                          <span className="muted">
+                            {tpl.width}×{tpl.height}
+                          </span>
+                        </button>
+                        <button
+                          className="icon-btn item-dup"
+                          title={t('sidebar.duplicate')}
+                          onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
+                        >
+                          ⧉
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {project.unusedSheets.length > 0 && (
+                    <p className="muted small">
+                      {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
+                    </p>
+                  )}
+                </nav>
+              </>
             )}
           </main>
         ) : (
@@ -604,6 +706,7 @@ function SetView({
   const [addingColumn, setAddingColumn] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
   const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
+  const [previewSide, togglePreviewSide] = usePanelSide('preview', 'right')
   // dimensione delle miniature: pixel per millimetro
   const [thumb, setThumb] = usePanelWidth('thumbScale', 2.6)
   const contentRef = useRef<HTMLElement>(null)
@@ -684,8 +787,70 @@ function SetView({
     }
   }
 
+  const preview = (
+    <aside className="preview" data-side={previewSide} style={{ width: previewWidth }}>
+      <div className="preview-header">
+        <h2>
+          {t('preview.title')}
+          <PanelSideButton side={previewSide} onToggle={togglePreviewSide} />
+        </h2>
+        <Segmented<Side>
+          value={side}
+          options={[
+            ['front', t('preview.front')],
+            ['back', t('preview.back')]
+          ]}
+          onChange={setSide}
+        />
+      </div>
+      {!template ? (
+        <p className="muted">{t('preview.noTemplate', { name: set.template })}</p>
+      ) : card ? (
+        <>
+          <div className="preview-card" title={t('preview.clickHint')} onClick={pickField}>
+            <CardSvg template={card.template} side={side} scale={PREVIEW_SCALE} />
+          </div>
+          {card.problems.length > 0 && (
+            <div className="problems">
+              <h3>{t('preview.problems')}</h3>
+              <ul>
+                {card.problems.map((p, i) => (
+                  <li key={i}>{t(p)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="muted">{t('preview.selectRow')}</p>
+      )}
+      {!none && (
+        <CardForm
+          key={current}
+          sheet={sheet}
+          row={current}
+          template={template}
+          focus={focus}
+          onChange={onChange}
+        />
+      )}
+    </aside>
+  )
+
   return (
     <>
+      {previewSide === 'left' && (
+        <>
+          {preview}
+          <Resizer
+            width={previewWidth}
+            onChange={setPreviewWidth}
+            edge="left"
+            min={240}
+            max={640}
+          />
+        </>
+      )}
       <section className="content" ref={contentRef}>
         <div className="set-header">
           <h1>{set.name}</h1>
@@ -750,51 +915,18 @@ function SetView({
           />
         )}
       </section>
-      <Resizer width={previewWidth} onChange={setPreviewWidth} edge="right" min={240} max={640} />
-      <aside className="preview" style={{ width: previewWidth }}>
-        <div className="preview-header">
-          <h2>{t('preview.title')}</h2>
-          <Segmented<Side>
-            value={side}
-            options={[
-              ['front', t('preview.front')],
-              ['back', t('preview.back')]
-            ]}
-            onChange={setSide}
+      {previewSide === 'right' && (
+        <>
+          <Resizer
+            width={previewWidth}
+            onChange={setPreviewWidth}
+            edge="right"
+            min={240}
+            max={640}
           />
-        </div>
-        {!template ? (
-          <p className="muted">{t('preview.noTemplate', { name: set.template })}</p>
-        ) : card ? (
-          <>
-            <div className="preview-card" title={t('preview.clickHint')} onClick={pickField}>
-              <CardSvg template={card.template} side={side} scale={PREVIEW_SCALE} />
-            </div>
-            {card.problems.length > 0 && (
-              <div className="problems">
-                <h3>{t('preview.problems')}</h3>
-                <ul>
-                  {card.problems.map((p, i) => (
-                    <li key={i}>{t(p)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="muted">{t('preview.selectRow')}</p>
-        )}
-        {!none && (
-          <CardForm
-            key={current}
-            sheet={sheet}
-            row={current}
-            template={template}
-            focus={focus}
-            onChange={onChange}
-          />
-        )}
-      </aside>
+          {preview}
+        </>
+      )}
       {addingColumn && (
         <AddColumnDialog
           sheet={sheet}

@@ -29,6 +29,8 @@ import {
 } from './fields'
 import type { EditorAction, EditorState } from './useEditor'
 import type { Commands } from './commands'
+import PanelSideButton from '../components/PanelSideButton'
+import type { PanelSide } from '../components/usePanelWidth'
 
 interface Props {
   state: EditorState
@@ -39,6 +41,8 @@ interface Props {
   width: number
   /** Cambio di formato: chiede se scalare i livelli */
   onResize(width: number, height: number): void
+  side: PanelSide
+  onToggleSide(): void
 }
 
 export default function PropertiesPanel({
@@ -47,14 +51,17 @@ export default function PropertiesPanel({
   cmd,
   sheets,
   width,
-  onResize
+  onResize,
+  side: panelSide,
+  onToggleSide
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const { template: tpl, side, selection } = state
   const layer = selection.length === 1 ? findLayer(tpl[side], selection[0]) : null
 
   return (
-    <aside className="properties" style={{ width }}>
+    <aside className="properties" data-side={panelSide} style={{ width }}>
+      <PanelSideButton side={panelSide} onToggle={onToggleSide} className="corner" />
       {selection.length > 1 ? (
         <>
           <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>

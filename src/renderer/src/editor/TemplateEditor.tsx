@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { bindCard, rowToCard } from '../../../shared/model/bind'
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import type { LoadedSet } from '../../../shared/project'
@@ -6,7 +6,7 @@ import type { ShapeKind, Side, Template } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
-import { usePanelWidth } from '../components/usePanelWidth'
+import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
 import { ImageIcon } from '../components/icons'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
@@ -32,6 +32,8 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
   const cmd = commands(state, dispatch)
   const [layersWidth, setLayersWidth] = usePanelWidth('layers', 230)
   const [propsWidth, setPropsWidth] = usePanelWidth('properties', 320)
+  const [layersSide, toggleLayersSide] = usePanelSide('layers', 'left')
+  const [propsSide, togglePropsSide] = usePanelSide('properties', 'right')
 
   // le modifiche risalgono subito all'app: le anteprime dei set le mostrano prima del salvataggio
   const initial = useRef(template)
@@ -107,6 +109,65 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
     ['#', () => cmd.add('value'), t('tool.value')]
   ]
 
+  // i pannelli stanno a sinistra o a destra della tela, anche entrambi sullo stesso lato
+  const layersPanel = (
+    <LayersPanel
+      state={state}
+      dispatch={dispatch}
+      cmd={cmd}
+      width={layersWidth}
+      side={layersSide}
+      onToggleSide={toggleLayersSide}
+    />
+  )
+  const propsPanel = (
+    <PropertiesPanel
+      width={propsWidth}
+      state={state}
+      dispatch={dispatch}
+      cmd={cmd}
+      sheets={sets.flatMap((s) =>
+        s.data ? [{ set: s.name, headers: s.data.headers, rows: s.data.rows }] : []
+      )}
+      onResize={(w, h) => setResizing([w, h])}
+      side={propsSide}
+      onToggleSide={togglePropsSide}
+    />
+  )
+  const panels = [
+    {
+      key: 'layers',
+      side: layersSide,
+      el: layersPanel,
+      width: layersWidth,
+      setWidth: setLayersWidth,
+      min: 160
+    },
+    {
+      key: 'properties',
+      side: propsSide,
+      el: propsPanel,
+      width: propsWidth,
+      setWidth: setPropsWidth,
+      min: 260
+    }
+  ]
+  const withResizer = (p: (typeof panels)[number]): React.JSX.Element[] => {
+    const resizer = (
+      <Resizer
+        key={`${p.key}-resizer`}
+        width={p.width}
+        onChange={p.setWidth}
+        edge={p.side}
+        min={p.min}
+      />
+    )
+    const panel = <Fragment key={p.key}>{p.el}</Fragment>
+    return p.side === 'left' ? [panel, resizer] : [resizer, panel]
+  }
+  const left = panels.filter((p) => p.side === 'left').flatMap(withResizer)
+  const right = panels.filter((p) => p.side === 'right').flatMap(withResizer)
+
   return (
     <div className="editor">
       <div className="editor-toolbar">
@@ -175,8 +236,7 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
         </label>
       </div>
       <div className="editor-body">
-        <LayersPanel state={state} dispatch={dispatch} cmd={cmd} width={layersWidth} />
-        <Resizer width={layersWidth} onChange={setLayersWidth} edge="left" />
+        {left}
         <div className="editor-center">
           <Canvas state={state} display={display.template} dispatch={dispatch} />
           {display.problems.length > 0 && (
@@ -187,17 +247,7 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
             </div>
           )}
         </div>
-        <Resizer width={propsWidth} onChange={setPropsWidth} edge="right" min={260} />
-        <PropertiesPanel
-          width={propsWidth}
-          state={state}
-          dispatch={dispatch}
-          cmd={cmd}
-          sheets={sets.flatMap((s) =>
-            s.data ? [{ set: s.name, headers: s.data.headers, rows: s.data.rows }] : []
-          )}
-          onResize={(w, h) => setResizing([w, h])}
-        />
+        {right}
       </div>
       {resizing && (
         <ResizeDialog

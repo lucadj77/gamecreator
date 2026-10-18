@@ -20,3 +20,27 @@ export function usePanelWidth(key: string, initial: number): [number, (w: number
   }
   return [width, update]
 }
+
+export type PanelSide = 'left' | 'right'
+
+/** Lato della finestra su cui sta un pannello, ricordato tra una sessione e l'altra */
+export function usePanelSide(key: string, initial: PanelSide): [PanelSide, () => void] {
+  const [side, setSide] = useState<PanelSide>(() => {
+    try {
+      const saved = localStorage.getItem(`panelSide.${key}`)
+      return saved === 'left' || saved === 'right' ? saved : initial
+    } catch {
+      return initial
+    }
+  })
+  const toggle = (): void => {
+    const next = side === 'left' ? 'right' : 'left'
+    setSide(next)
+    try {
+      localStorage.setItem(`panelSide.${key}`, next)
+    } catch {
+      // preferenza non essenziale
+    }
+  }
+  return [side, toggle]
+}

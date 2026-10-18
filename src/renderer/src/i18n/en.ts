@@ -54,6 +54,8 @@ export const en = {
   'layers.sourceChange': 'Click to change the source',
   'layers.sourceFixed': 'Fixed value, the same on every card',
   'set.gridHint': 'Drag a card to move it.',
+  'panel.moveRight': 'Move this panel to the right',
+  'panel.moveLeft': 'Move this panel to the left',
   'app.theme': 'Theme',
   'app.theme.system': 'System',
   'app.theme.light': 'Light',

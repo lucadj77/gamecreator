@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { findParent, isNameTaken, moveLayerTo, patchLayer } from '../../../shared/model/edit'
 import type { Layer } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
+import { ImageIcon } from '../components/icons'
 import type { Commands } from './commands'
 import type { EditorAction, EditorState } from './useEditor'
 
@@ -14,9 +15,9 @@ interface Props {
 
 type DropWhere = 'before' | 'after' | 'inside'
 
-const ICONS: Record<string, string> = {
+const ICONS: Record<string, React.ReactNode> = {
   text: 'T',
-  image: '▣',
+  image: <ImageIcon />,
   group: '▤',
   rect: '■',
   ellipse: '●',
@@ -24,7 +25,7 @@ const ICONS: Record<string, string> = {
   star: '★',
   line: '╱',
   path: '✎',
-  value: '='
+  value: '#'
 }
 
 export default function LayersPanel({ state, dispatch, cmd, width }: Props): React.JSX.Element {

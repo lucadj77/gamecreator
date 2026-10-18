@@ -15,7 +15,7 @@ import type {
 import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
-import { cardFields, rowToCard } from '../../../shared/model/bind'
+import { cardFields, defaultValue, rowToCard, substituteFields } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext } from '../render/assets'
 import {
@@ -356,14 +356,16 @@ function TextProperties({
   const set = setLayer as SetFn<TextLayer>
   return (
     <>
-      <TextField
-        label={t('prop.text')}
-        hint={computed ? t('source.computedHint') : col()}
-        disabled={computed}
-        value={l.text}
-        multiline
-        onChange={(text) => set({ text })}
-      />
+      {/* con una formula il valore è il suo risultato: il campo non serve */}
+      {!computed && (
+        <TextField
+          label={t('prop.text')}
+          hint={col()}
+          value={l.text}
+          multiline
+          onChange={(text) => set({ text })}
+        />
+      )}
       <h3>{t('editor.typography')}</h3>
       <TextField
         label={t('prop.font')}
@@ -506,15 +508,17 @@ function ImageProperties({
   const listId = `assets-${l.id}`
   return (
     <>
-      <TextField
-        label={t('prop.src')}
-        hint={computed ? t('source.computedHint') : col()}
-        disabled={computed}
-        value={l.src}
-        list={listId}
-        placeholder={t('editor.srcPlaceholder')}
-        onChange={(src) => set({ src })}
-      />
+      {/* con una formula il valore è il suo risultato: il campo non serve */}
+      {!computed && (
+        <TextField
+          label={t('prop.src')}
+          hint={col()}
+          value={l.src}
+          list={listId}
+          placeholder={t('editor.srcPlaceholder')}
+          onChange={(src) => set({ src })}
+        />
+      )}
       <datalist id={listId}>
         {names.map((n) => (
           <option key={n} value={n} />
@@ -588,13 +592,15 @@ function ValueProperties({
   const set = setLayer as SetFn<ValueLayer>
   return (
     <>
-      <TextField
-        label={t('prop.value')}
-        hint={computed ? t('source.computedHint') : col()}
-        disabled={computed}
-        value={l.value}
-        onChange={(value) => set({ value })}
-      />
+      {/* con una formula il valore è il suo risultato: il campo non serve */}
+      {!computed && (
+        <TextField
+          label={t('prop.value')}
+          hint={col()}
+          value={l.value}
+          onChange={(value) => set({ value })}
+        />
+      )}
       <p className="small muted">{t('editor.valueHint', { name: l.name })}</p>
     </>
   )
@@ -619,15 +625,17 @@ function ShapeProperties({
         options={options(t, 'shape', SHAPES)}
         onChange={(shape) => set({ shape })}
       />
-      <ColorField
-        label={t('prop.fill')}
-        hint={computed ? t('source.computedHint') : col()}
-        disabled={computed}
-        value={l.fill}
-        nullable
-        fallback="#CCCCCC"
-        onChange={(fill) => set({ fill })}
-      />
+      {/* con una formula il valore è il suo risultato: il campo non serve */}
+      {!computed && (
+        <ColorField
+          label={t('prop.fill')}
+          hint={col()}
+          value={l.fill}
+          nullable
+          fallback="#CCCCCC"
+          onChange={(fill) => set({ fill })}
+        />
+      )}
       <StrokeField
         label={t('prop.stroke')}
         hint={col('stroke')}
@@ -705,16 +713,13 @@ function ValueSource({
   )
   // anteprima della formula sulla prima riga disponibile, o con i soli valori del template
   const sample = sheets.find((s) => s.rows.length)
-  const preview =
-    src.kind === 'formula'
-      ? evaluateFormula(
-          src.expr,
-          cardFields(
-            template,
-            sample ? rowToCard(sample.headers, sample.rows[0]) : { fields: {}, amount: 1 }
-          )
-        )
-      : null
+  const fields = cardFields(
+    template,
+    sample ? rowToCard(sample.headers, sample.rows[0]) : { fields: {}, amount: 1 }
+  )
+  const result = src.kind === 'formula' ? evaluateFormula(src.expr, fields) : null
+  // come sulla carta: i {campo} rimasti nel risultato si sostituiscono
+  const preview = result && { ...result, value: substituteFields(result.value, fields) }
   const listId = `columns-${l.id}`
 
   return (
@@ -733,7 +738,7 @@ function ValueSource({
               kind === 'column'
                 ? { kind, column: null }
                 : kind === 'formula'
-                  ? { kind, expr: src.kind === 'formula' ? src.expr : `{${l.name}}` }
+                  ? { kind, expr: src.kind === 'formula' ? src.expr : startingFormula(l) }
                   : { kind }
           })
         }
@@ -792,3 +797,9 @@ function ValueSource({
 }
 
 type ValueSourceKind = Layer['source']['kind']
+
+/** Passando a formula si parte dal valore attuale, così la carta non cambia */
+function startingFormula(l: Layer): string {
+  const v = defaultValue(l)
+  return v?.trim() ? v : `{${l.name}}`
+}

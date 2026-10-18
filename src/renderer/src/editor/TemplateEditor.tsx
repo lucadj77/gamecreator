@@ -7,6 +7,7 @@ import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelWidth } from '../components/usePanelWidth'
+import { ImageIcon } from '../components/icons'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
 import PropertiesPanel from './PropertiesPanel'
@@ -114,17 +115,17 @@ export default function TemplateEditor({
     return bindCard(state.template, card)
   }, [state.template, previewSet, preview?.row])
 
-  const tools: [string, () => void, string][] = [
+  const tools: [React.ReactNode, () => void, string][] = [
     ['T', () => cmd.add('text'), t('tool.text')],
-    ['▣', () => cmd.add('image'), t('tool.image')],
+    [<ImageIcon key="image" />, () => cmd.add('image'), t('tool.image')],
     ...(['rect', 'ellipse', 'polygon', 'star', 'line'] as ShapeKind[]).map<
-      [string, () => void, string]
+      [React.ReactNode, () => void, string]
     >((s) => [
       SHAPE_ICONS[s],
       () => cmd.add('shape', s),
       t(`tool.${s}` as Parameters<typeof t>[0])
     ]),
-    ['=', () => cmd.add('value'), t('tool.value')]
+    ['#', () => cmd.add('value'), t('tool.value')]
   ]
 
   return (

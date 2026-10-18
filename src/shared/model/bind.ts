@@ -92,7 +92,7 @@ function cardLabel(template: Template, card: CardData, fields: Record<string, st
 }
 
 /** Valore principale di un livello come testo, quello che vale se la riga non lo cambia */
-function defaultValue(l: Layer): string | null {
+export function defaultValue(l: Layer): string | null {
   switch (l.type) {
     case 'text':
       return l.text

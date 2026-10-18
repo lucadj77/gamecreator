@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { Shadow, Stroke } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from '../components/MarkupTextarea'
+import { APP_FONTS, useProjectFonts } from '../render/fonts'
 
 // Campi del pannello proprietà. Ogni modifica si applica subito, mentre si scrive: cambiare
 // selezione o fare clic sulla carta non la perde. Annulla (⌘Z) torna indietro.
@@ -149,7 +150,8 @@ export function TextField({
   list,
   validate,
   placeholder,
-  markupFields
+  markupFields,
+  action
 }: Base & {
   value: string
   onChange(v: string): void
@@ -161,6 +163,8 @@ export function TextField({
   /** Messaggio di errore, oppure null se il valore va bene: un valore non valido non si applica */
   validate?(v: string): string | null
   placeholder?: string
+  /** Pulsante accanto al campo, per esempio per scegliere un file */
+  action?: React.ReactNode
 }): React.JSX.Element {
   const live = useLive(
     value,
@@ -183,8 +187,41 @@ export function TextField({
       ) : (
         <input {...common} list={list} onKeyDown={blurOnEnter} />
       )}
+      {action}
       {error && <span className="field-error">{error}</span>}
     </Row>
+  )
+}
+
+/** Famiglia di font: propone quelle del progetto e avvisa se il font non c'è */
+export function FontField({
+  label,
+  hint,
+  value,
+  placeholder,
+  onChange
+}: Base & { value: string; placeholder?: string; onChange(v: string): void }): React.JSX.Element {
+  const { t } = useI18n()
+  const fonts = useProjectFonts()
+  const listId = useId()
+  const families = [...new Set([...fonts.families, ...APP_FONTS])]
+  return (
+    <>
+      <TextField
+        label={label}
+        hint={hint}
+        value={value}
+        list={listId}
+        placeholder={placeholder}
+        onChange={onChange}
+      />
+      <datalist id={listId}>
+        {families.map((f) => (
+          <option key={f} value={f} />
+        ))}
+      </datalist>
+      {value.trim() && !fonts.has(value) && <p className="field-note">{t('editor.fontMissing')}</p>}
+    </>
   )
 }
 

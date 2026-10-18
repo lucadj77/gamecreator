@@ -3,6 +3,7 @@ import type { LoadedProject } from '../../../shared/project'
 import { bindCard, cardFields, rowToCard } from '../../../shared/model/bind'
 import { walkLayers } from '../../../shared/model/normalize'
 import { resolveAsset } from '../../../shared/model/assets'
+import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
 import {
   DEFAULT_IMAGE,
   DEFAULT_PDF,
@@ -20,6 +21,7 @@ import {
 } from '../../../shared/export'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
+import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
@@ -82,6 +84,7 @@ export default function ExportDialog({
   const [progress, setProgress] = useState<ExportProgress | null>(null)
   const [result, setResult] = useState<ExportResult | null>(null)
   const [error, setError] = useState<Message | null>(null)
+  const { has: hasFont } = useProjectFonts()
   const running = progress !== null
 
   useEffect(() => {
@@ -140,11 +143,15 @@ export default function ExportDialog({
             : { ...base, kind, options: tts }
       const r = await window.api.runExport(job, {
         assets: project.assets,
+        fonts: project.fonts,
         styles: project.file.styles ?? {}
       })
       const missing = missingImages(project, sets)
       if (missing.length)
         r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join(', ') } })
+      const fonts = missingFonts(project, sets, hasFont)
+      if (fonts.length)
+        r.warnings.push({ key: 'export.missingFonts', params: { fonts: fonts.join(', ') } })
       setResult(r)
     } catch (e) {
       setError(messageFromError(e))
@@ -737,6 +744,19 @@ function missingImages(project: LoadedProject, sets: ExportSet[]): string[] {
       if (missing) out.push(`${set.name} ${c.n}${c.label ? ` (${c.label})` : ''}`)
     }
   return out
+}
+
+/** Font usati dalle carte esportate che non sono né nel progetto né installati */
+function missingFonts(project: LoadedProject, sets: ExportSet[], hasFont: FontCheck): string[] {
+  const out = new Set<string>()
+  for (const set of sets)
+    for (const c of set.cards)
+      for (const l of walkLayers([...c.template.front, ...c.template.back])) {
+        if (l.type !== 'text' || !l.visible) continue
+        for (const f of [l.font, ...markupFonts(l.text, project.file.styles)])
+          if (f.trim() && !isGenericFont(f) && !hasFont(f)) out.add(f)
+      }
+  return [...out].sort()
 }
 
 /** Nickname di base: il campo che dà il nome alle carte, o il primo testo del template */

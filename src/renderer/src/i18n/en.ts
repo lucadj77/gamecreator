@@ -106,6 +106,17 @@ export const en = {
   'editor.pathHint':
     'Free shape described as an SVG path (commands M, L, C, Z) in 0–1 coordinates of the layer box, e.g. M0 0 L1 0 L0.5 1 Z is a triangle. Meant for shapes imported from TTC or copied from a drawing program; a drawing tool will come later.',
   'editor.srcPlaceholder': 'image name, or {field}',
+  'editor.fontMissing':
+    'This font is not in assets/fonts nor installed on this computer: the text uses a default font. Copy the font file into assets/fonts and reload the project.',
+  'assetPicker.title': 'Choose an image',
+  'assetPicker.search': 'Search by name or folder',
+  'assetPicker.size': 'Thumbnail size',
+  'assetPicker.all': 'All',
+  'assetPicker.empty':
+    'There are no images in assets/. Copy SVG, PNG, WebP or JPG files there and reload the project.',
+  'assetPicker.noMatch': 'No image matches the search.',
+  'assetPicker.count': '{n} of {total}',
+  'assetPicker.open': 'Choose from the images in assets/',
   'editor.srcMissing': 'No image with this name in assets/',
   'editor.srcAmbiguous': 'Several images match: {files}. Add the folder or the extension.',
   'editor.previewData': 'Data',
@@ -381,6 +392,8 @@ export const en = {
   'bind.unknownRef': 'Layer {layer}: {{name}} is not a field or an image in assets',
   'bind.ambiguousRef':
     'Layer {layer}: {{name}} matches more than one image; add the extension or the folder',
+  'bind.missingFont':
+    'Layer {layer}: font “{font}” is not in assets/fonts nor installed on this computer',
   'markup.unknownAttribute': 'unknown attribute “{name}”',
   'markup.invalidValue': 'invalid value “{value}” for {name}',
   'markup.missingValue': '{name}= needs a value',
@@ -563,6 +576,8 @@ export const en = {
   'export.done': 'Files exported: {n}.',
   'export.cancelled': 'Stopped. Files exported: {n}.',
   'export.openFolder': 'Open {folder}',
+  'export.missingFonts':
+    'Fonts not found in assets/fonts nor on this computer, replaced by a default font: {fonts}',
   'export.missingImages': 'Images not found in assets, exported as placeholders: {cards}',
   'export.corners': 'Corners',
   'export.rounded': 'Rounded as in the template',

@@ -55,5 +55,19 @@ export interface LoadedProject {
   templates: Template[]
   /** File sotto assets/, percorsi relativi */
   assets: string[]
+  /** Font sotto assets/fonts/, da registrare prima di disegnare */
+  fonts: ProjectFont[]
   warnings: Message[]
+}
+
+export const FONT_EXTENSIONS = ['.ttf', '.otf', '.woff', '.woff2']
+
+/** Un file di font del progetto, con i dati letti dal file */
+export interface ProjectFont {
+  /** Percorso sotto assets/ */
+  path: string
+  family: string
+  /** Peso, o intervallo "100 900" per i font variabili */
+  weight: string
+  style: 'normal' | 'italic'
 }

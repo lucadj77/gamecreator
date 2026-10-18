@@ -30,6 +30,7 @@ import CardForm from './components/CardForm'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import CardSvg from './render/CardSvg'
 import { AssetsContext, SaveStyleContext, StylesContext } from './render/assets'
+import { useProjectFonts, useRegisterFonts } from './render/fonts'
 import FormatDialog from './components/FormatDialog'
 import ExportDialog from './export/ExportDialog'
 import Tooltip from './components/Tooltip'
@@ -78,6 +79,7 @@ function App(): React.JSX.Element {
     applyTheme(th)
   }
   const [project, setProject] = useState<LoadedProject | null>(null)
+  useRegisterFonts(project?.fonts)
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
   const [error, setError] = useState<Message | null>(null)
   const [loading, setLoading] = useState(false)
@@ -760,11 +762,14 @@ function SetView({
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
   const assets = useContext(AssetsContext)
   const styles = useContext(StylesContext)
+  const { has: hasFont } = useProjectFonts()
   const cards = useMemo<BoundCard[]>(() => {
     if (!template || !set.data) return []
     const { headers, rows } = set.data
-    return rows.map((row) => bindCard(template, rowToCard(headers, row), { assets, styles }))
-  }, [template, set.data, assets, styles])
+    return rows.map((row) =>
+      bindCard(template, rowToCard(headers, row), { assets, styles, hasFont })
+    )
+  }, [template, set.data, assets, styles, hasFont])
 
   if (!set.data) {
     return (

@@ -107,6 +107,17 @@ export const it: Record<MessageKey, string> = {
   'editor.pathHint':
     'Forma libera descritta come tracciato SVG (comandi M, L, C, Z) in coordinate da 0 a 1 rispetto al riquadro: per esempio M0 0 L1 0 L0.5 1 Z è un triangolo. Serve per forme importate da TTC o copiate da un programma di disegno; uno strumento per disegnarle arriverà più avanti.',
   'editor.srcPlaceholder': "nome dell'immagine, o {campo}",
+  'editor.fontMissing':
+    'Il font non è in assets/fonts né installato sul computer: il testo usa un font predefinito. Copia il file del font in assets/fonts e ricarica il progetto.',
+  'assetPicker.title': "Scegli un'immagine",
+  'assetPicker.search': 'Cerca per nome o cartella',
+  'assetPicker.size': 'Dimensione delle miniature',
+  'assetPicker.all': 'Tutte',
+  'assetPicker.empty':
+    'Non ci sono immagini in assets/. Copiaci file SVG, PNG, WebP o JPG e ricarica il progetto.',
+  'assetPicker.noMatch': 'Nessuna immagine corrisponde alla ricerca.',
+  'assetPicker.count': '{n} di {total}',
+  'assetPicker.open': 'Scegli tra le immagini di assets/',
   'editor.srcMissing': 'Nessuna immagine con questo nome in assets/',
   'editor.srcAmbiguous':
     "Più immagini corrispondono: {files}. Aggiungi la cartella o l'estensione.",
@@ -385,6 +396,8 @@ export const it: Record<MessageKey, string> = {
   'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
   'bind.ambiguousRef':
     "Livello {layer}: {{name}} corrisponde a più immagini; aggiungi l'estensione o la cartella",
+  'bind.missingFont':
+    'Livello {layer}: il font “{font}” non è in assets/fonts né installato sul computer',
   'markup.unknownAttribute': 'attributo “{name}” sconosciuto',
   'markup.invalidValue': 'valore “{value}” non valido per {name}',
   'markup.missingValue': '{name}= vuole un valore',
@@ -569,6 +582,8 @@ export const it: Record<MessageKey, string> = {
   'export.done': 'File esportati: {n}.',
   'export.cancelled': 'Interrotto. File esportati: {n}.',
   'export.openFolder': 'Apri {folder}',
+  'export.missingFonts':
+    'Font non trovati in assets/fonts né sul computer, sostituiti da un font predefinito: {fonts}',
   'export.missingImages': 'Immagini non trovate in assets, esportate come segnaposto: {cards}',
   'export.corners': 'Angoli',
   'export.rounded': 'Arrotondati come nel template',

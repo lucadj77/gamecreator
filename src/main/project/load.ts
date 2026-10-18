@@ -8,6 +8,7 @@ import {
 } from '../../shared/project'
 import { readSpreadsheet } from './spreadsheet'
 import { listAssets } from './assets'
+import { readProjectFonts } from './fonts'
 import { duplicateNames, normalizeTemplate } from '../../shared/model/normalize'
 import type { Template } from '../../shared/model/template'
 import { MessageError, messageFromError, msg, type Message } from '../../shared/messages'
@@ -48,6 +49,7 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     }
   }
 
+  const assets = await listAssets(folder)
   return {
     folder,
     file,
@@ -55,7 +57,8 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     unusedSheets: sheets.map((s) => s.name).filter((n) => !used.has(n)),
     unusedData: sheets.filter((s) => !used.has(s.name)),
     templates,
-    assets: await listAssets(folder),
+    assets,
+    fonts: await readProjectFonts(folder, assets),
     warnings
   }
 }

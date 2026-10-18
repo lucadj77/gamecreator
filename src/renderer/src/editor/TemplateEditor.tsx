@@ -1,5 +1,6 @@
 import { Fragment, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { AssetsContext, StylesContext } from '../render/assets'
+import { useProjectFonts } from '../render/fonts'
 import { bindCard, rowToCard } from '../../../shared/model/bind'
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import type { LoadedSet } from '../../../shared/project'
@@ -91,13 +92,14 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
   const previewSet = preview ? sets[preview.set] : null
   const assets = useContext(AssetsContext)
   const styles = useContext(StylesContext)
+  const { has: hasFont } = useProjectFonts()
   const display = useMemo(() => {
     const data = previewSet?.data
     const row = data?.rows[preview?.row ?? -1]
     // senza riga si applicano i soli valori del template: le formule mostrano il risultato
     const card = data && row ? rowToCard(data.headers, row) : { fields: {}, amount: 1 }
-    return bindCard(state.template, card, { assets, styles })
-  }, [state.template, previewSet, preview?.row, assets, styles])
+    return bindCard(state.template, card, { assets, styles, hasFont })
+  }, [state.template, previewSet, preview?.row, assets, styles, hasFont])
 
   const tools: [React.ReactNode, () => void, string][] = [
     ['T', () => cmd.add('text'), t('tool.text')],

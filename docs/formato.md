@@ -7,7 +7,8 @@ progetto/
   gamecreator.json      # nome, file dati, elenco dei set
   data/carte.xlsx       # un foglio per set (oppure un .csv per un solo set)
   templates/<nome>.json # i template delle carte
-  assets/               # immagini, icone, font
+  assets/               # immagini e icone
+  assets/fonts/         # font del progetto (ttf, otf, woff, woff2)
 ```
 
 ## gamecreator.json

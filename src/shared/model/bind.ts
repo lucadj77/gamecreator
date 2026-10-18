@@ -1,5 +1,6 @@
 import { msg, type Message } from '../messages'
 import { resolveAsset } from './assets'
+import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
@@ -35,10 +36,12 @@ export function rowToCard(headers: string[], row: string[]): CardData {
   return { fields, amount: Number.isFinite(amount) && amount >= 0 ? amount : 1 }
 }
 
-/** Progetto aperto: per controllare stili e immagini richiamati nel markup dei testi */
+/** Progetto aperto: per controllare stili, immagini e font richiamati dai testi */
 export interface BindContext {
   styles?: Record<string, string>
   assets?: string[]
+  /** Dice se un font è disponibile: nel progetto, nell'app o installato sul computer */
+  hasFont?: (family: string) => boolean
 }
 
 export function bindCard(template: Template, card: CardData, ctx: BindContext = {}): BoundCard {
@@ -86,7 +89,13 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
       }
       if (out.type === 'text') {
         out = { ...out, text: substituteFields(out.text, fields) }
-        if (out.visible) problems.push(...textProblems(out.name, out.text, ctx))
+        if (out.visible) {
+          problems.push(...textProblems(out.name, out.text, ctx))
+          if (ctx.hasFont)
+            for (const font of new Set([out.font, ...markupFonts(out.text, ctx.styles)]))
+              if (font.trim() && !isGenericFont(font) && !ctx.hasFont(font))
+                problems.push(msg('bind.missingFont', { layer: out.name, font }))
+        }
       }
       if (out.type === 'image') out = { ...out, src: substituteFields(out.src, fields) }
       if (out.type === 'group') out = { ...out, children: apply(out.children) }

@@ -6,7 +6,14 @@ import {
   serializeAttrs,
   type Attrs
 } from '../../../shared/model/markup'
-import { CheckField, ColorField, SelectField, StrokeField, TextField } from '../editor/fields'
+import {
+  CheckField,
+  ColorField,
+  FontField,
+  SelectField,
+  StrokeField,
+  TextField
+} from '../editor/fields'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, StylesContext } from '../render/assets'
@@ -137,7 +144,7 @@ export default function FormatDialog({
             validate={(v) => (!v.trim() || /^[+-]?\d+([.,]\d+)?%?$/.test(v.trim()) ? null : '✕')}
             onChange={(v) => set({ size: opt(v.replace(',', '.')) })}
           />
-          <TextField
+          <FontField
             label={t('format.font')}
             value={a.font ?? ''}
             onChange={(v) => set({ font: opt(v) })}

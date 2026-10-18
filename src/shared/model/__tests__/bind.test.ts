@@ -34,6 +34,18 @@ describe('bindCard', () => {
     expect(bound.problems).toEqual([])
   })
 
+  it('segnala i font mancanti del livello e del markup', () => {
+    const tpl = normalizeTemplate({
+      name: 't',
+      front: [
+        { type: 'text', name: 'nome', font: 'Cinzel', text: '[x]{font=Nunito} [y]{font=Pippo}' }
+      ]
+    })
+    const hasFont = (f: string): boolean => f === 'Nunito'
+    const bound = bindCard(tpl, rowToCard([], []), { hasFont })
+    expect(bound.problems.map((p) => p.params?.font)).toEqual(['Cinzel', 'Pippo'])
+  })
+
   it('segnala proprietà inesistenti e valori non validi', () => {
     const bound = bindCard(template, rowToCard(['nome.pippo', 'nome.size'], ['1', 'grande']))
     expect(bound.problems.map((p) => p.key)).toEqual(['bind.unknownProperty', 'bind.invalidValue'])

@@ -1,6 +1,8 @@
-import { useContext, useMemo } from 'react'
+import { useContext, useMemo, useState } from 'react'
+import AssetPicker from '../components/AssetPicker'
+import { ImageIcon } from '../components/icons'
 import { findLayer, isNameTaken, patchLayer } from '../../../shared/model/edit'
-import { IMAGE_EXTENSIONS, resolveAsset } from '../../../shared/model/assets'
+import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import type {
   Anchor,
   GroupLayer,
@@ -21,6 +23,7 @@ import { AssetsContext } from '../render/assets'
 import {
   CheckField,
   ColorField,
+  FontField,
   NumberField,
   SelectField,
   ShadowFields,
@@ -394,7 +397,7 @@ function TextProperties({
         />
       )}
       <h3>{t('editor.typography')}</h3>
-      <TextField
+      <FontField
         label={t('prop.font')}
         hint={col('font')}
         value={l.font}
@@ -510,15 +513,10 @@ function TextProperties({
 /** Nomi brevi dei file immagine: è come si scrivono nel foglio */
 function useAssetNames(): string[] {
   const assets = useContext(AssetsContext)
-  return useMemo(() => {
-    const images = assets.filter((a) => IMAGE_EXTENSIONS.some((e) => a.toLowerCase().endsWith(e)))
-    const names = images.map((a) => {
-      const stem = a.slice(a.lastIndexOf('/') + 1).replace(/\.[^.]+$/, '')
-      // se il nome breve è ambiguo si propone con la cartella
-      return resolveAsset(stem, assets).ok ? stem : a.replace(/\.[^.]+$/, '')
-    })
-    return [...new Set(names)].sort()
-  }, [assets])
+  return useMemo(
+    () => [...new Set(assets.filter(isImageAsset).map((a) => assetRefName(a, assets)))].sort(),
+    [assets]
+  )
 }
 
 function ImageProperties({
@@ -533,6 +531,7 @@ function ImageProperties({
   const assets = useContext(AssetsContext)
   const res = resolveAsset(l.src, assets)
   const listId = `assets-${l.id}`
+  const [picking, setPicking] = useState(false)
   return (
     <>
       {/* con una formula il valore è il suo risultato: il campo non serve */}
@@ -544,6 +543,22 @@ function ImageProperties({
           list={listId}
           placeholder={t('editor.srcPlaceholder')}
           onChange={(src) => set({ src })}
+          action={
+            <button
+              className="pick-btn"
+              title={t('assetPicker.open')}
+              onClick={() => setPicking(true)}
+            >
+              <ImageIcon />
+            </button>
+          }
+        />
+      )}
+      {picking && (
+        <AssetPicker
+          value={l.src}
+          onPick={(src) => set({ src })}
+          onClose={() => setPicking(false)}
         />
       )}
       <datalist id={listId}>

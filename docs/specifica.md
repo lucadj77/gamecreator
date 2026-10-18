@@ -158,6 +158,15 @@ Costo: [3]{bg=circle bg-color=blue color=white}
 
 L'interfaccia è in inglese, con la traduzione italiana come prima lingua aggiuntiva. Tutto ciò che si scrive nei file resta in inglese e non dipende dalla lingua dell'interfaccia: parole chiave del markup, nomi degli stili predefiniti, funzioni delle formule, chiavi dei file di progetto, colonna `amount`, forme predefinite. I nomi scelti dall'utente (livelli, campi, variabili, stili, set) restano come li scrive.
 
+### 2.3 Font
+
+Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livello o nel markup (`font=Open_Sans`).
+
+- I file di font del progetto stanno in `assets/fonts/` (`.ttf`, `.otf`, `.woff`, `.woff2`), anche in sottocartelle. All'apertura del progetto l'app legge da ogni file famiglia, peso e stile, compresi i font variabili, e li usa in anteprima e nell'esportazione; dopo aver copiato un font serve **Ricarica**. Se un file non si legge, la famiglia è il nome della sottocartella (`fonts/Open Sans/...`) o la parte del nome del file prima di `-`.
+- Nunito, il font predefinito, è incluso nell'app e funziona senza rete.
+- Anche i font installati sul computer si possono usare, ma un progetto che li usa non si vede uguale su un altro computer: conviene copiarli in `assets/fonts/` quando la licenza lo permette.
+- Un font che non è né nel progetto, né nell'app, né installato viene segnalato sotto la carta, sotto il campo del font e al termine dell'esportazione. Il testo usa intanto un font predefinito.
+
 ## 3. Immagine
 
 | Proprietà                 | Valori                                                                                                                              |
@@ -175,7 +184,7 @@ L'interfaccia è in inglese, con la traduzione italiana come prima lingua aggiun
 
 ### 3.1 Risoluzione dei nomi di file
 
-Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta il nome del file, senza percorso e senza estensione.
+Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta il nome del file, senza percorso e senza estensione. Accanto al campo dell'immagine, nel pannello delle proprietà e nei campi della carta, un pulsante apre le miniature delle immagini di `assets/`, con ricerca approssimata per nome e filtro per cartella; un clic scrive il nome.
 
 1. Si cerca in tutto `assets/`, sottocartelle comprese.
 2. Un nome con estensione (`spada.png`) o con percorso (`icone/spada`) vale così com'è.

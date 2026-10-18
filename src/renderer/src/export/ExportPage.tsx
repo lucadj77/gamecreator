@@ -2,16 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import type { ExportContext, Scene, ScenePage } from '../../../shared/export'
 import CardSvg from '../render/CardSvg'
 import { AssetsContext, StylesContext } from '../render/assets'
+import { useRegisterFonts } from '../render/fonts'
 
 // Pagina della finestra nascosta di esportazione: disegna le scene che arrivano dal processo
 // principale e avvisa quando sono complete, così si possono catturare o stampare.
 
-const EMPTY: ExportContext = { assets: [], styles: {} }
+const EMPTY: ExportContext = { assets: [], fonts: [], styles: {} }
 
 export default function ExportPage(): React.JSX.Element {
   const [context, setContext] = useState<ExportContext>(EMPTY)
   const [job, setJob] = useState<{ id: number; scene: Scene } | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
+  useRegisterFonts(context.fonts)
 
   useEffect(() => {
     const api = window.api.exportPage

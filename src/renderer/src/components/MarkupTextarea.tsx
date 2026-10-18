@@ -1,9 +1,17 @@
 import { useContext, useLayoutEffect, useRef, useState } from 'react'
-import { markupProblems } from '../../../shared/model/markup'
+import { createPortal } from 'react-dom'
+import {
+  markupProblems,
+  parseAttrs,
+  serializeAttrs,
+  spanAt,
+  type Attrs
+} from '../../../shared/model/markup'
 import { suggestAt, type Suggestion, type SuggestionResult } from '../../../shared/model/markupHelp'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
-import { AssetsContext, StylesContext } from '../render/assets'
+import { AssetsContext, SaveStyleContext, StylesContext } from '../render/assets'
+import FormatDialog from './FormatDialog'
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   ref?: React.Ref<HTMLTextAreaElement>
@@ -39,6 +47,10 @@ export default function MarkupTextarea({
   const [pos, setPos] = useState<{ x: number; y: number; top: number } | null>(null)
   // dopo Esc non si ripropone nulla finché non si scrive di nuovo
   const dismissed = useRef(false)
+  const saveStyle = useContext(SaveStyleContext)
+  /** Selezione da formattare: una porzione [testo]{...} esistente o un testo selezionato */
+  const [target, setTarget] = useState<FormatTarget | null>(null)
+  const [formatting, setFormatting] = useState<FormatTarget | null>(null)
 
   const setRefs = (el: HTMLTextAreaElement | null): void => {
     ref.current = el
@@ -47,6 +59,7 @@ export default function MarkupTextarea({
   }
 
   const refresh = (el: HTMLTextAreaElement): void => {
+    if (showProblems) setTarget(formatTarget(el.value, el.selectionStart, el.selectionEnd))
     if (dismissed.current || el.selectionStart !== el.selectionEnd) return setHelp(null)
     const r = suggestAt(el.value, el.selectionStart, {
       fields,
@@ -79,6 +92,21 @@ export default function MarkupTextarea({
     document.addEventListener('selectionchange', onSelect)
     return () => document.removeEventListener('selectionchange', onSelect)
   })
+
+  /** Sostituisce la porzione con il testo formattato e la riseleziona */
+  const applyFormat = (f: FormatTarget, attrs: Attrs): void => {
+    const el = ref.current
+    setFormatting(null)
+    if (!el) return
+    const inner = el.value.slice(f.textFrom, f.textTo)
+    const a = serializeAttrs(attrs)
+    // senza attributi la porzione torna testo semplice
+    const replacement = a ? `[${inner}]{${a}}` : inner
+    setNativeValue(el, el.value.slice(0, f.from) + replacement + el.value.slice(f.to))
+    el.focus()
+    const start = f.from + (a ? 1 : 0)
+    el.setSelectionRange(start, start + inner.length)
+  }
 
   const problems = showProblems ? markupProblems(value, styles) : []
   const current = help?.items[help.index]
@@ -161,6 +189,40 @@ export default function MarkupTextarea({
           )}
         </div>
       )}
+      {showProblems && (
+        <span className="markup-tools">
+          <button
+            className="small-btn"
+            disabled={!target}
+            title={t('format.buttonHint')}
+            // il clic non deve togliere la selezione al campo
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => target && setFormatting(target)}
+          >
+            {t('format.button')}
+          </button>
+        </span>
+      )}
+      {/* fuori dal campo nel DOM: gli stili del modulo della carta non toccano la finestra */}
+      {formatting &&
+        createPortal(
+          <FormatDialog
+            mode="text"
+            initial={formatting.attrs}
+            sample={String(value).slice(formatting.textFrom, formatting.textTo)}
+            onApply={(attrs) => applyFormat(formatting, attrs)}
+            onSaveStyle={
+              saveStyle
+                ? (name, attrs) => {
+                    saveStyle(name, serializeAttrs(attrs))
+                    applyFormat(formatting, { styles: [name] })
+                  }
+                : undefined
+            }
+            onClose={() => setFormatting(null)}
+          />,
+          document.body
+        )}
       {problems.length > 0 && (
         <span className="markup-problems">
           {problems.map((p, i) => (
@@ -230,4 +292,32 @@ function caretPosition(
     y: box.bottom + 2,
     top: box.top - 2
   }
+}
+
+interface FormatTarget {
+  /** Parte del testo sostituita */
+  from: number
+  to: number
+  /** Testo da formattare */
+  textFrom: number
+  textTo: number
+  attrs: Attrs
+}
+
+/**
+ * Cosa formatta il pulsante: la porzione [testo]{...} in cui sta la selezione o il cursore,
+ * altrimenti il testo selezionato (che diventa una porzione nuova).
+ */
+function formatTarget(text: string, from: number, to: number): FormatTarget | null {
+  const span = spanAt(text, from, to)
+  if (span && from >= span.start)
+    return {
+      from: span.start,
+      to: span.end,
+      textFrom: span.textFrom,
+      textTo: span.textTo,
+      attrs: parseAttrs(text.slice(span.attrsFrom, span.attrsTo)).attrs
+    }
+  if (from === to || text.slice(from, to).includes('\n')) return null
+  return { from, to, textFrom: from, textTo: to, attrs: { styles: [] } }
 }

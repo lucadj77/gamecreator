@@ -5,6 +5,8 @@ import {
   parseMarkup,
   plainText,
   resolveStyles,
+  serializeAttrs,
+  spanAt,
   type Inline
 } from '../markup'
 
@@ -154,5 +156,22 @@ describe('markup: stili', () => {
     expect(markupProblems('[a]{.nessuno}').map((p) => p.message)).toEqual([
       { key: 'markup.unknownStyle', params: { name: 'nessuno' } }
     ])
+  })
+})
+
+describe('markup: scrittura degli attributi', () => {
+  it('scrive gli attributi in modo che si rileggano uguali', () => {
+    const src =
+      '.keyword color=red size=+2 font=Open_Sans bold italic smallcaps stroke=white/8% border=red/0.3 radius=round pad=0.3/1 bg=circle bg-color=blue'
+    const a = parseAttrs(src).attrs
+    expect(serializeAttrs(a)).toBe(src)
+    expect(parseAttrs(serializeAttrs(a)).attrs).toEqual(a)
+  })
+
+  it('trova la porzione con attributi intorno alla selezione', () => {
+    const src = 'a [b [c]{color=red}]{.k} d'
+    expect(spanAt(src, 6, 7)).toMatchObject({ start: 5, textFrom: 6, textTo: 7, end: 19 })
+    expect(spanAt(src, 3, 4)).toMatchObject({ start: 2, attrsFrom: 21, attrsTo: 23 })
+    expect(spanAt(src, 0, 1)).toBeNull()
   })
 })

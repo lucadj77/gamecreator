@@ -578,3 +578,86 @@ export function plainText(src: string): string {
     .blocks.map((b) => walk(b.children))
     .join('\n')
 }
+
+const fmtNum = (n: number): string => String(Math.round(n * 1000) / 1000)
+
+/** Attributi come si scrivono tra graffe: l'inverso di parseAttrs */
+export function serializeAttrs(a: Attrs): string {
+  const out: string[] = a.styles.map((s) => '.' + s)
+  const kv = (k: string, v: string | number | undefined): void => {
+    if (v !== undefined && v !== '') out.push(`${k}=${v}`)
+  }
+  kv('color', a.color)
+  kv('highlight', a.highlight)
+  kv('size', a.size)
+  kv('font', a.font?.replace(/ /g, '_'))
+  if (a.weight === 700) out.push('bold')
+  else kv('weight', a.weight)
+  if (a.italic) out.push('italic')
+  if (a.underline) out.push('underline')
+  if (a.strike) out.push('strike')
+  if (a.transform) out.push(a.transform)
+  if (a.stroke)
+    kv(
+      'stroke',
+      `${a.stroke.color}/${typeof a.stroke.width === 'number' ? fmtNum(a.stroke.width) : a.stroke.width}`
+    )
+  kv('spacing', a.spacing)
+  kv('raise', a.raise)
+  if (a.border) kv('border', `${a.border.color}/${fmtNum(a.border.width)}`)
+  kv('fill', a.fill)
+  kv('radius', typeof a.radius === 'number' ? fmtNum(a.radius) : a.radius)
+  if (a.pad)
+    kv('pad', a.pad[0] === a.pad[1] ? fmtNum(a.pad[0]) : `${fmtNum(a.pad[0])}/${fmtNum(a.pad[1])}`)
+  kv('bg', a.bg)
+  kv('bg-color', a.bgColor)
+  kv('bg-size', a.bgSize)
+  if (a.align) out.push(a.align)
+  return out.join(' ')
+}
+
+/** Porzione [testo]{attributi} nel sorgente: posizioni di inizio e fine delle sue parti */
+export interface SpanRange {
+  start: number
+  /** Testo tra le quadre */
+  textFrom: number
+  textTo: number
+  /** Contenuto delle graffe */
+  attrsFrom: number
+  attrsTo: number
+  end: number
+}
+
+/** La porzione [testo]{...} più interna che contiene la selezione, se c'è */
+export function spanAt(src: string, from: number, to: number): SpanRange | null {
+  const match = (open: number, o: string, c: string): number => {
+    let depth = 0
+    for (let i = open; i < src.length; i++) {
+      const ch = src[i]
+      if (ch === '\\') {
+        i++
+        continue
+      }
+      if (ch === o) depth++
+      else if (ch === c && --depth === 0) return i
+    }
+    return -1
+  }
+  let best: SpanRange | null = null
+  for (let i = 0; i <= from && i < src.length; i++) {
+    if (src[i] !== '[' || src[i - 1] === '\\') continue
+    const close = match(i, '[', ']')
+    if (close < 0 || src[close + 1] !== '{') continue
+    const end = match(close + 1, '{', '}')
+    if (end < 0 || to > end + 1) continue
+    best = {
+      start: i,
+      textFrom: i + 1,
+      textTo: close,
+      attrsFrom: close + 2,
+      attrsTo: end,
+      end: end + 1
+    }
+  }
+  return best
+}

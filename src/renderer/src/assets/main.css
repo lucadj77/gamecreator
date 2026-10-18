@@ -1272,6 +1272,97 @@ button.layer-source.open {
 /* il campo cresce con il testo, così si legge tutto senza scorrere */
 .markup-input textarea {
   field-sizing: content;
-  min-height: calc(4lh + 8px);
+  min-height: calc(2lh + 8px);
   max-height: calc(16lh + 8px);
+}
+
+.properties .markup-input textarea {
+  min-height: calc(4lh + 8px);
+}
+
+/* il pulsante Formatta compare solo nel campo in uso */
+.markup-tools {
+  display: none;
+  justify-content: flex-end;
+}
+
+.markup-input:focus-within .markup-tools {
+  display: flex;
+}
+
+.small-btn {
+  font-size: 11px;
+  padding: 1px 8px;
+}
+
+/* editor della formattazione e degli stili */
+.dialog:has(.format-dialog) {
+  max-width: 560px;
+  width: 560px;
+}
+
+.format-preview {
+  background: #f3eee3;
+  color: #2a241c;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.format-fields {
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.format-fields h3 {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 12px 0 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.format-fields .field-label {
+  width: 130px;
+}
+
+.format-checks {
+  display: flex;
+  gap: 14px;
+}
+
+.format-checks .field-label {
+  width: auto;
+}
+
+.format-raw {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.format-raw input {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 12px;
+}
+
+.format-save {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.dialog-buttons .spacer-right {
+  margin-right: auto;
+}
+
+button.danger {
+  color: #e5484d;
 }

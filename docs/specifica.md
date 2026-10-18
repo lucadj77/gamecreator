@@ -137,6 +137,12 @@ Nell'editor della carta, nei campi di testo del pannello e nelle celle della tab
 
 Stato attuale: i suggerimenti funzionano nel pannello proprietà, nei campi della carta e nelle celle della tabella (↑↓ per scegliere, Invio o Tab per inserire, Esc per chiudere); gli errori sono elencati sotto il campo e sotto la carta. La colorazione del markup dentro il campo e l'anteprima delle variabili sono da fare.
 
+#### Editor del formato e degli stili
+
+Nei campi del pannello e della carta, il pulsante "Aa Formatta…" apre un editor visuale degli attributi: si seleziona del testo (che diventa `[testo]{...}`) oppure si mette il cursore dentro una porzione `[testo]{...}` esistente per modificarla. L'editor mostra un'anteprima, i campi per ciascun attributo e il testo degli attributi come si scrive, sincronizzato. "Rimuovi formattazione" toglie le parentesi; "Salva come stile…" salva gli attributi come stile del progetto e sostituisce la formattazione con `{.nome}`.
+
+Gli stili del progetto sono elencati nella sezione "Stili" della barra laterale e si modificano con lo stesso editor; uno stile del progetto con il nome di uno predefinito lo sostituisce. Rinominare uno stile non aggiorna i testi che lo usano.
+
 #### Esempio completo
 
 ```

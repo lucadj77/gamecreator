@@ -229,7 +229,11 @@ export default function ExportDialog({
         title={value || placeholder}
         onChange={(e) => patch({ [key]: e.target.value })}
       />
-      <button type="button" onClick={() => chooseFolder(value || placeholder, key)}>
+      <button
+        type="button"
+        onClick={() => chooseFolder(value || placeholder, key)}
+        title={t('tip.chooseFolder')}
+      >
         {t('export.choose')}
       </button>
     </>

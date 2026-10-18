@@ -185,8 +185,8 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
         <Segmented<Side>
           value={state.side}
           options={[
-            ['front', t('preview.front')],
-            ['back', t('preview.back')]
+            ['front', t('preview.front'), t('tip.front')],
+            ['back', t('preview.back'), t('tip.back')]
           ]}
           onChange={(side) => dispatch({ type: 'side', side })}
         />

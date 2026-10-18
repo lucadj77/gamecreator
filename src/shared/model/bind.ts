@@ -196,12 +196,19 @@ export function substituteFields(text: string, fields: Record<string, string>): 
 const NULLABLE = new Set(['fill', 'tint', 'style', 'stroke', 'shadow'])
 
 /** Converte il testo di una cella nel tipo della proprietà, usando il valore attuale come guida */
+const PERCENT = new Set(['zoom', 'opacity'])
+
 export function parseValue(key: string, current: unknown, raw: string): unknown {
   const v = raw.trim()
   if (NULLABLE.has(key) && v.toLowerCase() === 'none') return null
   if (key === 'stroke') return parseStroke(v)
   if (key === 'shadow') return parseShadow(v)
   if (typeof current === 'number') {
+    // zoom e opacità si possono scrivere anche in percentuale: 120% = 1.2
+    if (PERCENT.has(key) && v.endsWith('%')) {
+      const p = Number(v.slice(0, -1).trim().replace(',', '.'))
+      return Number.isFinite(p) ? p / 100 : undefined
+    }
     const n = Number(v.replace(',', '.'))
     return Number.isFinite(n) ? n : undefined
   }

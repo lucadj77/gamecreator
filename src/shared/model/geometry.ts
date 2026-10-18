@@ -63,6 +63,23 @@ export function hitTest(l: Layer, p: Point): boolean {
   return q.x >= l.x - px && q.x <= l.x + l.w + px && q.y >= l.y - py && q.y <= l.y + l.h + py
 }
 
+/** Riquadro sulla carta di un livello, con le rotazioni sue e dei gruppi che lo contengono */
+export function worldBounds(l: Layer, chain: GroupLayer[] = []): Bounds {
+  const corners = [
+    { x: l.x, y: l.y },
+    { x: l.x + l.w, y: l.y },
+    { x: l.x, y: l.y + l.h },
+    { x: l.x + l.w, y: l.y + l.h }
+  ].map((p) =>
+    [l, ...[...chain].reverse()].reduce((q, c) => rotateAround(q, anchorPoint(c), c.rotation), p)
+  )
+  const xs = corners.map((p) => p.x)
+  const ys = corners.map((p) => p.y)
+  const x = Math.min(...xs)
+  const y = Math.min(...ys)
+  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y }
+}
+
 export type Handle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
 
 export const HANDLES: Handle[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']

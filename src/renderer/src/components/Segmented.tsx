@@ -4,14 +4,16 @@ export default function Segmented<T extends string>({
   onChange
 }: {
   value: T
-  options: [T, string][]
+  /** Valore, etichetta e suggerimento facoltativo */
+  options: [T, string, string?][]
   onChange(v: T): void
 }): React.JSX.Element {
   return (
     <div className="segmented" role="group">
-      {options.map(([v, label]) => (
+      {options.map(([v, label, hint]) => (
         <button
           key={v}
+          title={hint}
           className={v === value ? 'active' : ''}
           aria-pressed={v === value}
           onClick={() => onChange(v)}

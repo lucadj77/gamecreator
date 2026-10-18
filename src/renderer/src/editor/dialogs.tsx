@@ -140,9 +140,11 @@ export function ResizeDialog({
       </p>
       <div className="dialog-buttons">
         <button onClick={onClose}>{t('dialog.cancel')}</button>
-        <button onClick={() => onChoose('keep')}>{t('resize.keep')}</button>
+        <button onClick={() => onChoose('keep')} title={t('tip.resizeKeep')}>
+          {t('resize.keep')}
+        </button>
         {/* niente autoFocus: l'Invio che ha confermato il campo premerebbe il pulsante */}
-        <button className="primary" onClick={() => onChoose('scale')}>
+        <button className="primary" onClick={() => onChoose('scale')} title={t('tip.resizeScale')}>
           {t('resize.scale')}
         </button>
       </div>

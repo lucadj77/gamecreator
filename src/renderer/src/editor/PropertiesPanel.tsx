@@ -30,6 +30,7 @@ import {
 import type { EditorAction, EditorState } from './useEditor'
 import type { Commands } from './commands'
 import PanelSideButton from '../components/PanelSideButton'
+import AlignSection from './AlignSection'
 import type { PanelSide } from '../components/usePanelWidth'
 
 interface Props {
@@ -62,16 +63,21 @@ export default function PropertiesPanel({
   return (
     <aside className="properties" data-side={panelSide} style={{ width }}>
       <PanelSideButton side={panelSide} onToggle={onToggleSide} className="corner" />
+      {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
       {selection.length > 1 ? (
         <>
           <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
           <p className="muted small">{t('editor.multiSelection')}</p>
           <div className="selection-actions">
-            <button disabled={!cmd.canGroup} onClick={cmd.group}>
+            <button disabled={!cmd.canGroup} onClick={cmd.group} title={t('tip.group')}>
               {t('layers.group')}
             </button>
-            <button onClick={cmd.duplicate}>{t('layers.duplicate')}</button>
-            <button onClick={cmd.remove}>{t('layers.delete')}</button>
+            <button onClick={cmd.duplicate} title={t('tip.duplicate')}>
+              {t('layers.duplicate')}
+            </button>
+            <button onClick={cmd.remove} title={t('tip.delete')}>
+              {t('layers.delete')}
+            </button>
           </div>
         </>
       ) : layer ? (
@@ -85,7 +91,9 @@ export default function PropertiesPanel({
           />
           {layer.type === 'group' && (
             <div className="selection-actions">
-              <button onClick={cmd.ungroup}>{t('layers.ungroup')}</button>
+              <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
+                {t('layers.ungroup')}
+              </button>
             </div>
           )}
         </>
@@ -556,6 +564,30 @@ function ImageProperties({
         value={l.fit}
         options={options(t, 'imageFit', ['cover', 'contain', 'stretch', 'original'] as const)}
         onChange={(fit) => set({ fit })}
+      />
+      <NumberField
+        label={t('prop.zoom')}
+        hint={`${t('editor.zoomImageHint')} ${col('zoom')}`}
+        value={l.zoom}
+        factor={100}
+        step={5}
+        min={0.01}
+        unit="%"
+        onChange={(zoom) => set({ zoom })}
+      />
+      <NumberField
+        label={t('prop.offsetX')}
+        hint={col('offsetX')}
+        value={l.offsetX}
+        unit="mm"
+        onChange={(offsetX) => set({ offsetX })}
+      />
+      <NumberField
+        label={t('prop.offsetY')}
+        hint={col('offsetY')}
+        value={l.offsetY}
+        unit="mm"
+        onChange={(offsetY) => set({ offsetY })}
       />
       <CheckField
         label={t('prop.flipH')}

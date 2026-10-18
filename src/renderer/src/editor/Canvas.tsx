@@ -15,21 +15,27 @@ import {
   hitTest,
   normalizeAngle,
   resizeWithHandle,
-  rotateAround,
   snap,
   toFrame,
   toLocal,
+  worldBounds,
   type Handle,
   type Point
 } from '../../../shared/model/geometry'
+import { cardArea, unionBounds } from '../../../shared/model/align'
+import { linesOf, nearest, snapBox, type SnapLines } from '../../../shared/model/snap'
 import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../shared/model/template'
 import CardSvg from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
 import type { EditorAction, EditorState } from './useEditor'
 
-/** Passo della griglia magnetica in mm; Alt la disattiva */
+/** Passo minimo in mm quando la griglia non è magnetica; Alt disattiva ogni aggancio */
 const SNAP = 0.5
+/** Distanza in pixel entro cui un lato si aggancia a un altro oggetto */
+const SNAP_PX = 6
+/** Distanza minima in pixel tra le linee della griglia disegnata */
+const GRID_MIN_PX = 6
 const HANDLE_PX = 8
 const ROTATE_PX = 22
 const ZOOMS = [2, 3, 4, 6, 8, 12, 16]
@@ -39,8 +45,25 @@ const MAX_SCALE = 60
 const PASTEBOARD = 10
 
 type Gesture =
-  | { kind: 'move'; start: Template; ids: string[]; frame: GroupLayer[]; p0: Point; ref: Layer }
-  | { kind: 'resize'; start: Template; layer: Layer; frame: GroupLayer[]; handle: Handle }
+  | {
+      kind: 'move'
+      start: Template
+      ids: string[]
+      frame: GroupLayer[]
+      p0: Point
+      ref: Layer
+      /** Ingombro dei livelli spostati all'inizio del gesto */
+      box: Bounds
+      lines: SnapLines
+    }
+  | {
+      kind: 'resize'
+      start: Template
+      layer: Layer
+      frame: GroupLayer[]
+      handle: Handle
+      lines: SnapLines
+    }
   | { kind: 'rotate'; start: Template; layer: Layer; frame: GroupLayer[]; a0: number }
 
 interface Props {
@@ -63,8 +86,14 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const [guides, setGuides] = useState(loadGuides)
   // durante un gesto l'area intorno alla carta resta ferma, altrimenti la carta scivolerebbe
   const [frozen, setFrozen] = useState<Bounds | null>(null)
-  const toggleGuide = (key: keyof Guides): void => {
-    const next = { ...guides, [key]: !guides[key] }
+  // linee a cui si è agganciato il gesto in corso
+  const [snapped, setSnapped] = useState<{ x: number | null; y: number | null }>({
+    x: null,
+    y: null
+  })
+  const [stepText, setStepText] = useState(String(guides.gridStep))
+  const setGuide = <K extends keyof Guides>(key: K, value: Guides[K]): void => {
+    const next = { ...guides, [key]: value }
     setGuides(next)
     try {
       localStorage.setItem(GUIDES_KEY, JSON.stringify(next))
@@ -158,6 +187,18 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
 
   const frameOf = (id: string): GroupLayer[] => ancestorsOf(layers, id)
 
+  /** Lati e centri degli altri livelli dello stesso contenitore, della carta e dell'area sicura */
+  const snapLines = (exclude: string[], frame: GroupLayer[]): SnapLines => {
+    const container = frame.length ? frame[frame.length - 1].children : layers
+    const boxes = container
+      .filter((l) => isDrawn(l) && l.visible && !exclude.includes(l.id))
+      .map((l) => worldBounds(l))
+    const areas = [cardArea(tpl, 'card')]
+    if (guides.safe) areas.push(cardArea(tpl, 'safe'))
+    if (guides.bleed && tpl.bleed > 0) areas.push({ x: -tpl.bleed, y: -tpl.bleed, w: vw, h: vh })
+    return linesOf([...boxes, ...areas])
+  }
+
   const begin = (e: React.PointerEvent, g: Gesture): void => {
     gesture.current = g
     setFrozen(stage)
@@ -188,13 +229,19 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     if (!ids.includes(hit.id)) return
     const movable = ids.filter((id) => !findLayer(layers, id)?.locked)
     const frame = frameOf(hit.id)
+    const boxes = movable
+      .map((id) => findLayer(layers, id))
+      .filter((l): l is Layer => !!l && isDrawn(l))
+      .map((l) => worldBounds(l))
     begin(e, {
       kind: 'move',
       start: tpl,
       ids: movable,
       frame,
       p0: toFrame(p, frame),
-      ref: hit
+      ref: hit,
+      box: boxes.length ? unionBounds(boxes) : worldBounds(hit),
+      lines: snapLines(movable, frame)
     })
   }
 
@@ -205,7 +252,15 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     if (handle === 'rotate') {
       const q = toFrame(cardPoint(e), frame)
       begin(e, { kind: 'rotate', start: tpl, layer, frame, a0: angleFrom(anchorPoint(layer), q) })
-    } else begin(e, { kind: 'resize', start: tpl, layer, frame, handle })
+    } else
+      begin(e, {
+        kind: 'resize',
+        start: tpl,
+        layer,
+        frame,
+        handle,
+        lines: snapLines([layer.id], frame)
+      })
   }
 
   const onPointerMove = (e: React.PointerEvent): void => {
@@ -233,19 +288,44 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const g = gesture.current
     if (!g) return
     const q = toFrame(cardPoint(e), g.frame)
-    const step = e.altKey ? 0 : SNAP
+    const step = e.altKey ? 0 : guides.snapGrid ? guides.gridStep : SNAP
+    const magnet = !e.altKey && guides.snapObjects
+    const threshold = SNAP_PX / scale
     let next: Template
     if (g.kind === 'move') {
-      // si aggancia alla griglia l'angolo del livello preso, gli altri lo seguono
-      const dx = snap(g.ref.x + q.x - g.p0.x, step) - g.ref.x
-      const dy = snap(g.ref.y + q.y - g.p0.y, step) - g.ref.y
+      const rx = q.x - g.p0.x
+      const ry = q.y - g.p0.y
+      // un lato o il centro vicino a un altro oggetto ha la precedenza sulla griglia
+      const hit = magnet
+        ? snapBox({ ...g.box, x: g.box.x + rx, y: g.box.y + ry }, g.lines, threshold)
+        : { x: null, y: null }
+      // sulla griglia si aggancia l'angolo del livello preso, gli altri lo seguono
+      const dx = hit.x ? rx + hit.x.delta : snap(g.ref.x + rx, step) - g.ref.x
+      const dy = hit.y ? ry + hit.y.delta : snap(g.ref.y + ry, step) - g.ref.y
+      setSnapped({ x: hit.x?.line ?? null, y: hit.y?.line ?? null })
       next = updateLayers(g.start, side, (l) =>
         g.ids.includes(l.id) ? translateLayer(l, dx, dy) : l
       )
     } else if (g.kind === 'resize') {
-      const box = resizeWithHandle(g.layer, g.handle, toLocal(g.layer, q), {
+      let local = toLocal(g.layer, q)
+      let resizeStep = step
+      // il lato trascinato si aggancia agli oggetti solo se il livello non è ruotato
+      if (magnet && !g.layer.rotation) {
+        const h = g.handle
+        const hx =
+          h.includes('e') || h.includes('w') ? nearest([local.x], g.lines.x, threshold) : null
+        const hy =
+          h.includes('n') || h.includes('s') ? nearest([local.y], g.lines.y, threshold) : null
+        local = {
+          x: hx ? hx.line : snap(local.x, step),
+          y: hy ? hy.line : snap(local.y, step)
+        }
+        resizeStep = 0
+        setSnapped({ x: hx?.line ?? null, y: hy?.line ?? null })
+      }
+      const box = resizeWithHandle(g.layer, g.handle, local, {
         keepRatio: e.shiftKey,
-        step
+        step: resizeStep
       })
       next = replace(g.start, side, g.layer.id, applyBounds(g.layer, box))
     } else {
@@ -267,6 +347,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     if (!gesture.current) return
     gesture.current = null
     setFrozen(null)
+    setSnapped({ x: null, y: null })
     overlayRef.current?.releasePointerCapture(e.pointerId)
     dispatch({ type: 'gestureEnd' })
   }
@@ -322,6 +403,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
             onPointerUp={onPointerUp}
             onDoubleClick={onDoubleClick}
           >
+            {guides.grid && <GridLines stage={stage} step={guides.gridStep} scale={scale} />}
             {guides.safe && (
               <rect
                 x={tpl.safeMargin}
@@ -340,6 +422,26 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
                   <Outline b={l} className="outside-outline" />
                 </Framed>
               ))}
+            {snapped.x !== null && (
+              <line
+                x1={snapped.x}
+                x2={snapped.x}
+                y1={stage.y}
+                y2={stage.y + stage.h}
+                className="snap-guide"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
+            {snapped.y !== null && (
+              <line
+                x1={stage.x}
+                x2={stage.x + stage.w}
+                y1={snapped.y}
+                y2={snapped.y}
+                className="snap-guide"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
             {marquee && (
               <rect
                 x={marquee.x}
@@ -404,25 +506,75 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         <button
           className={guides.bleed ? 'active' : ''}
           aria-pressed={guides.bleed}
-          onClick={() => toggleGuide('bleed')}
+          onClick={() => setGuide('bleed', !guides.bleed)}
+          title={t('tip.showBleed')}
         >
           {t('editor.showBleed')}
         </button>
         <button
           className={guides.safe ? 'active' : ''}
           aria-pressed={guides.safe}
-          onClick={() => toggleGuide('safe')}
+          onClick={() => setGuide('safe', !guides.safe)}
+          title={t('tip.showSafe')}
         >
           {t('editor.showSafe')}
         </button>
         <span className="zoom-sep" />
-        <button onClick={() => setZoom(stepZoom(scale, -1))} aria-label={t('editor.zoomOut')}>
+        <button
+          className={guides.grid ? 'active' : ''}
+          aria-pressed={guides.grid}
+          onClick={() => setGuide('grid', !guides.grid)}
+          title={t('tip.showGrid')}
+        >
+          {t('editor.showGrid')}
+        </button>
+        <input
+          className="num grid-step"
+          title={t('editor.gridStep')}
+          value={stepText}
+          onChange={(e) => {
+            setStepText(e.target.value)
+            const n = Number(e.target.value.replace(',', '.'))
+            if (Number.isFinite(n) && n >= 0.1 && n <= 50) setGuide('gridStep', n)
+          }}
+          onBlur={() => setStepText(String(guides.gridStep))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+          }}
+        />
+        <span className="muted small">mm</span>
+        <span className="zoom-sep" />
+        <span className="muted small" title={t('editor.snapHint')}>
+          {t('editor.snap')}
+        </span>
+        <button
+          className={guides.snapGrid ? 'active' : ''}
+          aria-pressed={guides.snapGrid}
+          title={t('editor.snapHint')}
+          onClick={() => setGuide('snapGrid', !guides.snapGrid)}
+        >
+          {t('editor.snapGrid')}
+        </button>
+        <button
+          className={guides.snapObjects ? 'active' : ''}
+          aria-pressed={guides.snapObjects}
+          title={t('editor.snapHint')}
+          onClick={() => setGuide('snapObjects', !guides.snapObjects)}
+        >
+          {t('editor.snapObjects')}
+        </button>
+        <span className="zoom-sep" />
+        <button onClick={() => setZoom(stepZoom(scale, -1))} title={t('editor.zoomOut')}>
           −
         </button>
-        <button className={zoom === null ? 'active' : ''} onClick={() => setZoom(null)}>
+        <button
+          className={zoom === null ? 'active' : ''}
+          onClick={() => setZoom(null)}
+          title={t('tip.zoomFit')}
+        >
           {t('editor.zoomFit')}
         </button>
-        <button onClick={() => setZoom(stepZoom(scale, 1))} aria-label={t('editor.zoomIn')}>
+        <button onClick={() => setZoom(stepZoom(scale, 1))} title={t('editor.zoomIn')}>
           +
         </button>
         <span className="muted small" title={t('editor.zoomHint')}>
@@ -436,16 +588,74 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
 interface Guides {
   bleed: boolean
   safe: boolean
+  /** Griglia disegnata sulla tela e suo passo in mm */
+  grid: boolean
+  gridStep: number
+  /** Spostamenti e ridimensionamenti si agganciano alla griglia */
+  snapGrid: boolean
+  /** Lati e centri si agganciano a quelli degli altri oggetti e della carta */
+  snapObjects: boolean
 }
 
 const GUIDES_KEY = 'editorGuides'
 
+const DEFAULT_GUIDES: Guides = {
+  bleed: true,
+  safe: true,
+  grid: false,
+  gridStep: 5,
+  snapGrid: false,
+  snapObjects: true
+}
+
 function loadGuides(): Guides {
   try {
-    return { bleed: true, safe: true, ...JSON.parse(localStorage.getItem(GUIDES_KEY) ?? '{}') }
+    return { ...DEFAULT_GUIDES, ...JSON.parse(localStorage.getItem(GUIDES_KEY) ?? '{}') }
   } catch {
-    return { bleed: true, safe: true }
+    return DEFAULT_GUIDES
   }
+}
+
+/** Griglia con origine nell'angolo della carta; se è troppo fitta si disegna una linea ogni tanto */
+function GridLines({
+  stage,
+  step,
+  scale
+}: {
+  stage: Bounds
+  step: number
+  scale: number
+}): React.JSX.Element {
+  const every = Math.max(1, Math.ceil(GRID_MIN_PX / (step * scale)))
+  const s = step * every
+  const xs: number[] = []
+  const ys: number[] = []
+  for (let x = Math.ceil(stage.x / s) * s; x <= stage.x + stage.w; x += s) xs.push(x)
+  for (let y = Math.ceil(stage.y / s) * s; y <= stage.y + stage.h; y += s) ys.push(y)
+  return (
+    <g className="grid-lines">
+      {xs.map((x) => (
+        <line
+          key={`x${x}`}
+          x1={x}
+          x2={x}
+          y1={stage.y}
+          y2={stage.y + stage.h}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+      {ys.map((y) => (
+        <line
+          key={`y${y}`}
+          x1={stage.x}
+          x2={stage.x + stage.w}
+          y1={y}
+          y2={y}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+    </g>
+  )
 }
 
 /** Disegna i figli nel sistema del livello: rotazioni dei gruppi che lo contengono e la sua */
@@ -480,23 +690,6 @@ function Outline({ b, className }: { b: Bounds; className: string }): React.JSX.
       vectorEffect="non-scaling-stroke"
     />
   )
-}
-
-/** Riquadro sulla carta di un livello, con le rotazioni sue e dei gruppi che lo contengono */
-function worldBounds(l: Layer, chain: GroupLayer[]): Bounds {
-  const corners = [
-    { x: l.x, y: l.y },
-    { x: l.x + l.w, y: l.y },
-    { x: l.x, y: l.y + l.h },
-    { x: l.x + l.w, y: l.y + l.h }
-  ].map((p) =>
-    [l, ...[...chain].reverse()].reduce((q, c) => rotateAround(q, anchorPoint(c), c.rotation), p)
-  )
-  const xs = corners.map((p) => p.x)
-  const ys = corners.map((p) => p.y)
-  const x = Math.min(...xs)
-  const y = Math.min(...ys)
-  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y }
 }
 
 /** Carta con un margine, allargata ai livelli che ne escono */

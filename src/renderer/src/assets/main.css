@@ -597,16 +597,20 @@ textarea.invalid {
 }
 
 .zoom-controls {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
+  /* striscia sotto la tela: non copre la carta né i pannelli, e nelle finestre strette va a capo */
+  flex-shrink: 0;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 4px;
   align-items: center;
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 3px 6px;
+  border-top: 1px solid var(--border);
+  padding: 4px 8px;
+}
+
+.zoom-controls button {
+  white-space: nowrap;
 }
 
 .zoom-controls button {
@@ -1438,4 +1442,88 @@ label.check {
   border: 1px solid var(--border);
   border-radius: 4px;
   background: none;
+}
+
+.grid-lines line {
+  stroke: var(--accent);
+  stroke-width: 0.5;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.snap-guide {
+  stroke: #e0359a;
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.zoom-controls input.grid-step {
+  width: 38px;
+  padding: 1px 4px;
+  font-size: 12px;
+}
+
+.align-section {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.align-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 6px;
+  /* lascia spazio al pulsante d'angolo del pannello */
+  padding-right: 22px;
+}
+
+.align-sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.align-grid summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+  margin: 4px 0;
+}
+
+.align-grid-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+  margin: 4px 0 6px;
+}
+
+.align-grid-fields label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.align-grid-fields input.num {
+  width: 52px;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 320px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: var(--text);
+  color: var(--panel);
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: pre-line;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }

@@ -58,37 +58,56 @@ Il testo si salva, nel progetto e nel foglio, con un unico markup: Markdown per 
 | `~~testo~~`                  | barrato                                                  |
 | `==testo==`                  | evidenziato con il colore di evidenziazione del progetto |
 | `^testo^` / `~testo~`        | apice / pedice                                           |
-| `# Titolo`, `## Sottotitolo` | paragrafo con lo stile `titolo1` / `titolo2`             |
-| `> testo`                    | paragrafo con lo stile `nota`                            |
+| `# Titolo`, `## Sottotitolo` | paragrafo con lo stile `heading1` / `heading2`           |
+| `> testo`                    | paragrafo con lo stile `note`                            |
 | `- voce` / `1. voce`         | elenco puntato / numerato                                |
 | `---`                        | linea separatrice                                        |
 | riga vuota                   | nuovo paragrafo                                          |
 | `\` a fine riga              | a capo senza nuovo paragrafo                             |
 
-Gli stili `titolo1`, `titolo2` e `nota` esistono in ogni progetto e si modificano come gli altri.
+Gli stili `heading1`, `heading2` e `note` esistono in ogni progetto e si modificano come gli altri.
 
 #### Attributi: `[testo]{...}`
 
-Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come formattarlo. Gli attributi si combinano separati da spazi.
+Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come formattarlo. Gli attributi si combinano separati da spazi. Le parole chiave sono in inglese, come tutti gli identificatori dell'app (sezione 2.2).
 
-| Attributo                | Esempio                                           | Effetto                                     |
-| ------------------------ | ------------------------------------------------- | ------------------------------------------- |
-| `.nome`                  | `[pino]{.parola-chiave}`                          | applica uno stile                           |
-| `colore=`                | `[Attenzione]{colore=rosso}` · `{colore=#A33A2A}` | colore del testo, da palette o esadecimale  |
-| `evid=`                  | `[raro]{evid=giallo}`                             | colore di evidenziazione (sfondo)           |
-| `dim=`                   | `{dim=14}` · `{dim=+2}` · `{dim=80%}`             | dimensione in pt, relativa o in percentuale |
-| `font=`                  | `{font=Cinzel}`                                   | famiglia                                    |
-| `peso=`                  | `{peso=800}`                                      | peso del carattere                          |
-| `contorno=`              | `{contorno=bianco/0.3}`                           | contorno colore/spessore in mm              |
-| `spazio=`                | `{spazio=50}`                                     | spaziatura caratteri in ‰                   |
-| `alza=`                  | `{alza=1}`                                        | spostamento dalla linea di base in pt       |
-| `maiusc`, `maiuscoletto` | `[Fase]{maiuscoletto}`                            | trasformazione                              |
+**Carattere**
 
-Esempio con più attributi: `[Attacco]{.titolo colore=rosso dim=+2}`.
+| Attributo            | Esempio                                       | Effetto                                       |
+| -------------------- | --------------------------------------------- | --------------------------------------------- |
+| `.name`              | `[pino]{.keyword}`                            | applica uno stile                             |
+| `color=`             | `[Attenzione]{color=red}` · `{color=#A33A2A}` | colore del testo, da palette o esadecimale    |
+| `highlight=`         | `[raro]{highlight=yellow}`                    | colore di evidenziazione dietro il testo      |
+| `size=`              | `{size=14}` · `{size=+2}` · `{size=80%}`      | dimensione in pt, relativa o in percentuale   |
+| `font=`              | `{font=Cinzel}`                               | famiglia                                      |
+| `weight=`            | `{weight=800}`                                | peso del carattere                            |
+| `stroke=`            | `{stroke=white/0.3}`                          | contorno delle lettere, colore/spessore in mm |
+| `spacing=`           | `{spacing=50}`                                | spaziatura caratteri in ‰                     |
+| `raise=`             | `{raise=1}`                                   | spostamento dalla linea di base in pt         |
+| `upper`, `smallcaps` | `[Fase]{smallcaps}`                           | trasformazione                                |
 
-#### Paragrafi
+**Riquadro attorno al testo**
 
-Un attributo tra graffe a inizio riga vale per l'intero paragrafo: `{.flavor centro} Il castello non cadrà stanotte.` Oltre agli stili accetta `sinistra`, `centro`, `destra`, `giustificato`.
+Trasformano la porzione di testo in un riquadro in linea, che segue la riga come un'icona.
+
+| Attributo   | Esempio                             | Effetto                                                                                  |
+| ----------- | ----------------------------------- | ---------------------------------------------------------------------------------------- |
+| `border=`   | `[Rapido]{border=red/0.3}`          | bordo attorno al testo, colore/spessore in mm                                            |
+| `fill=`     | `[Rapido]{fill=#EDE4D3}`            | colore di sfondo del riquadro                                                            |
+| `radius=`   | `{radius=1}` · `{radius=round}`     | raggio degli angoli in mm, `round` per una pillola o un cerchio                          |
+| `pad=`      | `{pad=0.5}` · `{pad=0.5/1}`         | margine interno in mm (verticale/orizzontale)                                            |
+| `bg=`       | `[7]{bg=square}` · `[3]{bg=shield}` | immagine di sfondo: una variabile immagine o un file; il testo è centrato sopra          |
+| `bg-color=` | `{bg=shield bg-color=blue}`         | tinta dell'immagine di sfondo                                                            |
+| `bg-size=`  | `{bg-size=140%}` · `{bg-size=4}`    | dimensione dello sfondo rispetto alla riga o in mm; di base si adatta al testo più `pad` |
+
+Esempi:
+
+- `[7]{bg=square color=white weight=800}`: il numero 7 in bianco dentro l'icona quadrata.
+- `[3]{bg=shield bg-color=blue color=white size=-1}`: un 3 dentro uno scudo colorato di blu.
+- `[{forza}]{bg=circle bg-color=red color=white}`: il valore del campo forza dentro un cerchio rosso.
+- `[Rapido]{border=red/0.3 radius=round pad=0.3/1}`: una parola chiave in una pillola bordata.
+
+Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre disponibili come sfondo senza definire variabili.
 
 #### Variabili e campi
 
@@ -106,10 +125,15 @@ Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segn
 ```
 # Cavaliere
 Quando attacchi, pesca **una carta**.
-Bonus +1 {spada} contro i [pino]{.parola-chiave}.
+Bonus +1 {spada} contro i [pino]{.keyword}.
+Costo: [3]{bg=circle bg-color=blue color=white}
 
-{.flavor centro} *Il castello non cadrà stanotte.*
+{.flavor center} *Il castello non cadrà stanotte.*
 ```
+
+### 2.2 Lingua
+
+L'interfaccia è in inglese, con la traduzione italiana come prima lingua aggiuntiva. Tutto ciò che si scrive nei file resta in inglese e non dipende dalla lingua dell'interfaccia: parole chiave del markup, nomi degli stili predefiniti, funzioni delle formule, chiavi dei file di progetto, colonna `amount`, forme predefinite. I nomi scelti dall'utente (livelli, campi, variabili, stili, set) restano come li scrive.
 
 ## 3. Immagine
 
@@ -165,7 +189,7 @@ Ogni variabile ha un'anteprima nell'elenco. Rinominare una variabile aggiorna i 
 Uno stile raggruppa proprietà di carattere (font, peso, corsivo, dimensione, colore, trasformazione, decorazione, contorno) e, se applicato a un intero livello, anche di paragrafo (allineamento, interlinea, spaziature).
 
 - Uno stile può basarsi su un altro ed ereditarne le proprietà non ridefinite.
-- Si applica a un intero livello di testo (proprietà `stile`), a un paragrafo (`{.nome}` a inizio riga) o a una porzione (`[testo]{.nome}`).
+- Si applica a un intero livello di testo (proprietà `style`), a un paragrafo (`{.name}` a inizio riga) o a una porzione (`[testo]{.name}`).
 - Modificare uno stile aggiorna tutte le carte che lo usano.
 - La formattazione locale prevale sullo stile.
 
@@ -176,7 +200,7 @@ Colori con nome del progetto, usati da stili, forme e variabili colore. Coincido
 ## 7. Campi calcolati
 
 - Si definiscono per set: `nome campo`, `tipo` (testo, numero, immagine, colore), `formula`.
-- La formula usa `{campo}` per i valori della stessa carta, operatori `+ - * /`, confronti, concatenazione e funzioni: `se(cond; sì; no)`, `minuscolo()`, `maiuscolo()`, `arrotonda()`, `min()`, `max()`, `ripeti(testo; n)`, `esiste(file)`.
+- La formula usa `{campo}` per i valori della stessa carta, operatori `+ - * /`, confronti, concatenazione e funzioni: `if(cond, yes, no)`, `lower()`, `upper()`, `round()`, `min()`, `max()`, `repeat(text, n)`, `exists(file)`.
 - Un campo calcolato si usa come sorgente di un livello o dentro un testo.
 - In tabella è una colonna di sola lettura; una cella compilata a mano vale come eccezione per quella carta.
 - Riferimenti circolari ed errori sono segnalati sulla riga.

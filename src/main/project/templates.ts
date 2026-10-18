@@ -1,5 +1,6 @@
-import { mkdir, rename, writeFile } from 'fs/promises'
+import { access, mkdir, rename, writeFile } from 'fs/promises'
 import { join } from 'path'
+import { shell } from 'electron'
 import {
   denormalizeTemplate,
   isValidTemplateName,
@@ -23,6 +24,20 @@ export async function saveTemplate(folder: string, template: Template): Promise<
   const tmp = `${target}.tmp`
   await writeFile(tmp, formatTemplate(content) + '\n', 'utf8')
   await rename(tmp, target)
+}
+
+/** Sposta templates/<file>.json nel cestino del sistema, così si può ancora recuperare */
+export async function trashTemplate(folder: string, file: string): Promise<void> {
+  if (!isValidTemplateName(file))
+    throw new MessageError(msg('template.invalidName', { name: file }))
+  const target = join(folder, 'templates', `${file}.json`)
+  try {
+    await access(target)
+  } catch {
+    // mai salvato: non c'è nulla da spostare
+    return
+  }
+  await shell.trashItem(target)
 }
 
 /**

@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
+import type { Side } from '../../../shared/model/template'
 import { bindCard, cardFields, rowToCard } from '../../../shared/model/bind'
 import { walkLayers } from '../../../shared/model/normalize'
 import { resolveAsset } from '../../../shared/model/assets'
+import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
 import {
   DEFAULT_IMAGE,
   DEFAULT_PDF,
   DEFAULT_TTS,
   pdfGrid,
+  sidesOf,
   type ExportJob,
   type ExportKind,
   type ExportProfiles,
@@ -20,6 +23,8 @@ import {
 } from '../../../shared/export'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
+import CreditsDialog from './CreditsDialog'
+import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
@@ -29,7 +34,11 @@ const DPIS = [150, 300, 600]
 
 /** Le carte dei set scelti, con i valori della riga applicati al template */
 function buildSets(project: LoadedProject, names: string[]): ExportSet[] {
-  const ctx = { assets: project.assets, styles: project.file.styles }
+  const ctx = {
+    assets: project.assets,
+    styles: project.file.styles,
+    variables: project.file.variables
+  }
   return project.sets
     .filter((s) => !names.length || names.includes(s.name))
     .flatMap((s) => {
@@ -43,7 +52,7 @@ function buildSets(project: LoadedProject, names: string[]): ExportSet[] {
           n: i + 1,
           amount: card.amount,
           label: bound.label,
-          fields: cardFields(tpl, card),
+          fields: cardFields(tpl, card, ctx.variables),
           template: bound.template
         }
       })
@@ -82,6 +91,8 @@ export default function ExportDialog({
   const [progress, setProgress] = useState<ExportProgress | null>(null)
   const [result, setResult] = useState<ExportResult | null>(null)
   const [error, setError] = useState<Message | null>(null)
+  const { has: hasFont } = useProjectFonts()
+  const [credits, setCredits] = useState(false)
   const running = progress !== null
 
   useEffect(() => {
@@ -140,11 +151,22 @@ export default function ExportDialog({
             : { ...base, kind, options: tts }
       const r = await window.api.runExport(job, {
         assets: project.assets,
-        styles: project.file.styles ?? {}
+        fonts: project.fonts,
+        styles: project.file.styles ?? {},
+        variables: project.file.variables ?? {}
       })
-      const missing = missingImages(project, sets)
+      const sides: Side[] =
+        kind === 'images'
+          ? sidesOf(img.sides)
+          : kind === 'pdf' && pdf.duplex === 'none'
+            ? sidesOf(pdf.sides)
+            : ['front', 'back']
+      const missing = missingImages(project, sets, sides)
       if (missing.length)
-        r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join(', ') } })
+        r.warnings.push({ key: 'export.missingImages', params: { cards: missing.join('; ') } })
+      const fonts = missingFonts(project, sets, hasFont)
+      if (fonts.length)
+        r.warnings.push({ key: 'export.missingFonts', params: { fonts: fonts.join(', ') } })
       setResult(r)
     } catch (e) {
       setError(messageFromError(e))
@@ -690,6 +712,14 @@ export default function ExportDialog({
           </div>
         )}
         <div className="dialog-buttons">
+          <button
+            type="button"
+            className="spacer-right"
+            title={t('credits.hint')}
+            onClick={() => setCredits(true)}
+          >
+            {t('credits.open')}
+          </button>
           {running && (
             <span className="muted export-progress">
               {progress.total
@@ -716,27 +746,49 @@ export default function ExportDialog({
           </button>
         </div>
       </div>
+      {credits && <CreditsDialog project={project} onClose={() => setCredits(false)} />}
     </Dialog>
   )
 }
 
-/** Carte con immagini che mancano in assets/: nell'esportazione restano i segnaposto */
-function missingImages(project: LoadedProject, sets: ExportSet[]): string[] {
-  const out: string[] = []
+/**
+ * Immagini che mancano in assets/ nei lati esportati, ognuna con le carte che la usano:
+ * nell'esportazione restano i segnaposto
+ */
+function missingImages(project: LoadedProject, sets: ExportSet[], sides: Side[]): string[] {
+  const byImage = new Map<string, string[]>()
   for (const set of sets)
     for (const c of set.cards) {
-      const layers = walkLayers([...c.template.front, ...c.template.back])
-      const missing = layers.some(
-        (l) =>
-          l.type === 'image' &&
-          l.visible &&
-          l.missing !== 'hide' &&
-          l.src.trim() !== '' &&
-          !resolveAsset(l.src, project.assets).ok
+      const layers = walkLayers(sides.flatMap((side) => c.template[side]))
+      const names = new Set(
+        layers
+          .filter(
+            (l) =>
+              l.type === 'image' &&
+              l.visible &&
+              l.missing !== 'hide' &&
+              l.src.trim() !== '' &&
+              !resolveAsset(l.src, project.assets).ok
+          )
+          .map((l) => (l.type === 'image' ? l.src.trim() : ''))
       )
-      if (missing) out.push(`${set.name} ${c.n}${c.label ? ` (${c.label})` : ''}`)
+      const card = `${set.name} ${c.n}${c.label ? ` (${c.label})` : ''}`
+      for (const name of names) byImage.set(name, [...(byImage.get(name) ?? []), card])
     }
-  return out
+  return [...byImage].map(([name, cards]) => `"${name}": ${cards.join(', ')}`)
+}
+
+/** Font usati dalle carte esportate che non sono né nel progetto né installati */
+function missingFonts(project: LoadedProject, sets: ExportSet[], hasFont: FontCheck): string[] {
+  const out = new Set<string>()
+  for (const set of sets)
+    for (const c of set.cards)
+      for (const l of walkLayers([...c.template.front, ...c.template.back])) {
+        if (l.type !== 'text' || !l.visible) continue
+        for (const f of [l.font, ...markupFonts(l.text, project.file.styles)])
+          if (f.trim() && !isGenericFont(f) && !hasFont(f)) out.add(f)
+      }
+  return [...out].sort()
 }
 
 /** Nickname di base: il campo che dà il nome alle carte, o il primo testo del template */

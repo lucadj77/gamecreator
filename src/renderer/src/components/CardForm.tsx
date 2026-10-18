@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import { colorColumns, setCell } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
 import type { Template } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
+import AssetPicker from './AssetPicker'
+import { ImageIcon } from './icons'
 
 interface Props {
   sheet: Sheet
@@ -22,13 +24,18 @@ interface Props {
 function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.Element {
   const { t } = useI18n()
   const boxRef = useRef<HTMLDivElement>(null)
-  const textColumns = new Set(
-    template
-      ? walkLayers([...template.front, ...template.back])
-          .filter((l) => l.type === 'text' && l.source.kind === 'column')
-          .map((l) => (l.source.kind === 'column' && l.source.column) || l.name)
-      : []
-  )
+  const columnsOf = (type: 'text' | 'image'): Set<string> =>
+    new Set(
+      template
+        ? walkLayers([...template.front, ...template.back])
+            .filter((l) => l.type === type && l.source.kind === 'column')
+            .map((l) => (l.source.kind === 'column' && l.source.column) || l.name)
+        : []
+    )
+  const textColumns = columnsOf('text')
+  const imageColumns = columnsOf('image')
+  /** Colonna di cui si sta scegliendo l'immagine */
+  const [picking, setPicking] = useState<number | null>(null)
 
   const colors = template ? colorColumns(template) : new Map<string, string | null>()
 
@@ -88,6 +95,21 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
                     }
                   />
                 </span>
+              ) : imageColumns.has(h) ? (
+                <>
+                  <input {...common} />
+                  <button
+                    className="pick-btn"
+                    title={t('assetPicker.open')}
+                    onClick={(e) => {
+                      // il pulsante è dentro l'etichetta: senza questo il clic va al campo
+                      e.preventDefault()
+                      setPicking(i)
+                    }}
+                  >
+                    <ImageIcon />
+                  </button>
+                </>
               ) : (
                 <input {...common} />
               )}
@@ -95,6 +117,13 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
           </label>
         )
       })}
+      {picking !== null && (
+        <AssetPicker
+          value={values[picking] ?? ''}
+          onPick={(name) => onChange(setCell(sheet, row, picking, name), `cell:${row}:${picking}`)}
+          onClose={() => setPicking(null)}
+        />
+      )}
     </div>
   )
 }

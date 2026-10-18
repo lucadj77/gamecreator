@@ -1,13 +1,16 @@
-import { readFile, readdir } from 'fs/promises'
+import { access, readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 import {
   FORMAT_VERSION,
   PROJECT_FILE,
   type LoadedProject,
-  type ProjectFile
+  type ProjectFile,
+  type Sheet
 } from '../../shared/project'
 import { readSpreadsheet } from './spreadsheet'
 import { listAssets } from './assets'
+import { readProjectFonts } from './fonts'
+import { readSources } from '../library/sources'
 import { duplicateNames, normalizeTemplate } from '../../shared/model/normalize'
 import type { Template } from '../../shared/model/template'
 import { MessageError, messageFromError, msg, type Message } from '../../shared/messages'
@@ -30,7 +33,9 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     warnings.push(msg('load.newerFormat', { version: file.formatVersion }))
   }
 
-  const sheets = await readSpreadsheet(join(folder, file.dataFile))
+  // un progetto nuovo non ha ancora il file dati: si crea al primo salvataggio di un set
+  const dataPath = join(folder, file.dataFile)
+  const sheets: Sheet[] = (await exists(dataPath)) ? await readSpreadsheet(dataPath) : []
   const byName = new Map(sheets.map((s) => [s.name, s]))
 
   const sets = (file.sets ?? []).map((def) => {
@@ -48,6 +53,7 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     }
   }
 
+  const assets = await listAssets(folder)
   return {
     folder,
     file,
@@ -55,7 +61,9 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     unusedSheets: sheets.map((s) => s.name).filter((n) => !used.has(n)),
     unusedData: sheets.filter((s) => !used.has(s.name)),
     templates,
-    assets: await listAssets(folder),
+    assets,
+    fonts: await readProjectFonts(folder, assets),
+    sources: await readSources(folder),
     warnings
   }
 }
@@ -88,4 +96,13 @@ async function loadTemplates(folder: string, warnings: Message[]): Promise<Templ
     }
   }
   return templates
+}
+
+async function exists(path: string): Promise<boolean> {
+  try {
+    await access(path)
+    return true
+  } catch {
+    return false
+  }
 }

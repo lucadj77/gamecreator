@@ -367,6 +367,8 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
             fontSize: sizeMm * s,
             lineHeight: l.lineHeight,
             letterSpacing: `${l.letterSpacing / 1000}em`,
+            // le immagini nel testo non seguono letter-spacing: la ricevono come margine
+            ['--gc-ls' as string]: `${(l.letterSpacing / 1000) * sizeMm * s}px`,
             color: l.color,
             textAlign: l.align,
             textTransform:

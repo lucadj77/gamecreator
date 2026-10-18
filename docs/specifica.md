@@ -85,7 +85,7 @@ Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come forma
 | `font=`                                 | `{font=Cinzel}` · `{font=Open_Sans}`          | famiglia; `_` al posto degli spazi                                              |
 | `weight=`                               | `{weight=800}`                                | peso del carattere                                                              |
 | `stroke=`                               | `{stroke=white/0.3}` · `{stroke=white/8%}`    | contorno delle lettere: colore/spessore in mm o in % della dimensione del testo |
-| `spacing=`                              | `{spacing=50}`                                | spaziatura caratteri in ‰                                                       |
+| `spacing=`                              | `{spacing=50}`                                | spaziatura caratteri in ‰, vale anche per le immagini nel testo                 |
 | `raise=`                                | `{raise=1}`                                   | spostamento dalla linea di base in pt                                           |
 | `upper`, `lower`, `smallcaps`           | `[Fase]{smallcaps}`                           | trasformazione                                                                  |
 | `bold`, `italic`, `underline`, `strike` | `{.flavor italic}`                            | come i segni Markdown, utili negli stili                                        |
@@ -125,7 +125,7 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 
 Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala.
 
-Finché non ci sono le variabili del progetto (sezione 6.1), `{nome}` che non è un campo si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
+`{nome}` che non è né un campo né una variabile si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
 
 #### Aiuto alla scrittura
 
@@ -158,6 +158,15 @@ Costo: [3]{bg=circle bg-color=blue color=white}
 
 L'interfaccia è in inglese, con la traduzione italiana come prima lingua aggiuntiva. Tutto ciò che si scrive nei file resta in inglese e non dipende dalla lingua dell'interfaccia: parole chiave del markup, nomi degli stili predefiniti, funzioni delle formule, chiavi dei file di progetto, colonna `amount`, forme predefinite. I nomi scelti dall'utente (livelli, campi, variabili, stili, set) restano come li scrive.
 
+### 2.3 Font
+
+Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livello o nel markup (`font=Open_Sans`).
+
+- I file di font del progetto stanno in `assets/fonts/` (`.ttf`, `.otf`, `.woff`, `.woff2`), anche in sottocartelle. All'apertura del progetto l'app legge da ogni file famiglia, peso e stile, compresi i font variabili, e li usa in anteprima e nell'esportazione; dopo aver copiato un font serve **Ricarica**. Se un file non si legge, la famiglia è il nome della sottocartella (`fonts/Open Sans/...`) o la parte del nome del file prima di `-`.
+- Nunito, il font predefinito, è incluso nell'app e funziona senza rete.
+- Anche i font installati sul computer si possono usare, ma un progetto che li usa non si vede uguale su un altro computer: conviene copiarli in `assets/fonts/` quando la licenza lo permette.
+- Un font che non è né nel progetto, né nell'app, né installato viene segnalato sotto la carta, sotto il campo del font e al termine dell'esportazione. Il testo usa intanto un font predefinito.
+
 ## 3. Immagine
 
 | Proprietà                 | Valori                                                                                                                              |
@@ -175,7 +184,7 @@ L'interfaccia è in inglese, con la traduzione italiana come prima lingua aggiun
 
 ### 3.1 Risoluzione dei nomi di file
 
-Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta il nome del file, senza percorso e senza estensione.
+Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta il nome del file, senza percorso e senza estensione. Accanto al campo dell'immagine, nel pannello delle proprietà e nei campi della carta, un pulsante apre le miniature delle immagini di `assets/`, con ricerca approssimata per nome e filtro per cartella; un clic scrive il nome.
 
 1. Si cerca in tutto `assets/`, sottocartelle comprese.
 2. Un nome con estensione (`spada.png`) o con percorso (`icone/spada`) vale così com'è.
@@ -208,14 +217,29 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 
 Definite a livello di progetto, si richiamano con `{nome}` in qualunque testo e in qualunque campo.
 
-| Tipo             | Contenuto                                                      | Esempio                                         |
-| ---------------- | -------------------------------------------------------------- | ----------------------------------------------- |
-| immagine         | file, tinta, altezza rispetto alla riga, spostamento verticale | `{spada}` → icona della spada in rosso          |
-| testo formattato | testo di sostituzione e stile o formattazione                  | `{pino}` → "pino" in verde e grassetto          |
-| colore           | un colore con nome                                             | `{rosso}` usabile in qualsiasi proprietà colore |
-| valore           | testo o numero costante                                        | `{max_mano}` → 7                                |
+| Tipo             | Contenuto                                                           | Esempio                                         |
+| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------- |
+| immagine         | file, tinta, altezza, spostamento, rotazione, ribaltamento, opacità | `{spada}` → icona della spada in rosso          |
+| testo formattato | testo di sostituzione e stile o formattazione                       | `{pino}` → "pino" in verde e grassetto          |
+| colore           | un colore con nome                                                  | `{rosso}` usabile in qualsiasi proprietà colore |
+| valore           | testo o numero costante                                             | `{max_mano}` → 7                                |
 
 Ogni variabile ha un'anteprima nell'elenco. Rinominare una variabile aggiorna i riferimenti in template e fogli.
+
+Stato attuale: le variabili sono nella sezione "Variabili" della barra laterale, con un editor che mostra l'anteprima in una frase di prova, e si salvano in `gamecreator.json` (docs/formato.md). Le variabili immagine hanno file, tinta, dimensione rispetto alla riga e spostamento verticale; quelle di testo possono contenere markup e richiamare altre variabili; quelle valore entrano nelle formule come i campi; quelle colore valgono in ogni proprietà colore dei livelli e negli attributi del markup (`color=`, `bg-color=`, `fill=`, `border=`, `highlight=`), scritte come `rosso` o `{rosso}`, e compaiono tra i suggerimenti. Rinominare una variabile per ora non aggiorna i riferimenti.
+
+Le immagini nel testo, variabili o file di `assets/`, accettano attributi dopo il nome, che per quel solo uso prevalgono su quelli della variabile: `{spada tint=red size=150% rotate=90 flip=h opacity=50%}`, anche con le ripetizioni (`{spada*3 tint=red}`).
+
+| Attributo  | Esempio       | Effetto                                                                                      |
+| ---------- | ------------- | -------------------------------------------------------------------------------------------- |
+| `tint=`    | `tint=red`    | ricolora l'immagine; `none` tiene i colori originali, `currentColor` usa il colore del testo |
+| `size=`    | `size=150%`   | altezza rispetto alle icone normali (anche `1.5`)                                            |
+| `raise=`   | `raise=10`    | spostamento verticale in % della riga; negativo abbassa                                      |
+| `rotate=`  | `rotate=90`   | rotazione in gradi, in senso orario                                                          |
+| `flip=`    | `flip=h`      | ribaltamento orizzontale (`h`), verticale (`v`), entrambi (`hv`) o `none`                    |
+| `opacity=` | `opacity=50%` | opacità                                                                                      |
+
+Se il nome è un campo, il suo valore diventa il nome dell'immagine: con `icona` = `spada`, `{icona tint=red}` dà `{spada tint=red}`. Una variabile immagine usata come sorgente di un livello immagine porta con sé tinta, ribaltamento e opacità; la rotazione è quella del livello.
 
 ### 6.2 Stili di testo
 
@@ -238,7 +262,7 @@ Scelta rivista il 2026-10-18: i calcoli stanno nel template, non nei set (vedi d
 
 - **Fonte del valore.** Ogni livello prende il valore principale da una colonna del foglio (di base quella con il suo nome), da un valore fisso o da una formula.
 - **Livello valore.** Un livello di tipo `value` non si disegna: contiene un valore della carta che le formule e i testi degli altri livelli usano come `{nome}`. Una colonna con lo stesso nome lo cambia carta per carta; può avere a sua volta una formula. I livelli valore si calcolano in ordine, quindi uno può usare quelli che lo precedono.
-- **Campi disponibili.** `{campo}` vale, nell'ordine di precedenza: il livello valore calcolato, la cella non vuota della riga, il valore del livello nel template. Senza dati (nell'editor) le formule mostrano il risultato con i valori del template.
+- **Campi disponibili.** `{campo}` vale, nell'ordine di precedenza: il livello valore calcolato, la cella non vuota della riga, il valore del livello nel template. Senza dati (nell'editor) le formule mostrano il risultato con i valori del template. Una cella vuota lascia il valore del template; una cella con soli spazi lo svuota (per le colonne delle proprietà, come `titolo.size`, conta come vuota).
 - **Composizione.** Una formula senza `=` iniziale compone testo: `{nome}.png`, `Forza {forza}`. Se contiene `+ - * /` e il risultato è numerico, si calcola: `{forza}+2`.
 - **Espressione.** Con `=` iniziale è un'espressione come in Excel: `=IF({forza}>3; "Forte"; "Debole")`. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` o `,`. Funzioni (nomi in inglese): `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`.
 - I campi mancanti e gli errori sono segnalati sotto la carta e nel pannello proprietà.
@@ -273,6 +297,11 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 | viste                | tabella con anteprima; griglia di anteprime (zoom, fronte/retro, filtro, selezione multipla per modifiche in blocco)            |
 | ordine delle carte   | manuale, trascinando righe in tabella o carte nella griglia; è l'ordine delle righe nel foglio e quello di esportazione         |
 | ordinamento e filtro | per qualsiasi colonna, solo nella vista, senza cambiare l'ordine salvato; si può rendere definitivo con "Applica questo ordine" |
+
+- Il template del set si cambia dal menu nell'intestazione del set; i dati restano gli stessi, e le colonne che il nuovo template non usa vengono ignorate. ⌘Z annulla.
+- Sotto l'anteprima della carta, **Modifica template** apre nell'editor il template del set.
+- Il cestino accanto a un set lo toglie dal progetto dopo una conferma. Il foglio dei dati resta nel file, tra quelli non collegati, e si può ricollegare con **Nuovo set**; ⌘Z annulla.
+- Il cestino accanto a un template lo elimina dopo una conferma, spostando il file nel cestino del sistema. Un template usato da un set non si elimina: prima vanno eliminati i set che lo usano.
 
 ## 9. Esportazione
 
@@ -328,3 +357,55 @@ La griglia automatica sceglie, tra 2 × 2 e 10 × 7, quella con meno posizioni v
 ### 9.4 Preset per tipografie
 
 Profili precompilati per i servizi di stampa più comuni (una immagine per carta a 300 DPI con abbondanza, nomi file richiesti dal servizio). I parametri esatti vanno verificati sul sito di ciascun servizio prima di definirli.
+
+## 10. Icone, font e crediti
+
+Proposta completa e motivazioni in `proposta-icone-font.md` (cartella condivisa del progetto). I cataloghi stanno nell'app (`resources/catalogs/`), quindi la ricerca funziona anche senza rete; si rigenerano con gli script in `scripts/`. Quello che si importa finisce in `assets/` e da lì in poi è un file come gli altri: il progetto resta autonomo e si apre anche su un altro computer.
+
+### 10.1 Icone di game-icons.net
+
+Dalla finestra di scelta delle immagini e dalla finestra di una variabile icona, **Importa icone…** apre il catalogo di game-icons.net (circa 4200 icone, 36 autori), costruito dal repository ufficiale per avere l'autore di ogni icona.
+
+- A sinistra i tag del sito (134, in 19 gruppi), tradotti in italiano; i tag sono stati raccolti una volta dalle pagine del sito e si aggiornano con `scripts/fetch-icon-tags.mjs`.
+- La ricerca è approssimata (tollera errori di battitura) e guarda il nome inglese dell'icona, i tag in inglese e in italiano, alcune parole italiane associate ai tag (per esempio "spada" per le lame) e l'autore. Il nome dell'icona pesa più dei tag.
+- La tinta e lo sfondo scuro servono solo all'anteprima: il file si salva nero, e il colore sulla carta si sceglie con il livello come per ogni SVG.
+- Si possono scegliere più icone e rinominarle prima di importarle. Un nome non valido o ripetuto blocca l'importazione; se il file esiste già o il nome breve diventa ambiguo, compare un avviso ma si può procedere.
+- Importando una sola icona, la si assegna subito al livello o alla variabile; una variabile nuova senza nome prende il nome dell'icona.
+- Le icone si salvano in `assets/icons/<nome>.svg` (viewBox 512 × 512, un solo tracciato) con una voce in `assets/sources.json`.
+
+Licenza: CC BY 3.0, tranne due autori in CC0. CC BY chiede di citare l'autore: vedi 10.3.
+
+### 10.1.1 Raccolte Kenney
+
+Nella stessa finestra, sopra la ricerca, si sceglie la raccolta: game-icons.net oppure due raccolte di Kenney (kenney.nl), costruite dai pacchetti ufficiali con `scripts/make-kenney-catalogs.mjs`.
+
+- **Icone e motivi**: le 255 icone di Board Game Icons, in 10 categorie (carte, dadi, pedine, segnalini...), e i 168 motivi ripetibili di Pattern Pack e Pattern Pack Extra. Diventano SVG a un colore come quelle di game-icons.net, quindi si colorano con la tinta. I motivi occupano tutto il riquadro, senza margine, perché affiancati non mostrino giunture; il bianco originale diventa trasparente.
+- **Carte, dadi e pedine**: le 523 immagini PNG del Boardgame Pack (carte da gioco, fiches, dadi, pedine in sette colori). Si salvano in `assets/images/` così come sono e non si ricolorano. Sono piccole (64 px i dadi, 140 × 190 px le carte): in stampa vanno usate a dimensioni ridotte.
+
+Licenza: CC0, non serve citare l'autore. La voce in `assets/sources.json` resta comunque, con il pacchetto di provenienza.
+
+### 10.2 Font di Google Fonts
+
+Il pulsante **Aa** accanto al campo del font apre una finestra con due schede:
+
+- **Progetto**: i font in `assets/fonts/` più quelli dell'app, con l'anteprima del testo di prova; un clic sceglie la famiglia.
+- **Google Fonts**: il catalogo (circa 1900 famiglie) con filtro per categoria e ricerca approssimata. L'anteprima si scarica da Google mentre si scorre, quindi richiede la rete. Aprendo una famiglia si scelgono pesi e corsivi (di base normale e grassetto, più il corsivo se c'è) e **Scarica** salva i file in `assets/fonts/<Famiglia>/` insieme al testo della licenza, aggiunge le voci a `assets/sources.json` e assegna la famiglia al livello.
+
+Si scaricano file TTF statici, uno per peso: nel PDF si incorporano come TrueType, mentre i font variabili diventerebbero Type 3. I font installati sul computer non compaiono nell'elenco: si possono scrivere a mano nel campo, ma per esportare su un altro computer conviene copiarli in `assets/fonts/`. Le licenze di Google Fonts (OFL, Apache, UFL) permettono l'uso nei giochi stampati; per circa 160 famiglie il catalogo non indica la licenza, che si ricava al momento del download.
+
+### 10.3 Crediti
+
+Nella finestra di esportazione, **Crediti…** compone il testo da mettere nel regolamento o sulla scatola a partire da `assets/sources.json`: le icone raggruppate per fonte, licenza e autore, poi i font con la loro licenza. Di base si citano solo i file usati dalle carte; togliendo la spunta si citano tutti quelli importati. Il testo si copia o si salva in `export/credits.txt`. Le immagini copiate a mano in `assets/` non sono elencate.
+
+## 11. Schermata di ingresso
+
+All'avvio l'app mostra la schermata di ingresso, non l'ultimo progetto aperto. Contiene:
+
+- **Nuovo progetto…**: chiede nome e posizione (predefinita `Documenti/GameCreator`, poi l'ultima usata) e crea la cartella `<posizione>/<nome>` con `gamecreator.json` e le cartelle `data/`, `templates/` e `assets/`. Il file dati `data/cards.xlsx` si scrive al primo salvataggio di un set. Dal nome della cartella si tolgono i caratteri non validi nei nomi di file; la cartella deve essere nuova o vuota.
+- **Apri progetto…**: sceglie una cartella che contiene `gamecreator.json`.
+- **Importa da Tabletop Creator…**: converte un progetto Tabletop Creator in un progetto nuovo, senza modificare l'originale.
+- **Progetti recenti**: fino a 24, dal più recente, con miniatura, nome, data dell'ultima apertura e cartella. Un progetto spostato o cancellato resta nell'elenco come "cartella non trovata"; la × toglie un progetto dall'elenco senza toccare la cartella.
+
+La miniatura è la prima carta del primo set che ha carte (altrimenti il primo template), disegnata come nell'esportazione. Si crea alla prima apertura e si aggiorna a ogni salvataggio. Elenco e miniature stanno nei dati dell'app (`recent-projects.json` e `thumbnails/` nella cartella dati utente di Electron), non nel progetto: aprire un progetto non scrive nulla nella sua cartella.
+
+Nel progetto, la barra in alto ha nome e cartella del progetto, **Esporta…** e, vicini, **Salva**, **Ricarica** e **Chiudi**; **Chiudi** torna alla schermata di ingresso e chiede conferma se ci sono modifiche non salvate.

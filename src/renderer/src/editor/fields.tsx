@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useContext, useId, useMemo, useState } from 'react'
+import { palette, resolveColor } from '../../../shared/model/variables'
+import { VariablesContext } from '../render/assets'
 import type { Shadow, Stroke } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from '../components/MarkupTextarea'
+import { APP_FONTS, useProjectFonts } from '../render/fonts'
+import FontPicker from '../components/FontPicker'
 
 // Campi del pannello proprietà. Ogni modifica si applica subito, mentre si scrive: cambiare
 // selezione o fare clic sulla carta non la perde. Annulla (⌘Z) torna indietro.
@@ -149,7 +153,8 @@ export function TextField({
   list,
   validate,
   placeholder,
-  markupFields
+  markupFields,
+  action
 }: Base & {
   value: string
   onChange(v: string): void
@@ -161,6 +166,8 @@ export function TextField({
   /** Messaggio di errore, oppure null se il valore va bene: un valore non valido non si applica */
   validate?(v: string): string | null
   placeholder?: string
+  /** Pulsante accanto al campo, per esempio per scegliere un file */
+  action?: React.ReactNode
 }): React.JSX.Element {
   const live = useLive(
     value,
@@ -183,8 +190,52 @@ export function TextField({
       ) : (
         <input {...common} list={list} onKeyDown={blurOnEnter} />
       )}
+      {action}
       {error && <span className="field-error">{error}</span>}
     </Row>
+  )
+}
+
+/** Famiglia di font: propone quelle del progetto e avvisa se il font non c'è */
+export function FontField({
+  label,
+  hint,
+  value,
+  placeholder,
+  onChange
+}: Base & { value: string; placeholder?: string; onChange(v: string): void }): React.JSX.Element {
+  const { t } = useI18n()
+  const fonts = useProjectFonts()
+  const listId = useId()
+  const [picking, setPicking] = useState(false)
+  const families = [...new Set([...fonts.families, ...APP_FONTS])]
+  return (
+    <>
+      <TextField
+        label={label}
+        hint={hint}
+        value={value}
+        list={listId}
+        placeholder={placeholder}
+        onChange={onChange}
+        action={
+          <button
+            className="pick-btn"
+            title={t('fonts.openPicker')}
+            onClick={() => setPicking(true)}
+          >
+            Aa
+          </button>
+        }
+      />
+      {picking && <FontPicker value={value} onPick={onChange} onClose={() => setPicking(false)} />}
+      <datalist id={listId}>
+        {families.map((f) => (
+          <option key={f} value={f} />
+        ))}
+      </datalist>
+      {value.trim() && !fonts.has(value) && <p className="field-note">{t('editor.fontMissing')}</p>}
+    </>
   )
 }
 
@@ -246,10 +297,10 @@ function toHex6(c: string): string {
   return '#000000'
 }
 
-/** Codice esadecimale completo o nome di colore: le versioni a metà non si applicano */
+/** Codice esadecimale completo, nome di colore o colore del progetto: le versioni a metà non si applicano */
 const isColor = (t: string): boolean =>
   /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(t.trim()) ||
-  /^[a-z]{3,}$/i.test(t.trim())
+  /^\{?[\p{L}_][\p{L}\p{N}_-]*\}?$/u.test(t.trim())
 
 function ColorInput({
   value,
@@ -261,15 +312,30 @@ function ColorInput({
   disabled?: boolean
 }): React.JSX.Element {
   const live = useLive(value, (t) => t.trim() !== value && onChange(t.trim()), isColor)
+  // i colori del progetto si scrivono per nome: il campione mostra il colore che indicano
+  const variables = useContext(VariablesContext)
+  const pal = useMemo(() => palette(variables), [variables])
+  const listId = useId()
   return (
     <>
       <input
         type="color"
         disabled={disabled}
-        value={toHex6(value)}
+        value={toHex6(resolveColor(value, pal))}
         onChange={(e) => onChange(e.target.value.toUpperCase())}
       />
-      <input className="color-text" disabled={disabled} {...live.bind} onKeyDown={blurOnEnter} />
+      <input
+        className="color-text"
+        disabled={disabled}
+        list={listId}
+        {...live.bind}
+        onKeyDown={blurOnEnter}
+      />
+      <datalist id={listId}>
+        {Object.keys(pal).map((n) => (
+          <option key={n} value={n} />
+        ))}
+      </datalist>
     </>
   )
 }

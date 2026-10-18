@@ -1,4 +1,8 @@
-import { createContext } from 'react'
+import type { AssetsUpdate } from '../../../shared/library'
+import { createContext, useContext, useMemo } from 'react'
+import type { BindContext } from '../../../shared/model/bind'
+import type { Variables } from '../../../shared/model/variables'
+import { useProjectFonts } from './fonts'
 
 /** File sotto assets/ del progetto aperto, per risolvere i nomi delle immagini */
 export const AssetsContext = createContext<string[]>([])
@@ -17,3 +21,30 @@ export const SaveStyleContext = createContext<
 
 /** Nell'editor i livelli vuoti si mostrano comunque, per poterli vedere e prendere */
 export const ShowEmptyContext = createContext(false)
+
+const assetListeners = new Set<(u: AssetsUpdate) => void>()
+
+/** Avvisa il progetto aperto che gli asset sono cambiati, per esempio dopo un'importazione */
+export function publishAssetsUpdate(u: AssetsUpdate): void {
+  assetListeners.forEach((l) => l(u))
+}
+
+export function onAssetsUpdate(cb: (u: AssetsUpdate) => void): () => void {
+  assetListeners.add(cb)
+  return () => assetListeners.delete(cb)
+}
+
+/** Variabili del progetto aperto (docs/specifica.md, 6.1) */
+export const VariablesContext = createContext<Variables>({})
+
+/** Ciò che serve per applicare una riga a un template: immagini, stili e variabili */
+export function useBindContext(): BindContext {
+  const assets = useContext(AssetsContext)
+  const styles = useContext(StylesContext)
+  const variables = useContext(VariablesContext)
+  const { has: hasFont } = useProjectFonts()
+  return useMemo(
+    () => ({ assets, styles, variables, hasFont }),
+    [assets, styles, variables, hasFont]
+  )
+}

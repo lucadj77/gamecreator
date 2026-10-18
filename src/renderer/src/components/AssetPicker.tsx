@@ -1,0 +1,156 @@
+import { useContext, useMemo, useState } from 'react'
+import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
+import { fuzzyFilter } from '../../../shared/model/fuzzy'
+import { Dialog } from '../editor/dialogs'
+import { useI18n } from '../i18n/context'
+import { AssetsContext, assetUrl } from '../render/assets'
+import IconBrowser from './IconBrowser'
+
+const SIZE_KEY = 'assetPickerSize'
+
+function loadSize(): number {
+  try {
+    const n = Number(localStorage.getItem(SIZE_KEY))
+    return n >= 48 && n <= 160 ? n : 80
+  } catch {
+    return 80
+  }
+}
+
+/**
+ * Finestra con le miniature delle immagini di assets/: un clic sceglie l'immagine e restituisce
+ * il nome con cui richiamarla (nome breve, o con la cartella se è ambiguo).
+ */
+export default function AssetPicker({
+  value,
+  onPick,
+  onClose
+}: {
+  /** Nome scritto ora nel campo: la sua immagine appare selezionata */
+  value: string
+  onPick(name: string): void
+  onClose(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const assets = useContext(AssetsContext)
+  const [query, setQuery] = useState('')
+  const [folder, setFolder] = useState<string | null>(null)
+  const [size, setSizeState] = useState(loadSize)
+  const [importing, setImporting] = useState(false)
+  const setSize = (n: number): void => {
+    setSizeState(n)
+    try {
+      localStorage.setItem(SIZE_KEY, String(n))
+    } catch {
+      // preferenza non essenziale
+    }
+  }
+
+  const images = useMemo(() => assets.filter(isImageAsset), [assets])
+  const folders = useMemo(
+    () => [...new Set(images.filter((a) => a.includes('/')).map((a) => a.split('/')[0]))].sort(),
+    [images]
+  )
+  const current = useMemo(() => {
+    const r = resolveAsset(value, assets)
+    return r.ok ? r.path : null
+  }, [value, assets])
+  const shown = useMemo(
+    () =>
+      fuzzyFilter(
+        images.filter((a) => !folder || a.startsWith(folder + '/')),
+        query,
+        (a) => a.replace(/\.[^.]+$/, '')
+      ),
+    [images, folder, query]
+  )
+
+  const pick = (path: string): void => {
+    onPick(assetRefName(path, assets))
+    onClose()
+  }
+
+  return (
+    <Dialog title={t('assetPicker.title')} onClose={onClose}>
+      <div className="asset-picker">
+        <div className="asset-picker-bar">
+          <input
+            autoFocus
+            type="search"
+            value={query}
+            placeholder={t('assetPicker.search')}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && shown.length > 0 && pick(shown[0])}
+          />
+          <input
+            type="range"
+            min={48}
+            max={160}
+            step={8}
+            value={size}
+            title={t('assetPicker.size')}
+            onChange={(e) => setSize(Number(e.target.value))}
+          />
+          <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
+        </div>
+        {folders.length > 0 && (
+          <div className="asset-picker-folders">
+            <button className={folder === null ? 'on' : ''} onClick={() => setFolder(null)}>
+              {t('assetPicker.all')}
+            </button>
+            {folders.map((f) => (
+              <button key={f} className={folder === f ? 'on' : ''} onClick={() => setFolder(f)}>
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
+        {images.length === 0 ? (
+          <p className="muted">{t('assetPicker.empty')}</p>
+        ) : shown.length === 0 ? (
+          <p className="muted">{t('assetPicker.noMatch')}</p>
+        ) : (
+          <div
+            className="asset-grid"
+            style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${size}px, 1fr))` }}
+          >
+            {shown.map((a) => {
+              const name = a.slice(a.lastIndexOf('/') + 1).replace(/\.[^.]+$/, '')
+              return (
+                <button
+                  key={a}
+                  className={a === current ? 'asset-tile on' : 'asset-tile'}
+                  title={a}
+                  onClick={() => pick(a)}
+                >
+                  <span className="asset-thumb" style={{ height: size }}>
+                    <img src={assetUrl(a)} alt="" loading="lazy" draggable={false} />
+                  </span>
+                  <span className="asset-name">{name}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+        <div className="dialog-buttons">
+          <span className="muted small spacer-right">
+            {t('assetPicker.count', { n: shown.length, total: images.length })}
+          </span>
+          <button onClick={onClose}>{t('dialog.cancel')}</button>
+        </div>
+      </div>
+      {importing && (
+        <IconBrowser
+          // con una sola icona importata la si sceglie subito
+          onImported={(names) => {
+            if (names.length === 1) {
+              onPick(names[0])
+              onClose()
+            }
+          }}
+          onClose={() => setImporting(false)}
+        />
+      )}
+    </Dialog>
+  )
+}

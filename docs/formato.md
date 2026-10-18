@@ -7,7 +7,27 @@ progetto/
   gamecreator.json      # nome, file dati, elenco dei set
   data/carte.xlsx       # un foglio per set (oppure un .csv per un solo set)
   templates/<nome>.json # i template delle carte
-  assets/               # immagini, icone, font
+  assets/               # immagini e icone
+  assets/icons/         # icone importate da game-icons.net
+  assets/fonts/         # font del progetto (ttf, otf, woff, woff2)
+  assets/sources.json   # provenienza e licenza dei file importati dall'app
+```
+
+`assets/sources.json` si scrive quando si importano icone o si scaricano font dall'app: per ogni file (percorso relativo ad `assets/`) indica tipo (`icon` o `font`), fonte, identificativo, autore, licenza in forma SPDX (`CC-BY-3.0`, `OFL-1.1`…), indirizzo e data di importazione. Serve a comporre i crediti; le voci dei file che non esistono più si tolgono alla scrittura successiva. I file aggiunti a mano non compaiono.
+
+```json
+{
+  "icons/spada.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "lorc/broadsword",
+    "title": "broadsword",
+    "author": "Lorc",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/lorc/broadsword.html",
+    "imported": "2026-10-18"
+  }
+}
 ```
 
 ## gamecreator.json
@@ -31,6 +51,24 @@ progetto/
   "flavor": "italic size=90% color=#6B6255 center"
 }
 ```
+
+`variables` (facoltativo) contiene le variabili del progetto (docs/specifica.md, 6.1), una per nome, con un campo `type`:
+
+```json
+"variables": {
+  "spada": { "type": "image", "src": "spada", "tint": "rosso", "scale": 1.2, "raise": 10 },
+  "pino": { "type": "text", "text": "[pino]{color=green weight=700}" },
+  "rosso": { "type": "color", "color": "#A33A2A" },
+  "mano": { "type": "value", "value": "7" }
+}
+```
+
+- `image`: `src` è il nome di un file in `assets/`; `tint` (facoltativo) ricolora l'icona; `scale` è l'altezza rispetto alle icone normali nel testo (1 = normale); `raise` sposta l'icona in alto, in % della riga; `rotate` (gradi, senso orario), `flip` (`h`, `v`, `hv`) e `opacity` (0-1) sono facoltativi.
+- `text`: testo con markup che prende il posto di `{nome}`.
+- `color`: un colore usabile per nome in ogni proprietà colore; un nome standard (`red`) ridefinito qui cambia in tutto il progetto.
+- `value`: testo o numero costante, usabile nei testi e nelle formule.
+
+Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 
 `export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`. La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
 

@@ -33,3 +33,17 @@ export function resolveAsset(name: string, assets: string[]): AssetResolution {
   if (matches.length === 1) return { ok: true, path: matches[0] }
   return { ok: false, reason: matches.length ? 'ambiguous' : 'missing', candidates: matches }
 }
+
+export function isImageAsset(path: string): boolean {
+  const p = path.toLowerCase()
+  return IMAGE_EXTENSIONS.some((e) => p.endsWith(e))
+}
+
+/**
+ * Nome con cui richiamare un'immagine nel foglio o nel template: il nome breve senza
+ * estensione, oppure il percorso se il nome breve è ambiguo
+ */
+export function assetRefName(path: string, assets: string[]): string {
+  const stem = path.slice(path.lastIndexOf('/') + 1).replace(/\.[^.]+$/, '')
+  return resolveAsset(stem, assets).ok ? stem : path.replace(/\.[^.]+$/, '')
+}

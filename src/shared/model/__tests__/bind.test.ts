@@ -34,6 +34,18 @@ describe('bindCard', () => {
     expect(bound.problems).toEqual([])
   })
 
+  it('segnala i font mancanti del livello e del markup', () => {
+    const tpl = normalizeTemplate({
+      name: 't',
+      front: [
+        { type: 'text', name: 'nome', font: 'Cinzel', text: '[x]{font=Nunito} [y]{font=Pippo}' }
+      ]
+    })
+    const hasFont = (f: string): boolean => f === 'Nunito'
+    const bound = bindCard(tpl, rowToCard([], []), { hasFont })
+    expect(bound.problems.map((p) => p.params?.font)).toEqual(['Cinzel', 'Pippo'])
+  })
+
   it('segnala proprietà inesistenti e valori non validi', () => {
     const bound = bindCard(template, rowToCard(['nome.pippo', 'nome.size'], ['1', 'grande']))
     expect(bound.problems.map((p) => p.key)).toEqual(['bind.unknownProperty', 'bind.invalidValue'])
@@ -124,6 +136,15 @@ describe('valori predefiniti e livelli valore', () => {
     const b = bindCard(t, rowToCard(['forza', 'titolo'], ['5', 'Orco']))
     expect(text(b, 2)).toBe('Forte')
     expect(text(b, 4)).toBe('Orco!')
+  })
+
+  it('una cella vuota lascia il valore del template, una con soli spazi lo svuota', () => {
+    const vuota = bindCard(t, rowToCard(['titolo', 'titolo.size'], ['', '']))
+    expect(text(vuota, 3)).toBe('Drago')
+    const spazi = bindCard(t, rowToCard(['titolo', 'titolo.size'], [' ', '  ']))
+    expect(text(spazi, 3)).toBe('')
+    expect(text(spazi, 4)).toBe('!')
+    expect(spazi.problems).toEqual([])
   })
 
   it('un livello valore non ha riquadro e non sposta i gruppi', () => {

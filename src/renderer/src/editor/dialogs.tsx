@@ -15,7 +15,12 @@ export function Dialog({
     <div
       className="dialog-backdrop"
       onPointerDown={(e) => e.target === e.currentTarget && onClose()}
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => {
+        if (e.key !== 'Escape') return
+        // una finestra aperta sopra un'altra si chiude da sola
+        e.stopPropagation()
+        onClose()
+      }}
     >
       <div className="dialog" role="dialog" aria-label={title}>
         <h2>{title}</h2>

@@ -3,6 +3,8 @@
 import type { Template } from './model/template'
 import type { Message } from './messages'
 import type { ExportProfiles } from './export'
+import type { Sources } from './library'
+import type { Variables } from './model/variables'
 
 export const PROJECT_FILE = 'gamecreator.json'
 export const FORMAT_VERSION = 1
@@ -27,6 +29,8 @@ export interface ProjectFile {
    * heading1, heading2 e note esistono sempre e si possono ridefinire.
    */
   styles?: Record<string, string>
+  /** Variabili del progetto: nome → definizione (docs/specifica.md, 6.1) */
+  variables?: Variables
   /** Ultime opzioni usate per ogni tipo di esportazione */
   export?: ExportProfiles
 }
@@ -55,5 +59,21 @@ export interface LoadedProject {
   templates: Template[]
   /** File sotto assets/, percorsi relativi */
   assets: string[]
+  /** Font sotto assets/fonts/, da registrare prima di disegnare */
+  fonts: ProjectFont[]
+  /** Provenienza e licenza dei file importati dall'app (assets/sources.json) */
+  sources: Sources
   warnings: Message[]
+}
+
+export const FONT_EXTENSIONS = ['.ttf', '.otf', '.woff', '.woff2']
+
+/** Un file di font del progetto, con i dati letti dal file */
+export interface ProjectFont {
+  /** Percorso sotto assets/ */
+  path: string
+  family: string
+  /** Peso, o intervallo "100 900" per i font variabili */
+  weight: string
+  style: 'normal' | 'italic'
 }

@@ -1,3 +1,4 @@
+import { parseImageAttrs, type ImageSettings } from './variables'
 import { msg, type Message } from '../messages'
 import type { HAlign } from './template'
 
@@ -43,8 +44,11 @@ export type Inline =
   | { t: 'text'; text: string }
   | { t: 'br' }
   | { t: 'span'; attrs: Attrs; children: Inline[] }
-  /** {nome} o {nome*3}: variabile, campo o immagine, risolta da chi disegna */
-  | { t: 'ref'; name: string; count: number; raw: string }
+  /**
+   * {nome}, {nome*3} o {nome tint=red rotate=90}: variabile, campo o immagine, risolta da chi
+   * disegna; image sono gli attributi scritti dopo il nome
+   */
+  | { t: 'ref'; name: string; count: number; raw: string; image?: ImageSettings }
 
 export type BlockKind = 'p' | 'h1' | 'h2' | 'note' | 'bullet' | 'number' | 'rule'
 
@@ -345,7 +349,21 @@ class InlineParser {
 
   private ref(open: number, close: number): Inline {
     const raw = this.s.slice(open, close + 1)
-    const inner = this.s.slice(open + 1, close).trim()
+    let inner = this.s.slice(open + 1, close).trim()
+    // attributi dell'immagine dopo il nome: {spada*2 tint=red}
+    let image: ImageSettings | undefined
+    const space = inner.search(/\s/)
+    const attrs = space > 0 ? parseImageAttrs(inner.slice(space)) : null
+    if (attrs) {
+      inner = inner.slice(0, space)
+      image = attrs.settings
+      for (const a of attrs.bad)
+        this.problems.push({
+          message: msg('markup.badImageAttr', { text: a }),
+          from: open,
+          to: close + 1
+        })
+    }
     const star = inner.indexOf('*')
     const name = (star < 0 ? inner : inner.slice(0, star)).trim()
     let count = 1
@@ -360,7 +378,7 @@ class InlineParser {
       } else count = Math.min(50, Math.floor(n))
     }
     if (!name) this.problems.push({ message: msg('markup.emptyRef'), from: open, to: close + 1 })
-    return { t: 'ref', name, count, raw }
+    return image ? { t: 'ref', name, count, raw, image } : { t: 'ref', name, count, raw }
   }
 
   /** Parentesi di chiusura corrispondente, tenendo conto di annidamenti ed escape */

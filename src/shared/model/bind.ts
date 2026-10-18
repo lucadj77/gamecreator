@@ -58,12 +58,15 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
   const problems: Message[] = []
   const overrides = new Map<string, Map<string, string>>()
   for (const [header, value] of Object.entries(card.fields)) {
-    if (value.trim() === '' || header === 'amount') continue
+    if (value === '' || header === 'amount') continue
     const dot = header.indexOf('.')
     const layer = dot < 0 ? header : header.slice(0, dot)
     const prop = dot < 0 ? null : header.slice(dot + 1)
+    // cella vuota: vale il valore del template; solo spazi svuotano il valore principale, mentre
+    // per le altre proprietà (dimensione, colore...) contano come cella vuota
+    if (prop !== null && value.trim() === '') continue
     if (!overrides.has(layer)) overrides.set(layer, new Map())
-    overrides.get(layer)!.set(prop ?? '', value)
+    overrides.get(layer)!.set(prop ?? '', value.trim() === '' ? '' : value)
   }
 
   const fields = cardFields(template, card, ctx.variables)
@@ -215,7 +218,7 @@ export function cardFields(
     if (v !== null) fields[l.name] = v
   }
   for (const [k, v] of Object.entries(card.fields))
-    if (v.trim() !== '' || !(k in fields)) fields[k] = v
+    if (v !== '' || !(k in fields)) fields[k] = v.trim() === '' ? '' : v
   for (const l of all) {
     if (l.type !== 'value') continue
     const src = l.source
@@ -223,7 +226,7 @@ export function cardFields(
     else if (src.kind === 'formula') fields[l.name] = evaluateFormula(src.expr, fields).value
     else if (src.column) {
       const cell = card.fields[src.column]
-      fields[l.name] = cell?.trim() ? cell : l.value
+      fields[l.name] = cell ? (cell.trim() ? cell : '') : l.value
     }
   }
   return fields

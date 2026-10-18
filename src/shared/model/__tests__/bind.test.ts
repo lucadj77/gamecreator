@@ -138,6 +138,15 @@ describe('valori predefiniti e livelli valore', () => {
     expect(text(b, 4)).toBe('Orco!')
   })
 
+  it('una cella vuota lascia il valore del template, una con soli spazi lo svuota', () => {
+    const vuota = bindCard(t, rowToCard(['titolo', 'titolo.size'], ['', '']))
+    expect(text(vuota, 3)).toBe('Drago')
+    const spazi = bindCard(t, rowToCard(['titolo', 'titolo.size'], [' ', '  ']))
+    expect(text(spazi, 3)).toBe('')
+    expect(text(spazi, 4)).toBe('!')
+    expect(spazi.problems).toEqual([])
+  })
+
   it('un livello valore non ha riquadro e non sposta i gruppi', () => {
     const g = normalizeTemplate({
       name: 'g',

@@ -20,6 +20,9 @@ const api: Api = {
   saveExportProfiles: (profiles) => ipcRenderer.invoke('export:save-profiles', profiles),
   defaultExportFolders: () => ipcRenderer.invoke('export:default-folders'),
   showFolder: (path) => ipcRenderer.invoke('shell:show-folder', path),
+  chooseFolder: (current) => ipcRenderer.invoke('folder:choose', current),
+  defaultTtcTarget: (source) => ipcRenderer.invoke('ttc:default-target', source),
+  importTtc: (options) => ipcRenderer.invoke('ttc:import', options),
   exportPage: {
     onContext: (cb) => ipcRenderer.on('export:context', (_, c) => cb(c)),
     onScene: (cb) => ipcRenderer.on('export:scene', (_, id, scene) => cb(id, scene)),

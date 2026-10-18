@@ -5,6 +5,8 @@ export const en = {
   'app.reload': 'Reload',
   'app.loading': 'Loading…',
   'app.empty': 'Open a folder that contains a gamecreator.json file.',
+  'app.uiSize': 'Interface size',
+  'app.uiSizeHint': 'Enlarges text and controls of the whole app',
   'app.language': 'Language',
 
   'sidebar.sets': 'Sets',

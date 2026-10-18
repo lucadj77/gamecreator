@@ -1,11 +1,12 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webFrame } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { Api } from '../shared/api'
 
 const api: Api = {
   chooseProjectFolder: () => ipcRenderer.invoke('project:choose-folder'),
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
-  saveTemplate: (template) => ipcRenderer.invoke('template:save', template)
+  saveTemplate: (template) => ipcRenderer.invoke('template:save', template),
+  setUiZoom: (factor) => webFrame.setZoomFactor(factor)
 }
 
 if (process.contextIsolated) {

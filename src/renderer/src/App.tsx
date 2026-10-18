@@ -17,12 +17,34 @@ import { LANGUAGES, useI18n, type Language } from './i18n/context'
 
 const LAST_FOLDER_KEY = 'lastProjectFolder'
 const VIEW_KEY = 'setView'
+const UI_ZOOM_KEY = 'uiZoom'
+const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
+
+function loadUiZoom(): number {
+  try {
+    const z = Number(localStorage.getItem(UI_ZOOM_KEY))
+    return UI_ZOOMS.includes(z) ? z : 1
+  } catch {
+    return 1
+  }
+}
 
 type View = 'table' | 'grid'
 type Selected = { kind: 'set'; index: number } | { kind: 'template'; name: string }
 
 function App(): React.JSX.Element {
   const { t, lang, setLang } = useI18n()
+  // dimensione dell'interfaccia: ingrandisce testi e controlli insieme, come ⌘+ nel browser
+  const [uiZoom, setUiZoom] = useState(loadUiZoom)
+  useEffect(() => window.api.setUiZoom(uiZoom), [uiZoom])
+  const changeUiZoom = (z: number): void => {
+    setUiZoom(z)
+    try {
+      localStorage.setItem(UI_ZOOM_KEY, String(z))
+    } catch {
+      // preferenza non essenziale
+    }
+  }
   const [project, setProject] = useState<LoadedProject | null>(null)
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
   const [error, setError] = useState<Message | null>(null)
@@ -147,6 +169,16 @@ function App(): React.JSX.Element {
           )}
           {loading && <span className="muted">{t('app.loading')}</span>}
           <span className="spacer" />
+          <label className="muted" title={t('app.uiSizeHint')}>
+            {t('app.uiSize')}{' '}
+            <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
+              {UI_ZOOMS.map((z) => (
+                <option key={z} value={z}>
+                  {Math.round(z * 100)}%
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="muted">
             {t('app.language')}{' '}
             <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>

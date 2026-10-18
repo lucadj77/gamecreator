@@ -5,6 +5,8 @@ export const it: Record<MessageKey, string> = {
   'app.reload': 'Ricarica',
   'app.loading': 'Caricamento…',
   'app.empty': 'Apri una cartella che contiene un file gamecreator.json.',
+  'app.uiSize': 'Dimensione interfaccia',
+  'app.uiSizeHint': "Ingrandisce testi e controlli di tutta l'app",
   'app.language': 'Lingua',
 
   'sidebar.sets': 'Set',

@@ -7,4 +7,6 @@ export interface Api {
   loadProject(folder: string): Promise<LoadedProject>
   /** Salva il template nel progetto aperto */
   saveTemplate(template: Template): Promise<void>
+  /** Ingrandimento di tutta l'interfaccia, 1 = 100% */
+  setUiZoom(factor: number): void
 }

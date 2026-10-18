@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { findParent, isNameTaken, patchLayer } from '../../../shared/model/edit'
+import { findParent, isNameTaken, moveLayerTo, patchLayer } from '../../../shared/model/edit'
 import type { Layer } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import type { Commands } from './commands'
@@ -10,6 +10,8 @@ interface Props {
   dispatch: React.Dispatch<EditorAction>
   cmd: Commands
 }
+
+type DropWhere = 'before' | 'after' | 'inside'
 
 const ICONS: Record<string, string> = {
   text: 'T',
@@ -27,6 +29,8 @@ export default function LayersPanel({ state, dispatch, cmd }: Props): React.JSX.
   const { t } = useI18n()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [renaming, setRenaming] = useState<string | null>(null)
+  const [dragging, setDragging] = useState<string | null>(null)
+  const [drop, setDrop] = useState<{ id: string; where: DropWhere } | null>(null)
   const { template: tpl, side, selection } = state
   const layers = tpl[side]
 
@@ -54,10 +58,48 @@ export default function LayersPanel({ state, dispatch, cmd }: Props): React.JSX.
       return (
         <li key={l.id}>
           <div
-            className={`layer-row${selection.includes(l.id) ? ' selected' : ''}${l.visible ? '' : ' hidden'}`}
+            className={[
+              'layer-row',
+              selection.includes(l.id) && 'selected',
+              !l.visible && 'hidden',
+              dragging === l.id && 'dragging',
+              drop?.id === l.id && `drop-${drop.where}`
+            ]
+              .filter(Boolean)
+              .join(' ')}
             style={{ paddingLeft: 6 + depth * 14 }}
             onClick={(e) => select(l, e)}
             onDoubleClick={() => setRenaming(l.id)}
+            draggable={renaming !== l.id}
+            onDragStart={(e) => {
+              e.dataTransfer.effectAllowed = 'move'
+              e.dataTransfer.setData('text/plain', l.name)
+              setDragging(l.id)
+            }}
+            onDragEnd={() => {
+              setDragging(null)
+              setDrop(null)
+            }}
+            onDragOver={(e) => {
+              if (!dragging || dragging === l.id) return
+              e.preventDefault()
+              const r = e.currentTarget.getBoundingClientRect()
+              const f = (e.clientY - r.top) / r.height
+              // al centro di un gruppo si entra nel gruppo, ai bordi si va sopra o sotto
+              const where: DropWhere =
+                l.type === 'group' && f > 0.25 && f < 0.75 ? 'inside' : f < 0.5 ? 'before' : 'after'
+              if (drop?.id !== l.id || drop.where !== where) setDrop({ id: l.id, where })
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              if (dragging && drop) {
+                const moved = moveLayerTo(tpl, side, dragging, drop.id, drop.where)
+                if (moved !== tpl)
+                  dispatch({ type: 'change', template: moved, selection: [dragging] })
+              }
+              setDragging(null)
+              setDrop(null)
+            }}
           >
             <span
               className="layer-twisty"
@@ -125,6 +167,7 @@ export default function LayersPanel({ state, dispatch, cmd }: Props): React.JSX.
           <p className="muted small">{t('layers.empty')}</p>
         )}
       </div>
+      <p className="muted small layers-hint">{t('layers.hint')}</p>
       <div className="layers-actions">
         <button disabled={none} title={t('layers.up')} onClick={() => cmd.move('up')}>
           ↑

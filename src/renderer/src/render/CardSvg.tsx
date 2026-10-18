@@ -3,6 +3,7 @@ import { resolveAsset } from '../../../shared/model/assets'
 import { anchorPoint } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
+import { fitRect, useImageSize } from './imageSize'
 import type {
   GroupLayer,
   ImageLayer,
@@ -195,6 +196,7 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
   const { t } = useI18n()
   const showEmpty = useContext(ShowEmptyContext)
   const res = resolveAsset(l.src, assets)
+  const size = useImageSize(res.ok ? assetUrl(res.path) : null)
   if (!res.ok) {
     if (res.reason === 'empty' && showEmpty) return <Placeholder layer={l} label={l.name} />
     if (l.missing === 'hide' || res.reason === 'empty') return null
@@ -203,6 +205,9 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     const key = res.reason === 'ambiguous' ? 'asset.ambiguous' : 'asset.missing'
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
   }
+  // finché non si conoscono le dimensioni si lascia fare a preserveAspectRatio
+  const r = size ? fitRect(l, size, l.fit) : l
+  const rect = { x: r.x, y: r.y, width: r.w, height: r.h }
   const flip =
     l.flipH || l.flipV
       ? `translate(${l.flipH ? 2 * l.x + l.w : 0} ${l.flipV ? 2 * l.y + l.h : 0}) scale(${l.flipH ? -1 : 1} ${l.flipV ? -1 : 1})`
@@ -224,11 +229,8 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
       <g clipPath={`url(#${id}-clip)`}>
         <image
           href={assetUrl(res.path)}
-          x={l.x}
-          y={l.y}
-          width={l.w}
-          height={l.h}
-          preserveAspectRatio={PRESERVE[l.fit]}
+          {...rect}
+          preserveAspectRatio={size ? 'none' : PRESERVE[l.fit]}
           transform={flip}
           filter={l.tint ? `url(#${id}-tint)` : undefined}
         />
@@ -303,7 +305,11 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
   const s = TEXT_SCALE
   return (
     <g transform={`translate(${l.x} ${l.y}) scale(${1 / s})`}>
-      <foreignObject width={l.w * s} height={l.h * s}>
+      <foreignObject
+        width={l.w * s}
+        height={l.h * s}
+        overflow={l.fit === 'none' ? 'visible' : 'hidden'}
+      >
         <div
           ref={boxRef}
           style={{
@@ -314,7 +320,8 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: VALIGN[l.valign],
-            overflow: 'hidden',
+            // "esce dal riquadro" lascia vedere il testo in eccesso, le altre modalità lo tagliano
+            overflow: l.fit === 'none' ? 'visible' : 'hidden',
             fontFamily: `'${l.font}', sans-serif`,
             fontWeight: l.weight,
             fontStyle: l.italic ? 'italic' : 'normal',

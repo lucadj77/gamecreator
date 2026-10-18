@@ -202,6 +202,8 @@ export default function TemplateEditor({
         <PropertiesPanel
           state={state}
           dispatch={dispatch}
+          cmd={cmd}
+          sheets={sets.flatMap((s) => (s.data ? [{ set: s.name, headers: s.data.headers }] : []))}
           onResize={(w, h) => setResizing([w, h])}
         />
       </div>

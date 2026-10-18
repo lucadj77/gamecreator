@@ -35,8 +35,6 @@ export const it: Record<MessageKey, string> = {
   'editor.templateProperties': 'Template',
   'editor.noSelectionHint':
     'Seleziona un livello sulla carta o nel pannello livelli per modificarlo.',
-  'editor.multiSelection':
-    '{n} livelli selezionati. Spostali sulla carta o usa i pulsanti dei livelli.',
   'editor.geometry': 'Posizione e dimensioni',
   'editor.appearance': 'Aspetto',
   'editor.typography': 'Tipografia',
@@ -47,7 +45,8 @@ export const it: Record<MessageKey, string> = {
   'editor.nameTaken': 'Un altro livello ha già questo nome',
   'editor.anchorHint': 'Punto intorno a cui ruota il livello',
   'editor.lockedHint': 'Un livello bloccato non si seleziona né si sposta sulla carta',
-  'editor.pathHint': 'Tracciato SVG in coordinate 0-1 rispetto al riquadro del livello',
+  'editor.pathHint':
+    'Forma libera descritta come tracciato SVG (comandi M, L, C, Z) in coordinate da 0 a 1 rispetto al riquadro: per esempio M0 0 L1 0 L0.5 1 Z è un triangolo. Serve per forme importate da TTC o copiate da un programma di disegno; uno strumento per disegnarle arriverà più avanti.',
   'editor.srcPlaceholder': "nome dell'immagine, o {campo}",
   'editor.srcMissing': 'Nessuna immagine con questo nome in assets/',
   'editor.srcAmbiguous':
@@ -61,11 +60,26 @@ export const it: Record<MessageKey, string> = {
   'editor.rotateHint': 'Trascina per ruotare; Maiuscolo per passi di 15°',
   'editor.zoomIn': 'Ingrandisci',
   'editor.zoomOut': 'Riduci',
+  'editor.showBleed': 'Abbondanza',
+  'editor.showSafe': 'Area sicura',
+  'editor.zoomHint': 'Zoom con ⌘/Ctrl + rotella del mouse o pizzicando il trackpad',
   'editor.zoomFit': 'Adatta',
   'field.enabled': 'Attivo',
   'field.none': 'nessuno',
   'field.strokeWidth': 'Spessore in mm',
   'field.strokeWidthPercent': 'Spessore in mm, o in % della dimensione del testo (es. 8%)',
+  'layers.hint':
+    'Trascina un livello per riordinarlo, o sul centro di un gruppo per metterlo dentro. Maiuscolo- o ⌘-clic per selezionarne più di uno, poi raggruppali.',
+  'editor.multiSelectionTitle': '{n} livelli selezionati',
+  'editor.multiSelection':
+    'Spostali insieme sulla carta, o raggruppali per trattarli come un solo livello.',
+  'source.column':
+    'Sulle carte: dalla colonna «{column}» ({sets}). Una cella vuota tiene il valore impostato qui.',
+  'source.fields':
+    'Sulle carte: composto dai campi {fields} di ogni riga. Una colonna «{column}» lo sostituirebbe.',
+  'source.fixed':
+    'Sulle carte: il valore impostato qui, uguale per tutte. Aggiungi al foglio una colonna «{column}» per farlo variare.',
+  'source.properties': 'Altre colonne di questo livello: {columns}',
   'layers.title': 'Livelli',
   'layers.empty': 'Nessun livello. Aggiungine uno dalla barra degli strumenti.',
   'layers.up': 'Porta avanti',
@@ -172,7 +186,7 @@ export const it: Record<MessageKey, string> = {
   'transform.capitalize': 'Iniziali Maiuscole',
   'textFit.none': 'Esce dal riquadro',
   'textFit.shrink': 'Riduci per stare nel riquadro',
-  'textFit.truncate': 'Tronca',
+  'textFit.truncate': 'Taglia al bordo del riquadro',
   'imageFit.cover': 'Riempi (ritaglia)',
   'imageFit.contain': 'Adatta dentro',
   'imageFit.stretch': 'Deforma',

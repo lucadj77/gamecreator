@@ -5,6 +5,7 @@ import {
   groupLayers,
   insertLayer,
   moveLayer,
+  moveLayerTo,
   newLayer,
   patchLayer,
   removeLayers,
@@ -31,6 +32,18 @@ describe('ordine e struttura', () => {
     expect(ids(moveLayer(base, 'front', 'b', 'up').front)).toEqual(['b', 'a', 'c'])
     expect(ids(moveLayer(base, 'front', 'b', 'down').front)).toEqual(['a', 'c', 'b'])
     expect(ids(moveLayer(base, 'front', 'a', 'up').front)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('sposta trascinando sopra, sotto o dentro un gruppo', () => {
+    expect(ids(moveLayerTo(base, 'front', 'c', 'a', 'before').front)).toEqual(['c', 'a', 'b'])
+    expect(ids(moveLayerTo(base, 'front', 'a', 'c', 'after').front)).toEqual(['b', 'c', 'a'])
+    const { template, groupId } = groupLayers(base, 'front', ['a', 'b'])
+    const inside = moveLayerTo(template, 'front', 'c', groupId!, 'inside')
+    expect(ids((inside.front[0] as GroupLayer).children)).toEqual(['c', 'a', 'b'])
+    // il gruppo si allarga per contenere il nuovo figlio
+    expect(inside.front[0].h).toBe(88)
+    // un gruppo non entra in se stesso
+    expect(moveLayerTo(template, 'front', groupId!, 'a', 'before')).toBe(template)
   })
 
   it('inserisce sopra al riferimento o in cima', () => {

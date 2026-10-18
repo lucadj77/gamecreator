@@ -137,6 +137,44 @@ export function moveLayer(t: Template, side: Side, id: string, direction: 'up' |
   return { ...t, [side]: mv(t[side]) }
 }
 
+/**
+ * Sposta un livello accanto a un altro, anche in un contenitore diverso: 'before' sopra al
+ * riferimento, 'after' sotto, 'inside' come primo figlio di un gruppo.
+ */
+export function moveLayerTo(
+  t: Template,
+  side: Side,
+  id: string,
+  targetId: string,
+  where: 'before' | 'after' | 'inside'
+): Template {
+  const layer = findLayer(t[side], id)
+  const target = findLayer(t[side], targetId)
+  if (!layer || !target || id === targetId) return t
+  // un gruppo non può finire dentro se stesso
+  if (layer.type === 'group' && findLayer(layer.children, targetId)) return t
+  if (where === 'inside' && target.type !== 'group') return t
+  const without = removeLayers(t, side, [id])
+  if (!findLayer(without[side], targetId)) return t
+  const put = (layers: Layer[]): Layer[] => {
+    const i = layers.findIndex((l) => l.id === targetId)
+    if (i >= 0) {
+      if (where === 'inside') {
+        const g = layers[i] as GroupLayer
+        const out = [...layers]
+        out[i] = fitGroup({ ...g, children: [layer, ...g.children] })
+        return out
+      }
+      const at = where === 'before' ? i : i + 1
+      return [...layers.slice(0, at), layer, ...layers.slice(at)]
+    }
+    return layers.map((l) =>
+      l.type === 'group' ? fitGroup({ ...l, children: put(l.children) }) : l
+    )
+  }
+  return { ...without, [side]: put(without[side]) }
+}
+
 export function uniqueName(t: Template, base: string): string {
   const names = new Set(walkLayers([...t.front, ...t.back]).map((l) => l.name))
   const stem = base.replace(/_\d+$/, '')

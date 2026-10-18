@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   findLayer,
   transformInto,
@@ -32,6 +32,8 @@ const SNAP = 0.5
 const HANDLE_PX = 8
 const ROTATE_PX = 22
 const ZOOMS = [2, 3, 4, 6, 8, 12, 16]
+const MIN_SCALE = 1
+const MAX_SCALE = 60
 
 type Gesture =
   | { kind: 'move'; start: Template; ids: string[]; frame: GroupLayer[]; p0: Point; ref: Layer }
@@ -53,8 +55,19 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const gesture = useRef<Gesture | null>(null)
   const [fitScale, setFitScale] = useState(4)
   const [zoom, setZoom] = useState<number | null>(null)
+  const [guides, setGuides] = useState(loadGuides)
+  const toggleGuide = (key: keyof Guides): void => {
+    const next = { ...guides, [key]: !guides[key] }
+    setGuides(next)
+    try {
+      localStorage.setItem(GUIDES_KEY, JSON.stringify(next))
+    } catch {
+      // preferenza non essenziale
+    }
+  }
 
-  const b = tpl.bleed
+  // senza abbondanza la tela mostra la carta rifilata, con gli angoli arrotondati
+  const b = guides.bleed ? tpl.bleed : 0
   const vw = tpl.width + 2 * b
   const vh = tpl.height + 2 * b
   const scale = zoom ?? fitScale
@@ -69,6 +82,43 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     ro.observe(el)
     return () => ro.disconnect()
   }, [vw, vh])
+
+  // zoom con Cmd/Ctrl + rotella o con il pizzico sul trackpad, tenendo fermo il punto sotto il puntatore
+  const scaleRef = useRef(scale)
+  const anchor = useRef<{ mm: Point; cx: number; cy: number } | null>(null)
+  useLayoutEffect(() => {
+    scaleRef.current = scale
+    const a = anchor.current
+    const vp = viewportRef.current
+    const ov = overlayRef.current
+    if (!a || !vp || !ov) return
+    anchor.current = null
+    const r = ov.getBoundingClientRect()
+    vp.scrollLeft += r.left + (a.mm.x + b) * scale - a.cx
+    vp.scrollTop += r.top + (a.mm.y + b) * scale - a.cy
+  }, [scale, b])
+  useEffect(() => {
+    const vp = viewportRef.current
+    if (!vp) return
+    const onWheel = (e: WheelEvent): void => {
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      const ov = overlayRef.current
+      if (!ov) return
+      const s = scaleRef.current
+      const r = ov.getBoundingClientRect()
+      anchor.current = {
+        mm: { x: (e.clientX - r.left) / s - b, y: (e.clientY - r.top) / s - b },
+        cx: e.clientX,
+        cy: e.clientY
+      }
+      // uno scatto della rotella vale circa il 20%; i delta piccoli del trackpad danno uno zoom fluido
+      const d = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 50)
+      setZoom(Math.min(MAX_SCALE, Math.max(MIN_SCALE, s * Math.exp(-d * 0.004))))
+    }
+    vp.addEventListener('wheel', onWheel, { passive: false })
+    return () => vp.removeEventListener('wheel', onWheel)
+  }, [b])
 
   const layers = tpl[side]
 
@@ -187,86 +237,110 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const scopeGroup = scope ? findLayer(layers, scope) : null
 
   return (
-    <div
-      className="canvas-viewport"
-      ref={viewportRef}
-      onPointerDown={(e) => {
-        if (e.target === e.currentTarget) dispatch({ type: 'select', ids: [], scope: null })
-      }}
-    >
-      <div className="canvas-stage" style={{ width: vw * scale, height: vh * scale }}>
-        <ShowEmptyContext.Provider value={true}>
-          <CardSvg template={display} side={side} scale={scale} mode="bleed" />
-        </ShowEmptyContext.Provider>
-        <svg
-          ref={overlayRef}
-          className="canvas-overlay"
-          width={vw * scale}
-          height={vh * scale}
-          viewBox={`${-b} ${-b} ${vw} ${vh}`}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onDoubleClick={onDoubleClick}
-        >
-          <rect
-            x={tpl.safeMargin}
-            y={tpl.safeMargin}
-            width={tpl.width - 2 * tpl.safeMargin}
-            height={tpl.height - 2 * tpl.safeMargin}
-            className="safe-area"
-            vectorEffect="non-scaling-stroke"
-          />
-          {scopeGroup && (
-            <Framed chain={frameOf(scopeGroup.id)} layer={scopeGroup}>
-              <Outline b={scopeGroup} className="scope-outline" />
-            </Framed>
-          )}
-          {selected.map((l) => (
-            <Framed key={l.id} chain={frameOf(l.id)} layer={l}>
-              <Outline b={l} className={l.locked ? 'sel-outline locked' : 'sel-outline'} />
-              {selected.length === 1 && !l.locked && (
-                <>
-                  <line
-                    x1={l.x + l.w / 2}
-                    y1={l.y}
-                    x2={l.x + l.w / 2}
-                    y2={l.y - ROTATE_PX * px}
-                    className="sel-outline"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                  <circle
-                    cx={l.x + l.w / 2}
-                    cy={l.y - ROTATE_PX * px}
-                    r={(HANDLE_PX / 2) * px}
-                    className="handle rotate"
-                    vectorEffect="non-scaling-stroke"
-                    onPointerDown={(e) => onHandleDown(e, l, 'rotate')}
-                  >
-                    <title>{t('editor.rotateHint')}</title>
-                  </circle>
-                  {HANDLES.map((h) => {
-                    const pos = handlePosition(l, h)
-                    return (
-                      <rect
-                        key={h}
-                        x={pos.x - (HANDLE_PX / 2) * px}
-                        y={pos.y - (HANDLE_PX / 2) * px}
-                        width={HANDLE_PX * px}
-                        height={HANDLE_PX * px}
-                        className={`handle h-${h}`}
-                        vectorEffect="non-scaling-stroke"
-                        onPointerDown={(e) => onHandleDown(e, l, h)}
-                      />
-                    )
-                  })}
-                </>
-              )}
-            </Framed>
-          ))}
-        </svg>
+    <>
+      <div
+        className="canvas-viewport"
+        ref={viewportRef}
+        onPointerDown={(e) => {
+          if (e.target === e.currentTarget) dispatch({ type: 'select', ids: [], scope: null })
+        }}
+      >
+        <div className="canvas-stage" style={{ width: vw * scale, height: vh * scale }}>
+          <ShowEmptyContext.Provider value={true}>
+            <CardSvg
+              template={display}
+              side={side}
+              scale={scale}
+              mode={guides.bleed ? 'bleed' : 'trim'}
+            />
+          </ShowEmptyContext.Provider>
+          <svg
+            ref={overlayRef}
+            className="canvas-overlay"
+            width={vw * scale}
+            height={vh * scale}
+            viewBox={`${-b} ${-b} ${vw} ${vh}`}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onDoubleClick={onDoubleClick}
+          >
+            {guides.safe && (
+              <rect
+                x={tpl.safeMargin}
+                y={tpl.safeMargin}
+                width={tpl.width - 2 * tpl.safeMargin}
+                height={tpl.height - 2 * tpl.safeMargin}
+                className="safe-area"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
+            {scopeGroup && (
+              <Framed chain={frameOf(scopeGroup.id)} layer={scopeGroup}>
+                <Outline b={scopeGroup} className="scope-outline" />
+              </Framed>
+            )}
+            {selected.map((l) => (
+              <Framed key={l.id} chain={frameOf(l.id)} layer={l}>
+                <Outline b={l} className={l.locked ? 'sel-outline locked' : 'sel-outline'} />
+                {selected.length === 1 && !l.locked && (
+                  <>
+                    <line
+                      x1={l.x + l.w / 2}
+                      y1={l.y}
+                      x2={l.x + l.w / 2}
+                      y2={l.y - ROTATE_PX * px}
+                      className="sel-outline"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <circle
+                      cx={l.x + l.w / 2}
+                      cy={l.y - ROTATE_PX * px}
+                      r={(HANDLE_PX / 2) * px}
+                      className="handle rotate"
+                      vectorEffect="non-scaling-stroke"
+                      onPointerDown={(e) => onHandleDown(e, l, 'rotate')}
+                    >
+                      <title>{t('editor.rotateHint')}</title>
+                    </circle>
+                    {HANDLES.map((h) => {
+                      const pos = handlePosition(l, h)
+                      return (
+                        <rect
+                          key={h}
+                          x={pos.x - (HANDLE_PX / 2) * px}
+                          y={pos.y - (HANDLE_PX / 2) * px}
+                          width={HANDLE_PX * px}
+                          height={HANDLE_PX * px}
+                          className={`handle h-${h}`}
+                          vectorEffect="non-scaling-stroke"
+                          onPointerDown={(e) => onHandleDown(e, l, h)}
+                        />
+                      )
+                    })}
+                  </>
+                )}
+              </Framed>
+            ))}
+          </svg>
+        </div>
       </div>
       <div className="zoom-controls">
+        <button
+          className={guides.bleed ? 'active' : ''}
+          aria-pressed={guides.bleed}
+          onClick={() => toggleGuide('bleed')}
+        >
+          {t('editor.showBleed')}
+        </button>
+        <button
+          className={guides.safe ? 'active' : ''}
+          aria-pressed={guides.safe}
+          onClick={() => toggleGuide('safe')}
+        >
+          {t('editor.showSafe')}
+        </button>
+        <span className="zoom-sep" />
         <button onClick={() => setZoom(stepZoom(scale, -1))} aria-label={t('editor.zoomOut')}>
           −
         </button>
@@ -276,10 +350,27 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         <button onClick={() => setZoom(stepZoom(scale, 1))} aria-label={t('editor.zoomIn')}>
           +
         </button>
-        <span className="muted small">{Math.round((scale / 3.78) * 100)}%</span>
+        <span className="muted small" title={t('editor.zoomHint')}>
+          {Math.round((scale / 3.78) * 100)}%
+        </span>
       </div>
-    </div>
+    </>
   )
+}
+
+interface Guides {
+  bleed: boolean
+  safe: boolean
+}
+
+const GUIDES_KEY = 'editorGuides'
+
+function loadGuides(): Guides {
+  try {
+    return { bleed: true, safe: true, ...JSON.parse(localStorage.getItem(GUIDES_KEY) ?? '{}') }
+  } catch {
+    return { bleed: true, safe: true }
+  }
 }
 
 /** Disegna i figli nel sistema del livello: rotazioni dei gruppi che lo contengono e la sua */

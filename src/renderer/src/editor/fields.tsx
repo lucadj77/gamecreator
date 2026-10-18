@@ -95,11 +95,14 @@ export function TextField({
   multiline,
   list,
   validate,
-  placeholder
+  placeholder,
+  live
 }: Base & {
   value: string
   onChange(v: string): void
   multiline?: boolean
+  /** Aggiorna a ogni tasto invece che alla conferma */
+  live?: boolean
   list?: string
   /** Messaggio di errore, oppure null se il valore va bene */
   validate?(v: string): string | null
@@ -124,7 +127,10 @@ export function TextField({
         <textarea
           {...common}
           rows={4}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value)
+            if (live) onChange(e.target.value)
+          }}
           onKeyDown={(e) => {
             // Invio va a capo; Cmd/Ctrl+Invio conferma
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) commit()
@@ -301,7 +307,7 @@ export function StrokeField({
         <>
           <ColorInput value={value.color} onChange={(color) => onChange({ ...value, color })} />
           <input
-            className="num"
+            className="num narrow"
             value={text}
             title={allowPercent ? t('field.strokeWidthPercent') : t('field.strokeWidth')}
             onChange={(e) => setText(e.target.value)}

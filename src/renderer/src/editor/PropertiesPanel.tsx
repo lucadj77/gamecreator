@@ -24,15 +24,25 @@ import {
   TextField
 } from './fields'
 import type { EditorAction, EditorState } from './useEditor'
+import type { Commands } from './commands'
 
 interface Props {
   state: EditorState
   dispatch: React.Dispatch<EditorAction>
+  cmd: Commands
+  /** Intestazioni dei fogli dei set che usano il template */
+  sheets: { set: string; headers: string[] }[]
   /** Cambio di formato: chiede se scalare i livelli */
   onResize(width: number, height: number): void
 }
 
-export default function PropertiesPanel({ state, dispatch, onResize }: Props): React.JSX.Element {
+export default function PropertiesPanel({
+  state,
+  dispatch,
+  cmd,
+  sheets,
+  onResize
+}: Props): React.JSX.Element {
   const { t } = useI18n()
   const { template: tpl, side, selection } = state
   const layer = selection.length === 1 ? findLayer(tpl[side], selection[0]) : null
@@ -40,9 +50,32 @@ export default function PropertiesPanel({ state, dispatch, onResize }: Props): R
   return (
     <aside className="properties">
       {selection.length > 1 ? (
-        <p className="muted">{t('editor.multiSelection', { n: selection.length })}</p>
+        <>
+          <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
+          <p className="muted small">{t('editor.multiSelection')}</p>
+          <div className="selection-actions">
+            <button disabled={!cmd.canGroup} onClick={cmd.group}>
+              {t('layers.group')}
+            </button>
+            <button onClick={cmd.duplicate}>{t('layers.duplicate')}</button>
+            <button onClick={cmd.remove}>{t('layers.delete')}</button>
+          </div>
+        </>
       ) : layer ? (
-        <LayerProperties key={layer.id} layer={layer} state={state} dispatch={dispatch} />
+        <>
+          <LayerProperties
+            key={layer.id}
+            layer={layer}
+            state={state}
+            dispatch={dispatch}
+            sheets={sheets}
+          />
+          {layer.type === 'group' && (
+            <div className="selection-actions">
+              <button onClick={cmd.ungroup}>{t('layers.ungroup')}</button>
+            </div>
+          )}
+        </>
       ) : (
         <TemplateProperties template={tpl} dispatch={dispatch} onResize={onResize} />
       )}
@@ -112,11 +145,13 @@ function TemplateProperties({
 function LayerProperties({
   layer: l,
   state,
-  dispatch
+  dispatch,
+  sheets
 }: {
   layer: Layer
   state: EditorState
   dispatch: React.Dispatch<EditorAction>
+  sheets: Props['sheets']
 }): React.JSX.Element {
   const { t } = useI18n()
   const { template: tpl, side } = state
@@ -148,6 +183,7 @@ function LayerProperties({
         validate={validateName}
         onChange={(name) => set({ name })}
       />
+      <ValueSource layer={l} sheets={sheets} />
 
       {l.type === 'text' && <TextProperties l={l} set={set} col={col} />}
       {l.type === 'image' && <ImageProperties l={l} set={set} col={col} />}
@@ -267,6 +303,7 @@ function TextProperties({ l, set: setLayer, col }: TypeProps<TextLayer>): React.
         hint={col()}
         value={l.text}
         multiline
+        live
         onChange={(text) => set({ text })}
       />
       <h3>{t('editor.typography')}</h3>
@@ -549,5 +586,37 @@ function ShapeProperties({ l, set: setLayer, col }: TypeProps<ShapeLayer>): Reac
         />
       )}
     </>
+  )
+}
+
+/** Da dove arriva il valore del livello sulle carte: fisso nel template o da una colonna */
+function ValueSource({
+  layer: l,
+  sheets
+}: {
+  layer: Layer
+  sheets: Props['sheets']
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const main = sheets.filter((s) => s.headers.includes(l.name)).map((s) => s.set)
+  const others = [
+    ...new Set(sheets.flatMap((s) => s.headers.filter((h) => h.startsWith(l.name + '.'))))
+  ]
+  const value = l.type === 'text' ? l.text : l.type === 'image' ? l.src : ''
+  const fields = [...new Set([...value.matchAll(/\{([^{}*]+)\}/g)].map((m) => m[1].trim()))]
+  return (
+    <p className="value-source small">
+      {main.length
+        ? t('source.column', { column: l.name, sets: main.join(', ') })
+        : fields.length
+          ? t('source.fields', { fields: fields.join(', '), column: l.name })
+          : t('source.fixed', { column: l.name })}
+      {others.length > 0 && (
+        <>
+          <br />
+          {t('source.properties', { columns: others.join(', ') })}
+        </>
+      )}
+    </p>
   )
 }

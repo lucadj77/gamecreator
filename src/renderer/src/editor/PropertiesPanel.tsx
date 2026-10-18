@@ -642,7 +642,7 @@ function ShapeProperties({
         value={l.stroke}
         onChange={(stroke) => set({ stroke })}
       />
-      {l.shape === 'rect' && (
+      {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (
         <NumberField
           label={t('prop.radius')}
           hint={col('radius')}

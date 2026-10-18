@@ -4,7 +4,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
-import { saveTemplate } from './project/templates'
+import { saveTemplate, trashTemplate } from './project/templates'
 import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
@@ -101,6 +101,12 @@ function registerIpc(): void {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     await saveTemplate(folder, template)
+  })
+
+  ipcMain.handle('template:delete', async (_, file: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await trashTemplate(folder, file)
   })
 
   ipcMain.handle('data:save', async (_, changes: DataChanges) => {

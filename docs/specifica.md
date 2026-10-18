@@ -298,6 +298,10 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 | ordine delle carte   | manuale, trascinando righe in tabella o carte nella griglia; è l'ordine delle righe nel foglio e quello di esportazione         |
 | ordinamento e filtro | per qualsiasi colonna, solo nella vista, senza cambiare l'ordine salvato; si può rendere definitivo con "Applica questo ordine" |
 
+- Sotto l'anteprima della carta, **Modifica template** apre nell'editor il template del set.
+- Il cestino accanto a un set lo toglie dal progetto dopo una conferma. Il foglio dei dati resta nel file, tra quelli non collegati, e si può ricollegare con **Nuovo set**; ⌘Z annulla.
+- Il cestino accanto a un template lo elimina dopo una conferma, spostando il file nel cestino del sistema. Un template usato da un set non si elimina: prima vanno eliminati i set che lo usano.
+
 ## 9. Esportazione
 
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.

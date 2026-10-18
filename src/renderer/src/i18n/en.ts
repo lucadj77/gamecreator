@@ -43,6 +43,12 @@ export const en = {
   'addColumn.add': 'Add',
   'addColumn.exists': 'The column already exists',
   'addColumn.invalid': 'Braces are not allowed in column names',
+  'sidebar.delete': 'Delete',
+  'sidebar.deleteSetConfirm':
+    'Delete the set "{name}"? Its sheet stays in the data file and can be linked again with New set.',
+  'sidebar.deleteTemplateConfirm': 'Delete the template "{name}"? Its file goes to the trash.',
+  'sidebar.templateInUse':
+    'The template "{name}" is used by these sets: {sets}. Delete them first.',
   'sidebar.duplicate': 'Duplicate',
   'duplicate.setTitle': 'Duplicate set',
   'duplicate.templateTitle': 'Duplicate template',
@@ -73,6 +79,7 @@ export const en = {
   'set.thumbSize': 'Card size (also ⌘/Ctrl + mouse wheel or pinch)',
   'set.copies': '× {n}',
 
+  'preview.editTemplate': 'Edit template',
   'preview.title': 'Preview',
   'preview.front': 'Front',
   'preview.back': 'Back',
@@ -214,6 +221,7 @@ export const en = {
   'tip.addThisColumn': 'Add the column {column} to the sheet',
   'tip.tableView': 'Edit the cards in a table, like a spreadsheet',
   'tip.gridView': 'See the cards as they will look, and edit the selected one',
+  'tip.editTemplate': 'Open the template "{name}" in the editor',
   'tip.front': 'Show the front of the cards',
   'tip.back': 'Show the back of the cards',
   'tip.showBleed': 'Show the bleed around the card, the part cut off when printing',

@@ -12,6 +12,7 @@ const api: Api = {
   defaultProjectsFolder: () => ipcRenderer.invoke('project:default-parent'),
   createProject: (name, parent) => ipcRenderer.invoke('project:create', name, parent),
   saveTemplate: (template) => ipcRenderer.invoke('template:save', template),
+  deleteTemplate: (file) => ipcRenderer.invoke('template:delete', file),
   saveData: (changes) => ipcRenderer.invoke('data:save', changes),
   setUiZoom: (factor) => webFrame.setZoomFactor(factor),
   setTheme: (theme) => ipcRenderer.send('theme:set', theme),

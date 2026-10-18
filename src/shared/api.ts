@@ -50,6 +50,8 @@ export interface Api {
   loadProject(folder: string): Promise<LoadedProject>
   /** Salva il template nel progetto aperto */
   saveTemplate(template: Template): Promise<void>
+  /** Sposta il file del template nel cestino del sistema */
+  deleteTemplate(file: string): Promise<void>
   /** Salva i fogli modificati e, se cambiati i set, gamecreator.json */
   saveData(changes: { file?: ProjectFile; sheets: Sheet[] }): Promise<void>
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */

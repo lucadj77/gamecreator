@@ -29,7 +29,14 @@ import {
 } from './components/usePanelWidth'
 import PanelSideButton from './components/PanelSideButton'
 import SidebarSection from './components/SidebarSection'
-import { PanelIcon, SetsIcon, StylesIcon, TemplateIcon, VariablesIcon } from './components/icons'
+import {
+  PanelIcon,
+  SetsIcon,
+  StylesIcon,
+  TemplateIcon,
+  TrashIcon,
+  VariablesIcon
+} from './components/icons'
 import TemplateEditor from './editor/TemplateEditor'
 import { NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
@@ -222,7 +229,14 @@ function App(): React.JSX.Element {
         ? { past: [...h.past, current], future: h.future.slice(0, -1), at: 0 }
         : { past: h.past.slice(0, -1), future: [...h.future, current], at: 0 }
     )
-    setProject({ ...project, ...snap })
+    // un set eliminato che torna riprende il suo foglio, che non è più tra quelli non collegati
+    const linked = new Set(snap.sets.flatMap((x) => (x.data ? [x.data.name] : [])))
+    setProject({
+      ...project,
+      ...snap,
+      unusedSheets: project.unusedSheets.filter((x) => !linked.has(x)),
+      unusedData: project.unusedData?.filter((x) => !linked.has(x.name))
+    })
     // ciò che cambia tornando indietro va comunque salvato
     setDirtySheets((d) => {
       const next = new Set(d)
@@ -371,6 +385,66 @@ function App(): React.JSX.Element {
     setDirtySheets((d) => new Set(d).add(name))
     setFileDirty(true)
     setSelected({ kind: 'set', index: at })
+  }
+
+  /**
+   * Toglie un set dal progetto. Il foglio dei dati resta nel file, tra quelli non collegati:
+   * si può ricollegare con Nuovo set, e ⌘Z annulla.
+   */
+  const deleteSet = (index: number): void => {
+    if (!project) return
+    const set = project.sets[index]
+    if (!window.confirm(t('sidebar.deleteSetConfirm', { name: set.name }))) return
+    setHistory((h) => ({
+      past: [...h.past, { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    const sheet = set.data
+    // un foglio mai salvato non è nel file: sparisce con il set
+    const saved = sheet && !dirtySheets.has(sheet.name)
+    setProject({
+      ...project,
+      sets: project.sets.filter((_, i) => i !== index),
+      file: { ...project.file, sets: project.file.sets.filter((_, i) => i !== index) },
+      unusedSheets: saved ? [...project.unusedSheets, sheet.name] : project.unusedSheets,
+      unusedData: saved ? [...(project.unusedData ?? []), sheet] : project.unusedData
+    })
+    if (sheet)
+      setDirtySheets((d) => {
+        const next = new Set(d)
+        next.delete(sheet.name)
+        return next
+      })
+    setFileDirty(true)
+    if (selected.kind === 'set' && selected.index >= index && selected.index > 0)
+      setSelected({ kind: 'set', index: selected.index - 1 })
+  }
+
+  /** Elimina un template non usato dai set: il file va nel cestino del sistema */
+  const deleteTemplate = async (name: string): Promise<void> => {
+    if (!project) return
+    const users = project.sets.filter((s) => s.template === name).map((s) => s.name)
+    if (users.length) {
+      window.alert(t('sidebar.templateInUse', { name, sets: users.join(', ') }))
+      return
+    }
+    const tpl = project.templates.find((x) => x.name === name)
+    if (!tpl || !window.confirm(t('sidebar.deleteTemplateConfirm', { name }))) return
+    try {
+      await window.api.deleteTemplate(tpl.file ?? tpl.name)
+    } catch (e) {
+      setError(messageFromError(e))
+      return
+    }
+    setProject((p) => p && { ...p, templates: p.templates.filter((x) => x.name !== name) })
+    setDirty((d) => {
+      const next = new Set(d)
+      next.delete(name)
+      return next
+    })
+    if (selected.kind === 'template' && selected.name === name)
+      setSelected({ kind: 'set', index: 0 })
   }
 
   const duplicateTemplate = (from: string, name: string): void => {
@@ -542,6 +616,13 @@ function App(): React.JSX.Element {
                   >
                     ⧉
                   </button>
+                  <button
+                    className="icon-btn item-dup"
+                    title={t('sidebar.delete')}
+                    onClick={() => deleteSet(i)}
+                  >
+                    <TrashIcon />
+                  </button>
                 </li>
               ))}
             </ul>
@@ -590,6 +671,13 @@ function App(): React.JSX.Element {
                     onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
                   >
                     ⧉
+                  </button>
+                  <button
+                    className="icon-btn item-dup"
+                    title={t('sidebar.delete')}
+                    onClick={() => deleteTemplate(tpl.name)}
+                  >
+                    <TrashIcon />
                   </button>
                 </li>
               ))}
@@ -779,6 +867,9 @@ function App(): React.JSX.Element {
                       onChange={(sheet, key) =>
                         updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
                       }
+                      onEditTemplate={() =>
+                        setSelected({ kind: 'template', name: current.template })
+                      }
                     />
                   ) : (
                     <section className="content">
@@ -945,11 +1036,14 @@ function App(): React.JSX.Element {
 function SetView({
   set,
   templates,
-  onChange
+  onChange,
+  onEditTemplate
 }: {
   set: LoadedSet
   templates: Template[]
   onChange(sheet: Sheet, key?: string): void
+  /** Apre nell'editor il template del set */
+  onEditTemplate(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const [selection, setSelection] = useState<number[]>([0])
@@ -1062,6 +1156,13 @@ function SetView({
           <div className="preview-card" title={t('preview.clickHint')} onClick={pickField}>
             <CardSvg template={card.template} side={side} scale={PREVIEW_SCALE} />
           </div>
+          <button
+            className="preview-edit"
+            title={t('tip.editTemplate', { name: set.template })}
+            onClick={onEditTemplate}
+          >
+            <TemplateIcon /> {t('preview.editTemplate')}
+          </button>
           {card.problems.length > 0 && (
             <div className="problems">
               <h3>{t('preview.problems')}</h3>

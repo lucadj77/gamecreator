@@ -142,3 +142,12 @@ export function ChevronIcon({ open }: { open: boolean }): React.JSX.Element {
     </svg>
   )
 }
+
+/** Elimina: un cestino */
+export function TrashIcon(): React.JSX.Element {
+  return (
+    <Outline>
+      <path d="M2.5 4h11M6.5 4V2.5h3V4M4 4l.7 9.5h6.6L12 4M6.8 6.5v4.5M9.2 6.5v4.5" />
+    </Outline>
+  )
+}

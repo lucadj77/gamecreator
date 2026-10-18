@@ -43,6 +43,11 @@ export const it: Record<MessageKey, string> = {
   'addColumn.add': 'Aggiungi',
   'addColumn.exists': 'La colonna esiste già',
   'addColumn.invalid': 'Le graffe non sono ammesse nei nomi delle colonne',
+  'sidebar.delete': 'Elimina',
+  'sidebar.deleteSetConfirm':
+    'Eliminare il set "{name}"? Il suo foglio resta nel file dei dati e si può ricollegare con Nuovo set.',
+  'sidebar.deleteTemplateConfirm': 'Eliminare il template "{name}"? Il file va nel cestino.',
+  'sidebar.templateInUse': 'Il template "{name}" è usato da questi set: {sets}. Eliminali prima.',
   'sidebar.duplicate': 'Duplica',
   'duplicate.setTitle': 'Duplica set',
   'duplicate.templateTitle': 'Duplica template',
@@ -73,6 +78,7 @@ export const it: Record<MessageKey, string> = {
   'set.thumbSize': 'Dimensione delle carte (anche ⌘/Ctrl + rotella o pizzico)',
   'set.copies': '× {n}',
 
+  'preview.editTemplate': 'Modifica template',
   'preview.title': 'Anteprima',
   'preview.front': 'Fronte',
   'preview.back': 'Retro',
@@ -218,6 +224,7 @@ export const it: Record<MessageKey, string> = {
   'tip.addThisColumn': 'Aggiungi la colonna {column} al foglio',
   'tip.tableView': 'Modifica le carte in una tabella, come in un foglio di calcolo',
   'tip.gridView': 'Guarda le carte come appariranno e modifica quella selezionata',
+  'tip.editTemplate': 'Apri il template "{name}" nell\'editor',
   'tip.front': 'Mostra il fronte delle carte',
   'tip.back': 'Mostra il retro delle carte',
   'tip.showBleed': "Mostra l'abbondanza intorno alla carta, la parte tagliata in stampa",

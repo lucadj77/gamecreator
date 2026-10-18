@@ -2184,3 +2184,12 @@ div.font-row {
   background: var(--accent-soft);
   color: var(--text);
 }
+
+/* sotto l'anteprima della carta: apre il template nell'editor */
+.preview-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px auto 0;
+  font-size: 12px;
+}

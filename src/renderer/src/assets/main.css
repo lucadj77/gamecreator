@@ -597,20 +597,20 @@ textarea.invalid {
 }
 
 .zoom-controls {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
+  /* striscia sotto la tela: non copre la carta né i pannelli, e nelle finestre strette va a capo */
+  flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  /* nelle finestre strette va a capo invece di uscire dalla tela */
-  max-width: calc(100% - 24px);
   gap: 4px;
   align-items: center;
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 3px 6px;
+  border-top: 1px solid var(--border);
+  padding: 4px 8px;
+}
+
+.zoom-controls button {
+  white-space: nowrap;
 }
 
 .zoom-controls button {

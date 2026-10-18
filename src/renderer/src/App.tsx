@@ -32,6 +32,7 @@ import CardSvg from './render/CardSvg'
 import { AssetsContext, SaveStyleContext, StylesContext } from './render/assets'
 import FormatDialog from './components/FormatDialog'
 import ExportDialog from './export/ExportDialog'
+import Tooltip from './components/Tooltip'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
@@ -409,6 +410,7 @@ function App(): React.JSX.Element {
             <button
               className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
               onClick={() => setSelected({ kind: 'set', index: i })}
+              title={t('tip.openSet')}
             >
               <span>
                 {s.name}
@@ -444,6 +446,7 @@ function App(): React.JSX.Element {
             <button
               className={selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''}
               onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+              title={t('tip.openTemplate')}
             >
               <span>
                 {tpl.name}
@@ -498,11 +501,17 @@ function App(): React.JSX.Element {
       <StylesContext.Provider value={project?.file.styles ?? NO_STYLES}>
         <SaveStyleContext.Provider value={project ? saveStyle : null}>
           <div className="app">
+            <Tooltip />
             <header className="toolbar">
-              <button onClick={open}>{t('app.openProject')}</button>
+              <button onClick={open} title={t('tip.openProject')}>
+                {t('app.openProject')}
+              </button>
               {project && (
                 <>
-                  <button onClick={() => discardOk() && load(project.folder)}>
+                  <button
+                    onClick={() => discardOk() && load(project.folder)}
+                    title={t('tip.reload')}
+                  >
                     {t('app.reload')}
                   </button>
                   <span className="project-name">{project.file.name}</span>
@@ -511,7 +520,11 @@ function App(): React.JSX.Element {
               )}
               {loading && <span className="muted">{t('app.loading')}</span>}
               <span className="spacer" />
-              {project && <button onClick={() => setExporting(true)}>{t('app.export')}</button>}
+              {project && (
+                <button onClick={() => setExporting(true)} title={t('tip.export')}>
+                  {t('app.export')}
+                </button>
+              )}
               {project && (
                 <button
                   className="primary"
@@ -808,8 +821,8 @@ function SetView({
         <Segmented<Side>
           value={side}
           options={[
-            ['front', t('preview.front')],
-            ['back', t('preview.back')]
+            ['front', t('preview.front'), t('tip.front')],
+            ['back', t('preview.back'), t('tip.back')]
           ]}
           onChange={setSide}
         />
@@ -885,22 +898,26 @@ function SetView({
           <Segmented<View>
             value={view}
             options={[
-              ['table', t('set.table')],
-              ['grid', t('set.grid')]
+              ['table', t('set.table'), t('tip.tableView')],
+              ['grid', t('set.grid'), t('tip.gridView')]
             ]}
             onChange={setView}
           />
         </div>
         <div className="set-actions">
-          <button onClick={addCard}>{t('set.addCard')}</button>
-          <button disabled={none} onClick={duplicate}>
+          <button onClick={addCard} title={t('tip.addCard')}>
+            {t('set.addCard')}
+          </button>
+          <button disabled={none} onClick={duplicate} title={t('tip.duplicateCards')}>
             {t('set.duplicate')}
           </button>
-          <button disabled={none} onClick={remove}>
+          <button disabled={none} onClick={remove} title={t('tip.deleteCards')}>
             {t('set.delete')}
           </button>
           <span className="sep" />
-          <button onClick={() => setAddingColumn(true)}>{t('set.addColumn')}</button>
+          <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
+            {t('set.addColumn')}
+          </button>
           <span className="muted small">
             {view === 'grid' && template ? t('set.gridHint') : t('set.editHint')}
           </span>

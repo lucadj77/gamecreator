@@ -137,7 +137,11 @@ export function AddColumnDialog({
             <p className="muted small">{t('addColumn.missing')}</p>
             <div className="chips">
               {missing.map((c) => (
-                <button key={c} onClick={() => onAdd(c)}>
+                <button
+                  key={c}
+                  onClick={() => onAdd(c)}
+                  title={t('tip.addThisColumn', { column: c })}
+                >
                   {c}
                 </button>
               ))}
@@ -160,7 +164,11 @@ export function AddColumnDialog({
             {propCols.length > 0 && (
               <div className="chips">
                 {propCols.map((c) => (
-                  <button key={c} onClick={() => onAdd(c)}>
+                  <button
+                    key={c}
+                    onClick={() => onAdd(c)}
+                    title={t('tip.addThisColumn', { column: c })}
+                  >
                     {c.slice(c.indexOf('.') + 1)}
                   </button>
                 ))}

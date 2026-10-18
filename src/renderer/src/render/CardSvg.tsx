@@ -218,6 +218,17 @@ const PRESERVE: Record<ImageLayer['fit'], string> = {
   original: 'xMidYMid meet'
 }
 
+/** Ingrandisce o riduce il riquadro dell'immagine intorno al centro */
+function zoomRect<B extends { x: number; y: number; w: number; h: number }>(
+  r: B,
+  zoom: number
+): { x: number; y: number; w: number; h: number } {
+  if (zoom === 1 || !(zoom > 0)) return r
+  const w = r.w * zoom
+  const h = r.h * zoom
+  return { x: r.x + (r.w - w) / 2, y: r.y + (r.h - h) / 2, w, h }
+}
+
 function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.JSX.Element | null {
   const assets = useContext(AssetsContext)
   const { t } = useI18n()
@@ -233,7 +244,8 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
   }
   // finché non si conoscono le dimensioni si lascia fare a preserveAspectRatio
-  const r = size ? fitRect(l, size, l.fit) : l
+  const z = zoomRect(size ? fitRect(l, size, l.fit) : l, l.zoom)
+  const r = { ...z, x: z.x + l.offsetX, y: z.y + l.offsetY }
   const rect = { x: r.x, y: r.y, width: r.w, height: r.h }
   const flip =
     l.flipH || l.flipV

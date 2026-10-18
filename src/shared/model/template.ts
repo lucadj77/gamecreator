@@ -80,6 +80,11 @@ export interface ImageLayer extends LayerBase {
   type: 'image'
   src: string
   fit: 'cover' | 'contain' | 'stretch' | 'original'
+  /** Scala dell'immagine rispetto all'adattamento, intorno al centro: 1 = 100% */
+  zoom: number
+  /** Spostamento dell'immagine nel riquadro, in mm */
+  offsetX: number
+  offsetY: number
   flipH: boolean
   flipV: boolean
   tint: string | null

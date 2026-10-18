@@ -51,6 +51,9 @@ const TEXT_DEFAULTS: Omit<TextLayer, keyof LayerBase | 'type'> = {
 const IMAGE_DEFAULTS: Omit<ImageLayer, keyof LayerBase | 'type'> = {
   src: '',
   fit: 'cover',
+  zoom: 1,
+  offsetX: 0,
+  offsetY: 0,
   flipH: false,
   flipV: false,
   tint: null,

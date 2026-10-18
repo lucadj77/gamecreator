@@ -139,6 +139,7 @@ export const en = {
   'fonts.noMatch': 'No font matches the search.',
   'fonts.offline': 'No network: previews of fonts not yet downloaded are not available.',
   'fonts.styles': '{n} styles',
+  'fonts.oneStyle': '1 style',
   'fonts.italic': 'italic',
   'fonts.licenseNote': 'License {license}: free to use, also in printed games',
   'fonts.download': 'Download {n} and use',

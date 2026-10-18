@@ -194,12 +194,8 @@ export default function IconBrowser({
           <label className="icon-tint" title={t('icons.tint')}>
             <input type="color" value={tint} onChange={(e) => setTint(e.target.value)} />
           </label>
-          <button
-            className={dark ? 'small-btn on' : 'small-btn'}
-            title={t('icons.darkBackground')}
-            onClick={() => setDark(!dark)}
-          >
-            ◐
+          <button className={dark ? 'small-btn on' : 'small-btn'} onClick={() => setDark(!dark)}>
+            {t('icons.darkBackground')}
           </button>
         </div>
         <div className="icon-browser-body">

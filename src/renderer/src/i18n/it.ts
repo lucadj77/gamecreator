@@ -140,6 +140,7 @@ export const it: Record<MessageKey, string> = {
   'fonts.noMatch': 'Nessun font corrisponde alla ricerca.',
   'fonts.offline': "Senza rete: l'anteprima dei font non ancora scaricati non è disponibile.",
   'fonts.styles': '{n} stili',
+  'fonts.oneStyle': '1 stile',
   'fonts.italic': 'corsivo',
   'fonts.licenseNote': 'Licenza {license}: uso libero, anche nei giochi stampati',
   'fonts.download': 'Scarica {n} e usa',

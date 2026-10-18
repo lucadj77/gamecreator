@@ -237,7 +237,9 @@ export default function FontPicker({
                     <b>{f[0]}</b>
                     <span className="muted small">
                       {t(`fonts.category.${f[1]}` as MessageKey)} ·{' '}
-                      {t('fonts.styles', { n: f[2].length * (f[3] ? 2 : 1) })}
+                      {styleCount(f) === 1
+                        ? t('fonts.oneStyle')
+                        : t('fonts.styles', { n: styleCount(f) })}
                       {own.has(f[0].toLowerCase()) && ` · ${t('fonts.inProject')}`}
                     </span>
                   </span>
@@ -296,6 +298,8 @@ export default function FontPicker({
     </Dialog>
   )
 }
+
+const styleCount = (f: FontFamilyEntry): number => f[2].length * (f[3] ? 2 : 1)
 
 function allVariants(f: FontFamilyEntry): FontVariant[] {
   const out = f[2].map((weight) => ({ weight, italic: false }))

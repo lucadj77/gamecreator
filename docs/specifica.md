@@ -44,18 +44,72 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 | a capo                   | automatico, nessuno                                                                |
 | icone inline             | altezza rispetto alla riga (%), spostamento verticale                              |
 
-### 2.1 Formattazione inline
+### 2.1 Markup del testo
 
-Nel file il testo è salvato con un markup ridotto, mentre l'editor mostra la formattazione e una barra strumenti per applicarla.
+Il testo si salva, nel progetto e nel foglio, con un unico markup: Markdown per la formattazione di base più un'estensione per colore, dimensione, evidenziazione e stili. L'editor della carta lo mostra già formattato e lo scrive tramite la barra strumenti, ma si può scrivere a mano anche in Excel. Non si usa HTML.
+
+#### Markdown
+
+| Scrivi                       | Ottieni                                                  |
+| ---------------------------- | -------------------------------------------------------- |
+| `**testo**`                  | grassetto                                                |
+| `*testo*`                    | corsivo                                                  |
+| `++testo++`                  | sottolineato                                             |
+| `~~testo~~`                  | barrato                                                  |
+| `==testo==`                  | evidenziato con il colore di evidenziazione del progetto |
+| `^testo^` / `~testo~`        | apice / pedice                                           |
+| `# Titolo`, `## Sottotitolo` | paragrafo con lo stile `titolo1` / `titolo2`             |
+| `> testo`                    | paragrafo con lo stile `nota`                            |
+| `- voce` / `1. voce`         | elenco puntato / numerato                                |
+| `---`                        | linea separatrice                                        |
+| riga vuota                   | nuovo paragrafo                                          |
+| `\` a fine riga              | a capo senza nuovo paragrafo                             |
+
+Gli stili `titolo1`, `titolo2` e `nota` esistono in ogni progetto e si modificano come gli altri.
+
+#### Attributi: `[testo]{...}`
+
+Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come formattarlo. Gli attributi si combinano separati da spazi.
+
+| Attributo                | Esempio                                           | Effetto                                     |
+| ------------------------ | ------------------------------------------------- | ------------------------------------------- |
+| `.nome`                  | `[pino]{.parola-chiave}`                          | applica uno stile                           |
+| `colore=`                | `[Attenzione]{colore=rosso}` · `{colore=#A33A2A}` | colore del testo, da palette o esadecimale  |
+| `evid=`                  | `[raro]{evid=giallo}`                             | colore di evidenziazione (sfondo)           |
+| `dim=`                   | `{dim=14}` · `{dim=+2}` · `{dim=80%}`             | dimensione in pt, relativa o in percentuale |
+| `font=`                  | `{font=Cinzel}`                                   | famiglia                                    |
+| `peso=`                  | `{peso=800}`                                      | peso del carattere                          |
+| `contorno=`              | `{contorno=bianco/0.3}`                           | contorno colore/spessore in mm              |
+| `spazio=`                | `{spazio=50}`                                     | spaziatura caratteri in ‰                   |
+| `alza=`                  | `{alza=1}`                                        | spostamento dalla linea di base in pt       |
+| `maiusc`, `maiuscoletto` | `[Fase]{maiuscoletto}`                            | trasformazione                              |
+
+Esempio con più attributi: `[Attacco]{.titolo colore=rosso dim=+2}`.
+
+#### Paragrafi
+
+Un attributo tra graffe a inizio riga vale per l'intero paragrafo: `{.flavor centro} Il castello non cadrà stanotte.` Oltre agli stili accetta `sinistra`, `centro`, `destra`, `giustificato`.
+
+#### Variabili e campi
+
+| Scrivi                        | Ottieni                                                          |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `{spada}`                     | variabile del progetto (icona, testo formattato, colore, valore) |
+| `{forza}`                     | valore di un campo della carta, anche calcolato                  |
+| `{spada*3}` · `{spada*forza}` | icona ripetuta tre volte o tante volte quanto vale il campo      |
+| `\{`, `\*`, `\[`              | carattere letterale                                              |
+
+Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala.
+
+#### Esempio completo
 
 ```
-<b>grassetto</b>  <i>corsivo</i>  <u>sottolineato</u>  <s>barrato</s>
-<color=#A33A2A>colore</color>  <size=12>dimensione</size>  <font=Nunito>font</font>
-<style=parola-chiave>testo con uno stile</style>
-{variabile}   {campo}   \n a capo
-```
+# Cavaliere
+Quando attacchi, pesca **una carta**.
+Bonus +1 {spada} contro i [pino]{.parola-chiave}.
 
-Lo stesso markup si può scrivere a mano nel foglio di calcolo.
+{.flavor centro} *Il castello non cadrà stanotte.*
+```
 
 ## 3. Immagine
 
@@ -111,7 +165,7 @@ Ogni variabile ha un'anteprima nell'elenco. Rinominare una variabile aggiorna i 
 Uno stile raggruppa proprietà di carattere (font, peso, corsivo, dimensione, colore, trasformazione, decorazione, contorno) e, se applicato a un intero livello, anche di paragrafo (allineamento, interlinea, spaziature).
 
 - Uno stile può basarsi su un altro ed ereditarne le proprietà non ridefinite.
-- Si applica a un intero livello di testo (proprietà `stile`) o a una porzione (`<style=nome>`).
+- Si applica a un intero livello di testo (proprietà `stile`), a un paragrafo (`{.nome}` a inizio riga) o a una porzione (`[testo]{.nome}`).
 - Modificare uno stile aggiorna tutte le carte che lo usano.
 - La formattazione locale prevale sullo stile.
 

@@ -3,7 +3,8 @@
 
 export interface Message {
   key: string
-  params?: Record<string, string | number>
+  /** Un parametro può essere a sua volta un messaggio, tradotto prima di inserirlo */
+  params?: Record<string, string | number | Message>
 }
 
 export const msg = (key: string, params?: Message['params']): Message => ({ key, params })

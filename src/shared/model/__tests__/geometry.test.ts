@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { anchorPoint, hitTest, normalizeAngle, resizeWithHandle, rotateAround } from '../geometry'
+import {
+  anchorPoint,
+  hitTest,
+  normalizeAngle,
+  polygonVertices,
+  resizeWithHandle,
+  rotateAround,
+  roundedPolygonPath
+} from '../geometry'
+import type { ShapeLayer } from '../template'
 import { normalizeLayer } from '../normalize'
 
 const rect = normalizeLayer({ type: 'shape', name: 'r', x: 10, y: 10, w: 20, h: 10 }, 0)
@@ -47,5 +56,36 @@ describe('geometria', () => {
     expect(normalizeAngle(190)).toBe(-170)
     expect(normalizeAngle(-180)).toBe(180)
     expect(normalizeAngle(45)).toBe(45)
+  })
+})
+
+describe('roundedPolygonPath', () => {
+  const square = [
+    { x: 0, y: 0 },
+    { x: 10, y: 0 },
+    { x: 10, y: 10 },
+    { x: 0, y: 10 }
+  ]
+  it('senza raggio disegna angoli vivi', () => {
+    expect(roundedPolygonPath(square, 0)).toBe('M0,0 L10,0 L10,10 L0,10 Z')
+  })
+  it('arrotonda gli angoli del quadrato come un rettangolo con raggio', () => {
+    const d = roundedPolygonPath(square, 2)
+    expect(d.startsWith('M0,2 A2,2 0 0 1 2,0 L8,0 A2,2 0 0 1 10,2')).toBe(true)
+  })
+  it('riduce il raggio se i lati sono troppo corti', () => {
+    expect(roundedPolygonPath(square, 20)).toContain('A5,5')
+  })
+  it("negli angoli interni della stella l'arco gira al contrario", () => {
+    const star = polygonVertices(
+      normalizeLayer(
+        { type: 'shape', shape: 'star', name: 's', sides: 5, innerRatio: 0.5, w: 20, h: 20 },
+        0
+      ) as ShapeLayer
+    )
+    const sweeps = [...roundedPolygonPath(star, 1).matchAll(/A[\d.]+,[\d.]+ 0 0 (\d)/g)].map(
+      (m) => m[1]
+    )
+    expect(sweeps).toEqual(['1', '0', '1', '0', '1', '0', '1', '0', '1', '0'])
   })
 })

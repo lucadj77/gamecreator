@@ -15,7 +15,7 @@ import type {
 import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
-import { cardFields, defaultValue, rowToCard, substituteFields } from '../../../shared/model/bind'
+import { cardFields, rowToCard, substituteFields, switchSource } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext } from '../render/assets'
 import {
@@ -29,6 +29,8 @@ import {
 } from './fields'
 import type { EditorAction, EditorState } from './useEditor'
 import type { Commands } from './commands'
+import PanelSideButton from '../components/PanelSideButton'
+import type { PanelSide } from '../components/usePanelWidth'
 
 interface Props {
   state: EditorState
@@ -39,6 +41,8 @@ interface Props {
   width: number
   /** Cambio di formato: chiede se scalare i livelli */
   onResize(width: number, height: number): void
+  side: PanelSide
+  onToggleSide(): void
 }
 
 export default function PropertiesPanel({
@@ -47,14 +51,17 @@ export default function PropertiesPanel({
   cmd,
   sheets,
   width,
-  onResize
+  onResize,
+  side: panelSide,
+  onToggleSide
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const { template: tpl, side, selection } = state
   const layer = selection.length === 1 ? findLayer(tpl[side], selection[0]) : null
 
   return (
-    <aside className="properties" style={{ width }}>
+    <aside className="properties" data-side={panelSide} style={{ width }}>
+      <PanelSideButton side={panelSide} onToggle={onToggleSide} className="corner" />
       {selection.length > 1 ? (
         <>
           <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
@@ -224,7 +231,15 @@ function LayerProperties({
       />
       <ValueSource layer={l} template={tpl} sheets={sheets} set={set} />
 
-      {l.type === 'text' && <TextProperties l={l} set={set} col={col} computed={computed} />}
+      {l.type === 'text' && (
+        <TextProperties
+          l={l}
+          set={set}
+          col={col}
+          computed={computed}
+          fields={labelChoices(tpl, sheets)}
+        />
+      )}
       {l.type === 'image' && <ImageProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'shape' && <ShapeProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'value' && <ValueProperties l={l} set={set} col={col} computed={computed} />}
@@ -323,6 +338,8 @@ interface TypeProps<T> {
   col(prop?: string): string
   /** Il valore principale viene da una formula */
   computed: boolean
+  /** Campi della carta, per l'aiuto alla scrittura del markup */
+  fields?: string[]
 }
 
 function options<T extends string>(
@@ -350,7 +367,8 @@ function TextProperties({
   l,
   set: setLayer,
   col,
-  computed
+  computed,
+  fields
 }: TypeProps<TextLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<TextLayer>
@@ -363,6 +381,7 @@ function TextProperties({
           hint={col()}
           value={l.text}
           multiline
+          markupFields={fields}
           onChange={(text) => set({ text })}
         />
       )}
@@ -642,7 +661,7 @@ function ShapeProperties({
         value={l.stroke}
         onChange={(stroke) => set({ stroke })}
       />
-      {l.shape === 'rect' && (
+      {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (
         <NumberField
           label={t('prop.radius')}
           hint={col('radius')}
@@ -732,16 +751,7 @@ function ValueSource({
           ['fixed', t('source.kind.fixed')],
           ['formula', t('source.kind.formula')]
         ]}
-        onChange={(kind) =>
-          set({
-            source:
-              kind === 'column'
-                ? { kind, column: null }
-                : kind === 'formula'
-                  ? { kind, expr: src.kind === 'formula' ? src.expr : startingFormula(l) }
-                  : { kind }
-          })
-        }
+        onChange={(kind) => set({ source: switchSource(l, kind) })}
       />
       {src.kind === 'column' && (
         <>
@@ -797,9 +807,3 @@ function ValueSource({
 }
 
 type ValueSourceKind = Layer['source']['kind']
-
-/** Passando a formula si parte dal valore attuale, così la carta non cambia */
-function startingFormula(l: Layer): string {
-  const v = defaultValue(l)
-  return v?.trim() ? v : `{${l.name}}`
-}

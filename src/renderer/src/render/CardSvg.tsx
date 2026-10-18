@@ -1,9 +1,10 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { resolveAsset } from '../../../shared/model/assets'
-import { anchorPoint } from '../../../shared/model/geometry'
+import { anchorPoint, polygonVertices, roundedPolygonPath } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
+import MarkupText from './MarkupText'
 import type {
   GroupLayer,
   ImageLayer,
@@ -162,20 +163,6 @@ function strokeWidth(s: Stroke, fontSizeMm = 0): number {
   return typeof s.width === 'string' ? (parseFloat(s.width) / 100) * fontSizeMm : s.width
 }
 
-function polygonPoints(l: ShapeLayer): string {
-  const n = Math.max(3, Math.round(l.sides))
-  const cx = l.x + l.w / 2
-  const cy = l.y + l.h / 2
-  const count = l.shape === 'star' ? n * 2 : n
-  const pts: string[] = []
-  for (let i = 0; i < count; i++) {
-    const r = l.shape === 'star' && i % 2 === 1 ? l.innerRatio : 1
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / count
-    pts.push(`${cx + (Math.cos(a) * r * l.w) / 2},${cy + (Math.sin(a) * r * l.h) / 2}`)
-  }
-  return pts.join(' ')
-}
-
 function ShapeView({ layer: l }: { layer: ShapeLayer }): React.JSX.Element {
   const paint = { fill: l.fill ?? 'none', ...strokeProps(l.stroke) }
   switch (l.shape) {
@@ -183,7 +170,13 @@ function ShapeView({ layer: l }: { layer: ShapeLayer }): React.JSX.Element {
       return <ellipse cx={l.x + l.w / 2} cy={l.y + l.h / 2} rx={l.w / 2} ry={l.h / 2} {...paint} />
     case 'polygon':
     case 'star':
-      return <polygon points={polygonPoints(l)} strokeLinejoin="round" {...paint} />
+      return (
+        <path
+          d={roundedPolygonPath(polygonVertices(l), l.radius)}
+          strokeLinejoin="round"
+          {...paint}
+        />
+      )
     case 'line':
       return (
         <line
@@ -373,11 +366,16 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
           }}
         >
           <div style={empty ? { opacity: 0.35, fontStyle: 'italic' } : undefined}>
-            {(empty ? l.name : l.text).split('\n').map((p, i) => (
-              <p key={i} style={{ margin: 0, marginTop: i ? l.paragraphSpacing * s : 0 }}>
-                {p || ' '}
-              </p>
-            ))}
+            {empty ? (
+              <p style={{ margin: 0 }}>{l.name}</p>
+            ) : (
+              <MarkupText
+                text={l.text}
+                unit={s}
+                ratio={size / l.size}
+                paragraphSpacing={l.paragraphSpacing}
+              />
+            )}
           </div>
         </div>
       </foreignObject>

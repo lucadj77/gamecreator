@@ -5,5 +5,9 @@
   "sets": [
     { "name": "Personaggi", "template": "personaggio" },
     { "name": "Oggetti", "template": "oggetto" }
-  ]
+  ],
+  "styles": {
+    "keyword": "weight=800 color=#7A3FA0 smallcaps",
+    "flavor": "italic size=90% color=#6B6255 center"
+  }
 }

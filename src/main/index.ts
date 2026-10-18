@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, dialog, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -13,6 +13,7 @@ import {
 } from './protocol'
 import { MessageError, msg } from '../shared/messages'
 import type { Template } from '../shared/model/template'
+import type { Theme } from '../shared/api'
 
 registerAssetScheme()
 
@@ -72,6 +73,11 @@ function registerIpc(): void {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     await saveData(folder, changes)
+  })
+
+  // il renderer segue prefers-color-scheme, che Chromium ricava da themeSource
+  ipcMain.on('theme:set', (_, theme: Theme) => {
+    if (theme === 'system' || theme === 'light' || theme === 'dark') nativeTheme.themeSource = theme
   })
 }
 

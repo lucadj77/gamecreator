@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Shadow, Stroke } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
+import MarkupTextarea from '../components/MarkupTextarea'
 
 // Campi del pannello proprietà. Ogni modifica si applica subito, mentre si scrive: cambiare
 // selezione o fare clic sulla carta non la perde. Annulla (⌘Z) torna indietro.
@@ -147,11 +148,14 @@ export function TextField({
   rows = 4,
   list,
   validate,
-  placeholder
+  placeholder,
+  markupFields
 }: Base & {
   value: string
   onChange(v: string): void
   multiline?: boolean
+  /** Testo con markup: aiuto alla scrittura con questi campi */
+  markupFields?: string[]
   rows?: number
   list?: string
   /** Messaggio di errore, oppure null se il valore va bene: un valore non valido non si applica */
@@ -172,7 +176,9 @@ export function TextField({
   }
   return (
     <Row label={label} hint={error ?? hint} disabled={disabled}>
-      {multiline ? (
+      {multiline && markupFields ? (
+        <MarkupTextarea {...common} rows={rows} fields={markupFields} />
+      ) : multiline ? (
         <textarea {...common} rows={rows} />
       ) : (
         <input {...common} list={list} onKeyDown={blurOnEnter} />

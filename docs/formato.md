@@ -23,6 +23,15 @@ progetto/
 
 `sheet` è facoltativo: se manca si usa il foglio con lo stesso nome del set.
 
+`styles` (facoltativo) contiene gli stili di testo del progetto, scritti con gli stessi attributi del markup (docs/specifica.md, 2.1). Gli stili `heading1`, `heading2` e `note` esistono sempre e si possono ridefinire qui. Finché non c'è l'editor degli stili si modificano a mano.
+
+```json
+"styles": {
+  "keyword": "weight=800 color=#7A3FA0 smallcaps",
+  "flavor": "italic size=90% color=#6B6255 center"
+}
+```
+
 ## Fogli dati
 
 - La prima riga contiene le intestazioni; ogni riga successiva è una carta.

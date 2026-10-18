@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import { moveRow, removeColumn, setCell } from '../../../shared/model/sheet'
 import { useI18n } from '../i18n/context'
+import MarkupTextarea from './MarkupTextarea'
 
 interface Props {
   sheet: Sheet
@@ -194,6 +195,7 @@ function DataTable({ sheet, selected, onSelect, onChange }: Props): React.JSX.El
                     {isEditing ? (
                       <CellEditor
                         value={row[i] ?? ''}
+                        fields={sheet.headers.filter((h) => h !== 'amount' && !h.includes('.'))}
                         onChange={(v) => write(c, v)}
                         onDone={(how) => {
                           if (how === 'cancel') write(c, editing.original)
@@ -223,9 +225,12 @@ function DataTable({ sheet, selected, onSelect, onChange }: Props): React.JSX.El
 function CellEditor({
   value,
   onChange,
-  onDone
+  onDone,
+  fields
 }: {
   value: string
+  /** Campi proposti dentro {...} */
+  fields: string[]
   onChange(v: string): void
   onDone(how: 'down' | 'right' | 'left' | 'cancel' | 'blur'): void
 }): React.JSX.Element {
@@ -237,8 +242,10 @@ function CellEditor({
     el.setSelectionRange(el.value.length, el.value.length)
   }, [])
   return (
-    <textarea
+    <MarkupTextarea
       ref={ref}
+      fields={fields}
+      showProblems={false}
       className="cell-editor"
       value={value}
       rows={Math.max(1, value.split('\n').length)}

@@ -143,3 +143,31 @@ describe('valori predefiniti e livelli valore', () => {
     expect([g.x, g.y, g.w, g.h]).toEqual([10, 10, 5, 5])
   })
 })
+
+describe('markup nelle carte', () => {
+  it("usa un campo come numero di ripetizioni di un'icona", () => {
+    expect(substituteFields('{spada*forza}', { forza: ' 3' })).toBe('{spada*3}')
+  })
+
+  it('segnala errori del markup, stili e immagini che non esistono', () => {
+    const card = rowToCard(['testo'], ['[a]{colour=red} [b]{.nessuno} {spada} {scudo}'])
+    const { problems } = bindCard(template, card, { assets: ['icons/spada.svg'], styles: {} })
+    expect(problems).toEqual([
+      {
+        key: 'bind.markup',
+        params: {
+          layer: 'testo',
+          problem: { key: 'markup.unknownAttribute', params: { name: 'colour' } }
+        }
+      },
+      {
+        key: 'bind.markup',
+        params: {
+          layer: 'testo',
+          problem: { key: 'markup.unknownStyle', params: { name: 'nessuno' } }
+        }
+      },
+      { key: 'bind.unknownRef', params: { layer: 'testo', name: 'scudo' } }
+    ])
+  })
+})

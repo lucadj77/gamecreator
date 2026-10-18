@@ -1,4 +1,4 @@
-import type { GroupLayer, Layer, LayerBase } from './template'
+import type { GroupLayer, Layer, LayerBase, ShapeLayer } from './template'
 import { findLayer, type Bounds } from './edit'
 
 // Geometria dei livelli: punti di ancoraggio, rotazioni, selezione con il puntatore e
@@ -127,4 +127,56 @@ export function angleFrom(c: Point, p: Point): number {
 export function normalizeAngle(deg: number): number {
   const a = ((((deg + 180) % 360) + 360) % 360) - 180
   return a === -180 ? 180 : a
+}
+
+/** Vertici di un poligono regolare o di una stella inscritti nel riquadro, dall'alto in senso orario */
+export function polygonVertices(l: ShapeLayer): Point[] {
+  const n = Math.max(3, Math.round(l.sides))
+  const cx = l.x + l.w / 2
+  const cy = l.y + l.h / 2
+  const count = l.shape === 'star' ? n * 2 : n
+  const pts: Point[] = []
+  for (let i = 0; i < count; i++) {
+    const r = l.shape === 'star' && i % 2 === 1 ? l.innerRatio : 1
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / count
+    pts.push({ x: cx + (Math.cos(a) * r * l.w) / 2, y: cy + (Math.sin(a) * r * l.h) / 2 })
+  }
+  return pts
+}
+
+const fmt = (n: number): string => String(Math.round(n * 1000) / 1000)
+
+/**
+ * Tracciato SVG di un poligono chiuso con gli angoli arrotondati da archi di raggio r (mm).
+ * Se il lato è troppo corto il raggio si riduce, così due archi vicini non si sovrappongono.
+ */
+export function roundedPolygonPath(pts: Point[], r: number): string {
+  const n = pts.length
+  if (r <= 0 || n < 3) return 'M' + pts.map((p) => `${fmt(p.x)},${fmt(p.y)}`).join(' L') + ' Z'
+  const dist = (a: Point, b: Point): number => Math.hypot(b.x - a.x, b.y - a.y)
+  const parts: string[] = []
+  for (let i = 0; i < n; i++) {
+    const a = pts[(i - 1 + n) % n]
+    const p = pts[i]
+    const b = pts[(i + 1) % n]
+    const la = dist(p, a)
+    const lb = dist(p, b)
+    const ua = { x: (a.x - p.x) / la, y: (a.y - p.y) / la }
+    const ub = { x: (b.x - p.x) / lb, y: (b.y - p.y) / lb }
+    // angolo interno al vertice e distanza dal vertice a cui l'arco tocca i lati
+    const theta = Math.acos(Math.max(-1, Math.min(1, ua.x * ub.x + ua.y * ub.y)))
+    const tan = Math.tan(theta / 2)
+    let d = tan > 1e-9 ? r / tan : 0
+    d = Math.min(d, la / 2, lb / 2)
+    const radius = d * tan
+    const p1 = { x: p.x + ua.x * d, y: p.y + ua.y * d }
+    const p2 = { x: p.x + ub.x * d, y: p.y + ub.y * d }
+    // svolta a destra sullo schermo (y verso il basso): arco in senso orario
+    const cross = (p.x - a.x) * (b.y - p.y) - (p.y - a.y) * (b.x - p.x)
+    parts.push(
+      `${i ? 'L' : 'M'}${fmt(p1.x)},${fmt(p1.y)}`,
+      `A${fmt(radius)},${fmt(radius)} 0 0 ${cross > 0 ? 1 : 0} ${fmt(p2.x)},${fmt(p2.y)}`
+    )
+  }
+  return parts.join(' ') + ' Z'
 }

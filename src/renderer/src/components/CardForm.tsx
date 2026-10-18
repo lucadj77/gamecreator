@@ -4,6 +4,7 @@ import { setCell } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
 import type { Template } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
+import MarkupTextarea from './MarkupTextarea'
 
 interface Props {
   sheet: Sheet
@@ -38,6 +39,16 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
     el?.select()
   }, [focus])
 
+  const fields = [
+    ...new Set([
+      ...sheet.headers.filter((h) => h !== 'amount' && !h.includes('.')),
+      ...(template
+        ? walkLayers([...template.front, ...template.back])
+            .filter((l) => l.type !== 'group')
+            .map((l) => l.name)
+        : [])
+    ])
+  ]
   const values = sheet.rows[row] ?? []
   return (
     <div className="card-form" ref={boxRef}>
@@ -54,8 +65,9 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
             <span className="field-label">{h === 'amount' ? t('cardForm.amount') : h}</span>
             <span className="field-control">
               {textColumns.has(h) ? (
-                <textarea
+                <MarkupTextarea
                   {...common}
+                  fields={fields}
                   rows={Math.min(8, Math.max(2, common.value.split('\n').length))}
                 />
               ) : (

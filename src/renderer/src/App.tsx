@@ -218,6 +218,25 @@ function App(): React.JSX.Element {
     setDirtySheets((d) => (d.has(sheet.name) ? d : new Set(d).add(sheet.name)))
   }
 
+  /** Assegna al set un altro template; i dati non cambiano e ⌘Z annulla */
+  const setTemplate = (index: number, template: string): void => {
+    if (!project || project.sets[index]?.template === template) return
+    setHistory((h) => ({
+      past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    setProject({
+      ...project,
+      sets: project.sets.map((x, i) => (i === index ? { ...x, template } : x)),
+      file: {
+        ...project.file,
+        sets: project.file.sets.map((x, i) => (i === index ? { ...x, template } : x))
+      }
+    })
+    setFileDirty(true)
+  }
+
   const undoData = (redo: boolean): void => {
     if (!project) return
     const from = redo ? history.future : history.past
@@ -870,6 +889,9 @@ function App(): React.JSX.Element {
                       onEditTemplate={() =>
                         setSelected({ kind: 'template', name: current.template })
                       }
+                      onChangeTemplate={(name) =>
+                        setTemplate(selected.kind === 'set' ? selected.index : 0, name)
+                      }
                     />
                   ) : (
                     <section className="content">
@@ -1037,11 +1059,14 @@ function SetView({
   set,
   templates,
   onChange,
-  onEditTemplate
+  onEditTemplate,
+  onChangeTemplate
 }: {
   set: LoadedSet
   templates: Template[]
   onChange(sheet: Sheet, key?: string): void
+  /** Assegna al set un altro template */
+  onChangeTemplate(name: string): void
   /** Apre nell'editor il template del set */
   onEditTemplate(): void
 }): React.JSX.Element {
@@ -1207,9 +1232,22 @@ function SetView({
       <section className="content" ref={contentRef}>
         <div className="set-header">
           <h1>{set.name}</h1>
-          <span className="muted">
-            {t('set.template', { name: set.template })} ·{' '}
-            {t('set.counts', { rows: sheet.rows.length, cards: countCards(sheet) })}
+          <span className="muted set-template">
+            {t('set.templateLabel')}
+            <select
+              value={set.template}
+              title={t('tip.setTemplate')}
+              onChange={(e) => onChangeTemplate(e.target.value)}
+            >
+              {/* un template mancante resta nell'elenco, così si vede quale manca */}
+              {!template && <option value={set.template}>{set.template}</option>}
+              {templates.map((x) => (
+                <option key={x.name} value={x.name}>
+                  {x.name}
+                </option>
+              ))}
+            </select>
+            · {t('set.counts', { rows: sheet.rows.length, cards: countCards(sheet) })}
           </span>
           <span className="spacer" />
           {view === 'grid' && (

@@ -70,7 +70,7 @@ export const it: Record<MessageKey, string> = {
   'sidebar.templates': 'Template',
   'sidebar.unusedSheets': 'Fogli non collegati a un set: {names}',
 
-  'set.template': 'template {name}',
+  'set.templateLabel': 'template',
   'set.counts': '{rows} righe · {cards} carte',
   'set.noData': 'Nessun dato per questo set.',
   'set.table': 'Tabella',
@@ -225,6 +225,7 @@ export const it: Record<MessageKey, string> = {
   'tip.tableView': 'Modifica le carte in una tabella, come in un foglio di calcolo',
   'tip.gridView': 'Guarda le carte come appariranno e modifica quella selezionata',
   'tip.editTemplate': 'Apri il template "{name}" nell\'editor',
+  'tip.setTemplate': 'Template con cui si disegnano le carte del set: i dati restano gli stessi',
   'tip.front': 'Mostra il fronte delle carte',
   'tip.back': 'Mostra il retro delle carte',
   'tip.showBleed': "Mostra l'abbondanza intorno alla carta, la parte tagliata in stampa",

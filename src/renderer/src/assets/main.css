@@ -2193,3 +2193,14 @@ div.font-row {
   margin: 8px auto 0;
   font-size: 12px;
 }
+
+.set-template {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.set-template select {
+  font-size: inherit;
+  padding: 1px 4px;
+}

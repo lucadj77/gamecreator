@@ -71,7 +71,7 @@ export const en = {
   'sidebar.templates': 'Templates',
   'sidebar.unusedSheets': 'Sheets not linked to a set: {names}',
 
-  'set.template': 'template {name}',
+  'set.templateLabel': 'template',
   'set.counts': '{rows} rows · {cards} cards',
   'set.noData': 'No data for this set.',
   'set.table': 'Table',
@@ -222,6 +222,7 @@ export const en = {
   'tip.tableView': 'Edit the cards in a table, like a spreadsheet',
   'tip.gridView': 'See the cards as they will look, and edit the selected one',
   'tip.editTemplate': 'Open the template "{name}" in the editor',
+  'tip.setTemplate': 'Template used to draw the cards of this set: the data stay the same',
   'tip.front': 'Show the front of the cards',
   'tip.back': 'Show the back of the cards',
   'tip.showBleed': 'Show the bleed around the card, the part cut off when printing',

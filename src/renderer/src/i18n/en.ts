@@ -20,6 +20,7 @@ export const en = {
     'Double-click or type in a cell to edit; Alt+Enter for a new line. Drag the row number to reorder.',
   'preview.clickHint': 'Click a layer to edit its field',
   'cardForm.title': 'Card {n}',
+  'cardForm.pickColor': 'Pick a color',
   'cardForm.amount': 'Copies (amount)',
   'table.expand': 'Show the property columns of this layer',
   'table.collapse': 'Hide the property columns',
@@ -497,6 +498,8 @@ export const en = {
   'export.cancelled': 'Stopped. Files exported: {n}.',
   'export.openFolder': 'Open {folder}',
   'export.missingImages': 'Images not found in assets, exported as placeholders: {cards}',
+  'export.corners': 'Corners',
+  'export.rounded': 'Rounded as in the template',
   'export.gridOverflow':
     'Set “{set}”: the cards do not fit on the page, change margins, page or layout.'
 }

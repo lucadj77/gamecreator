@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Sheet } from '../../../shared/project'
-import { setCell } from '../../../shared/model/sheet'
+import { colorColumns, setCell } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
 import type { Template } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
@@ -29,6 +29,8 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
           .map((l) => (l.source.kind === 'column' && l.source.column) || l.name)
       : []
   )
+
+  const colors = template ? colorColumns(template) : new Map<string, string | null>()
 
   useEffect(() => {
     if (!focus) return
@@ -70,6 +72,22 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
                   fields={fields}
                   rows={Math.min(8, Math.max(2, common.value.split('\n').length))}
                 />
+              ) : colors.has(h) ? (
+                <span className="color-cell">
+                  <input {...common} placeholder={colors.get(h) ?? ''} />
+                  <input
+                    type="color"
+                    title={t('cardForm.pickColor')}
+                    // senza valore nella cella il selettore parte dal colore del template
+                    value={toHex6(common.value.trim() || colors.get(h) || '')}
+                    onChange={(e) =>
+                      onChange(
+                        setCell(sheet, row, i, e.target.value.toUpperCase()),
+                        `cell:${row}:${i}`
+                      )
+                    }
+                  />
+                </span>
               ) : (
                 <input {...common} />
               )}
@@ -79,6 +97,22 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
       })}
     </div>
   )
+}
+
+let probe: CanvasRenderingContext2D | null = null
+
+/** Il selettore nativo vuole #rrggbb: i nomi dei colori si convertono con il canvas */
+function toHex6(c: string): string {
+  const v = c.trim()
+  if (/^#[0-9a-f]{6}$/i.test(v)) return v
+  if (/^#[0-9a-f]{8}$/i.test(v)) return v.slice(0, 7)
+  if (/^#[0-9a-f]{3,4}$/i.test(v)) return '#' + [...v.slice(1, 4)].map((ch) => ch + ch).join('')
+  if (!/^[a-z]+$/i.test(v)) return '#000000'
+  probe ??= document.createElement('canvas').getContext('2d')
+  if (!probe) return '#000000'
+  probe.fillStyle = '#000000'
+  probe.fillStyle = v
+  return /^#[0-9a-f]{6}$/i.test(probe.fillStyle) ? probe.fillStyle : '#000000'
 }
 
 export default CardForm

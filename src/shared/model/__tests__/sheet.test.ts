@@ -3,6 +3,7 @@ import type { Sheet } from '../../project'
 import { normalizeTemplate } from '../normalize'
 import {
   addColumn,
+  colorColumns,
   duplicateRows,
   insertRow,
   moveRow,
@@ -59,5 +60,23 @@ describe('fogli', () => {
       ]
     })
     expect(templateColumns(t)).toEqual(['amount', 'nome', 'forza', 'titolo'])
+  })
+})
+
+describe('colonne dei colori', () => {
+  it('riconosce le proprietà colore e il riempimento delle forme', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        { type: 'text', name: 'nome', color: '#112233' },
+        { type: 'image', name: 'icona' },
+        { type: 'shape', name: 'banda', fill: '#2F5DA8' }
+      ]
+    })
+    const cols = colorColumns(t)
+    expect(cols.get('nome.color')).toBe('#112233')
+    expect(cols.get('icona.tint')).toBeNull()
+    expect(cols.get('banda')).toBe('#2F5DA8')
+    expect(cols.has('nome')).toBe(false)
   })
 })

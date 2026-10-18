@@ -44,6 +44,8 @@ export interface PdfOptions extends CommonOptions {
   cols: number
   rows: number
   bleed: boolean
+  /** Senza abbondanza: angoli arrotondati come nel template, o rettangolo di taglio */
+  rounded: boolean
   marks: MarksStyle
   markLength: number
   markWidth: number
@@ -108,6 +110,7 @@ export const DEFAULT_PDF: PdfOptions = {
   cols: 3,
   rows: 3,
   bleed: false,
+  rounded: true,
   marks: 'corners',
   markLength: 4,
   markWidth: 0.25,

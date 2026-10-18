@@ -20,6 +20,7 @@ export const it: Record<MessageKey, string> = {
     'Doppio clic o scrivi in una cella per modificarla; Alt+Invio per andare a capo. Trascina il numero di riga per spostarla.',
   'preview.clickHint': 'Fai clic su un livello per modificarne il campo',
   'cardForm.title': 'Carta {n}',
+  'cardForm.pickColor': 'Scegli un colore',
   'cardForm.amount': 'Copie (amount)',
   'table.expand': 'Mostra le colonne delle proprietà di questo livello',
   'table.collapse': 'Nascondi le colonne delle proprietà',
@@ -503,6 +504,8 @@ export const it: Record<MessageKey, string> = {
   'export.cancelled': 'Interrotto. File esportati: {n}.',
   'export.openFolder': 'Apri {folder}',
   'export.missingImages': 'Immagini non trovate in assets, esportate come segnaposto: {cards}',
+  'export.corners': 'Angoli',
+  'export.rounded': 'Arrotondati come nel template',
   'export.gridOverflow':
     'Set «{set}»: le carte non stanno nella pagina, cambia margini, pagina o disposizione.'
 }

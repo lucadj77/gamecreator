@@ -421,6 +421,11 @@ export default function ExportDialog({
                 'export.bleed',
                 check(pdf.bleed, (bleed) => patch({ bleed }), 'export.bleedTouch')
               )}
+              {!pdf.bleed &&
+                field(
+                  'export.corners',
+                  check(pdf.rounded, (rounded) => patch({ rounded }), 'export.rounded')
+                )}
               {field(
                 'export.spacing',
                 mm(pdf.spacing, (spacing) => patch({ spacing }), pdf.bleed)

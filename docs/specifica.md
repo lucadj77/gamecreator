@@ -307,7 +307,7 @@ Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al no
 | file                 | unico, uno per set, uno per lato                                                                                       |
 | fogli di prova       | pagina riepilogo a bassa risoluzione con tutte le carte                                                                |
 
-Piegatura e fogli di prova non sono ancora disponibili. Senza abbondanza la carta si taglia al rettangolo di rifilo, senza angoli arrotondati. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
+Piegatura e fogli di prova non sono ancora disponibili. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
 
 Il PDF è vettoriale, con i font incorporati e in RGB. Il CMYK richiesto da alcune tipografie richiede una conversione successiva: da valutare con Ghostscript in un secondo momento.
 

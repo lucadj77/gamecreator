@@ -207,7 +207,7 @@ async function exportPdf(
           y: c.y,
           template: c.instance.card.template,
           side: c.side,
-          mode: o.bleed ? ('bleed' as const) : ('cut' as const)
+          mode: o.bleed ? ('bleed' as const) : o.rounded ? ('trim' as const) : ('cut' as const)
         })),
         lines: cropMarks(o, grid, plan.cards)
       }

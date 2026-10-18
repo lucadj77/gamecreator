@@ -108,7 +108,7 @@ export default function MarkupTextarea({
     el.setSelectionRange(start, start + inner.length)
   }
 
-  const problems = showProblems ? markupProblems(value, styles) : []
+  const problems = showProblems ? markupProblems(value, styles, fields) : []
   const current = help?.items[help.index]
 
   return (

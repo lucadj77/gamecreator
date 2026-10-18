@@ -526,9 +526,18 @@ export function resolveStyles(
 }
 
 /** Problemi del markup che non dipendono dal progetto, più gli stili sconosciuti */
-export function markupProblems(src: string, styles: Record<string, string> = {}): MarkupProblem[] {
+export function markupProblems(
+  src: string,
+  styles: Record<string, string> = {},
+  /** Campi della carta: nel testo ancora da compilare {icona*campo} è corretto */
+  fields: string[] = []
+): MarkupProblem[] {
   const { blocks, problems } = parseMarkup(src)
-  const out = [...problems]
+  const out = problems.filter((p) => {
+    if (p.message.key !== 'markup.badRepeat') return true
+    const inner = src.slice(p.from + 1, p.to - 1)
+    return !fields.includes(inner.slice(inner.indexOf('*') + 1).trim())
+  })
   const check = (a: Attrs): void =>
     a.styles.forEach((name) => {
       if (!(name in styles) && !(name in BUILTIN_STYLES)) {

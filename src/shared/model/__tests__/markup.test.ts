@@ -175,3 +175,13 @@ describe('markup: scrittura degli attributi', () => {
     expect(spanAt(src, 0, 1)).toBeNull()
   })
 })
+
+describe('markupProblems con i campi', () => {
+  it('accetta un campo come numero di ripetizioni', () => {
+    expect(markupProblems('{spada*forza}', {}, ['forza'])).toEqual([])
+    expect(markupProblems('{spada*forza}').map((p) => p.message.key)).toEqual(['markup.badRepeat'])
+    expect(markupProblems('{spada*x}', {}, ['forza']).map((p) => p.message.key)).toEqual([
+      'markup.badRepeat'
+    ])
+  })
+})

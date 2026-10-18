@@ -363,6 +363,88 @@ function App(): React.JSX.Element {
       ? project?.templates.find((x) => x.name === selected.name)
       : undefined
 
+  // la barra laterale sta a sinistra o a destra, a scelta
+  const sidebar = project && (
+    <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
+      <h2 className="with-action">
+        {t('sidebar.sets')}
+        <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
+        <button
+          className="icon-btn"
+          title={t('sidebar.newSet')}
+          onClick={() => setCreatingSet(true)}
+        >
+          +
+        </button>
+      </h2>
+      <ul>
+        {project.sets.map((s, i) => (
+          <li key={s.name}>
+            <button
+              className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
+              onClick={() => setSelected({ kind: 'set', index: i })}
+            >
+              <span>
+                {s.name}
+                {s.data && dirtySheets.has(s.data.name) && (
+                  <span className="dirty-dot" title={t('app.unsaved')} />
+                )}
+              </span>
+              <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
+            </button>
+            <button
+              className="icon-btn item-dup"
+              title={t('sidebar.duplicate')}
+              onClick={() => setDuplicating({ kind: 'set', index: i })}
+            >
+              ⧉
+            </button>
+          </li>
+        ))}
+      </ul>
+      <h2 className="with-action">
+        {t('sidebar.templates')}
+        <button
+          className="icon-btn"
+          title={t('sidebar.newTemplate')}
+          onClick={() => setCreating(true)}
+        >
+          +
+        </button>
+      </h2>
+      <ul>
+        {project.templates.map((tpl) => (
+          <li key={tpl.name}>
+            <button
+              className={selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''}
+              onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+            >
+              <span>
+                {tpl.name}
+                {dirty.has(tpl.name) && <span className="dirty-dot" title={t('app.unsaved')} />}
+              </span>
+              <span className="muted">
+                {tpl.width}×{tpl.height}
+              </span>
+            </button>
+            <button
+              className="icon-btn item-dup"
+              title={t('sidebar.duplicate')}
+              onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
+            >
+              ⧉
+            </button>
+          </li>
+        ))}
+      </ul>
+      {project.unusedSheets.length > 0 && (
+        <p className="muted small">
+          {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
+        </p>
+      )}
+    </nav>
+  )
+
   return (
     <AssetsContext.Provider value={project?.assets ?? []}>
       <StylesContext.Provider value={project?.file.styles ?? NO_STYLES}>
@@ -433,92 +515,7 @@ function App(): React.JSX.Element {
             <main className="workspace">
               {sidebarSide === 'left' && (
                 <>
-                  <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
-                    <h2 className="with-action">
-                      {t('sidebar.sets')}
-                      <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
-                      <button
-                        className="icon-btn"
-                        title={t('sidebar.newSet')}
-                        onClick={() => setCreatingSet(true)}
-                      >
-                        +
-                      </button>
-                    </h2>
-                    <ul>
-                      {project.sets.map((s, i) => (
-                        <li key={s.name}>
-                          <button
-                            className={
-                              selected.kind === 'set' && i === selected.index ? 'active' : ''
-                            }
-                            onClick={() => setSelected({ kind: 'set', index: i })}
-                          >
-                            <span>
-                              {s.name}
-                              {s.data && dirtySheets.has(s.data.name) && (
-                                <span className="dirty-dot" title={t('app.unsaved')} />
-                              )}
-                            </span>
-                            <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
-                          </button>
-                          <button
-                            className="icon-btn item-dup"
-                            title={t('sidebar.duplicate')}
-                            onClick={() => setDuplicating({ kind: 'set', index: i })}
-                          >
-                            ⧉
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <h2 className="with-action">
-                      {t('sidebar.templates')}
-                      <button
-                        className="icon-btn"
-                        title={t('sidebar.newTemplate')}
-                        onClick={() => setCreating(true)}
-                      >
-                        +
-                      </button>
-                    </h2>
-                    <ul>
-                      {project.templates.map((tpl) => (
-                        <li key={tpl.name}>
-                          <button
-                            className={
-                              selected.kind === 'template' && selected.name === tpl.name
-                                ? 'active'
-                                : ''
-                            }
-                            onClick={() => setSelected({ kind: 'template', name: tpl.name })}
-                          >
-                            <span>
-                              {tpl.name}
-                              {dirty.has(tpl.name) && (
-                                <span className="dirty-dot" title={t('app.unsaved')} />
-                              )}
-                            </span>
-                            <span className="muted">
-                              {tpl.width}×{tpl.height}
-                            </span>
-                          </button>
-                          <button
-                            className="icon-btn item-dup"
-                            title={t('sidebar.duplicate')}
-                            onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
-                          >
-                            ⧉
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    {project.unusedSheets.length > 0 && (
-                      <p className="muted small">
-                        {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
-                      </p>
-                    )}
-                  </nav>
+                  {sidebar}
                   <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="left" max={400} />
                 </>
               )}
@@ -544,92 +541,7 @@ function App(): React.JSX.Element {
               {sidebarSide === 'right' && (
                 <>
                   <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="right" max={400} />
-                  <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
-                    <h2 className="with-action">
-                      {t('sidebar.sets')}
-                      <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
-                      <button
-                        className="icon-btn"
-                        title={t('sidebar.newSet')}
-                        onClick={() => setCreatingSet(true)}
-                      >
-                        +
-                      </button>
-                    </h2>
-                    <ul>
-                      {project.sets.map((s, i) => (
-                        <li key={s.name}>
-                          <button
-                            className={
-                              selected.kind === 'set' && i === selected.index ? 'active' : ''
-                            }
-                            onClick={() => setSelected({ kind: 'set', index: i })}
-                          >
-                            <span>
-                              {s.name}
-                              {s.data && dirtySheets.has(s.data.name) && (
-                                <span className="dirty-dot" title={t('app.unsaved')} />
-                              )}
-                            </span>
-                            <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
-                          </button>
-                          <button
-                            className="icon-btn item-dup"
-                            title={t('sidebar.duplicate')}
-                            onClick={() => setDuplicating({ kind: 'set', index: i })}
-                          >
-                            ⧉
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <h2 className="with-action">
-                      {t('sidebar.templates')}
-                      <button
-                        className="icon-btn"
-                        title={t('sidebar.newTemplate')}
-                        onClick={() => setCreating(true)}
-                      >
-                        +
-                      </button>
-                    </h2>
-                    <ul>
-                      {project.templates.map((tpl) => (
-                        <li key={tpl.name}>
-                          <button
-                            className={
-                              selected.kind === 'template' && selected.name === tpl.name
-                                ? 'active'
-                                : ''
-                            }
-                            onClick={() => setSelected({ kind: 'template', name: tpl.name })}
-                          >
-                            <span>
-                              {tpl.name}
-                              {dirty.has(tpl.name) && (
-                                <span className="dirty-dot" title={t('app.unsaved')} />
-                              )}
-                            </span>
-                            <span className="muted">
-                              {tpl.width}×{tpl.height}
-                            </span>
-                          </button>
-                          <button
-                            className="icon-btn item-dup"
-                            title={t('sidebar.duplicate')}
-                            onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
-                          >
-                            ⧉
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    {project.unusedSheets.length > 0 && (
-                      <p className="muted small">
-                        {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
-                      </p>
-                    )}
-                  </nav>
+                  {sidebar}
                 </>
               )}
             </main>

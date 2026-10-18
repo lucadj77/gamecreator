@@ -5,14 +5,25 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import { I18nProvider } from './i18n'
 import { loadTheme, setTheme } from './theme/theme'
+import ExportPage from './export/ExportPage'
 
-// prima del primo disegno, così la finestra non si apre con il tema sbagliato
-setTheme(loadTheme())
+const root = createRoot(document.getElementById('root')!)
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+if (location.hash === '#export') {
+  // finestra nascosta delle esportazioni: senza StrictMode, che registrerebbe due volte gli ascolti
+  root.render(
     <I18nProvider>
-      <App />
+      <ExportPage />
     </I18nProvider>
-  </StrictMode>
-)
+  )
+} else {
+  // prima del primo disegno, così la finestra non si apre con il tema sbagliato
+  setTheme(loadTheme())
+  root.render(
+    <StrictMode>
+      <I18nProvider>
+        <App />
+      </I18nProvider>
+    </StrictMode>
+  )
+}

@@ -278,16 +278,20 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.
 
+Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `gamecreator.json` sotto la chiave `export`, una per tipo; i profili con nome restano da fare. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
+
 ### 9.1 Immagini
 
-| Opzione       | Valori                                                                                    |
-| ------------- | ----------------------------------------------------------------------------------------- |
-| formato       | PNG, JPG (qualità), WebP                                                                  |
-| risoluzione   | 150, 300, 600 DPI o personalizzata                                                        |
-| abbondanza    | inclusa, esclusa                                                                          |
-| lati          | fronte, retro, entrambi                                                                   |
-| sfondo        | pieno, trasparente (PNG/WebP)                                                             |
-| nome dei file | modello con `%set`, `%n` (progressivo), `%copia`, `{campo}`; per esempio `%set/%n_{nome}` |
+| Opzione       | Valori                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| formato       | PNG, JPG (qualità); WebP non ancora                                                                     |
+| risoluzione   | 150, 300, 600 DPI o personalizzata                                                                      |
+| abbondanza    | inclusa, esclusa                                                                                        |
+| lati          | fronte, retro, entrambi                                                                                 |
+| sfondo        | fuori dagli angoli arrotondati: bianco o trasparente (PNG, senza abbondanza)                            |
+| nome dei file | modello con `%set`, `%n` (posizione nel set), `%copy`, `%side`, `{campo}`; per esempio `%set/%n_{nome}` |
+
+Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al nome (`_front`, `_back`); con le copie succede lo stesso per `%copy`. I nomi ripetuti ricevono `_2`, `_3`.
 
 ### 9.2 PDF di stampa
 
@@ -303,6 +307,8 @@ Le esportazioni si salvano come profili nel progetto, così si possono rilanciar
 | file                 | unico, uno per set, uno per lato                                                                                       |
 | fogli di prova       | pagina riepilogo a bassa risoluzione con tutte le carte                                                                |
 
+Piegatura e fogli di prova non sono ancora disponibili. Senza abbondanza la carta si taglia al rettangolo di rifilo, senza angoli arrotondati. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
+
 Il PDF è vettoriale, con i font incorporati e in RGB. Il CMYK richiesto da alcune tipografie richiede una conversione successiva: da valutare con Ghostscript in un secondo momento.
 
 ### 9.3 Tabletop Simulator
@@ -316,6 +322,8 @@ Il PDF è vettoriale, con i font incorporati e in RGB. Il CMYK richiesto da alcu
 | oggetto salvato    | file JSON del mazzo pronto da caricare                                                                                                                                            |
 | Nickname           | vuoto oppure da un campo a scelta (di base il primo campo di testo, per esempio `nome`)                                                                                           |
 | Description        | vuota oppure da un campo a scelta                                                                                                                                                 |
+
+La griglia automatica sceglie, tra 2 × 2 e 10 × 7, quella con meno posizioni vuote e, a parità, il foglio più vicino al quadrato. Le carte non superano 300 DPI. Le copie non si ripetono sul foglio: il mazzo richiama più volte la stessa posizione. Si scrivono `<set>.json` (oggetto salvato), `<set>.png` (miniatura) e i fogli in `images/`; i fogli si richiamano con indirizzi `file:///`, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online le immagini vanno caricate su un servizio web e gli indirizzi cambiati in Tabletop Simulator. La cartella predefinita di Tabletop Simulator è `~/Library/Tabletop Simulator/Saves/Saved Objects` su macOS, `Documenti/My Games/Tabletop Simulator/Saves/Saved Objects` su Windows; dentro si crea una cartella con il nome del progetto.
 
 ### 9.4 Preset per tipografie
 

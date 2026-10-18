@@ -31,6 +31,7 @@ import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/set
 import CardSvg from './render/CardSvg'
 import { AssetsContext, SaveStyleContext, StylesContext } from './render/assets'
 import FormatDialog from './components/FormatDialog'
+import ExportDialog from './export/ExportDialog'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
@@ -85,6 +86,7 @@ function App(): React.JSX.Element {
   /** Stile aperto nell'editor: '' per uno nuovo */
   const [editingStyle, setEditingStyle] = useState<string | null>(null)
   const [creatingSet, setCreatingSet] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
   const [dirtySheets, setDirtySheets] = useState<Set<string>>(new Set())
@@ -509,6 +511,7 @@ function App(): React.JSX.Element {
               )}
               {loading && <span className="muted">{t('app.loading')}</span>}
               <span className="spacer" />
+              {project && <button onClick={() => setExporting(true)}>{t('app.export')}</button>}
               {project && (
                 <button
                   className="primary"
@@ -664,6 +667,16 @@ function App(): React.JSX.Element {
               />
             )}
           </div>
+          {exporting && project && (
+            <ExportDialog
+              project={project}
+              // le opzioni sono già scritte su disco: il progetto non risulta modificato
+              onProfiles={(profiles) =>
+                setProject((p) => p && { ...p, file: { ...p.file, export: profiles } })
+              }
+              onClose={() => setExporting(false)}
+            />
+          )}
           {editingStyle !== null && project && (
             <FormatDialog
               mode="style"

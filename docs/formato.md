@@ -32,6 +32,8 @@ progetto/
 }
 ```
 
+`export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`. La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
+
 ## Fogli dati
 
 - La prima riga contiene le intestazioni; ogni riga successiva è una carta.

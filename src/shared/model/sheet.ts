@@ -116,3 +116,7 @@ export function propertyColumns(t: Template, layerName: string): string[] {
 export function newSheet(name: string, t: Template | null): Sheet {
   return { name, headers: t ? templateColumns(t) : ['amount', 'name'], rows: [] }
 }
+
+/** Nome di un set o di un foglio: niente caratteri che Excel non accetta nei fogli */
+export const isValidSheetName = (n: string): boolean =>
+  n.trim() === n && n.length > 0 && n.length <= 31 && !/[\\/?*[\]:]/.test(n)

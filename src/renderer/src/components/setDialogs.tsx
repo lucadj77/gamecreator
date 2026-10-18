@@ -1,14 +1,10 @@
 import { useState } from 'react'
 import type { Sheet } from '../../../shared/project'
-import { propertyColumns, templateColumns } from '../../../shared/model/sheet'
+import { isValidSheetName, propertyColumns, templateColumns } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
 import type { Template } from '../../../shared/model/template'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
-
-/** Nome di un set o di un foglio: niente caratteri che Excel non accetta nei fogli */
-const isValidSheetName = (n: string): boolean =>
-  n.trim() === n && n.length > 0 && n.length <= 31 && !/[\\/?*[\]:]/.test(n)
 
 export function NewSetDialog({
   templates,
@@ -194,6 +190,51 @@ export function AddColumnDialog({
           </div>
         </form>
       </div>
+    </Dialog>
+  )
+}
+
+/** Chiede il nome della copia di un set o di un template */
+export function DuplicateDialog({
+  title,
+  initial,
+  validate,
+  onDuplicate,
+  onClose
+}: {
+  title: string
+  initial: string
+  /** Messaggio di errore, oppure null se il nome va bene */
+  validate(name: string): string | null
+  onDuplicate(name: string): void
+  onClose(): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const [name, setName] = useState(initial)
+  const error = validate(name)
+  return (
+    <Dialog title={title} onClose={onClose}>
+      <form
+        className="dialog-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!error) onDuplicate(name)
+        }}
+      >
+        <label>
+          {t('prop.name')}
+          <input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        {error && <p className="field-error">{error}</p>}
+        <div className="dialog-buttons">
+          <button type="button" onClick={onClose}>
+            {t('dialog.cancel')}
+          </button>
+          <button type="submit" className="primary" disabled={!!error}>
+            {t('duplicate.ok')}
+          </button>
+        </div>
+      </form>
     </Dialog>
   )
 }

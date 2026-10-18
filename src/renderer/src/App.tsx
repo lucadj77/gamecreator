@@ -3,9 +3,20 @@ import type { LoadedProject, LoadedSet, ProjectFile, Sheet } from '../../shared/
 import { messageFromError, type Message } from '../../shared/messages'
 import { bindCard, rowToCard, type BoundCard } from '../../shared/model/bind'
 import type { Layer, Side, Template } from '../../shared/model/template'
-import { duplicateRows, insertRow, newSheet, removeRows, addColumn } from '../../shared/model/sheet'
+import {
+  addColumn,
+  duplicateRows,
+  insertRow,
+  isValidSheetName,
+  newSheet,
+  removeRows
+} from '../../shared/model/sheet'
 import { hitTest, toLocal } from '../../shared/model/geometry'
-import { normalizeTemplate } from '../../shared/model/normalize'
+import {
+  denormalizeTemplate,
+  isValidTemplateName,
+  normalizeTemplate
+} from '../../shared/model/normalize'
 import DataTable from './components/DataTable'
 import Segmented from './components/Segmented'
 import Resizer from './components/Resizer'
@@ -14,7 +25,7 @@ import TemplateEditor from './editor/TemplateEditor'
 import { NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
-import { AddColumnDialog, NewSetDialog } from './components/setDialogs'
+import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import CardSvg from './render/CardSvg'
 import { AssetsContext } from './render/assets'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
@@ -60,6 +71,7 @@ function App(): React.JSX.Element {
   const [dirty, setDirty] = useState<Set<string>>(new Set())
   const [creating, setCreating] = useState(false)
   const [creatingSet, setCreatingSet] = useState(false)
+  const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
   const [dirtySheets, setDirtySheets] = useState<Set<string>>(new Set())
   /** gamecreator.json da riscrivere (set nuovi) */
@@ -220,6 +232,61 @@ function App(): React.JSX.Element {
     setCreatingSet(false)
   }
 
+  /** Nome libero per una copia: "Nome copia", "Nome copia 2", ... */
+  const copyName = (base: string, taken: string[]): string => {
+    const stem = `${base} ${t('duplicate.suffix')}`
+    let name = stem
+    for (let n = 2; taken.includes(name); n++) name = `${stem} ${n}`
+    return name
+  }
+  const setNames = (): string[] =>
+    project
+      ? [
+          ...project.sets.map((x) => x.name),
+          ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
+          ...project.unusedSheets
+        ]
+      : []
+  const templateNames = (): string[] =>
+    project ? project.templates.flatMap((x) => [x.name, x.file ?? x.name]) : []
+
+  const duplicateSet = (index: number, name: string): void => {
+    if (!project) return
+    const src = project.sets[index]
+    if (project.file.dataFile.toLowerCase().endsWith('.csv')) {
+      setError({ key: 'save.csvOneSheet' })
+      return
+    }
+    const data: Sheet = src.data
+      ? { ...src.data, name, rows: src.data.rows.map((r) => [...r]) }
+      : { name, headers: ['amount'], rows: [] }
+    const def = { name, template: src.template }
+    setHistory((h) => ({
+      past: [...h.past, { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    const at = index + 1
+    const sets = [...project.sets]
+    sets.splice(at, 0, { ...def, data })
+    const defs = [...project.file.sets]
+    defs.splice(at, 0, def)
+    setProject({ ...project, sets, file: { ...project.file, sets: defs } })
+    setDirtySheets((d) => new Set(d).add(name))
+    setFileDirty(true)
+    setSelected({ kind: 'set', index: at })
+  }
+
+  const duplicateTemplate = (from: string, name: string): void => {
+    const src = project?.templates.find((x) => x.name === from)
+    if (!src) return
+    // i livelli ricevono id nuovi rileggendo il template come da file
+    const copy = normalizeTemplate({ ...denormalizeTemplate(src), name })
+    setProject((p) => p && { ...p, templates: [...p.templates, copy] })
+    setDirty((d) => new Set(d).add(name))
+    setSelected({ kind: 'template', name })
+  }
+
   // ⌘S salva tutto ovunque; ⌘Z nei set annulla le modifiche ai dati (nell'editor vale l'editor)
   const onKey = (e: KeyboardEvent): void => {
     const mod = e.metaKey || e.ctrlKey
@@ -366,6 +433,13 @@ function App(): React.JSX.Element {
                       </span>
                       <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
                     </button>
+                    <button
+                      className="icon-btn item-dup"
+                      title={t('sidebar.duplicate')}
+                      onClick={() => setDuplicating({ kind: 'set', index: i })}
+                    >
+                      ⧉
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -397,6 +471,13 @@ function App(): React.JSX.Element {
                       <span className="muted">
                         {tpl.width}×{tpl.height}
                       </span>
+                    </button>
+                    <button
+                      className="icon-btn item-dup"
+                      title={t('sidebar.duplicate')}
+                      onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
+                    >
+                      ⧉
                     </button>
                   </li>
                 ))}
@@ -434,6 +515,36 @@ function App(): React.JSX.Element {
               <p>{t('app.empty')}</p>
             </div>
           )
+        )}
+        {duplicating && project && (
+          <DuplicateDialog
+            title={
+              duplicating.kind === 'set' ? t('duplicate.setTitle') : t('duplicate.templateTitle')
+            }
+            initial={copyName(
+              duplicating.kind === 'set' ? project.sets[duplicating.index].name : duplicating.name,
+              duplicating.kind === 'set' ? setNames() : templateNames()
+            )}
+            validate={(name) =>
+              duplicating.kind === 'set'
+                ? !isValidSheetName(name)
+                  ? t('newSet.invalidName')
+                  : setNames().includes(name)
+                    ? t('newSet.exists')
+                    : null
+                : !isValidTemplateName(name)
+                  ? t('newTemplate.invalidName')
+                  : templateNames().includes(name)
+                    ? t('newTemplate.exists')
+                    : null
+            }
+            onDuplicate={(name) => {
+              if (duplicating.kind === 'set') duplicateSet(duplicating.index, name)
+              else duplicateTemplate(duplicating.name, name)
+              setDuplicating(null)
+            }}
+            onClose={() => setDuplicating(null)}
+          />
         )}
         {creatingSet && project && (
           <NewSetDialog

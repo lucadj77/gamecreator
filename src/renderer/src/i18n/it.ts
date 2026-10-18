@@ -44,6 +44,11 @@ export const it: Record<MessageKey, string> = {
   'addColumn.add': 'Aggiungi',
   'addColumn.exists': 'La colonna esiste già',
   'addColumn.invalid': 'Le graffe non sono ammesse nei nomi delle colonne',
+  'sidebar.duplicate': 'Duplica',
+  'duplicate.setTitle': 'Duplica set',
+  'duplicate.templateTitle': 'Duplica template',
+  'duplicate.ok': 'Duplica',
+  'duplicate.suffix': 'copia',
   'app.language': 'Lingua',
 
   'sidebar.sets': 'Set',

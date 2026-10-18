@@ -44,6 +44,11 @@ export const en = {
   'addColumn.add': 'Add',
   'addColumn.exists': 'The column already exists',
   'addColumn.invalid': 'Braces are not allowed in column names',
+  'sidebar.duplicate': 'Duplicate',
+  'duplicate.setTitle': 'Duplicate set',
+  'duplicate.templateTitle': 'Duplicate template',
+  'duplicate.ok': 'Duplicate',
+  'duplicate.suffix': 'copy',
   'app.language': 'Language',
 
   'sidebar.sets': 'Sets',

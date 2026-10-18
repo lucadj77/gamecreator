@@ -133,6 +133,24 @@ button {
   text-align: left;
 }
 
+.sidebar li {
+  position: relative;
+}
+
+.sidebar li button.item-dup {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  display: none;
+  background: var(--panel);
+}
+
+.sidebar li:hover button.item-dup {
+  display: block;
+}
+
 .sidebar li button.active {
   background: var(--accent-soft);
 }

@@ -1,5 +1,7 @@
 import { msg, type Message } from '../messages'
+import { resolveAsset } from './assets'
 import { evaluateFormula } from './formula'
+import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
 import {
   PRIMARY_PROPERTY,
@@ -33,7 +35,13 @@ export function rowToCard(headers: string[], row: string[]): CardData {
   return { fields, amount: Number.isFinite(amount) && amount >= 0 ? amount : 1 }
 }
 
-export function bindCard(template: Template, card: CardData): BoundCard {
+/** Progetto aperto: per controllare stili e immagini richiamati nel markup dei testi */
+export interface BindContext {
+  styles?: Record<string, string>
+  assets?: string[]
+}
+
+export function bindCard(template: Template, card: CardData, ctx: BindContext = {}): BoundCard {
   const problems: Message[] = []
   const overrides = new Map<string, Map<string, string>>()
   for (const [header, value] of Object.entries(card.fields)) {
@@ -76,7 +84,10 @@ export function bindCard(template: Template, card: CardData): BoundCard {
         }
         out = { ...layer, ...patch } as Layer
       }
-      if (out.type === 'text') out = { ...out, text: substituteFields(out.text, fields) }
+      if (out.type === 'text') {
+        out = { ...out, text: substituteFields(out.text, fields) }
+        if (out.visible) problems.push(...textProblems(out.name, out.text, ctx))
+      }
       if (out.type === 'image') out = { ...out, src: substituteFields(out.src, fields) }
       if (out.type === 'group') out = { ...out, children: apply(out.children) }
       return out
@@ -88,6 +99,23 @@ export function bindCard(template: Template, card: CardData): BoundCard {
     problems,
     label: cardLabel(template, card, fields)
   }
+}
+
+/** Errori del markup di un testo, e {nome} che non è né un campo né un'immagine */
+function textProblems(layer: string, text: string, ctx: BindContext): Message[] {
+  const out = markupProblems(text, ctx.styles).map((p) =>
+    msg('bind.markup', { layer, problem: p.message })
+  )
+  if (ctx.assets)
+    for (const name of new Set(markupRefs(text))) {
+      if (!name) continue
+      const r = resolveAsset(name, ctx.assets)
+      if (!r.ok)
+        out.push(
+          msg(r.reason === 'ambiguous' ? 'bind.ambiguousRef' : 'bind.unknownRef', { layer, name })
+        )
+    }
+  return out
 }
 
 function cardLabel(template: Template, card: CardData, fields: Record<string, string>): string {
@@ -152,11 +180,17 @@ export function cardFields(template: Template, card: CardData): Record<string, s
   return fields
 }
 
-/** Sostituisce {campo} con il valore della riga; le altre graffe restano per le variabili */
+/**
+ * Sostituisce {campo} con il valore della riga e, in {icona*campo}, il campo con il suo valore;
+ * le altre graffe restano per le variabili e le immagini.
+ */
 export function substituteFields(text: string, fields: Record<string, string>): string {
-  return text.replace(/(?<!\\)\{([^{}*]+)\}/g, (m, name: string) =>
-    Object.prototype.hasOwnProperty.call(fields, name.trim()) ? fields[name.trim()] : m
-  )
+  const has = (name: string): boolean => Object.prototype.hasOwnProperty.call(fields, name.trim())
+  return text
+    .replace(/(?<!\\)\{([^{}*]+)\}/g, (m, name: string) => (has(name) ? fields[name.trim()] : m))
+    .replace(/(?<!\\)\{([^{}*]+)\*([^{}*]+)\}/g, (m, name: string, count: string) =>
+      has(count) ? `{${name}*${fields[count.trim()].trim()}}` : m
+    )
 }
 
 const NULLABLE = new Set(['fill', 'tint', 'style', 'stroke', 'shadow'])

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedProject, LoadedSet, ProjectFile, Sheet } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
 import { bindCard, rowToCard, type BoundCard } from '../../shared/model/bind'
@@ -29,11 +29,12 @@ import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import CardSvg from './render/CardSvg'
-import { AssetsContext } from './render/assets'
+import { AssetsContext, StylesContext } from './render/assets'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
 import type { Theme } from '../../shared/api'
 
+const NO_STYLES: Record<string, string> = {}
 const LAST_FOLDER_KEY = 'lastProjectFolder'
 const VIEW_KEY = 'setView'
 const UI_ZOOM_KEY = 'uiZoom'
@@ -364,329 +365,335 @@ function App(): React.JSX.Element {
 
   return (
     <AssetsContext.Provider value={project?.assets ?? []}>
-      <div className="app">
-        <header className="toolbar">
-          <button onClick={open}>{t('app.openProject')}</button>
-          {project && (
-            <>
-              <button onClick={() => discardOk() && load(project.folder)}>{t('app.reload')}</button>
-              <span className="project-name">{project.file.name}</span>
-              <span className="project-path">{project.folder}</span>
-            </>
-          )}
-          {loading && <span className="muted">{t('app.loading')}</span>}
-          <span className="spacer" />
-          {project && (
-            <button
-              className="primary"
-              disabled={!anyDirty || saving}
-              title={t('app.saveHint')}
-              onClick={saveAll}
-            >
-              {anyDirty ? t('app.save') : t('app.saved')}
-            </button>
-          )}
-          <label className="muted" title={t('app.uiSizeHint')}>
-            {t('app.uiSize')}{' '}
-            <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
-              {UI_ZOOMS.map((z) => (
-                <option key={z} value={z}>
-                  {Math.round(z * 100)}%
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="muted">
-            {t('app.theme')}{' '}
-            <select value={theme} onChange={(e) => changeTheme(e.target.value as Theme)}>
-              {THEMES.map((th) => (
-                <option key={th} value={th}>
-                  {t(`app.theme.${th}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="muted">
-            {t('app.language')}{' '}
-            <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
-              {Object.entries(LANGUAGES).map(([code, name]) => (
-                <option key={code} value={code}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </header>
-
-        {error && <div className="banner error">{t(error)}</div>}
-        {project?.warnings.map((w, i) => (
-          <div key={i} className="banner warning">
-            {t(w)}
-          </div>
-        ))}
-
-        {project ? (
-          <main className="workspace">
-            {sidebarSide === 'left' && (
+      <StylesContext.Provider value={project?.file.styles ?? NO_STYLES}>
+        <div className="app">
+          <header className="toolbar">
+            <button onClick={open}>{t('app.openProject')}</button>
+            {project && (
               <>
-                <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
-                  <h2 className="with-action">
-                    {t('sidebar.sets')}
-                    <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
-                    <button
-                      className="icon-btn"
-                      title={t('sidebar.newSet')}
-                      onClick={() => setCreatingSet(true)}
-                    >
-                      +
-                    </button>
-                  </h2>
-                  <ul>
-                    {project.sets.map((s, i) => (
-                      <li key={s.name}>
-                        <button
-                          className={
-                            selected.kind === 'set' && i === selected.index ? 'active' : ''
-                          }
-                          onClick={() => setSelected({ kind: 'set', index: i })}
-                        >
-                          <span>
-                            {s.name}
-                            {s.data && dirtySheets.has(s.data.name) && (
-                              <span className="dirty-dot" title={t('app.unsaved')} />
-                            )}
-                          </span>
-                          <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
-                        </button>
-                        <button
-                          className="icon-btn item-dup"
-                          title={t('sidebar.duplicate')}
-                          onClick={() => setDuplicating({ kind: 'set', index: i })}
-                        >
-                          ⧉
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <h2 className="with-action">
-                    {t('sidebar.templates')}
-                    <button
-                      className="icon-btn"
-                      title={t('sidebar.newTemplate')}
-                      onClick={() => setCreating(true)}
-                    >
-                      +
-                    </button>
-                  </h2>
-                  <ul>
-                    {project.templates.map((tpl) => (
-                      <li key={tpl.name}>
-                        <button
-                          className={
-                            selected.kind === 'template' && selected.name === tpl.name
-                              ? 'active'
-                              : ''
-                          }
-                          onClick={() => setSelected({ kind: 'template', name: tpl.name })}
-                        >
-                          <span>
-                            {tpl.name}
-                            {dirty.has(tpl.name) && (
-                              <span className="dirty-dot" title={t('app.unsaved')} />
-                            )}
-                          </span>
-                          <span className="muted">
-                            {tpl.width}×{tpl.height}
-                          </span>
-                        </button>
-                        <button
-                          className="icon-btn item-dup"
-                          title={t('sidebar.duplicate')}
-                          onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
-                        >
-                          ⧉
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  {project.unusedSheets.length > 0 && (
-                    <p className="muted small">
-                      {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
-                    </p>
-                  )}
-                </nav>
-                <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="left" max={400} />
+                <button onClick={() => discardOk() && load(project.folder)}>
+                  {t('app.reload')}
+                </button>
+                <span className="project-name">{project.file.name}</span>
+                <span className="project-path">{project.folder}</span>
               </>
             )}
-            {editing ? (
-              <TemplateEditor
-                key={editing.name}
-                template={editing}
-                sets={project.sets.filter((s) => s.template === editing.name)}
-                onChange={updateTemplate}
-              />
-            ) : current ? (
-              <SetView
-                key={current.name}
-                set={current}
-                templates={project.templates}
-                onChange={(sheet, key) =>
-                  updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
-                }
-              />
-            ) : (
-              <section className="content" />
+            {loading && <span className="muted">{t('app.loading')}</span>}
+            <span className="spacer" />
+            {project && (
+              <button
+                className="primary"
+                disabled={!anyDirty || saving}
+                title={t('app.saveHint')}
+                onClick={saveAll}
+              >
+                {anyDirty ? t('app.save') : t('app.saved')}
+              </button>
             )}
-            {sidebarSide === 'right' && (
-              <>
-                <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="right" max={400} />
-                <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
-                  <h2 className="with-action">
-                    {t('sidebar.sets')}
-                    <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
-                    <button
-                      className="icon-btn"
-                      title={t('sidebar.newSet')}
-                      onClick={() => setCreatingSet(true)}
-                    >
-                      +
-                    </button>
-                  </h2>
-                  <ul>
-                    {project.sets.map((s, i) => (
-                      <li key={s.name}>
-                        <button
-                          className={
-                            selected.kind === 'set' && i === selected.index ? 'active' : ''
-                          }
-                          onClick={() => setSelected({ kind: 'set', index: i })}
-                        >
-                          <span>
-                            {s.name}
-                            {s.data && dirtySheets.has(s.data.name) && (
-                              <span className="dirty-dot" title={t('app.unsaved')} />
-                            )}
-                          </span>
-                          <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
-                        </button>
-                        <button
-                          className="icon-btn item-dup"
-                          title={t('sidebar.duplicate')}
-                          onClick={() => setDuplicating({ kind: 'set', index: i })}
-                        >
-                          ⧉
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <h2 className="with-action">
-                    {t('sidebar.templates')}
-                    <button
-                      className="icon-btn"
-                      title={t('sidebar.newTemplate')}
-                      onClick={() => setCreating(true)}
-                    >
-                      +
-                    </button>
-                  </h2>
-                  <ul>
-                    {project.templates.map((tpl) => (
-                      <li key={tpl.name}>
-                        <button
-                          className={
-                            selected.kind === 'template' && selected.name === tpl.name
-                              ? 'active'
-                              : ''
-                          }
-                          onClick={() => setSelected({ kind: 'template', name: tpl.name })}
-                        >
-                          <span>
-                            {tpl.name}
-                            {dirty.has(tpl.name) && (
-                              <span className="dirty-dot" title={t('app.unsaved')} />
-                            )}
-                          </span>
-                          <span className="muted">
-                            {tpl.width}×{tpl.height}
-                          </span>
-                        </button>
-                        <button
-                          className="icon-btn item-dup"
-                          title={t('sidebar.duplicate')}
-                          onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
-                        >
-                          ⧉
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  {project.unusedSheets.length > 0 && (
-                    <p className="muted small">
-                      {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
-                    </p>
-                  )}
-                </nav>
-              </>
-            )}
-          </main>
-        ) : (
-          !error && (
-            <div className="empty">
-              <p>{t('app.empty')}</p>
+            <label className="muted" title={t('app.uiSizeHint')}>
+              {t('app.uiSize')}{' '}
+              <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
+                {UI_ZOOMS.map((z) => (
+                  <option key={z} value={z}>
+                    {Math.round(z * 100)}%
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="muted">
+              {t('app.theme')}{' '}
+              <select value={theme} onChange={(e) => changeTheme(e.target.value as Theme)}>
+                {THEMES.map((th) => (
+                  <option key={th} value={th}>
+                    {t(`app.theme.${th}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="muted">
+              {t('app.language')}{' '}
+              <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
+                {Object.entries(LANGUAGES).map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </header>
+
+          {error && <div className="banner error">{t(error)}</div>}
+          {project?.warnings.map((w, i) => (
+            <div key={i} className="banner warning">
+              {t(w)}
             </div>
-          )
-        )}
-        {duplicating && project && (
-          <DuplicateDialog
-            title={
-              duplicating.kind === 'set' ? t('duplicate.setTitle') : t('duplicate.templateTitle')
-            }
-            initial={copyName(
-              duplicating.kind === 'set' ? project.sets[duplicating.index].name : duplicating.name,
-              duplicating.kind === 'set' ? setNames() : templateNames()
-            )}
-            validate={(name) =>
-              duplicating.kind === 'set'
-                ? !isValidSheetName(name)
-                  ? t('newSet.invalidName')
-                  : setNames().includes(name)
-                    ? t('newSet.exists')
-                    : null
-                : !isValidTemplateName(name)
-                  ? t('newTemplate.invalidName')
-                  : templateNames().includes(name)
-                    ? t('newTemplate.exists')
-                    : null
-            }
-            onDuplicate={(name) => {
-              if (duplicating.kind === 'set') duplicateSet(duplicating.index, name)
-              else duplicateTemplate(duplicating.name, name)
-              setDuplicating(null)
-            }}
-            onClose={() => setDuplicating(null)}
-          />
-        )}
-        {creatingSet && project && (
-          <NewSetDialog
-            templates={project.templates}
-            existing={[
-              ...project.sets.map((x) => x.name),
-              ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
-              ...project.unusedSheets
-            ]}
-            unusedSheets={project.unusedSheets}
-            onCreate={createSet}
-            onClose={() => setCreatingSet(false)}
-          />
-        )}
-        {creating && project && (
-          <NewTemplateDialog
-            existing={project.templates.map((x) => x.file ?? x.name)}
-            onCreate={createTemplate}
-            onClose={() => setCreating(false)}
-          />
-        )}
-      </div>
+          ))}
+
+          {project ? (
+            <main className="workspace">
+              {sidebarSide === 'left' && (
+                <>
+                  <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
+                    <h2 className="with-action">
+                      {t('sidebar.sets')}
+                      <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
+                      <button
+                        className="icon-btn"
+                        title={t('sidebar.newSet')}
+                        onClick={() => setCreatingSet(true)}
+                      >
+                        +
+                      </button>
+                    </h2>
+                    <ul>
+                      {project.sets.map((s, i) => (
+                        <li key={s.name}>
+                          <button
+                            className={
+                              selected.kind === 'set' && i === selected.index ? 'active' : ''
+                            }
+                            onClick={() => setSelected({ kind: 'set', index: i })}
+                          >
+                            <span>
+                              {s.name}
+                              {s.data && dirtySheets.has(s.data.name) && (
+                                <span className="dirty-dot" title={t('app.unsaved')} />
+                              )}
+                            </span>
+                            <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
+                          </button>
+                          <button
+                            className="icon-btn item-dup"
+                            title={t('sidebar.duplicate')}
+                            onClick={() => setDuplicating({ kind: 'set', index: i })}
+                          >
+                            ⧉
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <h2 className="with-action">
+                      {t('sidebar.templates')}
+                      <button
+                        className="icon-btn"
+                        title={t('sidebar.newTemplate')}
+                        onClick={() => setCreating(true)}
+                      >
+                        +
+                      </button>
+                    </h2>
+                    <ul>
+                      {project.templates.map((tpl) => (
+                        <li key={tpl.name}>
+                          <button
+                            className={
+                              selected.kind === 'template' && selected.name === tpl.name
+                                ? 'active'
+                                : ''
+                            }
+                            onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+                          >
+                            <span>
+                              {tpl.name}
+                              {dirty.has(tpl.name) && (
+                                <span className="dirty-dot" title={t('app.unsaved')} />
+                              )}
+                            </span>
+                            <span className="muted">
+                              {tpl.width}×{tpl.height}
+                            </span>
+                          </button>
+                          <button
+                            className="icon-btn item-dup"
+                            title={t('sidebar.duplicate')}
+                            onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
+                          >
+                            ⧉
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    {project.unusedSheets.length > 0 && (
+                      <p className="muted small">
+                        {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
+                      </p>
+                    )}
+                  </nav>
+                  <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="left" max={400} />
+                </>
+              )}
+              {editing ? (
+                <TemplateEditor
+                  key={editing.name}
+                  template={editing}
+                  sets={project.sets.filter((s) => s.template === editing.name)}
+                  onChange={updateTemplate}
+                />
+              ) : current ? (
+                <SetView
+                  key={current.name}
+                  set={current}
+                  templates={project.templates}
+                  onChange={(sheet, key) =>
+                    updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
+                  }
+                />
+              ) : (
+                <section className="content" />
+              )}
+              {sidebarSide === 'right' && (
+                <>
+                  <Resizer width={sidebarWidth} onChange={setSidebarWidth} edge="right" max={400} />
+                  <nav className="sidebar" data-side={sidebarSide} style={{ width: sidebarWidth }}>
+                    <h2 className="with-action">
+                      {t('sidebar.sets')}
+                      <PanelSideButton side={sidebarSide} onToggle={toggleSidebarSide} />
+                      <button
+                        className="icon-btn"
+                        title={t('sidebar.newSet')}
+                        onClick={() => setCreatingSet(true)}
+                      >
+                        +
+                      </button>
+                    </h2>
+                    <ul>
+                      {project.sets.map((s, i) => (
+                        <li key={s.name}>
+                          <button
+                            className={
+                              selected.kind === 'set' && i === selected.index ? 'active' : ''
+                            }
+                            onClick={() => setSelected({ kind: 'set', index: i })}
+                          >
+                            <span>
+                              {s.name}
+                              {s.data && dirtySheets.has(s.data.name) && (
+                                <span className="dirty-dot" title={t('app.unsaved')} />
+                              )}
+                            </span>
+                            <span className="muted">{s.data ? countCards(s.data) : '–'}</span>
+                          </button>
+                          <button
+                            className="icon-btn item-dup"
+                            title={t('sidebar.duplicate')}
+                            onClick={() => setDuplicating({ kind: 'set', index: i })}
+                          >
+                            ⧉
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <h2 className="with-action">
+                      {t('sidebar.templates')}
+                      <button
+                        className="icon-btn"
+                        title={t('sidebar.newTemplate')}
+                        onClick={() => setCreating(true)}
+                      >
+                        +
+                      </button>
+                    </h2>
+                    <ul>
+                      {project.templates.map((tpl) => (
+                        <li key={tpl.name}>
+                          <button
+                            className={
+                              selected.kind === 'template' && selected.name === tpl.name
+                                ? 'active'
+                                : ''
+                            }
+                            onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+                          >
+                            <span>
+                              {tpl.name}
+                              {dirty.has(tpl.name) && (
+                                <span className="dirty-dot" title={t('app.unsaved')} />
+                              )}
+                            </span>
+                            <span className="muted">
+                              {tpl.width}×{tpl.height}
+                            </span>
+                          </button>
+                          <button
+                            className="icon-btn item-dup"
+                            title={t('sidebar.duplicate')}
+                            onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
+                          >
+                            ⧉
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    {project.unusedSheets.length > 0 && (
+                      <p className="muted small">
+                        {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
+                      </p>
+                    )}
+                  </nav>
+                </>
+              )}
+            </main>
+          ) : (
+            !error && (
+              <div className="empty">
+                <p>{t('app.empty')}</p>
+              </div>
+            )
+          )}
+          {duplicating && project && (
+            <DuplicateDialog
+              title={
+                duplicating.kind === 'set' ? t('duplicate.setTitle') : t('duplicate.templateTitle')
+              }
+              initial={copyName(
+                duplicating.kind === 'set'
+                  ? project.sets[duplicating.index].name
+                  : duplicating.name,
+                duplicating.kind === 'set' ? setNames() : templateNames()
+              )}
+              validate={(name) =>
+                duplicating.kind === 'set'
+                  ? !isValidSheetName(name)
+                    ? t('newSet.invalidName')
+                    : setNames().includes(name)
+                      ? t('newSet.exists')
+                      : null
+                  : !isValidTemplateName(name)
+                    ? t('newTemplate.invalidName')
+                    : templateNames().includes(name)
+                      ? t('newTemplate.exists')
+                      : null
+              }
+              onDuplicate={(name) => {
+                if (duplicating.kind === 'set') duplicateSet(duplicating.index, name)
+                else duplicateTemplate(duplicating.name, name)
+                setDuplicating(null)
+              }}
+              onClose={() => setDuplicating(null)}
+            />
+          )}
+          {creatingSet && project && (
+            <NewSetDialog
+              templates={project.templates}
+              existing={[
+                ...project.sets.map((x) => x.name),
+                ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
+                ...project.unusedSheets
+              ]}
+              unusedSheets={project.unusedSheets}
+              onCreate={createSet}
+              onClose={() => setCreatingSet(false)}
+            />
+          )}
+          {creating && project && (
+            <NewTemplateDialog
+              existing={project.templates.map((x) => x.file ?? x.name)}
+              onCreate={createTemplate}
+              onClose={() => setCreating(false)}
+            />
+          )}
+        </div>
+      </StylesContext.Provider>
     </AssetsContext.Provider>
   )
 }
@@ -736,11 +743,13 @@ function SetView({
   }
 
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
+  const assets = useContext(AssetsContext)
+  const styles = useContext(StylesContext)
   const cards = useMemo<BoundCard[]>(() => {
     if (!template || !set.data) return []
     const { headers, rows } = set.data
-    return rows.map((row) => bindCard(template, rowToCard(headers, row)))
-  }, [template, set.data])
+    return rows.map((row) => bindCard(template, rowToCard(headers, row), { assets, styles }))
+  }, [template, set.data, assets, styles])
 
   if (!set.data) {
     return (

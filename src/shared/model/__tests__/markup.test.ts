@@ -1,0 +1,158 @@
+import { describe, expect, it } from 'vitest'
+import {
+  markupProblems,
+  parseAttrs,
+  parseMarkup,
+  plainText,
+  resolveStyles,
+  type Inline
+} from '../markup'
+
+const inline = (src: string): Inline[] => parseMarkup(src).blocks[0].children
+
+describe('markup: Markdown', () => {
+  it('riconosce grassetto, corsivo e le altre decorazioni', () => {
+    expect(inline('a **b** *c* ++d++ ~~e~~ ==f== x^2^ H~2~O')).toEqual([
+      { t: 'text', text: 'a ' },
+      { t: 'span', attrs: { styles: [], weight: 700 }, children: [{ t: 'text', text: 'b' }] },
+      { t: 'text', text: ' ' },
+      { t: 'span', attrs: { styles: [], italic: true }, children: [{ t: 'text', text: 'c' }] },
+      { t: 'text', text: ' ' },
+      { t: 'span', attrs: { styles: [], underline: true }, children: [{ t: 'text', text: 'd' }] },
+      { t: 'text', text: ' ' },
+      { t: 'span', attrs: { styles: [], strike: true }, children: [{ t: 'text', text: 'e' }] },
+      { t: 'text', text: ' ' },
+      {
+        t: 'span',
+        attrs: { styles: [], highlight: '#FFE58F' },
+        children: [{ t: 'text', text: 'f' }]
+      },
+      { t: 'text', text: ' x' },
+      { t: 'span', attrs: { styles: [], script: 'sup' }, children: [{ t: 'text', text: '2' }] },
+      { t: 'text', text: ' H' },
+      { t: 'span', attrs: { styles: [], script: 'sub' }, children: [{ t: 'text', text: '2' }] },
+      { t: 'text', text: 'O' }
+    ])
+  })
+
+  it('annida grassetto dentro corsivo', () => {
+    const [span] = inline('*a **b** c*')
+    expect(span).toMatchObject({ t: 'span', attrs: { italic: true } })
+    expect(span.t === 'span' && span.children[1]).toMatchObject({ attrs: { weight: 700 } })
+  })
+
+  it('lascia come testo gli asterischi staccati e quelli senza chiusura', () => {
+    expect(plainText('3 * 4 * 5')).toBe('3 * 4 * 5')
+    expect(plainText('**aperto')).toBe('**aperto')
+  })
+
+  it('divide i paragrafi a ogni a capo e unisce le righe che finiscono con \\', () => {
+    const { blocks } = parseMarkup('uno\\\ndue\n\ntre')
+    expect(blocks.map((b) => b.children)).toEqual([
+      [{ t: 'text', text: 'uno' }, { t: 'br' }, { t: 'text', text: 'due' }],
+      [],
+      [{ t: 'text', text: 'tre' }]
+    ])
+  })
+
+  it('riconosce titoli, note, elenchi e separatori', () => {
+    const { blocks } = parseMarkup('# T\n## S\n> n\n- a\n1. b\n2. c\n---')
+    expect(blocks.map((b) => [b.kind, b.number])).toEqual([
+      ['h1', undefined],
+      ['h2', undefined],
+      ['note', undefined],
+      ['bullet', undefined],
+      ['number', 1],
+      ['number', 2],
+      ['rule', undefined]
+    ])
+  })
+
+  it('rispetta i caratteri con escape', () => {
+    expect(plainText('\\{a\\} \\*b\\* \\[c]')).toBe('{a} *b* [c]')
+  })
+})
+
+describe('markup: attributi', () => {
+  it('legge stili, colori, dimensioni e contorni', () => {
+    expect(parseAttrs('.keyword color=red size=+2 stroke=white/8% weight=800').attrs).toEqual({
+      styles: ['keyword'],
+      color: 'red',
+      size: '+2',
+      stroke: { color: 'white', width: '8%' },
+      weight: 800
+    })
+  })
+
+  it('legge i riquadri in linea', () => {
+    expect(
+      parseAttrs('border=red/0.3 radius=round pad=0.3/1 bg=shield bg-color=blue').attrs
+    ).toEqual({
+      styles: [],
+      border: { color: 'red', width: 0.3 },
+      radius: 'round',
+      pad: [0.3, 1],
+      bg: 'shield',
+      bgColor: 'blue'
+    })
+  })
+
+  it('segnala attributi sconosciuti e valori non validi', () => {
+    const { problems } = parseAttrs('colour=red size=grande', 10)
+    expect(problems.map((p) => [p.message.key, p.from, p.to])).toEqual([
+      ['markup.unknownAttribute', 10, 20],
+      ['markup.invalidValue', 21, 32]
+    ])
+  })
+
+  it('applica gli attributi a una porzione di testo', () => {
+    expect(inline('Bonus [pino]{.keyword} e [3]{bg=circle color=white}')).toEqual([
+      { t: 'text', text: 'Bonus ' },
+      { t: 'span', attrs: { styles: ['keyword'] }, children: [{ t: 'text', text: 'pino' }] },
+      { t: 'text', text: ' e ' },
+      {
+        t: 'span',
+        attrs: { styles: [], bg: 'circle', color: 'white' },
+        children: [{ t: 'text', text: '3' }]
+      }
+    ])
+  })
+
+  it('riconosce gli attributi di paragrafo a inizio riga', () => {
+    const [b] = parseMarkup('{.flavor center} *Il castello*').blocks
+    expect(b.attrs).toEqual({ styles: ['flavor'], align: 'center' })
+    expect(b.children[0]).toMatchObject({ t: 'span', attrs: { italic: true } })
+  })
+
+  it('a inizio riga una variabile resta una variabile', () => {
+    expect(inline('{spada} attacca')[0]).toEqual({
+      t: 'ref',
+      name: 'spada',
+      count: 1,
+      raw: '{spada}'
+    })
+  })
+
+  it('legge le icone ripetute', () => {
+    expect(inline('{spada*3}')[0]).toMatchObject({ t: 'ref', name: 'spada', count: 3 })
+  })
+})
+
+describe('markup: stili', () => {
+  it('gli attributi scritti prevalgono sullo stile', () => {
+    const a = resolveStyles(parseAttrs('.keyword color=blue').attrs, {
+      keyword: 'color=green weight=700'
+    })
+    expect(a).toEqual({ styles: [], color: 'blue', weight: 700 })
+  })
+
+  it('i titoli hanno uno stile predefinito', () => {
+    expect(resolveStyles({ styles: ['heading1'] }, {})).toMatchObject({ weight: 800 })
+  })
+
+  it('segnala gli stili che non esistono', () => {
+    expect(markupProblems('[a]{.nessuno}').map((p) => p.message)).toEqual([
+      { key: 'markup.unknownStyle', params: { name: 'nessuno' } }
+    ])
+  })
+})

@@ -313,5 +313,18 @@ export const it: Record<MessageKey, string> = {
     'Template {file}: il livello "{layer}" ha un tipo sconosciuto "{type}"',
   'bind.unknownProperty': 'Colonna {column}: proprietà inesistente',
   'bind.formulaField': 'Livello {layer}: la formula usa il campo "{field}", che questa riga non ha',
-  'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"'
+  'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
+  'bind.markup': 'Livello {layer}: {problem}',
+  'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
+  'bind.ambiguousRef':
+    "Livello {layer}: {{name}} corrisponde a più immagini; aggiungi l'estensione o la cartella",
+  'markup.unknownAttribute': 'attributo “{name}” sconosciuto',
+  'markup.invalidValue': 'valore “{value}” non valido per {name}',
+  'markup.missingValue': '{name}= vuole un valore',
+  'markup.noValue': '{name} non vuole un valore',
+  'markup.emptyStyle': 'un punto senza nome dello stile',
+  'markup.unknownStyle': 'lo stile “{name}” non esiste',
+  'markup.unclosedBrace': '{ senza la } di chiusura',
+  'markup.badRepeat': '{text}: le ripetizioni devono essere un numero o un campo numerico',
+  'markup.emptyRef': 'graffe vuote {}'
 }

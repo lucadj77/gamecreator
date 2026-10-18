@@ -309,7 +309,20 @@ export const en = {
   'bind.unknownProperty': 'Column {column}: no such property',
   'bind.formulaField':
     'Layer {layer}: the formula uses field "{field}", which this row does not have',
-  'bind.invalidValue': 'Column {column}: invalid value "{value}"'
+  'bind.invalidValue': 'Column {column}: invalid value "{value}"',
+  'bind.markup': 'Layer {layer}: {problem}',
+  'bind.unknownRef': 'Layer {layer}: {{name}} is not a field or an image in assets',
+  'bind.ambiguousRef':
+    'Layer {layer}: {{name}} matches more than one image; add the extension or the folder',
+  'markup.unknownAttribute': 'unknown attribute “{name}”',
+  'markup.invalidValue': 'invalid value “{value}” for {name}',
+  'markup.missingValue': '{name}= needs a value',
+  'markup.noValue': '{name} takes no value',
+  'markup.emptyStyle': 'a dot without a style name',
+  'markup.unknownStyle': 'style “{name}” does not exist',
+  'markup.unclosedBrace': '{ without a closing }',
+  'markup.badRepeat': '{text}: the number of repetitions must be a number or a numeric field',
+  'markup.emptyRef': 'empty braces {}'
 }
 
 export type MessageKey = keyof typeof en

@@ -4,6 +4,7 @@ import { anchorPoint, polygonVertices, roundedPolygonPath } from '../../../share
 import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
+import MarkupText from './MarkupText'
 import type {
   GroupLayer,
   ImageLayer,
@@ -365,11 +366,16 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
           }}
         >
           <div style={empty ? { opacity: 0.35, fontStyle: 'italic' } : undefined}>
-            {(empty ? l.name : l.text).split('\n').map((p, i) => (
-              <p key={i} style={{ margin: 0, marginTop: i ? l.paragraphSpacing * s : 0 }}>
-                {p || ' '}
-              </p>
-            ))}
+            {empty ? (
+              <p style={{ margin: 0 }}>{l.name}</p>
+            ) : (
+              <MarkupText
+                text={l.text}
+                unit={s}
+                ratio={size / l.size}
+                paragraphSpacing={l.paragraphSpacing}
+              />
+            )}
           </div>
         </div>
       </foreignObject>

@@ -21,11 +21,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }): React
   }, [])
 
   const t = useCallback<Translate>(
-    (key, params) => {
+    function translate(key, params): string {
       const m = typeof key === 'string' ? { key, params } : key
       // una chiave sconosciuta (per esempio da una versione più nuova) si mostra com'è
       const text = DICTIONARIES[lang][m.key as MessageKey] ?? en[m.key as MessageKey] ?? m.key
-      return text.replace(/\{(\w+)\}/g, (s, name) => String(m.params?.[name] ?? s))
+      return text.replace(/\{(\w+)\}/g, (s, name) => {
+        const p = m.params?.[name]
+        return p === undefined ? s : typeof p === 'object' ? translate(p, undefined) : String(p)
+      })
     },
     [lang]
   )

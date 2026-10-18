@@ -21,6 +21,11 @@ export interface ProjectFile {
   /** Percorso relativo del file dati (.xlsx o .csv) */
   dataFile: string
   sets: SetDefinition[]
+  /**
+   * Stili di testo: nome → attributi del markup, per esempio "keyword": "weight=700 color=green".
+   * heading1, heading2 e note esistono sempre e si possono ridefinire.
+   */
+  styles?: Record<string, string>
 }
 
 export interface Sheet {

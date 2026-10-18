@@ -70,7 +70,9 @@ async function loadTemplates(folder: string, warnings: Message[]): Promise<Templ
   for (const f of files.sort()) {
     try {
       const raw = JSON.parse(await readFile(join(folder, 'templates', f), 'utf8'))
-      const t = normalizeTemplate({ ...raw, name: raw.name ?? f.slice(0, -5) })
+      const file = f.slice(0, -5)
+      const t = normalizeTemplate({ ...raw, name: raw.name ?? file })
+      if (t.name !== file) t.file = file
       const dup = duplicateNames(t)
       if (dup.length)
         warnings.push(msg('load.duplicateLayers', { template: t.name, names: dup.join(', ') }))

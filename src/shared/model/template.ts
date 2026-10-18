@@ -29,6 +29,13 @@ export interface Shadow {
   dy: number
 }
 
+/**
+ * Da dove arriva il valore principale del livello sulle carte: una colonna del foglio
+ * (di base quella con il nome del livello), il valore fisso del template o una formula.
+ */
+export type ValueSource =
+  { kind: 'column'; column: string | null } | { kind: 'fixed' } | { kind: 'formula'; expr: string }
+
 export interface LayerBase {
   id: string
   /** Univoco nel template: è anche il nome della colonna nel foglio */
@@ -45,6 +52,7 @@ export interface LayerBase {
   shadow: Shadow | null
   /** Proprietà esposte in tabella oltre al valore principale */
   exposed: string[]
+  source: ValueSource
 }
 
 export interface TextLayer extends LayerBase {
@@ -100,16 +108,29 @@ export interface GroupLayer extends LayerBase {
   children: Layer[]
 }
 
-export type Layer = TextLayer | ImageLayer | ShapeLayer | GroupLayer
+/**
+ * Valore della carta senza rappresentazione: non si disegna, ma il suo risultato si può usare
+ * come {nome} nelle formule e nei testi degli altri livelli.
+ */
+export interface ValueLayer extends LayerBase {
+  type: 'value'
+  value: string
+}
+
+export type Layer = TextLayer | ImageLayer | ShapeLayer | GroupLayer | ValueLayer
 export type LayerType = Layer['type']
 
 export interface Template {
   name: string
+  /** Nome del file in templates/ senza estensione, se diverso dal nome; non si salva */
+  file?: string
   width: number
   height: number
   bleed: number
   safeMargin: number
   cornerRadius: number
+  /** Campo che dà il nome alle carte nelle anteprime dei set; null usa la prima colonna */
+  labelField?: string | null
   front: Layer[]
   back: Layer[]
 }
@@ -119,5 +140,9 @@ export const PRIMARY_PROPERTY: Record<LayerType, string> = {
   text: 'text',
   image: 'src',
   shape: 'fill',
-  group: 'visible'
+  group: 'visible',
+  value: 'value'
 }
+
+/** I livelli valore non hanno riquadro: non si disegnano, non si selezionano sulla carta */
+export const isDrawn = (l: Layer): boolean => l.type !== 'value'

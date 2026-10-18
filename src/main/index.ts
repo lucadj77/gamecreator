@@ -3,7 +3,15 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
-import { handleAssetProtocol, registerAssetScheme, setProjectFolder } from './protocol'
+import { saveTemplate } from './project/templates'
+import {
+  getProjectFolder,
+  handleAssetProtocol,
+  registerAssetScheme,
+  setProjectFolder
+} from './protocol'
+import { MessageError, msg } from '../shared/messages'
+import type { Template } from '../shared/model/template'
 
 registerAssetScheme()
 
@@ -50,6 +58,13 @@ function registerIpc(): void {
     const project = await loadProject(folder)
     setProjectFolder(folder)
     return project
+  })
+
+  // si scrive solo nel progetto aperto, qualunque cartella arrivi dal renderer
+  ipcMain.handle('template:save', async (_, template: Template) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await saveTemplate(folder, template)
   })
 }
 

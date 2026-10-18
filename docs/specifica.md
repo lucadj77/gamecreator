@@ -219,24 +219,28 @@ Uno stile raggruppa proprietà di carattere (font, peso, corsivo, dimensione, co
 
 ## 7. Campi calcolati
 
-- Si definiscono per set: `nome campo`, `tipo` (testo, numero, immagine, colore), `formula`.
-- La formula usa `{campo}` per i valori della stessa carta, operatori `+ - * /`, confronti, concatenazione e funzioni: `if(cond, yes, no)`, `lower()`, `upper()`, `round()`, `min()`, `max()`, `repeat(text, n)`, `exists(file)`.
-- Un campo calcolato si usa come sorgente di un livello o dentro un testo.
-- In tabella è una colonna di sola lettura; una cella compilata a mano vale come eccezione per quella carta.
-- Riferimenti circolari ed errori sono segnalati sulla riga.
+Scelta rivista il 2026-10-18: i calcoli stanno nel template, non nei set (vedi docs/requisiti.md).
+
+- **Fonte del valore.** Ogni livello prende il valore principale da una colonna del foglio (di base quella con il suo nome), da un valore fisso o da una formula.
+- **Livello valore.** Un livello di tipo `value` non si disegna: contiene un valore della carta che le formule e i testi degli altri livelli usano come `{nome}`. Una colonna con lo stesso nome lo cambia carta per carta; può avere a sua volta una formula. I livelli valore si calcolano in ordine, quindi uno può usare quelli che lo precedono.
+- **Campi disponibili.** `{campo}` vale, nell'ordine di precedenza: il livello valore calcolato, la cella non vuota della riga, il valore del livello nel template. Senza dati (nell'editor) le formule mostrano il risultato con i valori del template.
+- **Composizione.** Una formula senza `=` iniziale compone testo: `{nome}.png`, `Forza {forza}`. Se contiene `+ - * /` e il risultato è numerico, si calcola: `{forza}+2`.
+- **Espressione.** Con `=` iniziale è un'espressione come in Excel: `=IF({forza}>3; "Forte"; "Debole")`. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` o `,`. Funzioni (nomi in inglese): `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`.
+- I campi mancanti e gli errori sono segnalati sotto la carta e nel pannello proprietà.
 
 ## 8. Template e set
 
 ### 8.1 Template
 
-| Proprietà       | Valori                                                                                                                                                |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| dimensioni      | mm, scelte alla creazione e modificabili; preset: poker 63×88, bridge 57×89, mini 44×63, tarocchi 70×120, quadrata 70×70, segnalino tondo, plancia A4 |
-| forma           | rettangolo con raggio, cerchio, esagono, tracciato personalizzato                                                                                     |
-| abbondanza      | mm (default 3)                                                                                                                                        |
-| area sicura     | mm dal bordo di taglio, solo come guida                                                                                                               |
-| retro           | nessuno, unico per il set, per carta (livelli del retro collegati al foglio)                                                                          |
-| griglia e guide | passo in mm, guide manuali                                                                                                                            |
+| Proprietà        | Valori                                                                                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| dimensioni       | mm, scelte alla creazione e modificabili; preset: poker 63×88, bridge 57×89, mini 44×63, tarocchi 70×120, quadrata 70×70, segnalino tondo, plancia A4 |
+| forma            | rettangolo con raggio, cerchio, esagono, tracciato personalizzato                                                                                     |
+| abbondanza       | mm (default 3)                                                                                                                                        |
+| area sicura      | mm dal bordo di taglio, solo come guida                                                                                                               |
+| retro            | nessuno, unico per il set, per carta (livelli del retro collegati al foglio)                                                                          |
+| griglia e guide  | passo in mm, guide manuali                                                                                                                            |
+| nome delle carte | campo (colonna o livello) mostrato sotto ogni carta nella vista del set; di base la prima colonna non vuota                                           |
 
 Quando si cambiano le dimensioni di un template che contiene già livelli, l'app chiede cosa fare:
 

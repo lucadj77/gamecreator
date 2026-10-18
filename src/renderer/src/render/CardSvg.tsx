@@ -1,7 +1,9 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { resolveAsset } from '../../../shared/model/assets'
+import { anchorPoint } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
-import { AssetsContext, assetUrl } from './assets'
+import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
+import { fitRect, useImageSize } from './imageSize'
 import type {
   GroupLayer,
   ImageLayer,
@@ -30,24 +32,31 @@ interface Props {
   scale: number
   /** 'trim': carta rifilata con angoli arrotondati; 'bleed': con abbondanza e linea di taglio */
   mode?: 'trim' | 'bleed'
+  /**
+   * Area in mm da disegnare intorno alla carta, nell'editor: ciò che esce dalla carta si vede
+   * tenue, così un livello spostato fuori per errore si ritrova.
+   */
+  pasteboard?: { x: number; y: number; w: number; h: number }
 }
 
 export default function CardSvg({
   template: t,
   side = 'front',
   scale,
-  mode = 'trim'
+  mode = 'trim',
+  pasteboard
 }: Props): React.JSX.Element {
   const uid = useId().replace(/:/g, '')
   const b = mode === 'bleed' ? t.bleed : 0
   const layers = side === 'front' ? t.front : t.back
   const vw = t.width + 2 * b
   const vh = t.height + 2 * b
+  const box = pasteboard ?? { x: -b, y: -b, w: vw, h: vh }
   return (
     <svg
-      width={vw * scale}
-      height={vh * scale}
-      viewBox={`${-b} ${-b} ${vw} ${vh}`}
+      width={box.w * scale}
+      height={box.h * scale}
+      viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
       xmlns="http://www.w3.org/2000/svg"
       style={{ display: 'block' }}
     >
@@ -59,7 +68,28 @@ export default function CardSvg({
             <rect x={-b} y={-b} width={vw} height={vh} />
           )}
         </clipPath>
+        {pasteboard && (
+          <filter id={`${uid}-lift`} x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx={0} dy={0.6} stdDeviation={1} floodOpacity={0.3} />
+          </filter>
+        )}
       </defs>
+      {pasteboard && (
+        <>
+          <g opacity={0.35}>
+            <LayerList layers={layers} uid={`${uid}p`} />
+          </g>
+          <rect
+            x={-b}
+            y={-b}
+            width={vw}
+            height={vh}
+            rx={mode === 'trim' ? t.cornerRadius : 0}
+            fill="#FFFFFF"
+            filter={`url(#${uid}-lift)`}
+          />
+        </>
+      )}
       <g clipPath={`url(#${uid}-card)`}>
         <rect x={-b} y={-b} width={vw} height={vh} fill="#FFFFFF" />
         <LayerList layers={layers} uid={uid} />
@@ -90,21 +120,10 @@ function LayerList({ layers, uid }: { layers: Layer[]; uid: string }): React.JSX
   )
 }
 
-function anchorPoint(l: LayerBase): [number, number] {
-  const [v, h] = l.anchor.includes('-')
-    ? (l.anchor.split('-') as [string, string])
-    : l.anchor === 'top' || l.anchor === 'bottom'
-      ? [l.anchor, 'center']
-      : ['middle', l.anchor]
-  const x = h === 'left' ? l.x : h === 'right' ? l.x + l.w : l.x + l.w / 2
-  const y = v === 'top' ? l.y : v === 'bottom' ? l.y + l.h : l.y + l.h / 2
-  return [x, y]
-}
-
 function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.Element | null {
-  if (!l.visible) return null
+  if (!l.visible || l.type === 'value') return null
   const id = `${uid}-${l.id}`
-  const [ax, ay] = anchorPoint(l)
+  const { x: ax, y: ay } = anchorPoint(l)
   return (
     <g
       transform={l.rotation ? `rotate(${l.rotation} ${ax} ${ay})` : undefined}
@@ -203,12 +222,20 @@ const PRESERVE: Record<ImageLayer['fit'], string> = {
 function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.JSX.Element | null {
   const assets = useContext(AssetsContext)
   const { t } = useI18n()
+  const showEmpty = useContext(ShowEmptyContext)
   const res = resolveAsset(l.src, assets)
+  const size = useImageSize(res.ok ? assetUrl(res.path) : null)
   if (!res.ok) {
+    if (res.reason === 'empty' && showEmpty) return <Placeholder layer={l} label={l.name} />
     if (l.missing === 'hide' || res.reason === 'empty') return null
+    // nel template il nome viene spesso da un campo: si mostra il campo, non un errore
+    if (/\{[^}]+\}/.test(l.src)) return <Placeholder layer={l} label={l.src} />
     const key = res.reason === 'ambiguous' ? 'asset.ambiguous' : 'asset.missing'
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
   }
+  // finché non si conoscono le dimensioni si lascia fare a preserveAspectRatio
+  const r = size ? fitRect(l, size, l.fit) : l
+  const rect = { x: r.x, y: r.y, width: r.w, height: r.h }
   const flip =
     l.flipH || l.flipV
       ? `translate(${l.flipH ? 2 * l.x + l.w : 0} ${l.flipV ? 2 * l.y + l.h : 0}) scale(${l.flipH ? -1 : 1} ${l.flipV ? -1 : 1})`
@@ -230,11 +257,8 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
       <g clipPath={`url(#${id}-clip)`}>
         <image
           href={assetUrl(res.path)}
-          x={l.x}
-          y={l.y}
-          width={l.w}
-          height={l.h}
-          preserveAspectRatio={PRESERVE[l.fit]}
+          {...rect}
+          preserveAspectRatio={size ? 'none' : PRESERVE[l.fit]}
           transform={flip}
           filter={l.tint ? `url(#${id}-tint)` : undefined}
         />
@@ -289,6 +313,8 @@ const VALIGN: Record<TextLayer['valign'], string> = {
 }
 
 function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
+  const showEmpty = useContext(ShowEmptyContext)
+  const empty = showEmpty && !l.text.trim()
   const boxRef = useRef<HTMLDivElement>(null)
   const [fitted, setFitted] = useState<{ key: string; size: number } | null>(null)
   const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.lineHeight}|${l.fit}`
@@ -307,7 +333,11 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
   const s = TEXT_SCALE
   return (
     <g transform={`translate(${l.x} ${l.y}) scale(${1 / s})`}>
-      <foreignObject width={l.w * s} height={l.h * s}>
+      <foreignObject
+        width={l.w * s}
+        height={l.h * s}
+        overflow={l.fit === 'none' ? 'visible' : 'hidden'}
+      >
         <div
           ref={boxRef}
           style={{
@@ -318,7 +348,8 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: VALIGN[l.valign],
-            overflow: 'hidden',
+            // "esce dal riquadro" lascia vedere il testo in eccesso, le altre modalità lo tagliano
+            overflow: l.fit === 'none' ? 'visible' : 'hidden',
             fontFamily: `'${l.font}', sans-serif`,
             fontWeight: l.weight,
             fontStyle: l.italic ? 'italic' : 'normal',
@@ -341,8 +372,8 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
             paintOrder: 'stroke fill'
           }}
         >
-          <div>
-            {l.text.split('\n').map((p, i) => (
+          <div style={empty ? { opacity: 0.35, fontStyle: 'italic' } : undefined}>
+            {(empty ? l.name : l.text).split('\n').map((p, i) => (
               <p key={i} style={{ margin: 0, marginTop: i ? l.paragraphSpacing * s : 0 }}>
                 {p || ' '}
               </p>
@@ -354,6 +385,10 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
   )
 }
 
+/**
+ * Con "ritaglia" il livello in fondo al gruppo fa da maschera: non si disegna e i livelli
+ * sopra si vedono solo dentro la sua forma.
+ */
 function GroupView({
   layer: l,
   id,
@@ -363,16 +398,26 @@ function GroupView({
   id: string
   uid: string
 }): React.JSX.Element {
-  if (!l.clip) return <LayerList layers={l.children} uid={uid} />
+  const mask = l.clip ? l.children[l.children.length - 1] : undefined
+  if (!mask || l.children.length < 2) return <LayerList layers={l.children} uid={uid} />
+  const a = anchorPoint(mask)
   return (
     <>
       <defs>
-        <clipPath id={`${id}-clip`}>
-          <rect x={l.x} y={l.y} width={l.w} height={l.h} />
+        {/* dentro clipPath non sono ammessi i <g>: la rotazione va sul clipPath */}
+        <clipPath
+          id={`${id}-clip`}
+          transform={mask.rotation ? `rotate(${mask.rotation} ${a.x} ${a.y})` : undefined}
+        >
+          {mask.type === 'shape' && mask.shape !== 'line' ? (
+            <ShapeView layer={mask} />
+          ) : (
+            <rect x={mask.x} y={mask.y} width={mask.w} height={mask.h} />
+          )}
         </clipPath>
       </defs>
       <g clipPath={`url(#${id}-clip)`}>
-        <LayerList layers={l.children} uid={uid} />
+        <LayerList layers={l.children.slice(0, -1)} uid={uid} />
       </g>
     </>
   )

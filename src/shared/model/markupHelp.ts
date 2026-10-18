@@ -1,5 +1,5 @@
 import { NAMED_COLORS } from './colors'
-import type { Variables } from './variables'
+import { IMAGE_ATTRIBUTES, type Variables } from './variables'
 import { ATTRIBUTES, BUILTIN_SHAPES, BUILTIN_STYLES, type AttributeName } from './markup'
 
 // Aiuto alla scrittura del markup (docs/specifica.md, 2.1): cosa proporre dove si trova il cursore.
@@ -16,7 +16,7 @@ export interface Suggestion {
   /** Dopo l'inserimento si continua a proporre (per esempio i valori dopo "color=") */
   more?: boolean
   /** Attributo: chiave della spiegazione di una riga */
-  attribute?: AttributeName
+  attribute?: AttributeName | `image.${ImageAttributeName}`
   /** Colore del campione, se diverso dall'etichetta (colori del progetto) */
   swatch?: string
 }
@@ -38,6 +38,8 @@ export interface HelpContext {
   /** Variabili del progetto */
   variables?: Variables
 }
+
+type ImageAttributeName = keyof typeof IMAGE_ATTRIBUTES
 
 const MAX = 40
 
@@ -121,6 +123,9 @@ function refs(
   ctx: HelpContext
 ): SuggestionResult {
   const typed = text.slice(open + 1, pos)
+  // dopo il nome: attributi dell'immagine, {spada tint=red}
+  const space = typed.search(/\s/)
+  if (space > 0) return imageAttributes(text, open + 1 + space, pos, end, ctx)
   const star = typed.indexOf('*')
   // dopo l'asterisco: il numero di ripetizioni, anche da un campo
   if (star >= 0) {
@@ -151,6 +156,50 @@ function refs(
     to: end,
     items: rank([...fields, ...varItems, ...images], typed.trim())
   }
+}
+
+function imageAttributes(
+  text: string,
+  start: number,
+  pos: number,
+  end: number,
+  ctx: HelpContext
+): SuggestionResult {
+  let from = pos
+  while (from > start && !/\s/.test(text[from - 1])) from--
+  const token = text.slice(from, pos)
+  const eq = token.indexOf('=')
+  if (eq < 0) {
+    const names = Object.keys(IMAGE_ATTRIBUTES) as ImageAttributeName[]
+    const items = names.map((n): Suggestion => ({
+      kind: 'attribute',
+      label: `${n}=`,
+      insert: `${n}=`,
+      more: true,
+      attribute: `image.${n}`
+    }))
+    return { from, to: end, items: rank(items, token) }
+  }
+  const key = token.slice(0, eq) as ImageAttributeName
+  const typed = token.slice(eq + 1)
+  const list = (values: string[]): Suggestion[] =>
+    rank(
+      values.map((v): Suggestion => ({ kind: 'value', label: v, insert: v })),
+      typed
+    )
+  const items =
+    key === 'tint'
+      ? [...list(['none', 'currentColor']), ...values('color', typed, ctx)]
+      : key === 'flip'
+        ? list(['h', 'v', 'hv', 'none'])
+        : key === 'size'
+          ? list(['80%', '120%', '150%', '200%'])
+          : key === 'rotate'
+            ? list(['90', '180', '-90', '45'])
+            : key === 'opacity'
+              ? list(['25%', '50%', '75%'])
+              : []
+  return { from: from + eq + 1, to: end, items }
 }
 
 function attributes(typed: string, ctx: HelpContext, paragraph: boolean): Suggestion[] {

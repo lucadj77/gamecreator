@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { bindCard, cardFields, rowToCard } from '../bind'
+import { bindCard, cardFields, rowToCard, substituteFields } from '../bind'
+import { parseMarkup } from '../markup'
 import { suggestAt } from '../markupHelp'
 import { normalizeTemplate } from '../normalize'
 import type { ImageLayer, ShapeLayer, TextLayer } from '../template'
-import { palette, resolveColor, variableFields, type Variables } from '../variables'
+import {
+  mergeImageSettings,
+  palette,
+  parseImageAttrs,
+  resolveColor,
+  variableFields,
+  type Variables
+} from '../variables'
 
 const variables: Variables = {
   spada: { type: 'image', src: 'sword', tint: 'rosso' },
@@ -69,5 +77,37 @@ describe('variabili', () => {
     expect(refs).toContain('variable:spada')
     const colors = suggestAt('[a]{color=ro', 12, ctx)!.items
     expect(colors[0]).toMatchObject({ kind: 'variable', label: 'rosso', swatch: '#A33A2A' })
+  })
+})
+
+describe('image attributes', () => {
+  it('reads attributes after the name in braces', () => {
+    const b = parseMarkup('a {spada*2 tint=red size=150% rotate=90 flip=h opacity=50%} b').blocks
+    const ref = b[0].children.find((n) => n.t === 'ref')
+    expect(ref).toMatchObject({
+      name: 'spada',
+      count: 2,
+      image: { tint: 'red', scale: 1.5, rotate: 90, flip: 'h', opacity: 0.5 }
+    })
+  })
+
+  it('reports invalid attributes', () => {
+    const { problems } = parseMarkup('{spada flip=x}')
+    expect(problems.map((p) => p.message.key)).toContain('markup.badImageAttr')
+  })
+
+  it('keeps names that are not followed by attributes', () => {
+    expect(parseImageAttrs(' due parole')).toBeNull()
+  })
+
+  it('lets inline attributes override the variable, including none', () => {
+    expect(mergeImageSettings({ tint: 'red', flip: 'h' }, { tint: null, flip: undefined })).toEqual(
+      { tint: null, flip: undefined }
+    )
+  })
+
+  it('substitutes a field name followed by attributes', () => {
+    expect(substituteFields('{icona tint=red}', { icona: 'spada' })).toBe('{spada tint=red}')
+    expect(substituteFields('{spada*n tint=red}', { n: '3' })).toBe('{spada*3 tint=red}')
   })
 })

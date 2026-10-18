@@ -3,7 +3,15 @@ import { resolveAsset } from './assets'
 import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
-import { imageVariable, palette, resolveColor, variableFields, type Variables } from './variables'
+import {
+  combineFlip,
+  imageVariable,
+  palette,
+  parseImageAttrs,
+  resolveColor,
+  variableFields,
+  type Variables
+} from './variables'
 import {
   PRIMARY_PROPERTY,
   type Layer,
@@ -94,8 +102,19 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
       if (out.type === 'image') {
         out = { ...out, src: substituteFields(out.src, fields) }
         // una variabile immagine prevale su un file con lo stesso nome
-        const v = imageVariable(out.src, ctx.variables)
-        if (v) out = { ...out, src: v.src, tint: out.tint ?? v.tint ?? null }
+        // {spada} come sorgente vale quanto spada
+        const v = imageVariable(out.src.trim().replace(/^\{(.*)\}$/, '$1'), ctx.variables)
+        if (v) {
+          const [flipH, flipV] = combineFlip(v.flip, out.flipH, out.flipV)
+          out = {
+            ...out,
+            src: v.src,
+            tint: out.tint ?? v.tint ?? null,
+            flipH,
+            flipV,
+            opacity: out.opacity * (v.opacity ?? 1)
+          }
+        }
       }
       if (out.type === 'group') out = { ...out, children: apply(out.children) }
       return paintLayer(out, pal)
@@ -199,11 +218,24 @@ export function cardFields(
  */
 export function substituteFields(text: string, fields: Record<string, string>): string {
   const has = (name: string): boolean => Object.prototype.hasOwnProperty.call(fields, name.trim())
-  return text
-    .replace(/(?<!\\)\{([^{}*]+)\}/g, (m, name: string) => (has(name) ? fields[name.trim()] : m))
-    .replace(/(?<!\\)\{([^{}*]+)\*([^{}*]+)\}/g, (m, name: string, count: string) =>
-      has(count) ? `{${name}*${fields[count.trim()].trim()}}` : m
-    )
+  return (
+    text
+      .replace(/(?<!\\)\{([^{}*]+)\}/g, (m, inner: string) => {
+        if (has(inner)) return fields[inner.trim()]
+        // {icona tint=red}: il campo dà il nome dell'immagine, gli attributi restano
+        const at = inner.trim().search(/\s/)
+        const name = at > 0 ? inner.trim().slice(0, at) : ''
+        return name && has(name) && parseImageAttrs(inner.trim().slice(at))
+          ? `{${fields[name].trim()}${inner.trim().slice(at)}}`
+          : m
+      })
+      // {spada*{quanti}} è già diventato {spada*quanti} se quanti è un campo
+      .replace(
+        /(?<!\\)\{([^{}*]+)\*([^{}*\s]+)(\s[^{}]*)?\}/g,
+        (m, name: string, count: string, rest?: string) =>
+          has(count) ? `{${name}*${fields[count.trim()].trim()}${rest ?? ''}}` : m
+      )
+  )
 }
 
 /** Colori del livello con i nomi della tavolozza del progetto sostituiti dal loro valore */

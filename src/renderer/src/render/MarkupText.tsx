@@ -10,7 +10,13 @@ import {
   type Block,
   type Inline
 } from '../../../shared/model/markup'
-import { imageVariable, palette, resolveColor } from '../../../shared/model/variables'
+import {
+  imageVariable,
+  mergeImageSettings,
+  palette,
+  resolveColor,
+  type ImageSettings
+} from '../../../shared/model/variables'
 import { AssetsContext, StylesContext, VariablesContext, assetUrl } from './assets'
 import { useImageSize } from './imageSize'
 
@@ -123,7 +129,7 @@ function Inlines({
           case 'br':
             return <br key={i} />
           case 'ref':
-            return <Ref key={i} name={n.name} count={n.count} raw={n.raw} />
+            return <Ref key={i} name={n.name} count={n.count} raw={n.raw} image={n.image} />
           default:
             return (
               <SpanView key={i} attrs={resolveStyles(n.attrs, styles)} k={k} styles={styles}>
@@ -290,17 +296,21 @@ function Background({
 function Ref({
   name,
   count,
-  raw
+  raw,
+  image
 }: {
   name: string
   count: number
   raw: string
+  /** Attributi scritti nel testo, che prevalgono su quelli della variabile */
+  image?: ImageSettings
 }): React.JSX.Element {
   const assets = useContext(AssetsContext)
   const variables = useContext(VariablesContext)
   const v = imageVariable(name, variables)
   const res = name ? resolveAsset(v?.src ?? name, assets) : null
-  const size = useImageSize(res?.ok && v?.tint ? assetUrl(res.path) : null)
+  const set = mergeImageSettings(v, image)
+  const size = useImageSize(res?.ok && set.tint ? assetUrl(res.path) : null)
   if (!res?.ok)
     return (
       <span style={{ textDecoration: 'underline wavy #E5484D', textDecorationSkipInk: 'none' }}>
@@ -308,13 +318,22 @@ function Ref({
       </span>
     )
   const url = assetUrl(res.path)
-  const height = 1.15 * (v?.scale ?? 1)
+  const scale = set.scale ?? 1
+  const height = 1.15 * scale
+  const transform = [
+    set.rotate ? `rotate(${set.rotate}deg)` : '',
+    set.flip ? `scale(${set.flip.includes('h') ? -1 : 1}, ${set.flip.includes('v') ? -1 : 1})` : ''
+  ]
+    .filter(Boolean)
+    .join(' ')
   const style: CSSProperties = {
     height: `${height}em`,
-    verticalAlign: `${-0.22 * (v?.scale ?? 1) + (v?.raise ?? 0) / 100}em`,
-    margin: '0 0.04em'
+    verticalAlign: `${-0.22 * scale + (set.raise ?? 0) / 100}em`,
+    margin: '0 0.04em',
+    transform: transform || undefined,
+    opacity: set.opacity
   }
-  const tint = v?.tint ? resolveColor(v.tint, palette(variables)) : null
+  const tint = set.tint ? resolveColor(set.tint, palette(variables)) : null
   return (
     <>
       {Array.from({ length: count }, (_, i) =>

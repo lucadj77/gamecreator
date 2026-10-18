@@ -43,7 +43,7 @@ progetto/
 }
 ```
 
-- `image`: `src` è il nome di un file in `assets/`; `tint` (facoltativo) ricolora l'icona; `scale` è l'altezza rispetto alle icone normali nel testo (1 = normale); `raise` sposta l'icona in alto, in % della riga.
+- `image`: `src` è il nome di un file in `assets/`; `tint` (facoltativo) ricolora l'icona; `scale` è l'altezza rispetto alle icone normali nel testo (1 = normale); `raise` sposta l'icona in alto, in % della riga; `rotate` (gradi, senso orario), `flip` (`h`, `v`, `hv`) e `opacity` (0-1) sono facoltativi.
 - `text`: testo con markup che prende il posto di `{nome}`.
 - `color`: un colore usabile per nome in ogni proprietà colore; un nome standard (`red`) ridefinito qui cambia in tutto il progetto.
 - `value`: testo o numero costante, usabile nei testi e nelle formule.

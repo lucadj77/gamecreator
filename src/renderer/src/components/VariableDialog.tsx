@@ -7,6 +7,7 @@ import {
   palette,
   resolveColor,
   variableFields,
+  type Flip,
   type Variable,
   type VariableType,
   type Variables
@@ -143,6 +144,38 @@ export default function VariableDialog({
                 unit="%"
                 onChange={(raise) => setV({ ...v, raise })}
               />
+              <NumberField
+                label={t('variable.rotate')}
+                hint={t('variable.rotateHint')}
+                value={v.rotate ?? 0}
+                step={15}
+                unit="°"
+                onChange={(rotate) => setV({ ...v, rotate })}
+              />
+              <div className="field">
+                <span className="field-label">{t('variable.flip')}</span>
+                <span className="field-control">
+                  <Segmented<Flip | 'none'>
+                    value={v.flip ?? 'none'}
+                    options={(['none', 'h', 'v', 'hv'] as const).map((x) => [
+                      x,
+                      t(`variable.flip.${x}`)
+                    ])}
+                    onChange={(f) => setV({ ...v, flip: f === 'none' ? undefined : f })}
+                  />
+                </span>
+              </div>
+              <NumberField
+                label={t('variable.opacity')}
+                value={v.opacity ?? 1}
+                factor={100}
+                step={5}
+                min={0}
+                max={1}
+                unit="%"
+                onChange={(opacity) => setV({ ...v, opacity })}
+              />
+              <p className="muted small">{t('variable.attrsHint')}</p>
             </>
           )}
           {v.type === 'text' && (
@@ -199,6 +232,9 @@ function clean(v: Variable): Variable {
   if (v.tint) out.tint = v.tint
   if (v.scale !== undefined && v.scale !== 1) out.scale = v.scale
   if (v.raise) out.raise = v.raise
+  if (v.rotate) out.rotate = v.rotate
+  if (v.flip) out.flip = v.flip
+  if (v.opacity !== undefined && v.opacity !== 1) out.opacity = v.opacity
   return out
 }
 

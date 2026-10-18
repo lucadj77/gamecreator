@@ -29,7 +29,7 @@ import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import CardSvg from './render/CardSvg'
-import { AssetsContext, SaveStyleContext, StylesContext } from './render/assets'
+import { AssetsContext, SaveStyleContext, StylesContext, onAssetsUpdate } from './render/assets'
 import { useProjectFonts, useRegisterFonts } from './render/fonts'
 import FormatDialog from './components/FormatDialog'
 import ExportDialog from './export/ExportDialog'
@@ -80,6 +80,8 @@ function App(): React.JSX.Element {
   }
   const [project, setProject] = useState<LoadedProject | null>(null)
   useRegisterFonts(project?.fonts)
+  // icone e font importati: gli asset cambiano senza ricaricare il progetto
+  useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [])
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
   const [error, setError] = useState<Message | null>(null)
   const [loading, setLoading] = useState(false)

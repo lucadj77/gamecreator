@@ -33,3 +33,10 @@ describe('fuzzyFilter', () => {
     expect(fuzzyFilter(names, '  ', (s) => s)).toEqual(names)
   })
 })
+
+describe('fuzzyScore, lettere sparse', () => {
+  it('non trova parole le cui lettere sono sparse in tutto il testo', () => {
+    expect(fuzzyScore('spada', 'hospital newspaper')).toBe(0)
+    expect(fuzzyScore('spada', 'spades')).toBeGreaterThan(0)
+  })
+})

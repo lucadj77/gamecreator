@@ -3,6 +3,7 @@ import type { Shadow, Stroke } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from '../components/MarkupTextarea'
 import { APP_FONTS, useProjectFonts } from '../render/fonts'
+import FontPicker from '../components/FontPicker'
 
 // Campi del pannello proprietà. Ogni modifica si applica subito, mentre si scrive: cambiare
 // selezione o fare clic sulla carta non la perde. Annulla (⌘Z) torna indietro.
@@ -204,6 +205,7 @@ export function FontField({
   const { t } = useI18n()
   const fonts = useProjectFonts()
   const listId = useId()
+  const [picking, setPicking] = useState(false)
   const families = [...new Set([...fonts.families, ...APP_FONTS])]
   return (
     <>
@@ -214,7 +216,17 @@ export function FontField({
         list={listId}
         placeholder={placeholder}
         onChange={onChange}
+        action={
+          <button
+            className="pick-btn"
+            title={t('fonts.openPicker')}
+            onClick={() => setPicking(true)}
+          >
+            Aa
+          </button>
+        }
       />
+      {picking && <FontPicker value={value} onPick={onChange} onClose={() => setPicking(false)} />}
       <datalist id={listId}>
         {families.map((f) => (
           <option key={f} value={f} />

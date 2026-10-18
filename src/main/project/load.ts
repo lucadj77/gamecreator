@@ -9,6 +9,7 @@ import {
 import { readSpreadsheet } from './spreadsheet'
 import { listAssets } from './assets'
 import { readProjectFonts } from './fonts'
+import { readSources } from '../library/sources'
 import { duplicateNames, normalizeTemplate } from '../../shared/model/normalize'
 import type { Template } from '../../shared/model/template'
 import { MessageError, messageFromError, msg, type Message } from '../../shared/messages'
@@ -59,6 +60,7 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     templates,
     assets,
     fonts: await readProjectFonts(folder, assets),
+    sources: await readSources(folder),
     warnings
   }
 }

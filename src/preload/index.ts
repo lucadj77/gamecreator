@@ -20,6 +20,11 @@ const api: Api = {
   saveExportProfiles: (profiles) => ipcRenderer.invoke('export:save-profiles', profiles),
   defaultExportFolders: () => ipcRenderer.invoke('export:default-folders'),
   showFolder: (path) => ipcRenderer.invoke('shell:show-folder', path),
+  iconCatalog: () => ipcRenderer.invoke('library:icon-catalog'),
+  importIcons: (items) => ipcRenderer.invoke('library:import-icons', items),
+  fontCatalog: () => ipcRenderer.invoke('library:font-catalog'),
+  downloadFont: (family, variants) => ipcRenderer.invoke('library:download-font', family, variants),
+  saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),
   exportPage: {
     onContext: (cb) => ipcRenderer.on('export:context', (_, c) => cb(c)),
     onScene: (cb) => ipcRenderer.on('export:scene', (_, id, scene) => cb(id, scene)),

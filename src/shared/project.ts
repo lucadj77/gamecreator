@@ -3,6 +3,7 @@
 import type { Template } from './model/template'
 import type { Message } from './messages'
 import type { ExportProfiles } from './export'
+import type { Sources } from './library'
 
 export const PROJECT_FILE = 'gamecreator.json'
 export const FORMAT_VERSION = 1
@@ -57,6 +58,8 @@ export interface LoadedProject {
   assets: string[]
   /** Font sotto assets/fonts/, da registrare prima di disegnare */
   fonts: ProjectFont[]
+  /** Provenienza e licenza dei file importati dall'app (assets/sources.json) */
+  sources: Sources
   warnings: Message[]
 }
 

@@ -21,6 +21,7 @@ import {
 } from '../../../shared/export'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
+import CreditsDialog from './CreditsDialog'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { useI18n } from '../i18n/context'
@@ -85,6 +86,7 @@ export default function ExportDialog({
   const [result, setResult] = useState<ExportResult | null>(null)
   const [error, setError] = useState<Message | null>(null)
   const { has: hasFont } = useProjectFonts()
+  const [credits, setCredits] = useState(false)
   const running = progress !== null
 
   useEffect(() => {
@@ -697,6 +699,14 @@ export default function ExportDialog({
           </div>
         )}
         <div className="dialog-buttons">
+          <button
+            type="button"
+            className="spacer-right"
+            title={t('credits.hint')}
+            onClick={() => setCredits(true)}
+          >
+            {t('credits.open')}
+          </button>
           {running && (
             <span className="muted export-progress">
               {progress.total
@@ -723,6 +733,7 @@ export default function ExportDialog({
           </button>
         </div>
       </div>
+      {credits && <CreditsDialog project={project} onClose={() => setCredits(false)} />}
     </Dialog>
   )
 }

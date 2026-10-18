@@ -1,4 +1,5 @@
 import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
+import { mkdir, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -16,6 +17,10 @@ import type { Template } from '../shared/model/template'
 import type { Theme } from '../shared/api'
 import { runExport } from './export/run'
 import { saveExportProfiles } from './project/exportProfiles'
+import { fontCatalog, iconCatalog } from './library/catalogs'
+import { importIcons } from './library/icons'
+import { downloadGoogleFont } from './library/googleFonts'
+import type { FontVariant, IconImport } from '../shared/library'
 import {
   defaultTtsFolder,
   type ExportContext,
@@ -122,6 +127,30 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('shell:show-folder', (_, path: string) => shell.openPath(path))
+
+  ipcMain.handle('library:icon-catalog', () => iconCatalog())
+  ipcMain.handle('library:font-catalog', () => fontCatalog())
+
+  ipcMain.handle('library:import-icons', async (_, items: IconImport[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return importIcons(folder, items)
+  })
+
+  ipcMain.handle('library:download-font', async (_, family: string, variants: FontVariant[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return downloadGoogleFont(folder, family, variants)
+  })
+
+  ipcMain.handle('library:save-credits', async (_, text: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await mkdir(join(folder, 'export'), { recursive: true })
+    const file = join(folder, 'export', 'credits.txt')
+    await writeFile(file, text)
+    return file
+  })
 
   // il renderer segue prefers-color-scheme, che Chromium ricava da themeSource
   ipcMain.on('theme:set', (_, theme: Theme) => {

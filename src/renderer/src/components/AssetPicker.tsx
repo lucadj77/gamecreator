@@ -4,6 +4,7 @@ import { fuzzyFilter } from '../../../shared/model/fuzzy'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, assetUrl } from '../render/assets'
+import IconBrowser from './IconBrowser'
 
 const SIZE_KEY = 'assetPickerSize'
 
@@ -35,6 +36,7 @@ export default function AssetPicker({
   const [query, setQuery] = useState('')
   const [folder, setFolder] = useState<string | null>(null)
   const [size, setSizeState] = useState(loadSize)
+  const [importing, setImporting] = useState(false)
   const setSize = (n: number): void => {
     setSizeState(n)
     try {
@@ -89,6 +91,7 @@ export default function AssetPicker({
             title={t('assetPicker.size')}
             onChange={(e) => setSize(Number(e.target.value))}
           />
+          <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
         </div>
         {folders.length > 0 && (
           <div className="asset-picker-folders">
@@ -136,6 +139,18 @@ export default function AssetPicker({
           <button onClick={onClose}>{t('dialog.cancel')}</button>
         </div>
       </div>
+      {importing && (
+        <IconBrowser
+          // con una sola icona importata la si sceglie subito
+          onImported={(names) => {
+            if (names.length === 1) {
+              onPick(names[0])
+              onClose()
+            }
+          }}
+          onClose={() => setImporting(false)}
+        />
+      )}
     </Dialog>
   )
 }

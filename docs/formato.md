@@ -8,7 +8,26 @@ progetto/
   data/carte.xlsx       # un foglio per set (oppure un .csv per un solo set)
   templates/<nome>.json # i template delle carte
   assets/               # immagini e icone
+  assets/icons/         # icone importate da game-icons.net
   assets/fonts/         # font del progetto (ttf, otf, woff, woff2)
+  assets/sources.json   # provenienza e licenza dei file importati dall'app
+```
+
+`assets/sources.json` si scrive quando si importano icone o si scaricano font dall'app: per ogni file (percorso relativo ad `assets/`) indica tipo (`icon` o `font`), fonte, identificativo, autore, licenza in forma SPDX (`CC-BY-3.0`, `OFL-1.1`…), indirizzo e data di importazione. Serve a comporre i crediti; le voci dei file che non esistono più si tolgono alla scrittura successiva. I file aggiunti a mano non compaiono.
+
+```json
+{
+  "icons/spada.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "lorc/broadsword",
+    "title": "broadsword",
+    "author": "Lorc",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/lorc/broadsword.html",
+    "imported": "2026-10-18"
+  }
+}
 ```
 
 ## gamecreator.json

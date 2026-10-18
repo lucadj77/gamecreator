@@ -1,0 +1,85 @@
+// Icone e font da importare nel progetto: cataloghi inclusi nell'app e dati di licenza.
+// Vedi docs/specifica.md, sezione 10.
+
+import type { ProjectFont } from './project'
+
+/** Una voce di assets/sources.json: da dove viene un file e con quale licenza */
+export interface SourceEntry {
+  kind: 'icon' | 'font'
+  /** Nome della fonte, per esempio "game-icons.net" o "Google Fonts" */
+  source: string
+  /** Identificativo nella fonte: "lorc/broadsword", "Cinzel" */
+  id: string
+  title: string
+  author?: string
+  /** Identificativo SPDX: CC-BY-3.0, CC0-1.0, OFL-1.1, Apache-2.0... */
+  license: string
+  url?: string
+  /** Data dell'importazione, AAAA-MM-GG */
+  imported: string
+}
+
+/** File importati: percorso sotto assets/ → provenienza */
+export type Sources = Record<string, SourceEntry>
+
+export const SOURCES_FILE = 'sources.json'
+
+export interface IconAuthor {
+  name: string
+  url?: string
+  license: string
+}
+
+export interface IconCatalog {
+  source: string
+  authors: Record<string, IconAuthor>
+  /** [id "autore/nome", tracciato SVG in un riquadro 512 × 512] */
+  icons: [string, string][]
+  tags: IconTags
+}
+
+export interface IconTags {
+  /** Gruppi di tag come sul sito, ognuno con i suoi tag */
+  groups: { label: string; tags: { slug: string; label: string }[] }[]
+  /** id dell'icona → tag */
+  icons: Record<string, string[]>
+}
+
+/** [famiglia, categoria, pesi, corsivo 0/1, alfabeti, licenza SPDX o "", copyright] */
+export type FontFamilyEntry = [string, string, number[], 0 | 1, string[], string, string]
+
+export interface FontCatalog {
+  source: string
+  families: FontFamilyEntry[]
+}
+
+export interface IconImport {
+  /** id nel catalogo, "lorc/broadsword" */
+  id: string
+  /** nome del file senza estensione, sotto assets/icons/ */
+  name: string
+}
+
+export interface FontVariant {
+  weight: number
+  italic: boolean
+}
+
+/** Stato degli asset dopo un'importazione, per aggiornare il progetto aperto */
+export interface AssetsUpdate {
+  assets: string[]
+  fonts: ProjectFont[]
+  sources: Sources
+}
+
+export const ICONS_FOLDER = 'icons'
+export const FONTS_FOLDER = 'fonts'
+
+/** Nome di file valido per un'icona: lettere, cifre, - e _ */
+export function isValidAssetName(name: string): boolean {
+  return /^[\p{L}\p{N}][\p{L}\p{N} _-]*$/u.test(name) && name.length <= 80
+}
+
+export function today(): string {
+  return new Date().toISOString().slice(0, 10)
+}

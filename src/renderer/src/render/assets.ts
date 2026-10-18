@@ -1,3 +1,4 @@
+import type { AssetsUpdate } from '../../../shared/library'
 import { createContext } from 'react'
 
 /** File sotto assets/ del progetto aperto, per risolvere i nomi delle immagini */
@@ -17,3 +18,15 @@ export const SaveStyleContext = createContext<
 
 /** Nell'editor i livelli vuoti si mostrano comunque, per poterli vedere e prendere */
 export const ShowEmptyContext = createContext(false)
+
+const assetListeners = new Set<(u: AssetsUpdate) => void>()
+
+/** Avvisa il progetto aperto che gli asset sono cambiati, per esempio dopo un'importazione */
+export function publishAssetsUpdate(u: AssetsUpdate): void {
+  assetListeners.forEach((l) => l(u))
+}
+
+export function onAssetsUpdate(cb: (u: AssetsUpdate) => void): () => void {
+  assetListeners.add(cb)
+  return () => assetListeners.delete(cb)
+}

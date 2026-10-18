@@ -337,3 +337,32 @@ La griglia automatica sceglie, tra 2 × 2 e 10 × 7, quella con meno posizioni v
 ### 9.4 Preset per tipografie
 
 Profili precompilati per i servizi di stampa più comuni (una immagine per carta a 300 DPI con abbondanza, nomi file richiesti dal servizio). I parametri esatti vanno verificati sul sito di ciascun servizio prima di definirli.
+
+## 10. Icone, font e crediti
+
+Proposta completa e motivazioni in `proposta-icone-font.md` (cartella condivisa del progetto). I cataloghi stanno nell'app (`resources/catalogs/`), quindi la ricerca funziona anche senza rete; si rigenerano con gli script in `scripts/`. Quello che si importa finisce in `assets/` e da lì in poi è un file come gli altri: il progetto resta autonomo e si apre anche su un altro computer.
+
+### 10.1 Icone di game-icons.net
+
+Dalla finestra di scelta delle immagini, **Importa icone…** apre il catalogo di game-icons.net (circa 4200 icone, 36 autori), costruito dal repository ufficiale per avere l'autore di ogni icona.
+
+- A sinistra i tag del sito (134, in 19 gruppi), tradotti in italiano; i tag sono stati raccolti una volta dalle pagine del sito e si aggiornano con `scripts/fetch-icon-tags.mjs`.
+- La ricerca è approssimata (tollera errori di battitura) e guarda il nome inglese dell'icona, i tag in inglese e in italiano, alcune parole italiane associate ai tag (per esempio "spada" per le lame) e l'autore. Il nome dell'icona pesa più dei tag.
+- La tinta e lo sfondo scuro servono solo all'anteprima: il file si salva nero, e il colore sulla carta si sceglie con il livello come per ogni SVG.
+- Si possono scegliere più icone e rinominarle prima di importarle. Un nome non valido o ripetuto blocca l'importazione; se il file esiste già o il nome breve diventa ambiguo, compare un avviso ma si può procedere.
+- Le icone si salvano in `assets/icons/<nome>.svg` (viewBox 512 × 512, un solo tracciato) con una voce in `assets/sources.json`.
+
+Licenza: CC BY 3.0, tranne due autori in CC0. CC BY chiede di citare l'autore: vedi 10.3.
+
+### 10.2 Font di Google Fonts
+
+Il pulsante **Aa** accanto al campo del font apre una finestra con due schede:
+
+- **Progetto**: i font in `assets/fonts/` più quelli dell'app, con l'anteprima del testo di prova; un clic sceglie la famiglia.
+- **Google Fonts**: il catalogo (circa 1900 famiglie) con filtro per categoria e ricerca approssimata. L'anteprima si scarica da Google mentre si scorre, quindi richiede la rete. Aprendo una famiglia si scelgono pesi e corsivi (di base normale e grassetto, più il corsivo se c'è) e **Scarica** salva i file in `assets/fonts/<Famiglia>/` insieme al testo della licenza, aggiunge le voci a `assets/sources.json` e assegna la famiglia al livello.
+
+Si scaricano file TTF statici, uno per peso: nel PDF si incorporano come TrueType, mentre i font variabili diventerebbero Type 3. I font installati sul computer non compaiono nell'elenco: si possono scrivere a mano nel campo, ma per esportare su un altro computer conviene copiarli in `assets/fonts/`. Le licenze di Google Fonts (OFL, Apache, UFL) permettono l'uso nei giochi stampati; per circa 160 famiglie il catalogo non indica la licenza, che si ricava al momento del download.
+
+### 10.3 Crediti
+
+Nella finestra di esportazione, **Crediti…** compone il testo da mettere nel regolamento o sulla scatola a partire da `assets/sources.json`: le icone raggruppate per fonte, licenza e autore, poi i font con la loro licenza. Di base si citano solo i file usati dalle carte; togliendo la spunta si citano tutti quelli importati. Il testo si copia o si salva in `export/credits.txt`. Le immagini copiate a mano in `assets/` non sono elencate.

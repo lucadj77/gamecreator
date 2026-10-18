@@ -40,9 +40,17 @@ function wordScore(w: string, target: string, parts: string[]): number {
   if (parts.includes(w)) return 1
   if (parts.some((p) => p.startsWith(w))) return 0.9
   if (target.includes(w)) return 0.8
-  // lettere nello stesso ordine, con dei vuoti: "swrd" in "sword"
-  const gaps = subsequenceGaps(w, target)
-  if (gaps >= 0 && w.length >= 2) return Math.max(0.4, 0.7 - gaps * 0.03)
+  // lettere nello stesso ordine dentro una parola che inizia allo stesso modo, con pochi vuoti:
+  // "swrd" in "sword"; su tutto il testo troverebbe quasi ogni cosa
+  if (w.length >= 3) {
+    let best = -1
+    for (const p of parts) {
+      if (p[0] !== w[0]) continue
+      const gaps = subsequenceGaps(w, p)
+      if (gaps >= 0 && gaps <= Math.max(2, w.length / 2) && (best < 0 || gaps < best)) best = gaps
+    }
+    if (best >= 0) return 0.7 - best * 0.05
+  }
   // errori di battitura: una lettera sbagliata ogni quattro circa
   const allowed = w.length >= 8 ? 2 : w.length >= 4 ? 1 : 0
   if (allowed) {

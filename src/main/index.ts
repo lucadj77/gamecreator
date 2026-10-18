@@ -5,6 +5,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
 import { saveTemplate } from './project/templates'
+import { createProject } from './project/create'
+import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
 import {
   getProjectFolder,
@@ -73,8 +75,26 @@ function registerIpc(): void {
   ipcMain.handle('project:load', async (_, folder: string) => {
     const project = await loadProject(folder)
     setProjectFolder(folder)
+    // l'elenco dei recenti non è essenziale: un errore non impedisce di aprire il progetto
+    await addRecent(folder, project.file.name).catch((e) => console.error(e))
     return project
   })
+
+  ipcMain.handle('recent:list', () => listRecent())
+  ipcMain.handle('recent:remove', (_, folder: string) => removeRecent(folder))
+
+  // la miniatura è sempre quella del progetto aperto: le immagini arrivano da lì
+  ipcMain.handle(
+    'project:thumbnail',
+    async (_, template: Template, context: ExportContext, onlyIfMissing: boolean) => {
+      const folder = getProjectFolder()
+      if (!folder || (onlyIfMissing && (await hasThumbnail(folder)))) return
+      await saveThumbnail(folder, template, context)
+    }
+  )
+
+  ipcMain.handle('project:default-parent', () => join(app.getPath('documents'), 'GameCreator'))
+  ipcMain.handle('project:create', (_, name: string, parent: string) => createProject(name, parent))
 
   // si scrive solo nel progetto aperto, qualunque cartella arrivi dal renderer
   ipcMain.handle('template:save', async (_, template: Template) => {

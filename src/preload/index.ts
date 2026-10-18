@@ -5,6 +5,12 @@ import type { Api } from '../shared/api'
 const api: Api = {
   chooseProjectFolder: () => ipcRenderer.invoke('project:choose-folder'),
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
+  recentProjects: () => ipcRenderer.invoke('recent:list'),
+  removeRecentProject: (folder) => ipcRenderer.invoke('recent:remove', folder),
+  saveThumbnail: (template, context, onlyIfMissing) =>
+    ipcRenderer.invoke('project:thumbnail', template, context, onlyIfMissing),
+  defaultProjectsFolder: () => ipcRenderer.invoke('project:default-parent'),
+  createProject: (name, parent) => ipcRenderer.invoke('project:create', name, parent),
   saveTemplate: (template) => ipcRenderer.invoke('template:save', template),
   saveData: (changes) => ipcRenderer.invoke('data:save', changes),
   setUiZoom: (factor) => webFrame.setZoomFactor(factor),

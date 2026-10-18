@@ -43,6 +43,8 @@ import type { Variable, Variables } from '../../shared/model/variables'
 import FormatDialog from './components/FormatDialog'
 import ExportDialog from './export/ExportDialog'
 import ImportTtcDialog from './components/ImportTtcDialog'
+import StartScreen from './components/StartScreen'
+import { thumbnailTemplate } from '../../shared/model/thumbnail'
 import Tooltip from './components/Tooltip'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
@@ -51,7 +53,6 @@ import type { Theme } from '../../shared/api'
 
 const NO_STYLES: Record<string, string> = {}
 const NO_VARIABLES: Variables = {}
-const LAST_FOLDER_KEY = 'lastProjectFolder'
 const VIEW_KEY = 'setView'
 const UI_ZOOM_KEY = 'uiZoom'
 const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
@@ -70,6 +71,19 @@ type View = 'table' | 'grid'
 type DataSnapshot = { sets: LoadedSet[]; file: ProjectFile }
 const COALESCE_MS = 1200
 type Selected = { kind: 'set'; index: number } | { kind: 'template'; name: string }
+
+/** Ridisegna la miniatura per la schermata di ingresso; un errore non disturba il lavoro */
+function updateThumbnail(project: LoadedProject, onlyIfMissing: boolean): void {
+  const tpl = thumbnailTemplate(project)
+  if (!tpl) return
+  const context = {
+    assets: project.assets,
+    fonts: project.fonts,
+    styles: project.file.styles ?? {},
+    variables: project.file.variables ?? {}
+  }
+  window.api.saveThumbnail(tpl, context, onlyIfMissing).catch((e) => console.error(e))
+}
 
 function App(): React.JSX.Element {
   const { t, lang, setLang } = useI18n()
@@ -139,7 +153,7 @@ function App(): React.JSX.Element {
             ? s
             : { kind: 'set', index: 0 }
       )
-      localStorage.setItem(LAST_FOLDER_KEY, folder)
+      updateThumbnail(loaded, true)
     } catch (e) {
       setError(messageFromError(e))
     } finally {
@@ -147,20 +161,20 @@ function App(): React.JSX.Element {
     }
   }, [])
 
-  useEffect(() => {
-    const last = localStorage.getItem(LAST_FOLDER_KEY)
-    // ripristino una tantum dell'ultimo progetto aperto
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (last) load(last)
-  }, [load])
-
   /** Chiede conferma prima di perdere modifiche non salvate */
   const discardOk = (): boolean => !anyDirty || window.confirm(t('app.discardChanges'))
 
   const open = async (): Promise<void> => {
-    if (!discardOk()) return
     const folder = await window.api.chooseProjectFolder()
     if (folder) load(folder)
+  }
+
+  /** Torna alla schermata di ingresso */
+  const closeProject = (): void => {
+    if (!discardOk()) return
+    setProject(null)
+    setError(null)
+    setSelected({ kind: 'set', index: 0 })
   }
 
   const updateTemplate = useCallback((tpl: Template) => {
@@ -267,6 +281,7 @@ function App(): React.JSX.Element {
         await window.api.saveData({ file: fileDirty ? project.file : undefined, sheets })
       setDirtySheets(new Set())
       setFileDirty(false)
+      updateThumbnail(project, false)
     } catch (e) {
       setError(messageFromError(e))
     } finally {
@@ -554,6 +569,42 @@ function App(): React.JSX.Element {
     </nav>
   )
 
+  /** Dimensione dell'interfaccia, tema e lingua: nella schermata di ingresso e nel progetto */
+  const settings = (
+    <span className="app-settings">
+      <label className="muted" title={t('app.uiSizeHint')}>
+        {t('app.uiSize')}{' '}
+        <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
+          {UI_ZOOMS.map((z) => (
+            <option key={z} value={z}>
+              {Math.round(z * 100)}%
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="muted">
+        {t('app.theme')}{' '}
+        <select value={theme} onChange={(e) => changeTheme(e.target.value as Theme)}>
+          {THEMES.map((th) => (
+            <option key={th} value={th}>
+              {t(`app.theme.${th}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="muted">
+        {t('app.language')}{' '}
+        <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
+          {Object.entries(LANGUAGES).map(([code, name]) => (
+            <option key={code} value={code}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </label>
+    </span>
+  )
+
   return (
     <AssetsContext.Provider value={project?.assets ?? []}>
       <StylesContext.Provider value={project?.file.styles ?? NO_STYLES}>
@@ -561,75 +612,39 @@ function App(): React.JSX.Element {
           <SaveStyleContext.Provider value={project ? saveStyle : null}>
             <div className="app">
               <Tooltip />
-              <header className="toolbar">
-                <button onClick={open} title={t('tip.openProject')}>
-                  {t('app.openProject')}
-                </button>
-                <button onClick={() => setImporting(true)} title={t('tip.importTtc')}>
-                  {t('app.importTtc')}
-                </button>
-                {project && (
-                  <>
+              {project && (
+                <header className="toolbar">
+                  <span className="project-name">{project.file.name}</span>
+                  <span className="project-path">{project.folder}</span>
+                  {loading && <span className="muted">{t('app.loading')}</span>}
+                  <span className="spacer" />
+                  <button onClick={() => setExporting(true)} title={t('tip.export')}>
+                    {t('app.export')}
+                  </button>
+                  <span className="toolbar-group">
+                    <button
+                      className="primary"
+                      disabled={!anyDirty || saving}
+                      title={t('app.saveHint')}
+                      onClick={saveAll}
+                    >
+                      {anyDirty ? t('app.save') : t('app.saved')}
+                    </button>
                     <button
                       onClick={() => discardOk() && load(project.folder)}
                       title={t('tip.reload')}
                     >
                       {t('app.reload')}
                     </button>
-                    <span className="project-name">{project.file.name}</span>
-                    <span className="project-path">{project.folder}</span>
-                  </>
-                )}
-                {loading && <span className="muted">{t('app.loading')}</span>}
-                <span className="spacer" />
-                {project && (
-                  <button onClick={() => setExporting(true)} title={t('tip.export')}>
-                    {t('app.export')}
-                  </button>
-                )}
-                {project && (
-                  <button
-                    className="primary"
-                    disabled={!anyDirty || saving}
-                    title={t('app.saveHint')}
-                    onClick={saveAll}
-                  >
-                    {anyDirty ? t('app.save') : t('app.saved')}
-                  </button>
-                )}
-                <label className="muted" title={t('app.uiSizeHint')}>
-                  {t('app.uiSize')}{' '}
-                  <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
-                    {UI_ZOOMS.map((z) => (
-                      <option key={z} value={z}>
-                        {Math.round(z * 100)}%
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="muted">
-                  {t('app.theme')}{' '}
-                  <select value={theme} onChange={(e) => changeTheme(e.target.value as Theme)}>
-                    {THEMES.map((th) => (
-                      <option key={th} value={th}>
-                        {t(`app.theme.${th}`)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="muted">
-                  {t('app.language')}{' '}
-                  <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
-                    {Object.entries(LANGUAGES).map(([code, name]) => (
-                      <option key={code} value={code}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </header>
+                    <button onClick={closeProject} title={t('tip.closeProject')}>
+                      {t('app.closeProject')}
+                    </button>
+                  </span>
+                  {settings}
+                </header>
+              )}
 
-              {error && <div className="banner error">{t(error)}</div>}
+              {project && error && <div className="banner error">{t(error)}</div>}
               {project?.warnings.map((w, i) => (
                 <div key={i} className="banner warning">
                   {t(w)}
@@ -666,7 +681,29 @@ function App(): React.JSX.Element {
                       }
                     />
                   ) : (
-                    <section className="content" />
+                    <section className="content">
+                      {!project.sets.length && (
+                        <div className="empty">
+                          <div>
+                            {project.templates.length ? (
+                              <>
+                                <p>{t('app.noSets')}</p>
+                                <button className="primary" onClick={() => setCreatingSet(true)}>
+                                  {t('sidebar.newSet')}
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <p>{t('app.emptyProject')}</p>
+                                <button className="primary" onClick={() => setCreating(true)}>
+                                  {t('sidebar.newTemplate')}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </section>
                   )}
                   {sidebarSide === 'right' && (
                     <>
@@ -681,11 +718,14 @@ function App(): React.JSX.Element {
                   )}
                 </main>
               ) : (
-                !error && (
-                  <div className="empty">
-                    <p>{t('app.empty')}</p>
-                  </div>
-                )
+                <StartScreen
+                  error={error}
+                  loading={loading}
+                  settings={settings}
+                  onOpen={load}
+                  onChoose={open}
+                  onImport={() => setImporting(true)}
+                />
               )}
               {duplicating && project && (
                 <DuplicateDialog

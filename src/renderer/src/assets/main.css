@@ -1268,3 +1268,10 @@ button.layer-source.open {
   color: #e5484d;
   font-size: 11px;
 }
+
+/* il campo cresce con il testo, così si legge tutto senza scorrere */
+.markup-input textarea {
+  field-sizing: content;
+  min-height: calc(4lh + 8px);
+  max-height: calc(16lh + 8px);
+}

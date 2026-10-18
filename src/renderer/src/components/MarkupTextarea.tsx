@@ -132,7 +132,7 @@ export default function MarkupTextarea({
           // vicino al fondo della finestra si apre sopra la riga
           style={
             pos.y + 260 > window.innerHeight
-              ? { left: pos.x, bottom: window.innerHeight - pos.top + 2 }
+              ? { left: pos.x, bottom: window.innerHeight - pos.top }
               : { left: pos.x, top: pos.y }
           }
           // il clic non deve togliere il fuoco al campo
@@ -179,7 +179,8 @@ function setNativeValue(el: HTMLTextAreaElement, value: string): void {
 }
 
 /**
- * Coordinate del cursore nella finestra, sotto la riga: si copia il testo in un elemento
+ * Posizione dei suggerimenti: in orizzontale al cursore, in verticale appena fuori dal campo.
+ * Per trovare il cursore si copia il testo in un elemento
  * invisibile con lo stesso stile e si misura dove cade il segno nel punto del cursore.
  */
 function caretPosition(
@@ -222,8 +223,11 @@ function caretPosition(
   document.body.appendChild(mirror)
   const box = el.getBoundingClientRect()
   const x = box.left + mark.offsetLeft - el.scrollLeft
-  const top = box.top + mark.offsetTop - el.scrollTop
-  const y = top + mark.offsetHeight + 2
   document.body.removeChild(mirror)
-  return { x: Math.max(4, Math.min(x, window.innerWidth - 300)), y, top }
+  // i suggerimenti stanno fuori dal campo, sotto o sopra: così non coprono il testo
+  return {
+    x: Math.max(4, Math.min(x, window.innerWidth - 300)),
+    y: box.bottom + 2,
+    top: box.top - 2
+  }
 }

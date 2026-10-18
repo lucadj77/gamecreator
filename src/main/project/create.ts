@@ -1,0 +1,34 @@
+import { mkdir, readdir, writeFile } from 'fs/promises'
+import { join } from 'path'
+import { FORMAT_VERSION, PROJECT_FILE, type ProjectFile } from '../../shared/project'
+import { projectFolderName } from '../../shared/model/projectName'
+import { MessageError, msg } from '../../shared/messages'
+
+/**
+ * Crea un progetto vuoto in <parent>/<nome>: gamecreator.json e le cartelle. Il file dati si
+ * scrive al primo salvataggio di un set. La cartella deve essere nuova o vuota.
+ */
+export async function createProject(name: string, parent: string): Promise<string> {
+  const folderName = projectFolderName(name)
+  if (!folderName || !parent.trim()) throw new MessageError(msg('newProject.invalidName'))
+  const folder = join(parent, folderName)
+  try {
+    const entries = (await readdir(folder)).filter((n) => !n.startsWith('.'))
+    if (entries.length) throw new MessageError(msg('newProject.notEmpty', { folder }))
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e
+  }
+  for (const sub of ['data', 'templates', 'assets'])
+    await mkdir(join(folder, sub), { recursive: true })
+  const file: ProjectFile = {
+    formatVersion: FORMAT_VERSION,
+    name: name.trim(),
+    dataFile: 'data/cards.xlsx',
+    sets: []
+  }
+  await writeFile(join(folder, PROJECT_FILE), JSON.stringify(file, null, 2) + '\n', {
+    encoding: 'utf8',
+    flag: 'wx'
+  })
+  return folder
+}

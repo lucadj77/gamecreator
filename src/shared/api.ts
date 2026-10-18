@@ -13,9 +13,33 @@ import type { AssetsUpdate, FontCatalog, FontVariant, IconCatalog, IconImport } 
 
 export type Theme = 'system' | 'light' | 'dark'
 
+export interface RecentProject {
+  folder: string
+  name: string
+  /** Ultima apertura, in millisecondi */
+  openedAt: number
+  /** La cartella non c'è più o non contiene gamecreator.json */
+  missing: boolean
+  /** Immagine della prima carta come data URL */
+  thumbnail?: string
+}
+
 /** API esposta dal preload al renderer come window.api */
 export interface Api {
   chooseProjectFolder(): Promise<string | null>
+  /** Progetti aperti di recente, dal più recente */
+  recentProjects(): Promise<RecentProject[]>
+  /** Toglie un progetto dall'elenco dei recenti; la cartella non si tocca */
+  removeRecentProject(folder: string): Promise<void>
+  /**
+   * Salva la miniatura del progetto aperto disegnando il template dato (già legato ai valori
+   * della carta); con onlyIfMissing non ridisegna una miniatura che esiste già
+   */
+  saveThumbnail(template: Template, context: ExportContext, onlyIfMissing: boolean): Promise<void>
+  /** Cartella proposta per i progetti nuovi */
+  defaultProjectsFolder(): Promise<string>
+  /** Crea un progetto vuoto in <parent>/<nome> e ne restituisce la cartella */
+  createProject(name: string, parent: string): Promise<string>
   loadProject(folder: string): Promise<LoadedProject>
   /** Salva il template nel progetto aperto */
   saveTemplate(template: Template): Promise<void>

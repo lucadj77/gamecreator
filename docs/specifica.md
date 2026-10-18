@@ -382,3 +382,16 @@ Si scaricano file TTF statici, uno per peso: nel PDF si incorporano come TrueTyp
 ### 10.3 Crediti
 
 Nella finestra di esportazione, **Crediti…** compone il testo da mettere nel regolamento o sulla scatola a partire da `assets/sources.json`: le icone raggruppate per fonte, licenza e autore, poi i font con la loro licenza. Di base si citano solo i file usati dalle carte; togliendo la spunta si citano tutti quelli importati. Il testo si copia o si salva in `export/credits.txt`. Le immagini copiate a mano in `assets/` non sono elencate.
+
+## 11. Schermata di ingresso
+
+All'avvio l'app mostra la schermata di ingresso, non l'ultimo progetto aperto. Contiene:
+
+- **Nuovo progetto…**: chiede nome e posizione (predefinita `Documenti/GameCreator`, poi l'ultima usata) e crea la cartella `<posizione>/<nome>` con `gamecreator.json` e le cartelle `data/`, `templates/` e `assets/`. Il file dati `data/cards.xlsx` si scrive al primo salvataggio di un set. Dal nome della cartella si tolgono i caratteri non validi nei nomi di file; la cartella deve essere nuova o vuota.
+- **Apri progetto…**: sceglie una cartella che contiene `gamecreator.json`.
+- **Importa da Tabletop Creator…**: converte un progetto Tabletop Creator in un progetto nuovo, senza modificare l'originale.
+- **Progetti recenti**: fino a 24, dal più recente, con miniatura, nome, data dell'ultima apertura e cartella. Un progetto spostato o cancellato resta nell'elenco come "cartella non trovata"; la × toglie un progetto dall'elenco senza toccare la cartella.
+
+La miniatura è la prima carta del primo set che ha carte (altrimenti il primo template), disegnata come nell'esportazione. Si crea alla prima apertura e si aggiorna a ogni salvataggio. Elenco e miniature stanno nei dati dell'app (`recent-projects.json` e `thumbnails/` nella cartella dati utente di Electron), non nel progetto: aprire un progetto non scrive nulla nella sua cartella.
+
+Nel progetto, la barra in alto ha nome e cartella del progetto, **Esporta…** e, vicini, **Salva**, **Ricarica** e **Chiudi**; **Chiudi** torna alla schermata di ingresso e chiede conferma se ci sono modifiche non salvate.

@@ -1,10 +1,8 @@
 // Testi dell'interfaccia in inglese: è la lingua di riferimento, ogni chiave deve esistere qui.
 
 export const en = {
-  'app.openProject': 'Open project',
   'app.reload': 'Reload',
   'app.loading': 'Loading…',
-  'app.empty': 'Open a folder that contains a gamecreator.json file.',
   'app.uiSize': 'Interface size',
   'app.uiSizeHint': 'Enlarges text and controls of the whole app',
   'app.save': 'Save',
@@ -702,7 +700,6 @@ export const en = {
   'variable.sampleAfter': 'this turn.',
   'variable.delete': 'Delete variable',
   'variable.save': 'Save variable',
-  'app.importTtc': 'Import…',
   'tip.importTtc':
     'Import from Tabletop Creator: convert a project into a new GameCreator project; the original is not changed',
   'ttc.title': 'Import from Tabletop Creator',
@@ -749,7 +746,27 @@ export const en = {
   'ttc.unsupported.roundness': '{template}: corner roundness of polygons is ignored ({layers})',
   'ttc.unsupported.falloff': '{template}: soft edges (falloff) are ignored ({layers})',
   'ttc.unsupported.cardShape':
-    '{template}: the card shape is not a rectangle; it was imported as a rectangle'
+    '{template}: the card shape is not a rectangle; it was imported as a rectangle',
+  'app.emptyProject':
+    'The project is empty. Start with a template, the layout of a card; then create a set with the cards that use it.',
+  'app.noSets': 'Now create a set: a sheet of the data file with the cards of one template.',
+  'app.closeProject': 'Close',
+  'tip.closeProject': 'Close the project and go back to the start screen',
+  'tip.newProject': 'Create an empty project in a new folder',
+  'start.newProject': 'New project…',
+  'start.openProject': 'Open project…',
+  'start.importTtc': 'Import from Tabletop Creator…',
+  'start.recent': 'Recent projects',
+  'start.noRecent':
+    'No recent projects yet. Create a new one, open a project folder or import one from Tabletop Creator.',
+  'start.missing': 'Folder not found',
+  'start.remove': 'Remove from the list (the folder is not deleted)',
+  'newProject.title': 'New project',
+  'newProject.location': 'Location',
+  'newProject.folder': 'The project will be created in {folder}',
+  'newProject.hint': 'Type a name: the project gets a folder with the same name.',
+  'newProject.invalidName': 'Write a name and choose where to create the project.',
+  'newProject.notEmpty': 'The folder {folder} already exists and is not empty.'
 }
 
 export type MessageKey = keyof typeof en

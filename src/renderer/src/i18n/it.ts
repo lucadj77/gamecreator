@@ -1,10 +1,8 @@
 import type { MessageKey } from './en'
 
 export const it: Record<MessageKey, string> = {
-  'app.openProject': 'Apri progetto',
   'app.reload': 'Ricarica',
   'app.loading': 'Caricamento…',
-  'app.empty': 'Apri una cartella che contiene un file gamecreator.json.',
   'app.uiSize': 'Dimensione interfaccia',
   'app.uiSizeHint': "Ingrandisce testi e controlli di tutta l'app",
   'app.save': 'Salva',
@@ -712,7 +710,6 @@ export const it: Record<MessageKey, string> = {
   'variable.sampleAfter': 'in questo turno.',
   'variable.delete': 'Elimina variabile',
   'variable.save': 'Salva variabile',
-  'app.importTtc': 'Importa…',
   'tip.importTtc':
     "Importa da Tabletop Creator: converte un progetto in un nuovo progetto GameCreator; l'originale non cambia",
   'ttc.title': 'Importa da Tabletop Creator',
@@ -761,5 +758,25 @@ export const it: Record<MessageKey, string> = {
     "{template}: l'arrotondamento degli angoli dei poligoni è ignorato ({layers})",
   'ttc.unsupported.falloff': '{template}: i bordi sfumati (falloff) sono ignorati ({layers})',
   'ttc.unsupported.cardShape':
-    '{template}: la forma della carta non è un rettangolo; è stata importata come rettangolo'
+    '{template}: la forma della carta non è un rettangolo; è stata importata come rettangolo',
+  'app.emptyProject':
+    'Il progetto è vuoto. Comincia da un template, la disposizione di una carta; poi crea un set con le carte che lo usano.',
+  'app.noSets': 'Ora crea un set: un foglio del file dati con le carte di un template.',
+  'app.closeProject': 'Chiudi',
+  'tip.closeProject': 'Chiude il progetto e torna alla schermata di ingresso',
+  'tip.newProject': 'Crea un progetto vuoto in una cartella nuova',
+  'start.newProject': 'Nuovo progetto…',
+  'start.openProject': 'Apri progetto…',
+  'start.importTtc': 'Importa da Tabletop Creator…',
+  'start.recent': 'Progetti recenti',
+  'start.noRecent':
+    'Ancora nessun progetto recente. Creane uno nuovo, apri la cartella di un progetto o importane uno da Tabletop Creator.',
+  'start.missing': 'Cartella non trovata',
+  'start.remove': "Togli dall'elenco (la cartella non viene cancellata)",
+  'newProject.title': 'Nuovo progetto',
+  'newProject.location': 'Posizione',
+  'newProject.folder': 'Il progetto sarà creato in {folder}',
+  'newProject.hint': 'Scrivi un nome: il progetto avrà una cartella con lo stesso nome.',
+  'newProject.invalidName': 'Scrivi un nome e scegli dove creare il progetto.',
+  'newProject.notEmpty': 'La cartella {folder} esiste già e non è vuota.'
 }

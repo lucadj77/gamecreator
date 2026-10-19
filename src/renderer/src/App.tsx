@@ -10,8 +10,18 @@ import {
   isValidSheetName,
   moveRow,
   newSheet,
-  removeRows
+  removeRows,
+  applyOrder,
+  viewRows,
+  NO_VIEW,
+  type RowView
 } from '../../shared/model/sheet'
+import {
+  renameInDefinitions,
+  renameInSheet,
+  renameInTemplate,
+  type RefKind
+} from '../../shared/model/rename'
 import { hitTest, toLocal } from '../../shared/model/geometry'
 import {
   denormalizeTemplate,
@@ -82,7 +92,8 @@ function loadUiZoom(): number {
 
 type View = 'table' | 'grid'
 /** Stato dei dati per annulla/ripristina */
-type DataSnapshot = { sets: LoadedSet[]; file: ProjectFile }
+/** Stato dei dati per ⌘Z; i template solo quando li ha cambiati una rinomina */
+type DataSnapshot = { sets: LoadedSet[]; file: ProjectFile; templates?: Template[] }
 const COALESCE_MS = 1200
 type Selected = { kind: 'set'; index: number } | { kind: 'template'; name: string }
 
@@ -129,6 +140,8 @@ function App(): React.JSX.Element {
   const [creating, setCreating] = useState(false)
   /** Stile aperto nell'editor: '' per uno nuovo */
   const [editingStyle, setEditingStyle] = useState<string | null>(null)
+  // cambia quando una rinomina riscrive i template: l'editor aperto riparte dal template nuovo
+  const [editorRev, setEditorRev] = useState(0)
   /** Variabile aperta nell'editor: '' per una nuova */
   const [editingVariable, setEditingVariable] = useState<string | null>(null)
   const [creatingSet, setCreatingSet] = useState(false)
@@ -242,7 +255,11 @@ function App(): React.JSX.Element {
     const from = redo ? history.future : history.past
     const snap = from[from.length - 1]
     if (!snap) return
-    const current = { sets: project.sets, file: project.file }
+    const current: DataSnapshot = {
+      sets: project.sets,
+      file: project.file,
+      templates: snap.templates && project.templates
+    }
     setHistory((h) =>
       redo
         ? { past: [...h.past, current], future: h.future.slice(0, -1), at: 0 }
@@ -253,6 +270,7 @@ function App(): React.JSX.Element {
     setProject({
       ...project,
       ...snap,
+      templates: snap.templates ?? project.templates,
       unusedSheets: project.unusedSheets.filter((x) => !linked.has(x)),
       unusedData: project.unusedData?.filter((x) => !linked.has(x.name))
     })
@@ -267,23 +285,43 @@ function App(): React.JSX.Element {
       return next
     })
     if (snap.file !== project.file) setFileDirty(true)
+    if (snap.templates)
+      markRenamed(project, { ...project, templates: snap.templates, sets: snap.sets })
   }
 
-  /** Salva template, fogli e progetto modificati */
+  /** Dopo una rinomina: template e fogli cambiati vanno salvati, l'editor riparte dal template nuovo */
+  const markRenamed = (before: LoadedProject, after: LoadedProject): void => {
+    const tpls = after.templates.filter((t, i) => t !== before.templates[i]).map((t) => t.name)
+    const sheets = after.sets.flatMap((x, i) =>
+      x.data && x.data !== before.sets[i].data ? [x.data.name] : []
+    )
+    if (tpls.length) {
+      setDirty((d) => new Set([...d, ...tpls]))
+      setEditorRev((r) => r + 1)
+    }
+    if (sheets.length) setDirtySheets((d) => new Set([...d, ...sheets]))
+  }
+
   /** Crea, modifica, rinomina (con `oldName`) o elimina (def null) uno stile del progetto */
   const saveStyle = useCallback((name: string, def: string | null, oldName?: string): void => {
     setProject((p) => {
       if (!p) return p
-      const styles = { ...p.file.styles }
-      if (oldName && oldName !== name) delete styles[oldName]
+      const renaming = !!oldName && oldName !== name && def !== null
+      const base = renaming ? renameReferences(p, 'style', oldName, name) : p
+      const styles = { ...base.file.styles }
+      if (renaming) delete styles[oldName]
       if (def === null) delete styles[name]
       else styles[name] = def
       setHistory((h) => ({
-        past: [...h.past.slice(-99), { sets: p.sets, file: p.file }],
+        past: [
+          ...h.past.slice(-99),
+          { sets: p.sets, file: p.file, templates: renaming ? p.templates : undefined }
+        ],
         future: [],
         at: 0
       }))
-      return { ...p, file: { ...p.file, styles } }
+      if (renaming) markRenamed(p, base)
+      return { ...base, file: { ...base.file, styles } }
     })
     setFileDirty(true)
   }, [])
@@ -292,16 +330,22 @@ function App(): React.JSX.Element {
   const saveVariable = (name: string, v: Variable | null, oldName?: string): void => {
     setProject((p) => {
       if (!p) return p
-      const variables = { ...p.file.variables }
-      if (oldName && oldName !== name) delete variables[oldName]
+      const renaming = !!oldName && oldName !== name && v !== null
+      const base = renaming ? renameReferences(p, 'variable', oldName, name) : p
+      const variables = { ...base.file.variables }
+      if (renaming) delete variables[oldName]
       if (v === null) delete variables[name]
       else variables[name] = v
       setHistory((h) => ({
-        past: [...h.past.slice(-99), { sets: p.sets, file: p.file }],
+        past: [
+          ...h.past.slice(-99),
+          { sets: p.sets, file: p.file, templates: renaming ? p.templates : undefined }
+        ],
         future: [],
         at: 0
       }))
-      return { ...p, file: { ...p.file, variables } }
+      if (renaming) markRenamed(p, base)
+      return { ...base, file: { ...base.file, variables } }
     })
     setFileDirty(true)
   }
@@ -873,7 +917,7 @@ function App(): React.JSX.Element {
                   )}
                   {editing ? (
                     <TemplateEditor
-                      key={editing.name}
+                      key={`${editing.name}:${editorRev}`}
                       template={editing}
                       sets={project.sets.filter((s) => s.template === editing.name)}
                       onChange={updateTemplate}
@@ -1075,6 +1119,7 @@ function SetView({
   const [side, setSide] = useState<Side>('front')
   const [addingColumn, setAddingColumn] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
+  const [rowView, setRowView] = useState<RowView>(NO_VIEW)
   const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
   const [previewSide, togglePreviewSide] = usePanelSide('preview', 'right')
   // dimensione delle miniature: pixel per millimetro
@@ -1113,6 +1158,8 @@ function SetView({
     return rows.map((row) => bindCard(template, rowToCard(headers, row), bindCtx))
   }, [template, set.data, bindCtx])
 
+  const order = useMemo(() => (set.data ? viewRows(set.data, rowView) : []), [set.data, rowView])
+
   if (!set.data) {
     return (
       <section className="content">
@@ -1121,6 +1168,16 @@ function SetView({
     )
   }
   const sheet = set.data
+  const viewActive = rowView.sort !== null || rowView.filter.trim() !== ''
+  /** Clic su un'intestazione: crescente, decrescente, poi l'ordine del foglio */
+  const sortBy = (column: string): void =>
+    setRowView((v) =>
+      v.sort !== column
+        ? { ...v, sort: column, desc: false }
+        : v.desc
+          ? { ...v, sort: null, desc: false }
+          : { ...v, desc: true }
+    )
   const current = selection[0] ?? -1
   const card = cards[current]
   const none = current < 0 || current >= sheet.rows.length
@@ -1285,16 +1342,91 @@ function SetView({
           <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
             {t('set.addColumn')}
           </button>
-          <span className="muted small">
-            {view === 'grid' && template ? t('set.gridHint') : t('set.editHint')}
-          </span>
+          <span className="sep" />
+          <input
+            type="search"
+            className="row-filter"
+            placeholder={t('set.filter')}
+            title={t('tip.filterRows')}
+            value={rowView.filter}
+            onChange={(e) => setRowView((v) => ({ ...v, filter: e.target.value }))}
+          />
+          <select
+            className="row-filter-column"
+            title={t('tip.filterColumn')}
+            value={rowView.filterColumn ?? ''}
+            onChange={(e) => setRowView((v) => ({ ...v, filterColumn: e.target.value || null }))}
+          >
+            <option value="">{t('set.filterAll')}</option>
+            {sheet.headers
+              .filter((h) => h && !h.includes('.'))
+              .map((h) => (
+                <option key={h} value={h}>
+                  {h}
+                </option>
+              ))}
+          </select>
+          {view === 'grid' && (
+            <select
+              title={t('tip.sortColumn')}
+              value={rowView.sort ?? ''}
+              onChange={(e) =>
+                setRowView((v) => ({ ...v, sort: e.target.value || null, desc: false }))
+              }
+            >
+              <option value="">{t('set.sortNone')}</option>
+              {sheet.headers
+                .filter((h) => h && !h.includes('.'))
+                .map((h) => (
+                  <option key={h} value={h}>
+                    {t('set.sortBy', { column: h })}
+                  </option>
+                ))}
+            </select>
+          )}
+          {rowView.sort !== null && (
+            <>
+              {view === 'grid' && (
+                <button
+                  title={t('tip.sortDirection')}
+                  onClick={() => setRowView((v) => ({ ...v, desc: !v.desc }))}
+                >
+                  {rowView.desc ? '↓' : '↑'}
+                </button>
+              )}
+              <button
+                title={t('tip.applyOrder')}
+                onClick={() => {
+                  onChange(applyOrder(sheet, rowView))
+                  setRowView((v) => ({ ...v, sort: null, desc: false }))
+                }}
+              >
+                {t('set.applyOrder')}
+              </button>
+            </>
+          )}
+          {viewActive && (
+            <button title={t('tip.clearView')} onClick={() => setRowView(NO_VIEW)}>
+              {t('set.clearView')}
+            </button>
+          )}
         </div>
+        <p className="muted small set-hint">
+          {viewActive
+            ? t('set.viewHint', { shown: order.length, total: sheet.rows.length })
+            : view === 'grid' && template
+              ? t('set.gridHint')
+              : t('set.editHint')}
+        </p>
         {view === 'table' || !template ? (
           <DataTable
             sheet={sheet}
             selected={selection}
             onSelect={setSelection}
             onChange={onChange}
+            rows={order}
+            sort={{ column: rowView.sort, desc: rowView.desc }}
+            onSort={sortBy}
           />
         ) : (
           <CardGrid
@@ -1302,11 +1434,16 @@ function SetView({
             side={side}
             selected={current}
             onSelect={(i) => setSelection([i])}
-            onMove={(from, to) => {
-              onChange(moveRow(sheet, from, to))
-              setSelection([to])
-            }}
+            onMove={
+              viewActive
+                ? undefined
+                : (from, to) => {
+                    onChange(moveRow(sheet, from, to))
+                    setSelection([to])
+                  }
+            }
             scale={thumb}
+            order={order}
           />
         )}
       </section>
@@ -1338,6 +1475,24 @@ function SetView({
 }
 
 const PREVIEW_SCALE = 4.4
+
+/** Il progetto con i riferimenti a una variabile o a uno stile rinominati ovunque */
+function renameReferences(
+  p: LoadedProject,
+  kind: RefKind,
+  from: string,
+  to: string
+): LoadedProject {
+  const templates = p.templates.map((t) => renameInTemplate(t, kind, from, to))
+  const sets = p.sets.map((x) => {
+    if (!x.data) return x
+    const tpl = p.templates.find((t) => t.name === x.template) ?? null
+    const data = renameInSheet(x.data, tpl, kind, from, to)
+    return data === x.data ? x : { ...x, data }
+  })
+  const defs = renameInDefinitions(p.file.variables ?? {}, p.file.styles ?? {}, kind, from, to)
+  return { ...p, templates, sets, file: { ...p.file, ...defs } }
+}
 
 /** Livelli sotto il punto, dal più in alto, entrando nei gruppi */
 function hitsAt(layers: Layer[], p: { x: number; y: number }): Layer[] {

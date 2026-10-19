@@ -40,3 +40,7 @@ Richieste da affrontare quando l'app copre già il flusso base (template, carte,
 - Accesso agevole ai font Google: ricerca e anteprima dall'app, con scaricamento dei file in `assets/fonts/` così che il progetto funzioni anche senza rete e l'esportazione usi gli stessi font.
 - Sfumature in tutti i campi colore (riempimento, testo, contorno, colorazione, ombra): lineari e radiali, con più punti di colore e angolo. Nel foglio si scrivono come testo, per esempio `linear(90, #A33A2A, #2F5DA8)`, così una colonna può cambiarle carta per carta.
 - Insieme alle sfumature, la dissolvenza dell'opacità di un livello (o di un gruppo): una maschera a sfumatura lineare o radiale che porta il livello da opaco a trasparente, per esempio un'immagine che sfuma verso il basso.
+
+## Quando l'app sarà stabile
+
+- Strumenti che facilitino l'uso dell'IA per gestire i progetti: per esempio un plugin, una skill o un'interfaccia a riga di comando con cui un assistente possa leggere e modificare template, set, variabili ed esportazioni senza passare dall'interfaccia grafica.

@@ -1,4 +1,5 @@
 import type { Sheet } from '../project'
+import { plainText } from './markup'
 import { walkLayers } from './normalize'
 import type { Template } from './template'
 
@@ -46,6 +47,64 @@ export function moveRow(s: Sheet, from: number, to: number): Sheet {
   const [row] = rows.splice(from, 1)
   rows.splice(Math.max(0, Math.min(rows.length, to)), 0, row)
   return { ...s, rows }
+}
+
+// ——— Ordinamento e filtro della vista: non cambiano il foglio ———
+
+export interface RowView {
+  /** Colonna su cui ordinare, null per l'ordine del foglio */
+  sort: string | null
+  desc: boolean
+  /** Testo cercato, senza distinguere maiuscole e accenti */
+  filter: string
+  /** Colonna in cui cercare, null per tutte */
+  filterColumn: string | null
+}
+
+export const NO_VIEW: RowView = { sort: null, desc: false, filter: '', filterColumn: null }
+
+const fold = (s: string): string => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
+
+/** Confronto di due celle: numeri come numeri, vuote in fondo, il resto in ordine alfabetico */
+export function compareCells(a: string, b: string): number {
+  const x = a.trim()
+  const y = b.trim()
+  if (!x || !y) return x ? -1 : y ? 1 : 0
+  const nx = Number(x.replace(',', '.'))
+  const ny = Number(y.replace(',', '.'))
+  if (Number.isFinite(nx) && Number.isFinite(ny)) return nx - ny
+  return collator.compare(plainText(x), plainText(y))
+}
+
+/** Righe da mostrare, come indici del foglio, nell'ordine della vista */
+export function viewRows(s: Sheet, v: RowView): number[] {
+  let rows = s.rows.map((_, i) => i)
+  const q = fold(v.filter.trim())
+  if (q) {
+    const col = v.filterColumn === null ? -1 : s.headers.indexOf(v.filterColumn)
+    const cols = col >= 0 ? [col] : s.headers.map((_, i) => i)
+    rows = rows.filter((r) => cols.some((c) => fold(plainText(s.rows[r][c] ?? '')).includes(q)))
+  }
+  const col = v.sort === null ? -1 : s.headers.indexOf(v.sort)
+  if (col >= 0) {
+    const sign = v.desc ? -1 : 1
+    // ordinamento stabile: a parità resta l'ordine del foglio; le celle vuote restano in fondo
+    rows = [...rows].sort((a, b) => {
+      const x = s.rows[a][col] ?? ''
+      const y = s.rows[b][col] ?? ''
+      const empty = Number(!x.trim()) - Number(!y.trim())
+      return empty || sign * compareCells(x, y) || a - b
+    })
+  }
+  return rows
+}
+
+/** Rende definitivo l'ordinamento della vista: le righe del foglio prendono quell'ordine */
+export function applyOrder(s: Sheet, v: RowView): Sheet {
+  const order = viewRows(s, { ...v, filter: '' })
+  return { ...s, rows: order.map((i) => s.rows[i]) }
 }
 
 /** Nuova colonna; le colonne delle proprietà vanno subito dopo quella del loro livello */

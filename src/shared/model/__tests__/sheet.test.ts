@@ -3,6 +3,7 @@ import type { Sheet } from '../../project'
 import { normalizeTemplate } from '../normalize'
 import {
   addColumn,
+  applyOrder,
   colorColumns,
   duplicateRows,
   insertRow,
@@ -10,7 +11,9 @@ import {
   removeColumn,
   removeRows,
   setCell,
-  templateColumns
+  templateColumns,
+  viewRows,
+  NO_VIEW
 } from '../sheet'
 
 const sheet: Sheet = {
@@ -78,5 +81,34 @@ describe('colonne dei colori', () => {
     expect(cols.get('icona.tint')).toBeNull()
     expect(cols.get('banda')).toBe('#2F5DA8')
     expect(cols.has('nome')).toBe(false)
+  })
+})
+
+describe('ordinamento e filtro della vista', () => {
+  const s = {
+    name: 'x',
+    headers: ['nome', 'forza'],
+    rows: [
+      ['Strega', '3'],
+      ['Àncora', '10'],
+      ['**Arciere**', ''],
+      ['cavaliere', '4']
+    ]
+  }
+  it('ordina i numeri come numeri e lascia le celle vuote in fondo', () => {
+    expect(viewRows(s, { ...NO_VIEW, sort: 'forza' })).toEqual([0, 3, 1, 2])
+    expect(viewRows(s, { ...NO_VIEW, sort: 'forza', desc: true })).toEqual([1, 3, 0, 2])
+  })
+  it('ordina i testi senza markup, maiuscole e accenti', () => {
+    expect(viewRows(s, { ...NO_VIEW, sort: 'nome' })).toEqual([1, 2, 3, 0])
+  })
+  it('filtra in tutte le colonne o in una sola', () => {
+    expect(viewRows(s, { ...NO_VIEW, filter: 'ARC' })).toEqual([2])
+    expect(viewRows(s, { ...NO_VIEW, filter: 'anc' })).toEqual([1])
+    expect(viewRows(s, { ...NO_VIEW, filter: '4', filterColumn: 'nome' })).toEqual([])
+  })
+  it("applica l'ordine al foglio, comprese le righe filtrate", () => {
+    const sorted = applyOrder(s, { ...NO_VIEW, sort: 'forza', filter: 'zzz' })
+    expect(sorted.rows.map((r) => r[0])).toEqual(['Strega', 'cavaliere', 'Àncora', '**Arciere**'])
   })
 })

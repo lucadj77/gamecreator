@@ -102,7 +102,7 @@ export interface TtcImportOptions {
   source: string
   /** Cartella nuova (o vuota) del progetto GameCreator */
   target: string
-  /** Cartella in cui cercare le icone della libreria di Tabletop Creator */
+  /** Cartella in cui cercare le icone della libreria che non sono nei cataloghi dell'app */
   iconFolder?: string
 }
 
@@ -115,6 +115,8 @@ export interface TtcImportResult {
   variables: number
   /** Cose non convertite o convertite in modo approssimato */
   notes: Message[]
+  /** Icone della libreria prese dai cataloghi dell'app (game-icons.net, Kenney) */
+  libraryIcons: number
   /** Icone della libreria non trovate, come categoria/nome */
   missingIcons: string[]
   /** Caratteri usati dai testi, da installare nel sistema se mancano */

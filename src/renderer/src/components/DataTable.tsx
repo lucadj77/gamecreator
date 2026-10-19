@@ -11,6 +11,12 @@ interface Props {
   onSelect(rows: number[]): void
   /** `key` raggruppa le modifiche consecutive della stessa cella in un solo annullamento */
   onChange(sheet: Sheet, key?: string): void
+  /** Righe mostrate, come indici del foglio, nell'ordine della vista (di base tutte) */
+  rows?: number[]
+  /** Colonna dell'ordinamento della vista e verso */
+  sort?: { column: string | null; desc: boolean }
+  /** Clic sull'intestazione: ordina per quella colonna */
+  onSort?(column: string): void
 }
 
 interface Cell {
@@ -23,7 +29,15 @@ interface Cell {
  * clic, Invio o una lettera per scriverci. Le colonne delle proprietà (`nome.color`) restano
  * nascoste finché non si apre il loro livello con il +.
  */
-function DataTable({ sheet, selected, onSelect, onChange }: Props): React.JSX.Element {
+function DataTable({
+  sheet,
+  selected,
+  onSelect,
+  onChange,
+  rows: shown,
+  sort,
+  onSort
+}: Props): React.JSX.Element {
   const { t } = useI18n()
   const [active, setActive] = useState<Cell | null>(null)
   const [editing, setEditing] = useState<{ cell: Cell; original: string } | null>(null)
@@ -31,6 +45,9 @@ function DataTable({ sheet, selected, onSelect, onChange }: Props): React.JSX.El
   const [dragRow, setDragRow] = useState<number | null>(null)
   const [dropRow, setDropRow] = useState<number | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const rows = shown ?? sheet.rows.map((_, i) => i)
+  // con un ordinamento o un filtro le righe non si trascinano: l'ordine mostrato non è quello del foglio
+  const reorderable = rows.length === sheet.rows.length && rows.every((r, k) => r === k)
 
   const base = (h: string): string => (h.includes('.') ? h.slice(0, h.indexOf('.')) : h)
   const hasProps = (h: string): boolean => sheet.headers.some((x) => x.startsWith(h + '.'))
@@ -58,7 +75,8 @@ function DataTable({ sheet, selected, onSelect, onChange }: Props): React.JSX.El
     if (!active) return
     const vi = visible.findIndex((v) => v.i === active.col)
     const col = visible[Math.max(0, Math.min(visible.length - 1, vi + dc))]?.i ?? active.col
-    const row = Math.max(0, Math.min(sheet.rows.length - 1, active.row + dr))
+    const at = rows.indexOf(active.row)
+    const row = rows[Math.max(0, Math.min(rows.length - 1, at + dr))] ?? active.row
     activate({ row, col })
   }
 
@@ -86,12 +104,12 @@ function DataTable({ sheet, selected, onSelect, onChange }: Props): React.JSX.El
 
   const selectRow = (i: number, e: React.MouseEvent): void => {
     if (e.shiftKey && selected.length) {
+      // intervallo nell'ordine mostrato
       const from = selected[0]
-      const [a, b] = from < i ? [from, i] : [i, from]
-      onSelect([
-        from,
-        ...Array.from({ length: b - a + 1 }, (_, k) => a + k).filter((r) => r !== from)
-      ])
+      const pa = rows.indexOf(from)
+      const pb = rows.indexOf(i)
+      const [a, b] = pa < pb ? [pa, pb] : [pb, pa]
+      onSelect([from, ...rows.slice(Math.max(0, a), b + 1).filter((r) => r !== from)])
     } else if (e.metaKey || e.ctrlKey) {
       onSelect(selected.includes(i) ? selected.filter((r) => r !== i) : [...selected, i])
     } else onSelect([i])
@@ -108,7 +126,16 @@ function DataTable({ sheet, selected, onSelect, onChange }: Props): React.JSX.El
             {visible.map(({ h, i }) => (
               <th key={h} className={h.includes('.') ? 'prop-col' : undefined}>
                 <span className="th-inner">
-                  <span title={h}>{h.includes('.') ? h.slice(h.indexOf('.')) : h}</span>
+                  <span
+                    title={onSort ? t('table.sortHint', { column: h }) : h}
+                    className={onSort ? 'th-sort' : undefined}
+                    onClick={() => onSort?.(h)}
+                  >
+                    {h.includes('.') ? h.slice(h.indexOf('.')) : h}
+                    {sort?.column === h && (
+                      <span className="sort-mark">{sort.desc ? ' ↓' : ' ↑'}</span>
+                    )}
+                  </span>
                   {!h.includes('.') && hasProps(h) && (
                     <button
                       className="icon-btn"
@@ -139,84 +166,90 @@ function DataTable({ sheet, selected, onSelect, onChange }: Props): React.JSX.El
           </tr>
         </thead>
         <tbody>
-          {sheet.rows.map((row, r) => (
-            <tr
-              key={r}
-              className={[
-                selected.includes(r) && 'selected',
-                dropRow === r && dragRow !== null && (dragRow < r ? 'drop-after' : 'drop-before')
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              onDragOver={(e) => {
-                if (dragRow === null) return
-                e.preventDefault()
-                if (dropRow !== r) setDropRow(r)
-              }}
-              onDrop={(e) => {
-                e.preventDefault()
-                if (dragRow !== null && dropRow !== null && dragRow !== dropRow) {
-                  onChange(moveRow(sheet, dragRow, dropRow))
-                  onSelect([dropRow])
-                }
-                setDragRow(null)
-                setDropRow(null)
-              }}
-            >
-              <td
-                className="row-num"
-                draggable
-                title={t('table.rowHint')}
-                onClick={(e) => selectRow(r, e)}
-                onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = 'move'
-                  e.dataTransfer.setData('text/plain', String(r + 1))
-                  setDragRow(r)
+          {rows.map((r) => {
+            const row = sheet.rows[r]
+            return (
+              <tr
+                key={r}
+                className={[
+                  selected.includes(r) && 'selected',
+                  dropRow === r && dragRow !== null && (dragRow < r ? 'drop-after' : 'drop-before')
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onDragOver={(e) => {
+                  if (dragRow === null) return
+                  e.preventDefault()
+                  if (dropRow !== r) setDropRow(r)
                 }}
-                onDragEnd={() => {
+                onDrop={(e) => {
+                  e.preventDefault()
+                  if (dragRow !== null && dropRow !== null && dragRow !== dropRow) {
+                    onChange(moveRow(sheet, dragRow, dropRow))
+                    onSelect([dropRow])
+                  }
                   setDragRow(null)
                   setDropRow(null)
                 }}
               >
-                {r + 1}
-              </td>
-              {visible.map(({ h, i }) => {
-                const c = { row: r, col: i }
-                const isActive = active?.row === r && active.col === i
-                const isEditing = editing?.cell.row === r && editing.cell.col === i
-                return (
-                  <td
-                    key={h}
-                    data-cell={`${r}:${i}`}
-                    className={isActive ? 'active-cell' : undefined}
-                    onClick={() => activate(c)}
-                    onDoubleClick={() => startEdit(c)}
-                  >
-                    {isEditing ? (
-                      <CellEditor
-                        value={row[i] ?? ''}
-                        fields={sheet.headers.filter((h) => h !== 'amount' && !h.includes('.'))}
-                        onChange={(v) => write(c, v)}
-                        onDone={(how) => {
-                          if (how === 'cancel') write(c, editing.original)
-                          setEditing(null)
-                          wrapRef.current?.focus()
-                          if (how === 'down') move(1, 0)
-                          if (how === 'right') move(0, 1)
-                          if (how === 'left') move(0, -1)
-                        }}
-                      />
-                    ) : (
-                      row[i]
-                    )}
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
+                <td
+                  className="row-num"
+                  draggable={reorderable}
+                  title={reorderable ? t('table.rowHint') : t('table.rowHintSorted')}
+                  onClick={(e) => selectRow(r, e)}
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = 'move'
+                    e.dataTransfer.setData('text/plain', String(r + 1))
+                    setDragRow(r)
+                  }}
+                  onDragEnd={() => {
+                    setDragRow(null)
+                    setDropRow(null)
+                  }}
+                >
+                  {r + 1}
+                </td>
+                {visible.map(({ h, i }) => {
+                  const c = { row: r, col: i }
+                  const isActive = active?.row === r && active.col === i
+                  const isEditing = editing?.cell.row === r && editing.cell.col === i
+                  return (
+                    <td
+                      key={h}
+                      data-cell={`${r}:${i}`}
+                      className={isActive ? 'active-cell' : undefined}
+                      onClick={() => activate(c)}
+                      onDoubleClick={() => startEdit(c)}
+                    >
+                      {isEditing ? (
+                        <CellEditor
+                          value={row[i] ?? ''}
+                          fields={sheet.headers.filter((h) => h !== 'amount' && !h.includes('.'))}
+                          onChange={(v) => write(c, v)}
+                          onDone={(how) => {
+                            if (how === 'cancel') write(c, editing.original)
+                            setEditing(null)
+                            wrapRef.current?.focus()
+                            if (how === 'down') move(1, 0)
+                            if (how === 'right') move(0, 1)
+                            if (how === 'left') move(0, -1)
+                          }}
+                        />
+                      ) : (
+                        row[i]
+                      )}
+                    </td>
+                  )
+                })}
+              </tr>
+            )
+          })}
         </tbody>
       </table>
       {sheet.rows.length === 0 && <p className="muted table-empty">{t('table.empty')}</p>}
+      {sheet.rows.length > 0 && rows.length === 0 && (
+        <p className="muted table-empty">{t('table.noMatch')}</p>
+      )}
     </div>
   )
 }

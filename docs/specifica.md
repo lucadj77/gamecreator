@@ -141,7 +141,7 @@ Stato attuale: i suggerimenti funzionano nel pannello proprietà, nei campi dell
 
 Nei campi del pannello e della carta, il pulsante "Aa Formatta…" apre un editor visuale degli attributi: si seleziona del testo (che diventa `[testo]{...}`) oppure si mette il cursore dentro una porzione `[testo]{...}` esistente per modificarla. L'editor mostra un'anteprima, i campi per ciascun attributo e il testo degli attributi come si scrive, sincronizzato. "Rimuovi formattazione" toglie le parentesi; "Salva come stile…" salva gli attributi come stile del progetto e sostituisce la formattazione con `{.nome}`.
 
-Gli stili del progetto sono elencati nella sezione "Stili" della barra laterale e si modificano con lo stesso editor; uno stile del progetto con il nome di uno predefinito lo sostituisce. Rinominare uno stile non aggiorna i testi che lo usano.
+Gli stili del progetto sono elencati nella sezione "Stili" della barra laterale e si modificano con lo stesso editor; uno stile del progetto con il nome di uno predefinito lo sostituisce. Rinominare uno stile aggiorna i testi che lo usano (`{.nome}`, `[testo]{.nome}`), lo stile dei livelli e gli stili che si basano su di esso.
 
 #### Esempio completo
 
@@ -226,7 +226,7 @@ Definite a livello di progetto, si richiamano con `{nome}` in qualunque testo e 
 
 Ogni variabile ha un'anteprima nell'elenco. Rinominare una variabile aggiorna i riferimenti in template e fogli.
 
-Stato attuale: le variabili sono nella sezione "Variabili" della barra laterale, con un editor che mostra l'anteprima in una frase di prova, e si salvano in `gamecreator.json` (docs/formato.md). Le variabili immagine hanno file, tinta, dimensione rispetto alla riga e spostamento verticale; quelle di testo possono contenere markup e richiamare altre variabili; quelle valore entrano nelle formule come i campi; quelle colore valgono in ogni proprietà colore dei livelli e negli attributi del markup (`color=`, `bg-color=`, `fill=`, `border=`, `highlight=`), scritte come `rosso` o `{rosso}`, e compaiono tra i suggerimenti. Rinominare una variabile per ora non aggiorna i riferimenti.
+Stato attuale: le variabili sono nella sezione "Variabili" della barra laterale, con un editor che mostra l'anteprima in una frase di prova, e si salvano in `gamecreator.json` (docs/formato.md). Le variabili immagine hanno file, tinta, dimensione rispetto alla riga e spostamento verticale; quelle di testo possono contenere markup e richiamare altre variabili; quelle valore entrano nelle formule come i campi; quelle colore valgono in ogni proprietà colore dei livelli e negli attributi del markup (`color=`, `bg-color=`, `fill=`, `border=`, `highlight=`), scritte come `rosso` o `{rosso}`, e compaiono tra i suggerimenti. Rinominare una variabile aggiorna i richiami nei template, nelle celle dei fogli, nelle altre variabili e negli stili (`{nome}`, `{nome*3}`, `color=nome`, e il nome senza graffe nelle proprietà colore e immagine); dove un campo ha lo stesso nome, `{nome}` è il campo e resta com'è. ⌘Z annulla la rinomina. Una variabile immagine con tinta "colore del testo" (`currentColor`) prende il colore del testo in cui è inserita.
 
 Le immagini nel testo, variabili o file di `assets/`, accettano attributi dopo il nome, che per quel solo uso prevalgono su quelli della variabile: `{spada tint=red size=150% rotate=90 flip=h opacity=50%}`, anche con le ripetizioni (`{spada*3 tint=red}`).
 
@@ -298,6 +298,7 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 | ordine delle carte   | manuale, trascinando righe in tabella o carte nella griglia; è l'ordine delle righe nel foglio e quello di esportazione         |
 | ordinamento e filtro | per qualsiasi colonna, solo nella vista, senza cambiare l'ordine salvato; si può rendere definitivo con "Applica questo ordine" |
 
+- Ordinamento e filtro: nella tabella un clic sull'intestazione ordina per quella colonna (crescente, decrescente, poi l'ordine del foglio); nella griglia si sceglie la colonna dal menu. I numeri si ordinano come numeri, i testi senza markup, maiuscole e accenti, le celle vuote vanno in fondo. Il filtro cerca il testo in tutte le colonne o in una sola. Con ordinamento o filtro attivi le righe non si trascinano; **Applica questo ordine** riordina il foglio (⌘Z annulla), **Mostra tutto** torna alla vista normale.
 - Il template del set si cambia dal menu nell'intestazione del set; i dati restano gli stessi, e le colonne che il nuovo template non usa vengono ignorate. ⌘Z annulla.
 - Sotto l'anteprima della carta, **Modifica template** apre nell'editor il template del set.
 - Il cestino accanto a un set lo toglie dal progetto dopo una conferma. Il foglio dei dati resta nel file, tra quelli non collegati, e si può ricollegare con **Nuovo set**; ⌘Z annulla.
@@ -308,6 +309,8 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.
 
 Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `gamecreator.json` sotto la chiave `export`, una per tipo; i profili con nome restano da fare. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
+
+**Anteprima…**, accanto a **Esporta**, mostra uno alla volta i file che l'esportazione scriverà con le opzioni attuali, senza scrivere nulla: le immagini delle carte con il nome del file, le pagine del PDF con i segni di taglio, i fogli di Tabletop Simulator con la carta nascosta. Si scorrono con ‹ › o con le frecce, e da lì si può esportare. L'anteprima e l'esportazione usano lo stesso piano (`src/shared/exportPlan.ts`), quindi impaginazione e nomi coincidono.
 
 ### 9.1 Immagini
 
@@ -329,6 +332,7 @@ Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al no
 | pagina               | A4, A3, Letter, personalizzata; verticale, orizzontale                                                                 |
 | margini e spaziatura | mm                                                                                                                     |
 | disposizione         | automatica (massimo di carte per pagina) o righe × colonne                                                             |
+| rotazione            | con la disposizione automatica, carte ruotate di 90° se dritte non entrano nella pagina o ne entrano di più            |
 | abbondanza           | inclusa o no; se inclusa le carte si toccano e i segni di taglio sono esterni                                          |
 | segni di taglio      | nessuno, angoli, linee intere; lunghezza, spessore, colore, sopra o sotto le carte                                     |
 | fronte-retro         | nessuno; pagine alternate con retro speculari (rilegatura lato lungo o corto); compensazione del disallineamento x e y |
@@ -336,7 +340,7 @@ Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al no
 | file                 | unico, uno per set, uno per lato                                                                                       |
 | fogli di prova       | pagina riepilogo a bassa risoluzione con tutte le carte                                                                |
 
-Piegatura e fogli di prova non sono ancora disponibili. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
+Piegatura e fogli di prova non sono ancora disponibili. Le carte ruotate girano in senso orario; nel fronte-retro i retri ruotano in modo da combaciare con i fronti quando si gira il foglio. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
 
 Il PDF è vettoriale, con i font incorporati e in RGB. Il CMYK richiesto da alcune tipografie richiede una conversione successiva: da valutare con Ghostscript in un secondo momento.
 

@@ -144,13 +144,23 @@ export default function VariableDialog({
                   <option key={n} value={n} />
                 ))}
               </datalist>
-              <ColorField
-                label={t('variable.tint')}
-                hint={t('variable.tintHint')}
-                value={v.tint ?? null}
-                nullable
-                onChange={(tint) => setV({ ...v, tint })}
-              />
+              {v.tint !== TEXT_COLOR && (
+                <ColorField
+                  label={t('variable.tint')}
+                  hint={t('variable.tintHint')}
+                  value={v.tint ?? null}
+                  nullable
+                  onChange={(tint) => setV({ ...v, tint })}
+                />
+              )}
+              <label className="check variable-text-color" title={t('variable.textColorHint')}>
+                <input
+                  type="checkbox"
+                  checked={v.tint === TEXT_COLOR}
+                  onChange={(e) => setV({ ...v, tint: e.target.checked ? TEXT_COLOR : undefined })}
+                />
+                {t('variable.textColor')}
+              </label>
               <NumberField
                 label={t('variable.scale')}
                 hint={t('variable.scaleHint')}
@@ -301,3 +311,6 @@ export function VariableSwatch({
     )
   return <span className="muted small variable-text">{v.type === 'text' ? v.text : v.value}</span>
 }
+
+/** Tinta che prende il colore del testo in cui l'icona è inserita */
+const TEXT_COLOR = 'currentColor'

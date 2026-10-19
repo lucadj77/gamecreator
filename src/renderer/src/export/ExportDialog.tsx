@@ -24,6 +24,7 @@ import {
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
+import ExportPreview from './ExportPreview'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { useI18n } from '../i18n/context'
@@ -93,6 +94,7 @@ export default function ExportDialog({
   const [error, setError] = useState<Message | null>(null)
   const { has: hasFont } = useProjectFonts()
   const [credits, setCredits] = useState(false)
+  const [preview, setPreview] = useState<ExportJob | null>(null)
   const running = progress !== null
 
   useEffect(() => {
@@ -133,6 +135,16 @@ export default function ExportDialog({
     return [...names]
   }, [project, selected])
 
+  /** Il lavoro con le opzioni attuali: lo stesso per l'anteprima e per l'esportazione */
+  const buildJob = (): ExportJob => {
+    const base = { project: project.file.name, sets: buildSets(project, selected) }
+    return kind === 'images'
+      ? { ...base, kind, options: img }
+      : kind === 'pdf'
+        ? { ...base, kind, options: pdf }
+        : { ...base, kind, options: tts }
+  }
+
   const run = async (): Promise<void> => {
     setError(null)
     setResult(null)
@@ -141,14 +153,8 @@ export default function ExportDialog({
     try {
       window.api.saveExportProfiles(profiles).catch(() => undefined)
       onProfiles(profiles)
-      const sets = buildSets(project, selected)
-      const base = { project: project.file.name, sets }
-      const job: ExportJob =
-        kind === 'images'
-          ? { ...base, kind, options: img }
-          : kind === 'pdf'
-            ? { ...base, kind, options: pdf }
-            : { ...base, kind, options: tts }
+      const job = buildJob()
+      const sets = job.sets
       const r = await window.api.runExport(job, {
         assets: project.assets,
         fonts: project.fonts,
@@ -272,7 +278,11 @@ export default function ExportDialog({
     perPage =
       g.x0 < 0 || g.y0 < 0
         ? t('export.gridTooBig')
-        : t('export.perPage', { cols: g.cols, rows: g.rows, n: g.cols * g.rows })
+        : t(g.rotated ? 'export.perPageRotated' : 'export.perPage', {
+            cols: g.cols,
+            rows: g.rows,
+            n: g.cols * g.rows
+          })
   }
 
   return (
@@ -493,6 +503,11 @@ export default function ExportDialog({
                 </>,
                 perPage ?? undefined
               )}
+              {pdf.layout === 'auto' &&
+                field(
+                  'export.rotate',
+                  check(pdf.autoRotate, (autoRotate) => patch({ autoRotate }), 'export.autoRotate')
+                )}
               {field(
                 'export.marks',
                 <>
@@ -738,6 +753,14 @@ export default function ExportDialog({
           )}
           <button
             type="button"
+            title={t('export.previewHint')}
+            disabled={running || !selected.length}
+            onClick={() => setPreview(buildJob())}
+          >
+            {t('export.preview')}
+          </button>
+          <button
+            type="button"
             className="primary"
             disabled={running || !selected.length}
             onClick={run}
@@ -747,6 +770,7 @@ export default function ExportDialog({
         </div>
       </div>
       {credits && <CreditsDialog project={project} onClose={() => setCredits(false)} />}
+      {preview && <ExportPreview job={preview} onExport={run} onClose={() => setPreview(null)} />}
     </Dialog>
   )
 }

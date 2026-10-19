@@ -14,6 +14,25 @@ export const it: Record<MessageKey, string> = {
   'set.delete': 'Elimina',
   'set.addColumn': '+ Colonna',
   'set.deleteConfirm': 'Eliminare {n} carte?',
+  'set.filter': 'Filtra…',
+  'set.filterAll': 'in tutte le colonne',
+  'set.sortNone': 'Ordine del foglio',
+  'set.sortBy': 'Ordina per {column}',
+  'set.applyOrder': 'Applica questo ordine',
+  'set.clearView': 'Mostra tutto',
+  'set.viewHint':
+    "Righe mostrate: {shown} su {total}. Ordine e filtro valgono solo qui: il foglio e l'esportazione non cambiano.",
+  'tip.filterRows':
+    'Mostra solo le righe che contengono questo testo (maiuscole e accenti non contano)',
+  'tip.filterColumn': 'Colonna in cui cercare il testo del filtro',
+  'tip.sortColumn': 'Ordina le carte nella vista per una colonna',
+  'tip.sortDirection': 'Crescente o decrescente',
+  'tip.applyOrder': 'Riordina le righe del foglio come le vedi ora; ⌘Z annulla',
+  'tip.clearView': 'Togli ordinamento e filtro',
+  'table.sortHint':
+    "Ordina per {column}: un clic crescente, due decrescente, tre l'ordine del foglio",
+  'table.rowHintSorted': 'Con un ordinamento o un filtro attivo le righe non si trascinano',
+  'table.noMatch': 'Nessuna riga corrisponde al filtro.',
   'set.editHint':
     'Doppio clic o scrivi in una cella per modificarla; Alt+Invio per andare a capo. Trascina il numero di riga per spostarla.',
   'preview.clickHint': 'Fai clic su un livello per modificarne il campo',
@@ -630,6 +649,9 @@ export const it: Record<MessageKey, string> = {
   'export.layout': 'Disposizione',
   'export.layoutAuto': 'Quante carte ci stanno',
   'export.layoutFixed': 'Colonne × righe',
+  'export.perPageRotated': '{cols} × {rows} = {n} carte per pagina, ruotate di 90°',
+  'export.rotate': 'Rotazione',
+  'export.autoRotate': 'Ruota le carte se altrimenti non entrano o ne entrano di più',
   'export.perPage': '{cols} × {rows} = {n} carte per pagina',
   'export.gridTooBig': 'Le carte non stanno nella pagina',
   'export.marks': 'Segni di taglio',
@@ -668,6 +690,17 @@ export const it: Record<MessageKey, string> = {
   'export.description': 'Description',
   'export.noField': 'Vuoto',
   'export.run': 'Esporta',
+  'export.preview': 'Anteprima…',
+  'export.previewHint': 'Mostra le pagine e le immagini che verranno scritte, senza scrivere nulla',
+  'export.previewTitle': "Anteprima dell'esportazione",
+  'export.previewSummary': 'File da scrivere: {files}. Usa ‹ › o le frecce per scorrerli.',
+  'export.previewSummaryPdf':
+    'File PDF: {files}, pagine: {pages}. Usa ‹ › o le frecce per scorrerle.',
+  'export.previewSummaryTts':
+    'Immagini dei fogli: {files}, più il mazzo e la miniatura di ogni set. Usa ‹ › o le frecce per scorrerle.',
+  'export.previewPage': 'pagina {n} di {total}',
+  'export.previewCopies': '{n} copie uguali',
+  'export.previewEmpty': 'Nessuna carta da esportare con queste opzioni.',
   'export.close': 'Chiudi',
   'export.cancel': 'Interrompi',
   'export.preparing': 'Preparazione…',
@@ -698,6 +731,9 @@ export const it: Record<MessageKey, string> = {
   'variable.type.value': 'Valore',
   'variable.src': 'Immagine',
   'variable.srcHint': 'Nome del file in assets/, senza estensione',
+  'variable.textColor': 'Colore del testo in cui è inserita',
+  'variable.textColorHint':
+    "L'icona prende il colore del testo: nera in un testo nero, bianca in un testo bianco. Nel testo si scrive anche {nome tint=currentColor}",
   'variable.tint': 'Tinta',
   'variable.tintHint': 'Ricolora le icone a un solo colore',
   'variable.scale': 'Dimensione',
@@ -735,11 +771,11 @@ export const it: Record<MessageKey, string> = {
   'ttc.targetHint': "Si crea se non c'è; deve essere vuota",
   'ttc.icons': 'Cartella delle icone (facoltativa)',
   'ttc.iconsHint':
-    'Dove cercare le icone della libreria di Tabletop Creator (game-icons.net, Kenney…), per nome in tutte le sottocartelle',
+    "Le icone di game-icons.net e Kenney della libreria di Tabletop Creator si prendono dai cataloghi dell'app. Qui puoi indicare dove cercare le altre, per nome in tutte le sottocartelle",
   'ttc.import': 'Importa',
   'ttc.running': 'Importazione…',
   'ttc.done':
-    'Importati {templates} template, {sets} set con {cards} righe, {assets} immagini e {variables} variabili.',
+    'Importati {templates} template, {sets} set con {cards} righe, {assets} immagini e {variables} variabili. {library} icone della libreria prese da game-icons.net e Kenney, con i crediti.',
   'ttc.notes': 'Convertito solo in parte',
   'ttc.missingIcons': 'Icone della libreria non trovate ({count})',
   'ttc.missingIconsHint':

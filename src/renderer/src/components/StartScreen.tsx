@@ -4,6 +4,7 @@ import { projectFolderName } from '../../../shared/model/projectName'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
+import appIcon from '../assets/app-icon.png'
 
 // Schermata di ingresso: progetti recenti con miniatura, nuovo progetto, apertura e importazione.
 
@@ -53,6 +54,7 @@ export default function StartScreen({
   return (
     <div className="start">
       <header className="start-header">
+        <img className="start-logo" src={appIcon} alt="" draggable={false} />
         <h1>Naibi</h1>
         <span className="spacer" />
         {settings}
@@ -216,9 +218,19 @@ function NewProjectDialog({
 
 const ABOUT_PARAGRAPHS = ['about.p1', 'about.p2', 'about.p3', 'about.p4', 'about.p5'] as const
 
-/** Le parole tra asterischi vanno in corsivo */
-function italics(text: string): React.ReactNode[] {
-  return text.split(/\*([^*]+)\*/).map((part, i) => (i % 2 ? <em key={i}>{part}</em> : part))
+/** Le parole tra due asterischi vanno in grassetto, quelle tra un asterisco in corsivo */
+function emphasis(text: string): React.ReactNode[] {
+  return text
+    .split(/(\*\*[^*]+\*\*|\*[^*]+\*)/)
+    .map((part, i) =>
+      part.startsWith('**') ? (
+        <strong key={i}>{part.slice(2, -2)}</strong>
+      ) : part.startsWith('*') ? (
+        <em key={i}>{part.slice(1, -1)}</em>
+      ) : (
+        part
+      )
+    )
 }
 
 /** Origine del nome dell'app */
@@ -228,7 +240,7 @@ function AboutDialog({ onClose }: { onClose(): void }): React.JSX.Element {
     <Dialog title={t('about.title')} onClose={onClose}>
       <div className="about-text">
         {ABOUT_PARAGRAPHS.map((key) => (
-          <p key={key}>{italics(t(key))}</p>
+          <p key={key}>{emphasis(t(key))}</p>
         ))}
       </div>
       <div className="dialog-buttons">

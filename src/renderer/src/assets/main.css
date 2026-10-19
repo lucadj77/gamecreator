@@ -2290,6 +2290,11 @@ div.font-row {
   background: var(--panel);
 }
 
+.start-logo {
+  width: 28px;
+  height: 28px;
+}
+
 .start-header h1 {
   margin: 0;
   font-size: 18px;

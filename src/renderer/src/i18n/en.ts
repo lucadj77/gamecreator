@@ -964,7 +964,8 @@ export const en = {
   'start.remove': 'Remove from the list (the folder is not deleted)',
   'about.link': 'What does Naibi mean?',
   'about.title': 'What does Naibi mean?',
-  'about.p1': '*Naibi* is the name playing cards had when they reached Italy in the 14th century.',
+  'about.p1':
+    '*Naibi* (pronounced **NYE-bee**, /ˈnaɪ.bi/) is the name playing cards had when they reached Italy in the 14th century.',
   'about.p2':
     'The word comes from the Arabic *nā\'ib*, "deputy". In the decks of the Mamluks, who ruled Egypt and Syria, the court cards were the king (*malik*), his deputy (*nā\'ib malik*) and a second deputy. Europeans took the name of one card and used it for the whole game.',
   'about.p3':

@@ -42,7 +42,7 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: true,
     title: 'Naibi',
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform !== 'darwin' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -205,6 +205,8 @@ function registerIpc(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.naibi.app')
+  // nell'app pacchettizzata l'icona del Dock viene dal pacchetto; con npm run dev si imposta qui
+  if (process.platform === 'darwin' && is.dev) app.dock?.setIcon(icon)
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

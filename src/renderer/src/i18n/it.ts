@@ -981,7 +981,8 @@ export const it: Record<MessageKey, string> = {
   'start.remove': "Togli dall'elenco (la cartella non viene cancellata)",
   'about.link': 'Cosa vuol dire Naibi?',
   'about.title': 'Cosa vuol dire Naibi?',
-  'about.p1': '*Naibi* è il nome con cui le carte da gioco arrivarono in Italia, nel Trecento.',
+  'about.p1':
+    "*Naibi* (si pronuncia **nàibi**, con l'accento sulla *a*) è il nome con cui le carte da gioco arrivarono in Italia, nel Trecento.",
   'about.p2':
     "La parola viene dall'arabo *nā'ib*, \"luogotenente\". Nei mazzi dei Mamelucchi, che regnavano su Egitto e Siria, le figure erano il re (*malik*), il suo luogotenente (*nā'ib malik*) e un secondo luogotenente. Gli europei presero il nome di una figura per indicare il gioco intero.",
   'about.p3':

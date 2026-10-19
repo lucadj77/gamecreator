@@ -324,7 +324,7 @@ export const en = {
   'field.strokeWidth': 'Width in mm',
   'field.strokeWidthPercent': 'Width in mm, or in % of the text size (e.g. 8%)',
   'layers.hint':
-    'Drag a layer to reorder it, or onto the middle of a group to move it inside. Shift- or ⌘-click to select several, then group them.',
+    'Drag a layer to reorder it, or onto the middle of a group to move it inside. Shift- or ⌘-click to select several, then group them. ⌘C and ⌘V copy layers to another template.',
   'editor.multiSelectionTitle': '{n} layers selected',
   'editor.multiEdit':
     'The properties below show the values of {name}; every change applies to all the selected layers. Position and size are changed with Align or on the card.',

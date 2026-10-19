@@ -1,5 +1,5 @@
 import { arrangeModel } from './arrange'
-import { isArranged, normalizeLayer, walkLayers } from './normalize'
+import { isArranged, normalizeLayer, walkLayers, type RawLayer } from './normalize'
 import {
   isDrawn,
   type Constraints,
@@ -308,6 +308,73 @@ export function duplicateLayer(t: Template, l: Layer): Layer {
     return out
   }
   return translateLayer(copy(l), 2, 2)
+}
+
+/** Testo negli appunti per i livelli copiati: si incollano in qualsiasi template, anche di un altro progetto */
+export function layersToClipboard(template: Template, side: Side, ids: string[]): string | null {
+  const chosen = new Set(ids)
+  // in ordine di sovrapposizione; i figli di un gruppo copiato viaggiano con il gruppo
+  const layers: Layer[] = []
+  const visit = (list: Layer[]): void => {
+    for (const l of list) {
+      if (chosen.has(l.id)) layers.push(l)
+      else if (l.type === 'group') visit(l.children)
+    }
+  }
+  visit(template[side])
+  if (!layers.length) return null
+  return JSON.stringify({ naibi: 'layers', template: template.name, layers })
+}
+
+/** I livelli negli appunti, o null se il testo non viene da layersToClipboard */
+export function layersFromClipboard(text: string): { template: string; layers: Layer[] } | null {
+  try {
+    const data = JSON.parse(text)
+    if (data?.naibi !== 'layers' || !Array.isArray(data.layers) || !data.layers.length) return null
+    return {
+      template: typeof data.template === 'string' ? data.template : '',
+      layers: data.layers.map((l: RawLayer, i: number) => normalizeLayer(l, i))
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Incolla livelli copiati: nuovi id, nomi liberi nel template, sopra al livello `aboveId`.
+ * Un livello che cambia nome continua a leggere la colonna di prima. Con `offset` si spostano
+ * di 2 mm, come una duplicazione, per non coprire gli originali.
+ */
+export function pasteLayers(
+  t: Template,
+  side: Side,
+  layers: Layer[],
+  aboveId?: string,
+  offset = false
+): { template: Template; ids: string[] } {
+  let current = t
+  const copy = (src: Layer): Layer => {
+    const name = uniqueName(current, src.name)
+    const keepColumn = name !== src.name && src.source.kind === 'column' && !src.source.column
+    const out = normalizeLayer(
+      {
+        ...(src as unknown as Record<string, unknown>),
+        id: undefined,
+        name,
+        ...(keepColumn ? { source: { kind: 'column', column: src.name } } : {})
+      },
+      0
+    )
+    current = { ...current, front: [...current.front, out] }
+    if (out.type === 'group' && src.type === 'group') out.children = src.children.map(copy)
+    return out
+  }
+  const copies = layers.map((l) => (offset ? translateLayer(copy(l), 2, 2) : copy(l)))
+  // senza livello di riferimento si inserisce in cima: dall'ultimo per mantenere l'ordine
+  let out = t
+  if (aboveId) for (const c of copies) out = insertLayer(out, side, c, aboveId)
+  else for (const c of [...copies].reverse()) out = insertLayer(out, side, c)
+  return { template: out, ids: copies.map((c) => c.id) }
 }
 
 export function newLayer(t: Template, type: LayerType, shape?: string): Layer {

@@ -101,6 +101,8 @@ On the canvas you move layers by dragging them, resize them with the handles and
 
 In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ selects several layers; ⌘G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
+Selected layers are copied with ⌘C (⌘X to cut them) and pasted with ⌘V into another template, of another project too, or into the same one. They arrive with all their properties, above the selected layer. If the template already has a layer with the same name, the pasted one gets a new name (for example `nome_2`) but keeps reading the same column. In the same template the copy is moved by 2 mm so it does not cover the original.
+
 ### 4.3 Template properties
 
 With no layer selected, the panel shows the template properties: size, bleed (3 mm by default), safe margin, card shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), manual guides and **Card name**, the field shown under each card in the grid.
@@ -476,6 +478,7 @@ On Windows and Linux ⌘ is Ctrl.
 | editor       | ⌘Z, ⇧⌘Z (or ⌘Y)      | undo and redo                           |
 | editor       | T, R, E              | new text, rectangle, ellipse            |
 | editor       | ⌘D                   | duplicate the selected layers           |
+| editor       | ⌘C, ⌘X, ⌘V           | copy, cut and paste layers              |
 | editor       | ⌘G, ⇧⌘G              | group and ungroup                       |
 | editor       | ⌘A                   | select all layers                       |
 | editor       | Delete               | delete the selected layers              |

@@ -992,7 +992,7 @@ export const en = {
   'dialog.close': 'Close',
   'backup.title': 'Project backup',
   'backup.intro':
-    'A backup is a zip file with the saved project files (without the export folder). Restoring it creates a new folder next to the project, leaving the current one untouched.',
+    'A backup holds the saved project files, without the export folder. Restoring it creates a new folder next to the project, leaving the current one untouched.',
   'backup.create': 'Back up now',
   'backup.saveAndCreate': 'Save and back up',
   'backup.showFolder': 'Show folder',
@@ -1002,6 +1002,7 @@ export const en = {
   'backup.restore': 'Restore…',
   'backup.restoreConfirm':
     'The backup will be extracted to a new folder next to the project, which will open in place of this one. The current project stays as it is. Continue?',
+  'backup.total': 'Space used by backups: {size}. Each image is stored once for all backups.',
   'backup.none': 'No backups for this project.',
   'backup.settings': 'Settings (for all projects)',
   'backup.autoOnOpen': 'Back up when the project opens (at most once an hour)',

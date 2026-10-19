@@ -467,9 +467,10 @@ Nel progetto, la barra in alto ha nome e cartella del progetto, **Esporta…** e
 
 **Backup…** nella barra in alto apre la finestra dei backup del progetto aperto.
 
-- Un backup è un file zip con i file salvati del progetto, senza la cartella `export` e senza i file nascosti. Si chiama `<progetto> <data> <ora>.zip`, con `auto` alla fine se è automatico.
+- Un backup contiene i file salvati del progetto, senza la cartella `export` e senza i file nascosti. Ogni backup è un file zip, `<progetto> <data> <ora>.zip` (con `auto` alla fine se è automatico), con i dati, i template e le impostazioni.
+- I file di `assets` (immagini, icone, font) non stanno nello zip ma nella sottocartella `assets` della cartella dei backup, comune a tutti i backup del progetto: ogni contenuto si salva una volta sola, con il nome dato dal suo hash, e lo zip ne contiene l'elenco (`naibi-backup.json`: percorso nel progetto → file). Un backup aggiunge solo le immagini nuove o cambiate; quando si tolgono backup automatici, si tolgono anche i file che nessun backup rimasto usa. La finestra mostra lo spazio occupato da tutti i backup del progetto.
 - I backup stanno fuori dal progetto, in una sottocartella con il nome del progetto dentro la cartella dei backup (di base `Documenti/Naibi/Backup`, modificabile). Così non finiscono nei backup successivi e non occupano spazio nella cartella del progetto.
 - **Automatici.** Di base, all'apertura di un progetto si crea un backup, a meno che l'ultimo abbia meno di un'ora; si tengono gli ultimi 10 automatici per progetto (numero modificabile). I backup fatti a mano non si cancellano mai da soli. Il backup automatico non ritarda l'apertura.
 - **A mano.** **Crea un backup ora**; se ci sono modifiche non salvate, il pulsante diventa **Salva e crea un backup**.
-- **Ripristino.** Estrae il backup in una cartella nuova accanto al progetto, con il nome del backup, e la apre. Il progetto attuale non si modifica, quindi un ripristino non fa perdere nulla.
+- **Ripristino.** Estrae il backup in una cartella nuova accanto al progetto, con il nome del backup, rimette al loro posto i file di `assets` presi dalla cartella comune, e apre la cartella. Il progetto attuale non si modifica, quindi un ripristino non fa perdere nulla.
 - Le impostazioni (automatico sì o no, quanti tenerne, cartella) valgono per tutti i progetti e stanno nei dati dell'app, non nel progetto.

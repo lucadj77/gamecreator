@@ -91,7 +91,6 @@ export default function BackupDialog({
                     <tr key={b.file}>
                       <td>{new Date(b.date).toLocaleString(lang)}</td>
                       <td className="muted">{b.auto ? t('backup.auto') : t('backup.manual')}</td>
-                      <td className="muted">{size(b.size)}</td>
                       <td>
                         <button disabled={busy} onClick={() => restore(b.file)}>
                           {t('backup.restore')}
@@ -101,6 +100,9 @@ export default function BackupDialog({
                   ))}
                 </tbody>
               </table>
+            ) : null}
+            {state.items.length ? (
+              <p className="muted small">{t('backup.total', { size: size(state.totalSize) })}</p>
             ) : (
               <p className="muted">{t('backup.none')}</p>
             )}

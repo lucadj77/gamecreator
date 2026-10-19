@@ -27,6 +27,7 @@ import { adoptLegacyData } from './legacyData'
 import {
   autoBackup,
   backupDirName,
+  backupsSize,
   createBackup,
   listBackups,
   readBackupSettings,
@@ -80,6 +81,14 @@ const defaultBackupRoot = (): string => join(app.getPath('documents'), 'Naibi', 
 /** Nome del progetto aperto, per la cartella dei backup */
 let projectName = ''
 
+/** I backup si fanno uno alla volta: la pulizia non deve togliere file a un backup in corso */
+let backupQueue: Promise<unknown> = Promise.resolve()
+function queued<T>(job: () => Promise<T>): Promise<T> {
+  const run = backupQueue.then(job, job)
+  backupQueue = run.catch(() => undefined)
+  return run
+}
+
 async function backupDir(settings?: BackupSettings): Promise<string> {
   const s = settings ?? (await readBackupSettings(backupSettingsFile()))
   return join(s.folder || defaultBackupRoot(), backupDirName(projectName))
@@ -88,7 +97,13 @@ async function backupDir(settings?: BackupSettings): Promise<string> {
 async function backupState(): Promise<BackupState> {
   const settings = await readBackupSettings(backupSettingsFile())
   const folder = await backupDir(settings)
-  return { folder, defaultFolder: defaultBackupRoot(), settings, items: await listBackups(folder) }
+  return {
+    folder,
+    defaultFolder: defaultBackupRoot(),
+    settings,
+    items: await listBackups(folder),
+    totalSize: await backupsSize(folder)
+  }
 }
 
 function registerIpc(): void {
@@ -238,7 +253,9 @@ function registerIpc(): void {
   ipcMain.handle('backup:create', async () => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
-    return createBackup(folder, projectName, await backupDir())
+    const dir = await backupDir()
+    const name = projectName
+    return queued(() => createBackup(folder, name, dir))
   })
   ipcMain.handle('backup:settings', async (_, settings: BackupSettings) => {
     await writeBackupSettings(backupSettingsFile(), settings)

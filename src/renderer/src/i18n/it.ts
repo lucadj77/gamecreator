@@ -1009,7 +1009,7 @@ export const it: Record<MessageKey, string> = {
   'dialog.close': 'Chiudi',
   'backup.title': 'Backup del progetto',
   'backup.intro':
-    'Un backup è un file zip con i file salvati del progetto (senza la cartella export). Ripristinarlo crea una nuova cartella accanto al progetto, senza toccare quello attuale.',
+    'Un backup contiene i file salvati del progetto, senza la cartella export. Ripristinarlo crea una nuova cartella accanto al progetto, senza toccare quello attuale.',
   'backup.create': 'Crea un backup ora',
   'backup.saveAndCreate': 'Salva e crea un backup',
   'backup.showFolder': 'Mostra la cartella',
@@ -1019,6 +1019,8 @@ export const it: Record<MessageKey, string> = {
   'backup.restore': 'Ripristina…',
   'backup.restoreConfirm':
     "Il backup verrà estratto in una nuova cartella accanto al progetto, che si aprirà al posto di questo. Il progetto attuale resta com'è. Continuare?",
+  'backup.total':
+    'Spazio occupato dai backup: {size}. Ogni immagine è salvata una sola volta per tutti i backup.',
   'backup.none': 'Nessun backup per questo progetto.',
   'backup.settings': 'Impostazioni (per tutti i progetti)',
   'backup.autoOnOpen': "Crea un backup all'apertura del progetto (al massimo uno all'ora)",

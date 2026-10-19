@@ -47,6 +47,7 @@ export interface BackupItem {
   name: string
   /** Data del backup, in millisecondi */
   date: number
+  /** Dimensione dello zip, senza le immagini che condivide con gli altri backup */
   size: number
   auto: boolean
 }
@@ -58,6 +59,8 @@ export interface BackupState {
   defaultFolder: string
   settings: BackupSettings
   items: BackupItem[]
+  /** Spazio occupato da tutti i backup del progetto, immagini comprese */
+  totalSize: number
 }
 
 export interface Api {

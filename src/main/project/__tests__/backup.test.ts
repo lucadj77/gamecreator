@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { mkdtemp, mkdir, readdir, readFile, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
-import { autoBackup, createBackup, listBackups, pruneBackups, restoreBackup } from '../backup'
+import {
+  autoBackup,
+  backupsSize,
+  createBackup,
+  listBackups,
+  pruneBackups,
+  restoreBackup
+} from '../backup'
 
 async function project(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'naibi-backup-'))
@@ -31,6 +38,32 @@ describe('backup', () => {
     expect(await readFile(join(restored, 'assets', 'icons', 'spada.svg'), 'utf8')).toBe('<svg/>')
     // un secondo ripristino non sovrascrive il primo
     expect(await restoreBackup(item.file, join(folder, '..'))).toBe(restored + ' 2')
+  })
+
+  it('salva ogni immagine una volta sola e ripristina quella del momento del backup', async () => {
+    const folder = await project()
+    const dir = join(folder, '..', 'backup')
+    const icon = join(folder, 'assets', 'icons', 'spada.svg')
+    const first = await createBackup(folder, 'Assedio', dir, true, new Date(2026, 9, 19, 9, 0))
+    await createBackup(folder, 'Assedio', dir, true, new Date(2026, 9, 19, 10, 0))
+    expect((await readdir(join(dir, 'assets'))).length).toBe(1)
+    await writeFile(icon, '<svg id="2"/>')
+    const third = await createBackup(folder, 'Assedio', dir, true, new Date(2026, 9, 19, 11, 0))
+    expect((await readdir(join(dir, 'assets'))).length).toBe(2)
+    expect(await backupsSize(dir)).toBeGreaterThan(0)
+
+    const out = await mkdtemp(join(tmpdir(), 'naibi-r-'))
+    const old = await restoreBackup(first.file, out)
+    expect(await readFile(join(old, 'assets', 'icons', 'spada.svg'), 'utf8')).toBe('<svg/>')
+    const recent = await restoreBackup(third.file, out)
+    expect(await readFile(join(recent, 'assets', 'icons', 'spada.svg'), 'utf8')).toBe(
+      '<svg id="2"/>'
+    )
+    expect(await readdir(recent)).not.toContain('naibi-backup.json')
+
+    // tenendo solo l'ultimo, la versione vecchia dell'immagine non serve più
+    await pruneBackups(dir, 1)
+    expect((await readdir(join(dir, 'assets'))).length).toBe(1)
   })
 
   it('non include la cartella dei backup se sta dentro il progetto', async () => {

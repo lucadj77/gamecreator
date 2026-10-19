@@ -93,6 +93,7 @@ export default function ImportTtcDialog({
               sets: result.sets,
               cards: result.cards,
               assets: result.assets,
+              library: result.libraryIcons,
               variables: result.variables
             })}
           </p>

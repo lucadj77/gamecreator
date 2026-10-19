@@ -25,7 +25,11 @@ const KENNEY_PACKS: Record<string, string> = {
 }
 
 /** Provenienza di un'icona per assets/sources.json */
-function source(collection: IconCollection, catalog: IconCatalog, id: string): SourceEntry {
+export function iconSource(
+  collection: IconCollection,
+  catalog: IconCatalog,
+  id: string
+): SourceEntry {
   const [folder, iconName] = id.split('/')
   const author = catalog.author ?? catalog.authors[folder]
   const entry = {
@@ -70,22 +74,27 @@ export async function importIcons(
     const value = byId.get(id)
     if (!value) throw new MessageError(msg('icons.unknown', { id }))
     if (!isValidAssetName(name)) throw new MessageError(msg('icons.invalidName', { name }))
-    const ext = iconExtension(value)
-    const file = `${name}.${ext}`
-    if (catalog.kind === 'image') {
-      const data = value.slice(value.indexOf(',') + 1)
-      const base64 = value.slice(0, value.indexOf(',')).endsWith(';base64')
-      await writeFile(
-        join(dir, file),
-        base64 ? Buffer.from(data, 'base64') : decodeURIComponent(data)
-      )
-    } else {
-      const svg =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
-        `<path fill="#000" d="${value}"/></svg>\n`
-      await writeFile(join(dir, file), svg)
-    }
-    entries[`${sub}/${file}`] = source(collection, catalog, id)
+    const file = `${name}.${iconExtension(value)}`
+    await writeFile(join(dir, file), iconFileData(catalog, value))
+    entries[`${sub}/${file}`] = iconSource(collection, catalog, id)
   }
   return assetsUpdate(folder, await updateSources(folder, entries))
+}
+
+/**
+ * Contenuto del file di un'icona del catalogo: l'immagine del data URL, oppure un SVG nero su
+ * fondo trasparente per i tracciati (la tinta del livello lo ricolora).
+ */
+export function iconFileData(catalog: IconCatalog, value: string): Buffer | string {
+  if (catalog.kind === 'image') {
+    const comma = value.indexOf(',')
+    const data = value.slice(comma + 1)
+    return value.slice(0, comma).endsWith(';base64')
+      ? Buffer.from(data, 'base64')
+      : decodeURIComponent(data)
+  }
+  return (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">' +
+    `<path fill="#000" d="${value}"/></svg>\n`
+  )
 }

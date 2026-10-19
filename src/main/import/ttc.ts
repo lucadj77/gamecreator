@@ -5,6 +5,15 @@ import { normalizeTemplate, type RawLayer, type RawTemplate } from '../../shared
 import { LIBRARY_FOLDER, convertTtcProject, parseTtcJson } from '../../shared/import/ttc'
 import { PROJECT_FILE, type Sheet } from '../../shared/project'
 import type { TtcImportOptions, TtcImportResult } from '../../shared/api'
+import {
+  iconExtension,
+  type IconCatalog,
+  type IconCollection,
+  type Sources
+} from '../../shared/library'
+import { iconCatalog } from '../library/catalogs'
+import { iconFileData, iconSource } from '../library/icons'
+import { updateSources } from '../library/sources'
 import { listAssets } from '../project/assets'
 import { saveTemplate } from '../project/templates'
 import { writeSpreadsheet } from '../project/spreadsheet'
@@ -91,20 +100,38 @@ export async function importTtc(opts: TtcImportOptions): Promise<TtcImportResult
     await copyFile(join(source, 'assets', ...a.split('/')), to)
   }
 
-  // icone della libreria di Tabletop Creator: si cercano nella cartella indicata
+  // icone della libreria di Tabletop Creator: game-icons.net e Kenney si prendono dai cataloghi
+  // dell'app, con autore e licenza in assets/sources.json; le altre si cercano nella cartella indicata
   const missing: string[] = []
-  const found = opts.iconFolder ? await indexIcons(opts.iconFolder) : new Map<string, string>()
+  const sources: Sources = {}
+  const fromCatalog = await catalogIndex()
+  let found: Map<string, string> | null = null
   for (const ref of result.libraryIcons) {
+    const base = join(target, 'assets', LIBRARY_FOLDER, ...ref.split('/'))
+    const icon = findCatalogIcon(ref, fromCatalog)
+    if (icon) {
+      const { collection, catalog, id, value } = icon
+      const file = `${base}.${iconExtension(value)}`
+      await mkdir(dirname(file), { recursive: true })
+      await writeFile(file, iconFileData(catalog, value))
+      sources[`${LIBRARY_FOLDER}/${ref}.${iconExtension(value)}`] = iconSource(
+        collection,
+        catalog,
+        id
+      )
+      continue
+    }
+    found ??= opts.iconFolder ? await indexIcons(opts.iconFolder) : new Map<string, string>()
     const name = ref.slice(ref.lastIndexOf('/') + 1).toLowerCase()
-    const file = found.get(name)
-    if (!file) {
+    const path = found.get(name)
+    if (!path) {
       missing.push(ref)
       continue
     }
-    const to = join(target, 'assets', LIBRARY_FOLDER, ...ref.split('/')) + extname(file)
-    await mkdir(dirname(to), { recursive: true })
-    await copyFile(file, to)
+    await mkdir(dirname(base), { recursive: true })
+    await copyFile(path, base + extname(path))
   }
+  if (Object.keys(sources).length) await updateSources(target, sources)
 
   for (const raw of result.templates) await saveTemplate(target, normalizeTemplate(raw))
   await mkdir(join(target, 'data'), { recursive: true })
@@ -117,6 +144,7 @@ export async function importTtc(opts: TtcImportOptions): Promise<TtcImportResult
     sets: result.sheets.length,
     cards: result.sheets.reduce((n, s) => n + s.rows.length, 0),
     assets: assets.length,
+    libraryIcons: Object.keys(sources).length,
     variables: Object.keys(result.file.variables ?? {}).length,
     notes,
     missingIcons: missing,
@@ -183,4 +211,51 @@ async function indexIcons(root: string): Promise<Map<string, string>> {
   }
   await walk(root, 0)
   return new Map([...best].map(([k, v]) => [k, v.path]))
+}
+
+interface CatalogIcon {
+  collection: IconCollection
+  catalog: IconCatalog
+  id: string
+  value: string
+}
+
+const LIBRARY_COLLECTIONS: IconCollection[] = ['game-icons', 'kenney-icons']
+
+/** Icone dei cataloghi per nome (la parte dopo la cartella), in minuscolo */
+export async function catalogIndex(): Promise<Map<IconCollection, Map<string, CatalogIcon>>> {
+  const out = new Map<IconCollection, Map<string, CatalogIcon>>()
+  for (const collection of LIBRARY_COLLECTIONS) {
+    const catalog = await iconCatalog(collection)
+    const byName = new Map<string, CatalogIcon>()
+    for (const [id, value] of catalog.icons) {
+      const name = id.slice(id.indexOf('/') + 1).toLowerCase()
+      // a parità di nome vince la prima: in game-icons.net i nomi sono quasi tutti unici
+      if (!byName.has(name)) byName.set(name, { collection, catalog, id, value })
+    }
+    out.set(collection, byName)
+  }
+  return out
+}
+
+/**
+ * Icona dei cataloghi per un riferimento "Categoria/nome" della libreria di Tabletop Creator.
+ * Le categorie con "Kenney" (Board-Kenney) sono le Board Game Icons di Kenney, le altre
+ * (Shield, Gui, Star...) sono di game-icons.net con il nome del sito.
+ */
+export function findCatalogIcon(
+  ref: string,
+  index: Map<IconCollection, Map<string, CatalogIcon>>
+): CatalogIcon | null {
+  const slash = ref.lastIndexOf('/')
+  const category = ref.slice(0, slash).toLowerCase()
+  const name = ref.slice(slash + 1).toLowerCase()
+  const order: IconCollection[] = category.includes('kenney')
+    ? ['kenney-icons', 'game-icons']
+    : ['game-icons', 'kenney-icons']
+  for (const c of order) {
+    const icon = index.get(c)?.get(name)
+    if (icon) return icon
+  }
+  return null
 }

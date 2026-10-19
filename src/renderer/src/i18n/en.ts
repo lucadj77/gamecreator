@@ -726,11 +726,11 @@ export const en = {
   'ttc.targetHint': 'Created if missing; it must be empty',
   'ttc.icons': 'Icon folder (optional)',
   'ttc.iconsHint':
-    'Where to look for icons of the Tabletop Creator library (game-icons.net, Kenney…), searched by name in all subfolders',
+    'Tabletop Creator library icons from game-icons.net and Kenney are taken from the app catalogs. Here you can say where to look for the others, by name in all subfolders',
   'ttc.import': 'Import',
   'ttc.running': 'Importing…',
   'ttc.done':
-    'Imported {templates} templates, {sets} sets with {cards} rows, {assets} images and {variables} variables.',
+    'Imported {templates} templates, {sets} sets with {cards} rows, {assets} images and {variables} variables. {library} library icons taken from game-icons.net and Kenney, with credits.',
   'ttc.notes': 'Converted only partly',
   'ttc.missingIcons': 'Library icons not found ({count})',
   'ttc.missingIconsHint':

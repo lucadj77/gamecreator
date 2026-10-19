@@ -735,11 +735,11 @@ export const it: Record<MessageKey, string> = {
   'ttc.targetHint': "Si crea se non c'è; deve essere vuota",
   'ttc.icons': 'Cartella delle icone (facoltativa)',
   'ttc.iconsHint':
-    'Dove cercare le icone della libreria di Tabletop Creator (game-icons.net, Kenney…), per nome in tutte le sottocartelle',
+    "Le icone di game-icons.net e Kenney della libreria di Tabletop Creator si prendono dai cataloghi dell'app. Qui puoi indicare dove cercare le altre, per nome in tutte le sottocartelle",
   'ttc.import': 'Importa',
   'ttc.running': 'Importazione…',
   'ttc.done':
-    'Importati {templates} template, {sets} set con {cards} righe, {assets} immagini e {variables} variabili.',
+    'Importati {templates} template, {sets} set con {cards} righe, {assets} immagini e {variables} variabili. {library} icone della libreria prese da game-icons.net e Kenney, con i crediti.',
   'ttc.notes': 'Convertito solo in parte',
   'ttc.missingIcons': 'Icone della libreria non trovate ({count})',
   'ttc.missingIconsHint':

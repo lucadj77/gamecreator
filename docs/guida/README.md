@@ -48,7 +48,7 @@ All'avvio Naibi mostra la schermata di ingresso.
 ![La schermata di ingresso con un progetto recente](img/ingresso.png)
 
 - **Nuovo progetto…** crea una cartella vuota con la struttura di un progetto.
-- **Apri progetto…** apre una cartella che contiene `naibi.json`. Si aprono anche i progetti creati quando l'app si chiamava GameCreator (`gamecreator.json`).
+- **Apri progetto…** apre una cartella che contiene `naibi.json`.
 - **Importa da Tabletop Creator…** converte un progetto di Tabletop Creator ([capitolo 13](#13-importare-da-tabletop-creator)).
 - **Strumenti IA…** prepara un agente IA a lavorare sui progetti ([capitolo 14](#14-lavorare-con-un-agente-ia)).
 - **Progetti recenti** mostra fino a 24 progetti, con la prima carta come miniatura. La × toglie un progetto dall'elenco senza cancellare la cartella.

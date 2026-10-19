@@ -1,6 +1,7 @@
 import { normalizeLayer, walkLayers } from './normalize'
 import {
   isDrawn,
+  type Constraints,
   type GroupLayer,
   type Layer,
   type LayerType,
@@ -290,6 +291,30 @@ export function newLayer(t: Template, type: LayerType, shape?: string): Layer {
   }
 }
 
+/** Posizione e dimensione su un asse quando la carta passa da `from` a `to` mm, secondo il vincolo */
+export function constrain(
+  c: Constraints['h'] | Constraints['v'],
+  start: number,
+  size: number,
+  from: number,
+  to: number
+): [number, number] {
+  const d = to - from
+  switch (c) {
+    case 'right':
+    case 'bottom':
+      return [start + d, size]
+    case 'center':
+      return [start + d / 2, size]
+    case 'both':
+      return [start, Math.max(0.5, size + d)]
+    case 'scale':
+      return from > 0 ? [(start * to) / from, (size * to) / from] : [start, size]
+    default:
+      return [start, size]
+  }
+}
+
 /** Cambio di formato del template: vedi docs/specifica.md, sezione 8.1 */
 export function resizeTemplate(
   t: Template,
@@ -297,7 +322,15 @@ export function resizeTemplate(
   height: number,
   mode: 'scale' | 'keep'
 ): Template {
-  if (mode === 'keep') return { ...t, width, height }
+  if (mode === 'keep') {
+    const follow = (l: Layer): Layer => {
+      if (l.type === 'group') return fitGroup({ ...l, children: l.children.map(follow) })
+      const [x, w] = constrain(l.constraints.h, l.x, l.w, t.width, width)
+      const [y, h] = constrain(l.constraints.v, l.y, l.h, t.height, height)
+      return x === l.x && y === l.y && w === l.w && h === l.h ? l : ({ ...l, x, y, w, h } as Layer)
+    }
+    return { ...t, width, height, front: t.front.map(follow), back: t.back.map(follow) }
+  }
   const sx = width / t.width
   const sy = height / t.height
   const b = t.bleed

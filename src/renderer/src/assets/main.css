@@ -883,6 +883,15 @@ textarea.invalid {
   width: 18px;
 }
 
+.sides-grid .field-label {
+  width: 52px;
+}
+
+.field-control select.narrow-select {
+  flex: 0 1 96px;
+  min-width: 0;
+}
+
 /* larghezza, lucchetto, altezza */
 .size-fields.row {
   grid-column: 1 / -1;

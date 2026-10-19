@@ -78,6 +78,11 @@ describe('valori in percentuale', () => {
   it('legge zoom e opacità in percentuale', () => {
     expect(parseValue('zoom', 1, '120%')).toBeCloseTo(1.2)
     expect(parseValue('zoom', 1, '0,8')).toBe(0.8)
+    expect(parseValue('stroke', null, 'red/0.5/dashed')).toEqual({
+      color: 'red',
+      width: 0.5,
+      dash: 'dashed'
+    })
     expect(parseValue('size', 10, '50%')).toBeUndefined()
   })
 })

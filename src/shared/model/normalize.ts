@@ -23,7 +23,9 @@ const BASE_DEFAULTS: Omit<LayerBase, 'id' | 'name'> = {
   rotation: 0,
   anchor: 'center',
   opacity: 1,
+  blend: 'normal',
   shadow: null,
+  constraints: { h: 'left', v: 'top' },
   exposed: [],
   source: { kind: 'column', column: null }
 }
@@ -41,22 +43,32 @@ const TEXT_DEFAULTS: Omit<TextLayer, keyof LayerBase | 'type'> = {
   lineHeight: 1.2,
   letterSpacing: 0,
   paragraphSpacing: 0,
+  indent: 0,
   padding: 0,
+  paddingSides: null,
   transform: 'none',
   stroke: null,
   fit: 'none',
-  minSize: 6
+  minSize: 6,
+  underline: false,
+  strike: false,
+  wrap: true
 }
 
 const IMAGE_DEFAULTS: Omit<ImageLayer, keyof LayerBase | 'type'> = {
   src: '',
   fit: 'cover',
+  align: 'center',
   zoom: 1,
   offsetX: 0,
   offsetY: 0,
   flipH: false,
   flipV: false,
   tint: null,
+  grayscale: false,
+  brightness: 1,
+  contrast: 1,
+  saturation: 1,
   radius: 0,
   stroke: null,
   missing: 'placeholder'

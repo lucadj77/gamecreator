@@ -21,6 +21,8 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 | vincoli              | sinistra, destra, centro, entrambi (orizzontale e verticale) | comportamento quando cambia la dimensione del template o del gruppo  |
 | sorgente del valore  | fissa, colonna, formula                                      | vedi sezione 7                                                       |
 
+Stato (ottobre 2026): fusione e vincoli ci sono. I vincoli si applicano quando si cambia il formato del template scegliendo "lascia i livelli"; "scala" ridimensiona il livello in proporzione alla carta. Nei gruppi vale il vincolo di ciascun figlio. Nelle celle il contorno si scrive `colore/spessore/tratteggio`, per esempio `red/0.3/dashed` o `#333/0.5/dotted`.
+
 ## 2. Testo
 
 | Proprietà                | Valori                                                                             |
@@ -43,6 +45,8 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 | adattamento              | nessuno, riduci per stare nel riquadro (dimensione minima e massima), tronca con … |
 | a capo                   | automatico, nessuno                                                                |
 | icone inline             | altezza rispetto alla riga (%), spostamento verticale                              |
+
+Stato: ci sono tutte le proprietà della tabella tranne il troncamento con … e la trasformazione in Iniziali, che segue la regola del browser (ogni parola). I margini interni sono uguali sui quattro lati o, con **Margini per lato**, diversi per ciascuno. Senza a capo automatico ogni paragrafo resta su una riga.
 
 ### 2.1 Markup del testo
 
@@ -181,6 +185,8 @@ Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livell
 | raggio angoli             | mm                                                                                                                                  |
 | contorno                  | colore, spessore                                                                                                                    |
 | immagine mancante         | mostra segnaposto, nascondi livello                                                                                                 |
+
+Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per le immagini raster), a partire dalla posizione data dall'allineamento interno; lo zoom cambia la dimensione delle piastrelle. Le regolazioni si applicano prima della tinta. Il contorno può essere continuo, tratteggiato o a punti, come quello delle forme.
 
 ### 3.1 Risoluzione dei nomi di file
 

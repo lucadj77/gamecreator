@@ -165,7 +165,18 @@ export function templateColumns(t: Template): string[] {
 export function propertyColumns(t: Template, layerName: string): string[] {
   const l = walkLayers([...t.front, ...t.back]).find((x) => x.name === layerName)
   if (!l) return []
-  const skip = new Set(['id', 'name', 'type', 'children', 'source', 'exposed', 'locked'])
+  // vincoli e margini per lato non hanno una forma scritta in una cella
+  const skip = new Set([
+    'id',
+    'name',
+    'type',
+    'children',
+    'source',
+    'exposed',
+    'locked',
+    'constraints',
+    'paddingSides'
+  ])
   return Object.keys(l)
     .filter((k) => !skip.has(k))
     .map((k) => `${layerName}.${k}`)

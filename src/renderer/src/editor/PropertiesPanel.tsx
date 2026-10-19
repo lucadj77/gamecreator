@@ -5,6 +5,8 @@ import { findLayer, isNameTaken, patchLayer } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import type {
   Anchor,
+  BlendMode,
+  Constraints,
   GroupLayer,
   ImageLayer,
   Layer,
@@ -309,6 +311,20 @@ function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): R
         options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
         onChange={(anchor) => set({ anchor })}
       />
+      <SelectField<Constraints['h']>
+        label={t('prop.constraintH')}
+        hint={t('editor.constraintsHint')}
+        value={l.constraints.h}
+        options={options(t, 'constraintH', ['left', 'right', 'center', 'both', 'scale'] as const)}
+        onChange={(h) => set({ constraints: { ...l.constraints, h } })}
+      />
+      <SelectField<Constraints['v']>
+        label={t('prop.constraintV')}
+        hint={t('editor.constraintsHint')}
+        value={l.constraints.v}
+        options={options(t, 'constraintV', ['top', 'bottom', 'center', 'both', 'scale'] as const)}
+        onChange={(v) => set({ constraints: { ...l.constraints, v } })}
+      />
 
       <h3>{t('editor.appearance')}</h3>
       <NumberField
@@ -321,6 +337,13 @@ function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): R
         max={1}
         unit="%"
         onChange={(opacity) => set({ opacity })}
+      />
+      <SelectField<BlendMode>
+        label={t('prop.blend')}
+        hint={col('blend')}
+        value={l.blend}
+        options={options(t, 'blend', ['normal', 'multiply', 'screen', 'overlay'] as const)}
+        onChange={(blend) => set({ blend })}
       />
       <ShadowFields value={l.shadow} hint={col('shadow')} onChange={(shadow) => set({ shadow })} />
       <CheckField
@@ -466,19 +489,71 @@ function TextProperties({
         onChange={(paragraphSpacing) => set({ paragraphSpacing })}
       />
       <NumberField
+        label={t('prop.indent')}
+        hint={col('indent')}
+        value={l.indent}
+        unit="mm"
+        onChange={(indent) => set({ indent })}
+      />
+      <NumberField
         label={t('prop.padding')}
         hint={col('padding')}
         value={l.padding}
         min={0}
         unit="mm"
+        disabled={!!l.paddingSides}
         onChange={(padding) => set({ padding })}
       />
+      <CheckField
+        label={t('prop.paddingSides')}
+        hint={t('editor.paddingSidesHint')}
+        value={!!l.paddingSides}
+        onChange={(on) =>
+          set({ paddingSides: on ? [l.padding, l.padding, l.padding, l.padding] : null })
+        }
+      />
+      {l.paddingSides && (
+        <div className="field-grid sides-grid">
+          {(['top', 'right', 'bottom', 'left'] as const).map((side, i) => (
+            <NumberField
+              key={side}
+              label={t(`side.${side}` as MessageKey)}
+              value={l.paddingSides![i]}
+              min={0}
+              unit="mm"
+              onChange={(v) => {
+                const next = [...l.paddingSides!] as [number, number, number, number]
+                next[i] = v
+                set({ paddingSides: next })
+              }}
+            />
+          ))}
+        </div>
+      )}
       <SelectField
         label={t('prop.transform')}
         hint={col('transform')}
         value={l.transform}
         options={options(t, 'transform', ['none', 'upper', 'lower', 'capitalize'] as const)}
         onChange={(transform) => set({ transform })}
+      />
+      <CheckField
+        label={t('prop.underline')}
+        hint={col('underline')}
+        value={l.underline}
+        onChange={(underline) => set({ underline })}
+      />
+      <CheckField
+        label={t('prop.strike')}
+        hint={col('strike')}
+        value={l.strike}
+        onChange={(strike) => set({ strike })}
+      />
+      <CheckField
+        label={t('prop.wrap')}
+        hint={col('wrap')}
+        value={l.wrap}
+        onChange={(wrap) => set({ wrap })}
       />
       <StrokeField
         label={t('prop.stroke')}
@@ -575,9 +650,24 @@ function ImageProperties({
         label={t('prop.fit')}
         hint={col('fit')}
         value={l.fit}
-        options={options(t, 'imageFit', ['cover', 'contain', 'stretch', 'original'] as const)}
+        options={options(t, 'imageFit', [
+          'cover',
+          'contain',
+          'stretch',
+          'original',
+          'tile'
+        ] as const)}
         onChange={(fit) => set({ fit })}
       />
+      {l.fit !== 'stretch' && (
+        <SelectField<Anchor>
+          label={t('prop.imageAlign')}
+          hint={col('align')}
+          value={l.align}
+          options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
+          onChange={(align) => set({ align })}
+        />
+      )}
       <NumberField
         label={t('prop.zoom')}
         hint={`${t('editor.zoomImageHint')} ${col('zoom')}`}
@@ -621,6 +711,44 @@ function ImageProperties({
         nullable
         onChange={(tint) => set({ tint })}
       />
+      <CheckField
+        label={t('prop.grayscale')}
+        hint={col('grayscale')}
+        value={l.grayscale}
+        onChange={(grayscale) => set({ grayscale })}
+      />
+      <NumberField
+        label={t('prop.brightness')}
+        hint={col('brightness')}
+        value={l.brightness}
+        factor={100}
+        step={5}
+        min={0}
+        unit="%"
+        onChange={(brightness) => set({ brightness })}
+      />
+      <NumberField
+        label={t('prop.contrast')}
+        hint={col('contrast')}
+        value={l.contrast}
+        factor={100}
+        step={5}
+        min={0}
+        unit="%"
+        onChange={(contrast) => set({ contrast })}
+      />
+      {!l.grayscale && (
+        <NumberField
+          label={t('prop.saturation')}
+          hint={col('saturation')}
+          value={l.saturation}
+          factor={100}
+          step={5}
+          min={0}
+          unit="%"
+          onChange={(saturation) => set({ saturation })}
+        />
+      )}
       <NumberField
         label={t('prop.radius')}
         hint={col('radius')}
@@ -633,6 +761,7 @@ function ImageProperties({
         label={t('prop.stroke')}
         hint={col('stroke')}
         value={l.stroke}
+        dashable
         onChange={(stroke) => set({ stroke })}
       />
       <SelectField
@@ -704,6 +833,7 @@ function ShapeProperties({
         label={t('prop.stroke')}
         hint={col('stroke')}
         value={l.stroke}
+        dashable
         onChange={(stroke) => set({ stroke })}
       />
       {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (

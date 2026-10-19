@@ -136,6 +136,7 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
       transform={l.rotation ? `rotate(${l.rotation} ${ax} ${ay})` : undefined}
       opacity={l.opacity < 1 ? l.opacity : undefined}
       filter={l.shadow ? `url(#${id}-shadow)` : undefined}
+      style={l.blend !== 'normal' ? { mixBlendMode: l.blend } : undefined}
     >
       {l.shadow && (
         <defs>
@@ -160,9 +161,17 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
 function strokeProps(
   s: Stroke | null,
   fontSizeMm?: number
-): { stroke?: string; strokeWidth?: number } {
+): { stroke?: string; strokeWidth?: number; strokeDasharray?: string; strokeLinecap?: 'round' } {
   if (!s) return {}
-  return { stroke: s.color, strokeWidth: strokeWidth(s, fontSizeMm) }
+  const w = strokeWidth(s, fontSizeMm)
+  return { stroke: s.color, strokeWidth: w, ...dash(s, w) }
+}
+
+/** Trattini lunghi tre volte lo spessore; i punti sono trattini nulli con le estremità tonde */
+function dash(s: Stroke, w: number): { strokeDasharray?: string; strokeLinecap?: 'round' } {
+  if (s.dash === 'dashed') return { strokeDasharray: `${3 * w} ${2 * w}` }
+  if (s.dash === 'dotted') return { strokeDasharray: `0 ${2 * w}`, strokeLinecap: 'round' }
+  return {}
 }
 
 function strokeWidth(s: Stroke, fontSizeMm = 0): number {
@@ -196,13 +205,15 @@ function ShapeView({ layer: l }: { layer: ShapeLayer }): React.JSX.Element {
     case 'path': {
       // il tracciato è in coordinate 0-1: lo spessore si riporta in mm dividendo per la scala
       const sw = l.stroke ? l.stroke.width : 0
+      const k = (l.w + l.h) / 2
       return (
         <path
           d={l.path}
           transform={`translate(${l.x} ${l.y}) scale(${l.w} ${l.h})`}
           fill={l.fill ?? 'none'}
           stroke={l.stroke?.color}
-          strokeWidth={typeof sw === 'number' ? sw / ((l.w + l.h) / 2) : undefined}
+          strokeWidth={typeof sw === 'number' ? sw / k : undefined}
+          {...(l.stroke && typeof sw === 'number' ? dash(l.stroke, sw / k) : {})}
         />
       )
     }
@@ -215,7 +226,8 @@ const PRESERVE: Record<ImageLayer['fit'], string> = {
   cover: 'xMidYMid slice',
   contain: 'xMidYMid meet',
   stretch: 'none',
-  original: 'xMidYMid meet'
+  original: 'xMidYMid meet',
+  tile: 'xMidYMid meet'
 }
 
 /** Ingrandisce o riduce il riquadro dell'immagine intorno al centro */
@@ -244,35 +256,60 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
   }
   // finché non si conoscono le dimensioni si lascia fare a preserveAspectRatio
-  const z = zoomRect(size ? fitRect(l, size, l.fit) : l, l.zoom)
+  const z = zoomRect(size ? fitRect(l, size, l.fit, l.align) : l, l.zoom)
   const r = { ...z, x: z.x + l.offsetX, y: z.y + l.offsetY }
   const rect = { x: r.x, y: r.y, width: r.w, height: r.h }
   const flip =
     l.flipH || l.flipV
       ? `translate(${l.flipH ? 2 * l.x + l.w : 0} ${l.flipV ? 2 * l.y + l.h : 0}) scale(${l.flipH ? -1 : 1} ${l.flipV ? -1 : 1})`
       : undefined
+  const adjusted =
+    l.grayscale || l.brightness !== 1 || l.contrast !== 1 || l.saturation !== 1 || !!l.tint
+  const filter = adjusted ? `url(#${id}-fx)` : undefined
+  const tile = l.fit === 'tile' && size
+  const image = (
+    <image
+      href={assetUrl(res.path)}
+      {...(tile ? { x: 0, y: 0, width: r.w, height: r.h } : rect)}
+      preserveAspectRatio={size ? 'none' : PRESERVE[l.fit]}
+      filter={tile ? undefined : filter}
+    />
+  )
   return (
     <>
       <defs>
         <clipPath id={`${id}-clip`}>
           <rect x={l.x} y={l.y} width={l.w} height={l.h} rx={l.radius} />
         </clipPath>
-        {l.tint && (
-          // ricolora mantenendo la trasparenza: pensato per icone monocromatiche
-          <filter id={`${id}-tint`}>
-            <feFlood floodColor={l.tint} />
-            <feComposite in2="SourceAlpha" operator="in" />
-          </filter>
+        {adjusted && <ImageFilter id={`${id}-fx`} layer={l} />}
+        {tile && (
+          // la piastrella parte dalla posizione dell'immagine allineata e si ripete in ogni verso
+          <pattern
+            id={`${id}-tile`}
+            patternUnits="userSpaceOnUse"
+            x={r.x}
+            y={r.y}
+            width={r.w}
+            height={r.h}
+          >
+            {image}
+          </pattern>
         )}
       </defs>
       <g clipPath={`url(#${id}-clip)`}>
-        <image
-          href={assetUrl(res.path)}
-          {...rect}
-          preserveAspectRatio={size ? 'none' : PRESERVE[l.fit]}
-          transform={flip}
-          filter={l.tint ? `url(#${id}-tint)` : undefined}
-        />
+        {tile ? (
+          <rect
+            x={l.x}
+            y={l.y}
+            width={l.w}
+            height={l.h}
+            fill={`url(#${id}-tile)`}
+            transform={flip}
+            filter={filter}
+          />
+        ) : (
+          <g transform={flip}>{image}</g>
+        )}
       </g>
       {l.stroke && (
         <rect
@@ -286,6 +323,34 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
         />
       )}
     </>
+  )
+}
+
+/**
+ * Regolazioni dell'immagine e tinta, in quest'ordine: saturazione (zero per la scala di
+ * grigi), luminosità e contrasto, poi la tinta che ricolora mantenendo la trasparenza.
+ */
+function ImageFilter({ id, layer: l }: { id: string; layer: ImageLayer }): React.JSX.Element {
+  const sat = l.grayscale ? 0 : l.saturation
+  const slope = l.brightness * l.contrast
+  const intercept = 0.5 - 0.5 * l.contrast
+  return (
+    <filter id={id} colorInterpolationFilters="sRGB">
+      {sat !== 1 && <feColorMatrix type="saturate" values={String(sat)} />}
+      {(l.brightness !== 1 || l.contrast !== 1) && (
+        <feComponentTransfer>
+          <feFuncR type="linear" slope={slope} intercept={intercept} />
+          <feFuncG type="linear" slope={slope} intercept={intercept} />
+          <feFuncB type="linear" slope={slope} intercept={intercept} />
+        </feComponentTransfer>
+      )}
+      {l.tint && (
+        <>
+          <feFlood floodColor={l.tint} />
+          <feComposite in2="SourceAlpha" operator="in" />
+        </>
+      )}
+    </filter>
   )
 }
 
@@ -328,7 +393,7 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
   const empty = showEmpty && !l.text.trim()
   const boxRef = useRef<HTMLDivElement>(null)
   const [fitted, setFitted] = useState<{ key: string; size: number } | null>(null)
-  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.lineHeight}|${l.fit}`
+  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.lineHeight}|${l.fit}|${l.padding}|${l.paddingSides}|${l.indent}|${l.wrap}`
   const size = fitted && fitted.key === fitKey ? fitted.size : l.size
 
   // "riduci per stare nel riquadro": si scende di mezzo punto finché il testo non sta
@@ -355,7 +420,9 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
             width: '100%',
             height: '100%',
             boxSizing: 'border-box',
-            padding: l.padding * s,
+            padding: l.paddingSides
+              ? l.paddingSides.map((p) => `${p * s}px`).join(' ')
+              : l.padding * s,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: VALIGN[l.valign],
@@ -377,8 +444,12 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
                 : l.transform === 'lower'
                   ? 'lowercase'
                   : l.transform,
-            whiteSpace: 'pre-wrap',
-            overflowWrap: 'break-word',
+            textIndent: l.indent ? l.indent * s : undefined,
+            textDecorationLine:
+              [l.underline && 'underline', l.strike && 'line-through'].filter(Boolean).join(' ') ||
+              undefined,
+            whiteSpace: l.wrap ? 'pre-wrap' : 'pre',
+            overflowWrap: l.wrap ? 'break-word' : 'normal',
             WebkitTextStroke: l.stroke
               ? `${strokeWidth(l.stroke, sizeMm) * 2 * s}px ${l.stroke.color}`
               : undefined,

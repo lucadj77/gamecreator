@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { Anchor } from '../../../shared/model/template'
 
 // Dimensioni naturali delle immagini, per adattarle al riquadro senza dipendere da
 // preserveAspectRatio: con gli SVG privi di width/height Chromium ignora "slice".
@@ -61,20 +62,24 @@ export function useImageSize(url: string | null): ImageSize | null {
   return state && state.url === url ? state.size : null
 }
 
-/** Riquadro dell'immagine dentro quello del livello, secondo l'adattamento */
+/** Riquadro dell'immagine dentro quello del livello, secondo l'adattamento e l'allineamento */
 export function fitRect(
   box: { x: number; y: number; w: number; h: number },
   size: ImageSize,
-  fit: 'cover' | 'contain' | 'stretch' | 'original'
+  fit: 'cover' | 'contain' | 'stretch' | 'original' | 'tile',
+  align: Anchor = 'center'
 ): { x: number; y: number; w: number; h: number } {
   if (fit === 'stretch') return box
   const s =
-    fit === 'original'
+    fit === 'original' || fit === 'tile'
       ? size.mmPerUnit
       : fit === 'cover'
         ? Math.max(box.w / size.w, box.h / size.h)
         : Math.min(box.w / size.w, box.h / size.h)
   const w = size.w * s
   const h = size.h * s
-  return { x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w, h }
+  // 0 a sinistra o in alto, 0,5 al centro, 1 a destra o in basso
+  const fx = align.endsWith('left') ? 0 : align.endsWith('right') ? 1 : 0.5
+  const fy = align.startsWith('top') ? 0 : align.startsWith('bottom') ? 1 : 0.5
+  return { x: box.x + (box.w - w) * fx, y: box.y + (box.h - h) * fy, w, h }
 }

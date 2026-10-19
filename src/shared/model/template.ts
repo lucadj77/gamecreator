@@ -20,6 +20,19 @@ export interface Stroke {
   color: string
   /** Spessore in mm, oppure in % della dimensione del testo (solo testo) se termina con % */
   width: number | string
+  /** Tratteggio; assente vuol dire linea continua */
+  dash?: 'dashed' | 'dotted'
+}
+
+export type BlendMode = 'normal' | 'multiply' | 'screen' | 'overlay'
+
+/**
+ * Come segue il livello un cambio di formato del template ("lascia i livelli"): resta fermo a
+ * sinistra o in alto, segue il lato opposto, resta centrato, si allunga con la carta, o scala.
+ */
+export interface Constraints {
+  h: 'left' | 'right' | 'center' | 'both' | 'scale'
+  v: 'top' | 'bottom' | 'center' | 'both' | 'scale'
 }
 
 export interface Shadow {
@@ -49,7 +62,10 @@ export interface LayerBase {
   rotation: number
   anchor: Anchor
   opacity: number
+  /** Fusione con ciò che sta sotto */
+  blend: BlendMode
   shadow: Shadow | null
+  constraints: Constraints
   /** Proprietà esposte in tabella oltre al valore principale */
   exposed: string[]
   source: ValueSource
@@ -69,17 +85,27 @@ export interface TextLayer extends LayerBase {
   lineHeight: number
   letterSpacing: number
   paragraphSpacing: number
+  /** Rientro della prima riga di ogni paragrafo, in mm */
+  indent: number
   padding: number
+  /** Margini interni diversi per lato (alto, destra, basso, sinistra); null usa padding */
+  paddingSides: [number, number, number, number] | null
   transform: 'none' | 'upper' | 'lower' | 'capitalize'
   stroke: Stroke | null
   fit: 'none' | 'shrink' | 'truncate'
   minSize: number
+  underline: boolean
+  strike: boolean
+  /** A capo automatico; senza, ogni paragrafo resta su una riga */
+  wrap: boolean
 }
 
 export interface ImageLayer extends LayerBase {
   type: 'image'
   src: string
-  fit: 'cover' | 'contain' | 'stretch' | 'original'
+  fit: 'cover' | 'contain' | 'stretch' | 'original' | 'tile'
+  /** Dove sta l'immagine nel riquadro quando non lo riempie o lo eccede */
+  align: Anchor
   /** Scala dell'immagine rispetto all'adattamento, intorno al centro: 1 = 100% */
   zoom: number
   /** Spostamento dell'immagine nel riquadro, in mm */
@@ -88,6 +114,11 @@ export interface ImageLayer extends LayerBase {
   flipH: boolean
   flipV: boolean
   tint: string | null
+  /** Regolazioni: 1 = invariato */
+  grayscale: boolean
+  brightness: number
+  contrast: number
+  saturation: number
   radius: number
   stroke: Stroke | null
   missing: 'placeholder' | 'hide'

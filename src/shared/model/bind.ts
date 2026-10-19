@@ -309,14 +309,15 @@ export function parseValue(key: string, current: unknown, raw: string): unknown 
   return v
 }
 
-/** "colore/spessore", spessore in mm o in % */
+/** "colore/spessore/tratteggio", spessore in mm o in %, tratteggio dashed o dotted */
 function parseStroke(v: string): Stroke | undefined {
-  const [color, width] = v.split('/').map((p) => p.trim())
+  const [color, width, style] = v.split('/').map((p) => p.trim())
   if (!color) return undefined
-  if (width === undefined) return { color, width: 0.3 }
-  if (width.endsWith('%')) return { color, width }
+  const dash: Pick<Stroke, 'dash'> = style === 'dashed' || style === 'dotted' ? { dash: style } : {}
+  if (width === undefined || width === '') return { color, width: 0.3, ...dash }
+  if (width.endsWith('%')) return { color, width, ...dash }
   const n = Number(width.replace(',', '.'))
-  return Number.isFinite(n) ? { color, width: n } : undefined
+  return Number.isFinite(n) ? { color, width: n, ...dash } : undefined
 }
 
 /** "colore/sfocatura/dx/dy" in mm */

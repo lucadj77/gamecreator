@@ -381,12 +381,15 @@ export function StrokeField({
   hint,
   value,
   onChange,
-  allowPercent
+  allowPercent,
+  dashable
 }: Base & {
   value: Stroke | null
   onChange(v: Stroke | null): void
   /** Il testo accetta lo spessore in % della dimensione */
   allowPercent?: boolean
+  /** Linea continua, tratteggiata o a punti (non per il contorno del testo) */
+  dashable?: boolean
 }): React.JSX.Element {
   const { t } = useI18n()
   const isPercent = (s: string): boolean => !!allowPercent && /^\d+([.,]\d+)?%$/.test(s.trim())
@@ -416,6 +419,23 @@ export function StrokeField({
             {...width.bind}
             onKeyDown={blurOnEnter}
           />
+          {dashable && (
+            <select
+              className="narrow-select"
+              title={t('field.dash')}
+              value={value.dash ?? 'solid'}
+              onChange={(e) => {
+                const { dash: _old, ...rest } = value
+                void _old
+                const d = e.target.value
+                onChange(d === 'dashed' || d === 'dotted' ? { ...rest, dash: d } : rest)
+              }}
+            >
+              <option value="solid">{t('dash.solid')}</option>
+              <option value="dashed">{t('dash.dashed')}</option>
+              <option value="dotted">{t('dash.dotted')}</option>
+            </select>
+          )}
         </>
       ) : (
         <span className="muted">{t('field.none')}</span>

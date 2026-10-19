@@ -5,7 +5,14 @@ import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
 import MarkupText from './MarkupText'
+import {
+  isGradient,
+  linearEnds,
+  parseGradient,
+  type Gradient
+} from '../../../shared/model/gradient'
 import type {
+  Fade,
   GroupLayer,
   ImageLayer,
   Layer,
@@ -150,10 +157,13 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
           </filter>
         </defs>
       )}
-      {l.type === 'shape' && <ShapeView layer={l} />}
-      {l.type === 'image' && <ImageView layer={l} id={id} />}
-      {l.type === 'text' && <TextView layer={l} />}
-      {l.type === 'group' && <GroupView layer={l} id={id} uid={uid} />}
+      {l.fade && <FadeMask id={`${id}-fade`} layer={l} fade={l.fade} />}
+      <g mask={l.fade ? `url(#${id}-fade)` : undefined}>
+        {l.type === 'shape' && <ShapeView layer={l} id={id} />}
+        {l.type === 'image' && <ImageView layer={l} id={id} />}
+        {l.type === 'text' && <TextView layer={l} />}
+        {l.type === 'group' && <GroupView layer={l} id={id} uid={uid} />}
+      </g>
     </g>
   )
 }
@@ -178,8 +188,116 @@ function strokeWidth(s: Stroke, fontSizeMm = 0): number {
   return typeof s.width === 'string' ? (parseFloat(s.width) / 100) * fontSizeMm : s.width
 }
 
-function ShapeView({ layer: l }: { layer: ShapeLayer }): React.JSX.Element {
-  const paint = { fill: l.fill ?? 'none', ...strokeProps(l.stroke) }
+/**
+ * Maschera della dissolvenza, nel riquadro del livello: bianco opaco mostra, trasparente
+ * nasconde. Ciò che esce dal riquadro (ombre, contorni) prende l'opacità del bordo più vicino.
+ */
+function FadeMask({
+  id,
+  layer: l,
+  fade: f
+}: {
+  id: string
+  layer: LayerBase
+  fade: Fade
+}): React.JSX.Element {
+  const stops = (
+    <>
+      <stop offset={f.start} stopColor="#FFFFFF" stopOpacity={f.from} />
+      <stop offset={f.end} stopColor="#FFFFFF" stopOpacity={f.to} />
+    </>
+  )
+  const pad = Math.max(l.w, l.h)
+  return (
+    <defs>
+      {f.kind === 'linear' ? (
+        <linearGradient id={`${id}-g`} gradientUnits="userSpaceOnUse" {...linearEnds(f.angle, l)}>
+          {stops}
+        </linearGradient>
+      ) : (
+        <radialGradient
+          id={`${id}-g`}
+          gradientUnits="userSpaceOnUse"
+          cx={l.x + l.w / 2}
+          cy={l.y + l.h / 2}
+          r={Math.hypot(l.w, l.h) / 2}
+        >
+          {stops}
+        </radialGradient>
+      )}
+      <mask
+        id={id}
+        maskUnits="userSpaceOnUse"
+        x={l.x - pad}
+        y={l.y - pad}
+        width={l.w + 2 * pad}
+        height={l.h + 2 * pad}
+      >
+        <rect
+          x={l.x - pad}
+          y={l.y - pad}
+          width={l.w + 2 * pad}
+          height={l.h + 2 * pad}
+          fill={`url(#${id}-g)`}
+        />
+      </mask>
+    </defs>
+  )
+}
+
+/** Sfumatura di un riempimento, nel riquadro dato */
+function GradientDef({
+  id,
+  gradient: g,
+  box
+}: {
+  id: string
+  gradient: Gradient
+  box: { x: number; y: number; w: number; h: number }
+}): React.JSX.Element {
+  const stops = g.stops.map((s, i) => <stop key={i} offset={s.at} stopColor={s.color} />)
+  return (
+    <defs>
+      {g.kind === 'linear' ? (
+        <linearGradient id={id} gradientUnits="userSpaceOnUse" {...linearEnds(g.angle, box)}>
+          {stops}
+        </linearGradient>
+      ) : (
+        <radialGradient
+          id={id}
+          gradientUnits="userSpaceOnUse"
+          cx={box.x + box.w / 2}
+          cy={box.y + box.h / 2}
+          r={Math.hypot(box.w, box.h) / 2}
+        >
+          {stops}
+        </radialGradient>
+      )}
+    </defs>
+  )
+}
+
+function ShapeView({ layer: l, id }: { layer: ShapeLayer; id: string }): React.JSX.Element {
+  const gradient = isGradient(l.fill) ? parseGradient(l.fill) : null
+  // il tracciato è in coordinate 0-1: la sfumatura si calcola nello stesso spazio
+  const def = gradient && (
+    <GradientDef
+      id={`${id}-fill`}
+      gradient={gradient}
+      box={l.shape === 'path' ? { x: 0, y: 0, w: 1, h: 1 } : l}
+    />
+  )
+  const fill = gradient ? `url(#${id}-fill)` : (l.fill ?? 'none')
+  return (
+    <>
+      {def}
+      <ShapeBody layer={l} fill={fill} />
+    </>
+  )
+}
+
+function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): React.JSX.Element {
+  const paint = { fill, ...strokeProps(l.stroke) }
   switch (l.shape) {
     case 'ellipse':
       return <ellipse cx={l.x + l.w / 2} cy={l.y + l.h / 2} rx={l.w / 2} ry={l.h / 2} {...paint} />
@@ -199,7 +317,9 @@ function ShapeView({ layer: l }: { layer: ShapeLayer }): React.JSX.Element {
           y1={l.y}
           x2={l.x + l.w}
           y2={l.y + l.h}
-          {...strokeProps(l.stroke ?? { color: l.fill ?? '#000', width: 0.3 })}
+          {...strokeProps(
+            l.stroke ?? { color: isGradient(l.fill) ? '#000' : (l.fill ?? '#000'), width: 0.3 }
+          )}
         />
       )
     case 'path': {
@@ -210,7 +330,7 @@ function ShapeView({ layer: l }: { layer: ShapeLayer }): React.JSX.Element {
         <path
           d={l.path}
           transform={`translate(${l.x} ${l.y}) scale(${l.w} ${l.h})`}
-          fill={l.fill ?? 'none'}
+          fill={fill}
           stroke={l.stroke?.color}
           strokeWidth={typeof sw === 'number' ? sw / k : undefined}
           {...(l.stroke && typeof sw === 'number' ? dash(l.stroke, sw / k) : {})}
@@ -499,7 +619,7 @@ function GroupView({
           transform={mask.rotation ? `rotate(${mask.rotation} ${a.x} ${a.y})` : undefined}
         >
           {mask.type === 'shape' && mask.shape !== 'line' ? (
-            <ShapeView layer={mask} />
+            <ShapeBody layer={mask} fill="#000" />
           ) : (
             <rect x={mask.x} y={mask.y} width={mask.w} height={mask.h} />
           )}

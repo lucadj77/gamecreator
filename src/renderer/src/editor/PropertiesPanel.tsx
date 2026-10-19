@@ -28,6 +28,8 @@ import {
   FontField,
   NumberField,
   SizeFields,
+  FillField,
+  FadeFields,
   SelectField,
   ShadowFields,
   StrokeField,
@@ -345,6 +347,7 @@ function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): R
         options={options(t, 'blend', ['normal', 'multiply', 'screen', 'overlay'] as const)}
         onChange={(blend) => set({ blend })}
       />
+      <FadeFields value={l.fade} hint={t('editor.fadeHint')} onChange={(fade) => set({ fade })} />
       <ShadowFields value={l.shadow} hint={col('shadow')} onChange={(shadow) => set({ shadow })} />
       <CheckField
         label={t('prop.visible')}
@@ -820,11 +823,10 @@ function ShapeProperties({
       />
       {/* con una formula il valore è il suo risultato: il campo non serve */}
       {!computed && (
-        <ColorField
+        <FillField
           label={t('prop.fill')}
           hint={col()}
           value={l.fill}
-          nullable
           fallback="#CCCCCC"
           onChange={(fill) => set({ fill })}
         />

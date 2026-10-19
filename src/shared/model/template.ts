@@ -24,6 +24,20 @@ export interface Stroke {
   dash?: 'dashed' | 'dotted'
 }
 
+/**
+ * Dissolvenza dell'opacità: il livello passa da un'opacità all'altra lungo una direzione
+ * (lineare) o dal centro verso i bordi (radiale). Opacità e posizioni sono 0-1.
+ */
+export interface Fade {
+  kind: 'linear' | 'radial'
+  /** Gradi come nelle sfumature: 180 va dall'alto verso il basso */
+  angle: number
+  from: number
+  to: number
+  start: number
+  end: number
+}
+
 export type BlendMode = 'normal' | 'multiply' | 'screen' | 'overlay'
 
 /**
@@ -64,6 +78,7 @@ export interface LayerBase {
   opacity: number
   /** Fusione con ciò che sta sotto */
   blend: BlendMode
+  fade: Fade | null
   shadow: Shadow | null
   constraints: Constraints
   /** Proprietà esposte in tabella oltre al valore principale */
@@ -129,6 +144,7 @@ export type ShapeKind = 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'path
 export interface ShapeLayer extends LayerBase {
   type: 'shape'
   shape: ShapeKind
+  /** Colore, variabile colore o sfumatura (linear-gradient(...), radial-gradient(...)) */
   fill: string | null
   stroke: Stroke | null
   radius: number

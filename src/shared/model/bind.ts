@@ -1,4 +1,5 @@
 import { msg, type Message } from '../messages'
+import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula } from './formula'
@@ -271,7 +272,11 @@ function paintLayer(l: Layer, pal: Record<string, string>): Layer {
       return {
         ...l,
         shadow,
-        fill: l.fill && resolveColor(l.fill, pal),
+        fill:
+          l.fill &&
+          (isGradient(l.fill)
+            ? mapGradientColors(l.fill, (c) => resolveColor(c, pal))
+            : resolveColor(l.fill, pal)),
         stroke: stroke(l.stroke)
       }
     case 'image':

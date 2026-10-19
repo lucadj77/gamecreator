@@ -24,6 +24,7 @@ const BASE_DEFAULTS: Omit<LayerBase, 'id' | 'name'> = {
   anchor: 'center',
   opacity: 1,
   blend: 'normal',
+  fade: null,
   shadow: null,
   constraints: { h: 'left', v: 'top' },
   exposed: [],

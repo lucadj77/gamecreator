@@ -1,7 +1,13 @@
 import { useContext, useId, useMemo, useState } from 'react'
 import { palette, resolveColor } from '../../../shared/model/variables'
 import { VariablesContext } from '../render/assets'
-import type { Shadow, Stroke } from '../../../shared/model/template'
+import type { Fade, Shadow, Stroke } from '../../../shared/model/template'
+import {
+  isGradient,
+  parseGradient,
+  serializeGradient,
+  type Gradient
+} from '../../../shared/model/gradient'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from '../components/MarkupTextarea'
 import { APP_FONTS, useProjectFonts } from '../render/fonts'
@@ -581,5 +587,242 @@ export function SizeFields({
         onChange={(v) => onChange(locked ? other(v, h, w) : w, v)}
       />
     </div>
+  )
+}
+
+/**
+ * Riempimento di una forma: nessuno, un colore o una sfumatura. La sfumatura ha tipo, angolo
+ * (lineare) e almeno due colori, ciascuno con la sua posizione.
+ */
+export function FillField({
+  label,
+  hint,
+  value,
+  fallback,
+  onChange
+}: Base & {
+  value: string | null
+  fallback: string
+  onChange(v: string | null): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const g = isGradient(value) ? parseGradient(value) : null
+  const mode = value === null ? 'none' : g ? 'gradient' : 'color'
+  const setG = (next: Gradient): void => onChange(serializeGradient(next))
+  return (
+    <>
+      <Row label={label} hint={hint}>
+        <select
+          value={mode}
+          onChange={(e) => {
+            const m = e.target.value
+            if (m === 'none') onChange(null)
+            else if (m === 'color') onChange(g ? g.stops[0].color : fallback)
+            else
+              setG({
+                kind: 'linear',
+                angle: 180,
+                stops: [
+                  { color: value ?? fallback, at: 0 },
+                  { color: '#FFFFFF', at: 1 }
+                ]
+              })
+          }}
+        >
+          <option value="none">{t('fill.none')}</option>
+          <option value="color">{t('fill.color')}</option>
+          <option value="gradient">{t('fill.gradient')}</option>
+        </select>
+        {mode === 'color' && value !== null && <ColorInput value={value} onChange={onChange} />}
+      </Row>
+      {g && (
+        <div className="gradient-field">
+          <div
+            className="gradient-preview"
+            style={{
+              background: value?.replace(/^radial-gradient\(/, 'radial-gradient(closest-corner, ')
+            }}
+          />
+          <Row label={t('fill.kind')}>
+            <select
+              value={g.kind}
+              onChange={(e) => setG({ ...g, kind: e.target.value as Gradient['kind'] })}
+            >
+              <option value="linear">{t('fill.linear')}</option>
+              <option value="radial">{t('fill.radial')}</option>
+            </select>
+            {g.kind === 'linear' && (
+              <>
+                <input
+                  className="num narrow"
+                  type="number"
+                  step={15}
+                  title={t('fill.angle')}
+                  value={g.angle}
+                  onChange={(e) => {
+                    const a = parseNumber(e.target.value)
+                    if (a !== null) setG({ ...g, angle: a })
+                  }}
+                />
+                <span className="unit">°</span>
+              </>
+            )}
+          </Row>
+          {g.stops.map((s, i) => (
+            <Row key={i} label={t('fill.stop', { n: i + 1 })}>
+              <ColorInput
+                value={s.color}
+                onChange={(color) =>
+                  setG({ ...g, stops: g.stops.map((x, k) => (k === i ? { ...x, color } : x)) })
+                }
+              />
+              <input
+                className="num narrow"
+                type="number"
+                min={0}
+                max={100}
+                title={t('fill.position')}
+                value={Math.round(s.at * 100)}
+                onChange={(e) => {
+                  const p = parseNumber(e.target.value)
+                  if (p === null) return
+                  const at = Math.max(0, Math.min(1, p / 100))
+                  setG({ ...g, stops: g.stops.map((x, k) => (k === i ? { ...x, at } : x)) })
+                }}
+              />
+              <span className="unit">%</span>
+              {g.stops.length > 2 && (
+                <button
+                  type="button"
+                  className="icon-btn"
+                  title={t('fill.removeStop')}
+                  onClick={() => setG({ ...g, stops: g.stops.filter((_, k) => k !== i) })}
+                >
+                  ×
+                </button>
+              )}
+            </Row>
+          ))}
+          <button
+            type="button"
+            className="small-btn"
+            onClick={() => {
+              // il nuovo colore va a metà tra gli ultimi due
+              const a = g.stops[g.stops.length - 2]
+              const b = g.stops[g.stops.length - 1]
+              const stops = [...g.stops]
+              stops.splice(stops.length - 1, 0, { color: b.color, at: (a.at + b.at) / 2 })
+              setG({ ...g, stops })
+            }}
+          >
+            {t('fill.addStop')}
+          </button>
+        </div>
+      )}
+    </>
+  )
+}
+
+/** Dissolvenza dell'opacità del livello */
+export function FadeFields({
+  value,
+  onChange,
+  hint
+}: {
+  value: Fade | null
+  onChange(v: Fade | null): void
+  hint?: string
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const pct = (v: number): number => Math.round(v * 100)
+  const num = (s: string): number | null => {
+    const n = parseNumber(s)
+    return n === null ? null : Math.max(0, Math.min(1, n / 100))
+  }
+  return (
+    <>
+      <Row label={t('prop.fade')} hint={hint}>
+        <input
+          type="checkbox"
+          checked={value !== null}
+          title={t('field.enabled')}
+          onChange={(e) =>
+            onChange(
+              e.target.checked
+                ? { kind: 'linear', angle: 180, from: 1, to: 0, start: 0.5, end: 1 }
+                : null
+            )
+          }
+        />
+        {value ? (
+          <>
+            <select
+              value={value.kind}
+              onChange={(e) => onChange({ ...value, kind: e.target.value as Fade['kind'] })}
+            >
+              <option value="linear">{t('fill.linear')}</option>
+              <option value="radial">{t('fill.radial')}</option>
+            </select>
+            {value.kind === 'linear' && (
+              <>
+                <input
+                  className="num narrow"
+                  type="number"
+                  step={15}
+                  title={t('fill.angle')}
+                  value={value.angle}
+                  onChange={(e) => {
+                    const a = parseNumber(e.target.value)
+                    if (a !== null) onChange({ ...value, angle: a })
+                  }}
+                />
+                <span className="unit">°</span>
+              </>
+            )}
+          </>
+        ) : (
+          <span className="muted">{t('field.none')}</span>
+        )}
+      </Row>
+      {value && (
+        <div className="field-group">
+          {(
+            [
+              ['from', 'start', 'fade.from'],
+              ['to', 'end', 'fade.to']
+            ] as const
+          ).map(([op, at, label]) => (
+            <Row key={op} label={t(label)}>
+              <input
+                className="num narrow"
+                type="number"
+                min={0}
+                max={100}
+                title={t('fade.opacity')}
+                value={pct(value[op])}
+                onChange={(e) => {
+                  const v = num(e.target.value)
+                  if (v !== null) onChange({ ...value, [op]: v })
+                }}
+              />
+              <span className="unit">{t('fade.opacityUnit')}</span>
+              <input
+                className="num narrow"
+                type="number"
+                min={0}
+                max={100}
+                title={t('fill.position')}
+                value={pct(value[at])}
+                onChange={(e) => {
+                  const v = num(e.target.value)
+                  if (v !== null) onChange({ ...value, [at]: v })
+                }}
+              />
+              <span className="unit">{t('fade.positionUnit')}</span>
+            </Row>
+          ))}
+        </div>
+      )}
+    </>
   )
 }

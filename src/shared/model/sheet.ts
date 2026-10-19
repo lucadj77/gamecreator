@@ -175,6 +175,7 @@ export function propertyColumns(t: Template, layerName: string): string[] {
     'exposed',
     'locked',
     'constraints',
+    'fade',
     'paddingSides'
   ])
   return Object.keys(l)

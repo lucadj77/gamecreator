@@ -23,6 +23,8 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 
 Stato (ottobre 2026): fusione e vincoli ci sono. I vincoli si applicano quando si cambia il formato del template scegliendo "lascia i livelli"; "scala" ridimensiona il livello in proporzione alla carta. Nei gruppi vale il vincolo di ciascun figlio. Nelle celle il contorno si scrive `colore/spessore/tratteggio`, per esempio `red/0.3/dashed` o `#333/0.5/dotted`.
 
+La dissolvenza dell'opacità (pannello Aspetto) rende il livello trasparente in modo graduale: lineare con un angolo, o radiale dal centro, con l'opacità di inizio e di fine e i punti in cui inizia e finisce (0–100%). Non si imposta dal foglio.
+
 ## 2. Testo
 
 | Proprietà                | Valori                                                                             |
@@ -207,6 +209,8 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 | riempimento ◆ | nessuno, colore, gradiente lineare o radiale, immagine ripetuta                                              |
 | contorno ◆    | colore, spessore, posizione (interno, centrato, esterno), tratteggio, terminazioni                           |
 | punti         | modificabili sulla tela per poligoni e tracciati                                                             |
+
+Stato (ottobre 2026): il riempimento accetta un colore o un gradiente in sintassi CSS, sia nel pannello sia nelle celle: `linear-gradient(90deg, #A33A2A, #FFD27A 70%)` o `radial-gradient(white, rosso)`. Nei gradienti si possono usare le variabili di colore. L'immagine ripetuta come riempimento non c'è: si ottiene con un livello immagine in modalità "ripeti".
 
 ## 5. Gruppo
 

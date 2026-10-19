@@ -883,6 +883,17 @@ textarea.invalid {
   width: 18px;
 }
 
+.gradient-field {
+  margin: 0 0 6px 16px;
+}
+
+.gradient-preview {
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
 .sides-grid .field-label {
   width: 52px;
 }

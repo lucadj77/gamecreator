@@ -22,6 +22,8 @@ export const en = {
   'set.clearView': 'Show all',
   'set.viewHint':
     'Rows shown: {shown} of {total}. Sort and filter apply only here: the sheet and the export do not change.',
+  'tip.ratioLocked': 'Width and height change together, in proportion. Click to unlock',
+  'tip.ratioUnlocked': 'Width and height change separately. Click to keep the proportions',
   'tip.filterRows': 'Show only the rows that contain this text (case and accents are ignored)',
   'tip.filterColumn': 'Column to search for the filter text',
   'tip.sortColumn': 'Sort the cards in the view by a column',

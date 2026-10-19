@@ -29,6 +29,7 @@ import CardSvg from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
 import type { EditorAction, EditorState } from './useEditor'
+import { isRatioLocked } from './ratioLock'
 
 /** Passo minimo in mm quando la griglia non è magnetica; Alt disattiva ogni aggancio */
 const SNAP = 0.5
@@ -324,7 +325,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         setSnapped({ x: hx?.line ?? null, y: hy?.line ?? null })
       }
       const box = resizeWithHandle(g.layer, g.handle, local, {
-        keepRatio: e.shiftKey,
+        keepRatio: e.shiftKey || isRatioLocked(g.layer.type),
         step: resizeStep
       })
       next = replace(g.start, side, g.layer.id, applyBounds(g.layer, box))

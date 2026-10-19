@@ -475,3 +475,91 @@ export function ShadowFields({
     </>
   )
 }
+
+/** Lucchetto classico tra larghezza e altezza: chiuso, le due misure cambiano in proporzione */
+export function RatioLock({
+  locked,
+  onChange
+}: {
+  locked: boolean
+  onChange(locked: boolean): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  return (
+    <button
+      type="button"
+      className={locked ? 'ratio-lock on' : 'ratio-lock'}
+      aria-pressed={locked}
+      title={locked ? t('tip.ratioLocked') : t('tip.ratioUnlocked')}
+      onClick={() => onChange(!locked)}
+    >
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden>
+        <rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor" />
+        <path
+          d={locked ? 'M5.5 7V5a2.5 2.5 0 0 1 5 0v2' : 'M5.5 7V5a2.5 2.5 0 0 1 5 0'}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          transform={locked ? undefined : 'translate(2.5 -1.5)'}
+        />
+      </svg>
+    </button>
+  )
+}
+
+/**
+ * Larghezza e altezza con il lucchetto: `row` le mette affiancate (geometria dei livelli),
+ * `column` una sotto l'altra con il lucchetto a destra (formato del template).
+ */
+export function SizeFields({
+  labels,
+  hints,
+  w,
+  h,
+  min,
+  unit,
+  deferred,
+  layout = 'row',
+  locked,
+  onLock,
+  onChange
+}: {
+  labels: [string, string]
+  hints?: [string, string]
+  w: number
+  h: number
+  min?: number
+  unit?: string
+  deferred?: boolean
+  layout?: 'row' | 'column'
+  locked: boolean
+  onLock(locked: boolean): void
+  onChange(w: number, h: number): void
+}): React.JSX.Element {
+  // l'altra misura non si limita al minimo: cambierebbe le proporzioni
+  const other = (size: number, from: number, to: number): number =>
+    from > 0 ? round((size * to) / from) : to
+  return (
+    <div className={`size-fields ${layout}`}>
+      <NumberField
+        label={labels[0]}
+        hint={hints?.[0]}
+        value={w}
+        min={min}
+        unit={unit}
+        deferred={deferred}
+        onChange={(v) => onChange(v, locked ? other(v, w, h) : h)}
+      />
+      <RatioLock locked={locked} onChange={onLock} />
+      <NumberField
+        label={labels[1]}
+        hint={hints?.[1]}
+        value={h}
+        min={min}
+        unit={unit}
+        deferred={deferred}
+        onChange={(v) => onChange(locked ? other(v, h, w) : w, v)}
+      />
+    </div>
+  )
+}

@@ -37,6 +37,21 @@ describe('geometria', () => {
     expect(kept.w / kept.h).toBeCloseTo(2)
   })
 
+  it("con le proporzioni bloccate un lato trascina anche l'altra misura, centrata", () => {
+    expect(resizeWithHandle(rect, 'e', { x: 50, y: 0 }, { keepRatio: true })).toEqual({
+      x: 10,
+      y: 5,
+      w: 40,
+      h: 20
+    })
+    expect(resizeWithHandle(rect, 'n', { x: 0, y: 5 }, { keepRatio: true })).toEqual({
+      x: 5,
+      y: 5,
+      w: 30,
+      h: 15
+    })
+  })
+
   it('con il livello ruotato il lato opposto resta fermo sulla carta', () => {
     const r = { ...rect, rotation: 30 }
     const fixedBefore = rotateAround({ x: r.x, y: r.y + r.h / 2 }, anchorPoint(r), r.rotation)

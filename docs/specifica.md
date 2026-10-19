@@ -287,6 +287,8 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 - **mantieni**: i livelli restano dove sono e si applicano solo i vincoli di ciascun livello (sezione 1);
 - **annulla**.
 
+Accanto a larghezza e altezza, sia del template (nel pannello proprietà e nella finestra del nuovo template) sia dei livelli, un lucchetto mantiene le proporzioni: chiuso, cambiando una misura l'altra segue. Sul livello vale anche per le maniglie sulla carta, comprese quelle sui lati (l'altra misura cresce centrata); senza lucchetto Maiuscolo tiene le proporzioni solo per il trascinamento in corso. Lo stato del lucchetto è una preferenza dell'interfaccia, ricordata per tipo di livello e per i template.
+
 ### 8.2 Set
 
 | Proprietà            | Valori                                                                                                                          |

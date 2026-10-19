@@ -25,6 +25,7 @@ import {
   ColorField,
   FontField,
   NumberField,
+  SizeFields,
   SelectField,
   ShadowFields,
   StrokeField,
@@ -35,6 +36,7 @@ import type { Commands } from './commands'
 import PanelSideButton from '../components/PanelSideButton'
 import AlignSection from './AlignSection'
 import type { PanelSide } from '../components/usePanelWidth'
+import { useRatioLock, type LockKind } from './ratioLock'
 
 interface Props {
   state: EditorState
@@ -124,6 +126,7 @@ function TemplateProperties({
   onResize(width: number, height: number): void
 }): React.JSX.Element {
   const { t } = useI18n()
+  const [locked, setLocked] = useRatioLock('template')
   const set = (p: Partial<Template>, key: string): void =>
     dispatch({ type: 'change', template: { ...tpl, ...p }, key: `template.${key}` })
   return (
@@ -133,21 +136,20 @@ function TemplateProperties({
         <span className="field-label">{t('prop.name')}</span>
         <span className="field-control">{tpl.name}</span>
       </div>
-      <NumberField
-        label={t('prop.width')}
-        value={tpl.width}
+      <SizeFields
+        labels={[t('prop.width'), t('prop.height')]}
+        w={tpl.width}
+        h={tpl.height}
         min={5}
         unit="mm"
         deferred
-        onChange={(w) => onResize(w, tpl.height)}
-      />
-      <NumberField
-        label={t('prop.height')}
-        value={tpl.height}
-        min={5}
-        unit="mm"
-        deferred
-        onChange={(h) => onResize(tpl.width, h)}
+        layout="column"
+        locked={locked}
+        onLock={setLocked}
+        // con il lucchetto l'altra misura si arrotonda al decimo di millimetro
+        onChange={(w, h) =>
+          locked ? onResize(Math.round(w * 10) / 10, Math.round(h * 10) / 10) : onResize(w, h)
+        }
       />
       <NumberField
         label={t('prop.bleed')}
@@ -271,27 +273,23 @@ function LayerProperties({
 /** Geometria e aspetto: i livelli valore non li hanno */
 function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): React.JSX.Element {
   const { t } = useI18n()
+  const [locked, setLocked] = useRatioLock(l.type as LockKind)
   return (
     <>
       <h3>{t('editor.geometry')}</h3>
       <div className="field-grid">
         <NumberField label="X" hint={col('x')} value={l.x} unit="mm" onChange={(x) => set({ x })} />
         <NumberField label="Y" hint={col('y')} value={l.y} unit="mm" onChange={(y) => set({ y })} />
-        <NumberField
-          label={t('prop.w')}
-          hint={col('w')}
-          value={l.w}
+        <SizeFields
+          labels={[t('prop.w'), t('prop.h')]}
+          hints={[col('w'), col('h')]}
+          w={l.w}
+          h={l.h}
           min={0.5}
           unit="mm"
-          onChange={(w) => set({ w })}
-        />
-        <NumberField
-          label={t('prop.h')}
-          hint={col('h')}
-          value={l.h}
-          min={0.5}
-          unit="mm"
-          onChange={(h) => set({ h })}
+          locked={locked}
+          onLock={setLocked}
+          onChange={(w, h) => set({ w, h })}
         />
       </div>
       <NumberField

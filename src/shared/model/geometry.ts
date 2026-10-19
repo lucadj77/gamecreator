@@ -124,6 +124,17 @@ export function resizeWithHandle(
     else right = left + w
     if (handle.includes('n')) top = bottom - h
     else bottom = top + h
+  } else if (opts.keepRatio && start.w > 0 && start.h > 0) {
+    // maniglia su un lato: l'altra misura segue, centrata sull'asse che non si trascina
+    if (handle === 'e' || handle === 'w') {
+      const h = (start.h * (right - left)) / start.w
+      top = start.y + (start.h - h) / 2
+      bottom = top + h
+    } else {
+      const w = (start.w * (bottom - top)) / start.h
+      left = start.x + (start.w - w) / 2
+      right = left + w
+    }
   }
 
   const b = { x: left, y: top, w: right - left, h: bottom - top }

@@ -22,6 +22,8 @@ export const it: Record<MessageKey, string> = {
   'set.clearView': 'Mostra tutto',
   'set.viewHint':
     "Righe mostrate: {shown} su {total}. Ordine e filtro valgono solo qui: il foglio e l'esportazione non cambiano.",
+  'tip.ratioLocked': 'Larghezza e altezza cambiano insieme, in proporzione. Clic per sbloccarle',
+  'tip.ratioUnlocked': 'Larghezza e altezza cambiano separatamente. Clic per mantenere le proporzioni',
   'tip.filterRows':
     'Mostra solo le righe che contengono questo testo (maiuscole e accenti non contano)',
   'tip.filterColumn': 'Colonna in cui cercare il testo del filtro',

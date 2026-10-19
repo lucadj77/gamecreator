@@ -131,6 +131,7 @@ Un file JSON per template in `templates/`. Le unità sono millimetri, la dimensi
 }
 ```
 
+- Facoltativi: `shape` (`rect` di base, `ellipse`, `hexagon`, `path` con `shapePath`, tracciato SVG in coordinate 0–1 della carta) e `guides` (`{ "x": [mm...], "y": [mm...] }`, guide manuali dell'editor).
 - Il primo livello dell'elenco è quello in cima.
 - Tipi: `text`, `image`, `shape` (`rect`, `ellipse`, `polygon`, `star`, `line`, `path`), `group` (con `children`).
 - La colonna con il nome del livello ne sostituisce il valore principale: il testo per `text`, il file per `image`, il riempimento per `shape`, la visibilità per `group`.

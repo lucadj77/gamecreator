@@ -25,7 +25,7 @@ import {
 import { cardArea, unionBounds } from '../../../shared/model/align'
 import { linesOf, nearest, snapBox, type SnapLines } from '../../../shared/model/snap'
 import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../shared/model/template'
-import CardSvg from '../render/CardSvg'
+import CardSvg, { CardOutline } from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
 import type { EditorAction, EditorState } from './useEditor'
@@ -66,6 +66,7 @@ type Gesture =
       lines: SnapLines
     }
   | { kind: 'rotate'; start: Template; layer: Layer; frame: GroupLayer[]; a0: number }
+  | { kind: 'guide'; start: Template; axis: 'x' | 'y'; index: number; frame: GroupLayer[] }
 
 interface Props {
   state: EditorState
@@ -197,7 +198,8 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const areas = [cardArea(tpl, 'card')]
     if (guides.safe) areas.push(cardArea(tpl, 'safe'))
     if (guides.bleed && tpl.bleed > 0) areas.push({ x: -tpl.bleed, y: -tpl.bleed, w: vw, h: vh })
-    return linesOf([...boxes, ...areas])
+    const lines = linesOf([...boxes, ...areas])
+    return { x: [...lines.x, ...(tpl.guides?.x ?? [])], y: [...lines.y, ...(tpl.guides?.y ?? [])] }
   }
 
   const begin = (e: React.PointerEvent, g: Gesture): void => {
@@ -293,7 +295,18 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const magnet = !e.altKey && guides.snapObjects
     const threshold = SNAP_PX / scale
     let next: Template
-    if (g.kind === 'move') {
+    if (g.kind === 'guide') {
+      // una guida si aggancia ai lati e al centro della carta e dell'area sicura
+      const v = g.axis === 'x' ? q.x : q.y
+      const card = linesOf([cardArea(tpl, 'card'), cardArea(tpl, 'safe')])[g.axis]
+      const hit = magnet ? nearest([v], card, threshold) : null
+      const value = hit ? hit.line : snap(v, step)
+      setSnapped(g.axis === 'x' ? { x: value, y: null } : { x: null, y: value })
+      const list = [...(g.start.guides?.[g.axis] ?? [])]
+      list[g.index] = value
+      const all = g.start.guides ?? { x: [], y: [] }
+      next = { ...g.start, guides: { ...all, [g.axis]: list } }
+    } else if (g.kind === 'move') {
       const rx = q.x - g.p0.x
       const ry = q.y - g.p0.y
       // un lato o il centro vicino a un altro oggetto ha la precedenza sulla griglia
@@ -346,7 +359,24 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       return
     }
     if (!gesture.current) return
+    const ended = gesture.current
     gesture.current = null
+    // una guida trascinata fuori dalla carta si toglie
+    if (ended.kind === 'guide') {
+      const list = tpl.guides?.[ended.axis] ?? []
+      const v = list[ended.index]
+      const size = ended.axis === 'x' ? tpl.width : tpl.height
+      if (v !== undefined && (v < -tpl.bleed || v > size + tpl.bleed)) {
+        const guides = tpl.guides ?? { x: [], y: [] }
+        dispatch({
+          type: 'gestureUpdate',
+          template: {
+            ...tpl,
+            guides: { ...guides, [ended.axis]: list.filter((_, i) => i !== ended.index) }
+          }
+        })
+      }
+    }
     setFrozen(null)
     setSnapped({ x: null, y: null })
     overlayRef.current?.releasePointerCapture(e.pointerId)
@@ -406,14 +436,38 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
           >
             {guides.grid && <GridLines stage={stage} step={guides.gridStep} scale={scale} />}
             {guides.safe && (
-              <rect
-                x={tpl.safeMargin}
-                y={tpl.safeMargin}
-                width={tpl.width - 2 * tpl.safeMargin}
-                height={tpl.height - 2 * tpl.safeMargin}
+              <CardOutline
+                template={tpl}
+                inset={tpl.safeMargin}
                 className="safe-area"
                 vectorEffect="non-scaling-stroke"
               />
+            )}
+            {(['x', 'y'] as const).map((axis) =>
+              (tpl.guides?.[axis] ?? []).map((v, index) => {
+                const line =
+                  axis === 'x'
+                    ? { x1: v, x2: v, y1: stage.y, y2: stage.y + stage.h }
+                    : { x1: stage.x, x2: stage.x + stage.w, y1: v, y2: v }
+                return (
+                  <g key={`${axis}${index}`} className={`manual-guide ${axis}`}>
+                    <line {...line} vectorEffect="non-scaling-stroke" />
+                    {/* linea larga e invisibile: si prende facilmente col mouse */}
+                    <line
+                      {...line}
+                      className="manual-guide-hit"
+                      style={{ strokeWidth: 8 * px }}
+                      onPointerDown={(e) => {
+                        if (e.button !== 0) return
+                        e.stopPropagation()
+                        begin(e, { kind: 'guide', start: tpl, axis, index, frame: [] })
+                      }}
+                    >
+                      <title>{t('editor.guideDragHint')}</title>
+                    </line>
+                  </g>
+                )
+              })
             )}
             {/* i livelli che escono dalla carta hanno un contorno: si ritrovano anche se chiari */}
             {layers

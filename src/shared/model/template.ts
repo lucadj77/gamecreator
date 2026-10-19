@@ -187,6 +187,13 @@ export interface ValueLayer extends LayerBase {
 export type Layer = TextLayer | ImageLayer | ShapeLayer | GroupLayer | ValueLayer
 export type LayerType = Layer['type']
 
+export type CardShape = 'rect' | 'ellipse' | 'hexagon' | 'path'
+
+export interface ManualGuides {
+  x: number[]
+  y: number[]
+}
+
 export interface Template {
   name: string
   /** Nome del file in templates/ senza estensione, se diverso dal nome; non si salva */
@@ -196,6 +203,12 @@ export interface Template {
   bleed: number
   safeMargin: number
   cornerRadius: number
+  /** Forma della carta rifilata; assente vale rettangolo (con cornerRadius) */
+  shape?: CardShape
+  /** Contorno per shape = 'path': tracciato SVG in coordinate 0-1 rispetto alla carta */
+  shapePath?: string
+  /** Guide manuali dell'editor in mm: linee verticali (x) e orizzontali (y) */
+  guides?: ManualGuides
   /** Campo che dà il nome alle carte nelle anteprime dei set; null usa la prima colonna */
   labelField?: string | null
   front: Layer[]

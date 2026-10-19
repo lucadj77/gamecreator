@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  hexagonPoints,
   anchorPoint,
   hitTest,
   normalizeAngle,
@@ -102,5 +103,13 @@ describe('roundedPolygonPath', () => {
       (m) => m[1]
     )
     expect(sweeps).toEqual(['1', '0', '1', '0', '1', '0', '1', '0', '1', '0'])
+  })
+})
+
+describe('esagono della carta', () => {
+  it('ha i lati piatti in alto se è più largo, le punte se è più alto', () => {
+    expect(hexagonPoints(0, 0, 40, 30)[0]).toEqual({ x: 10, y: 0 })
+    expect(hexagonPoints(0, 0, 30, 40)[0]).toEqual({ x: 15, y: 0 })
+    expect(hexagonPoints(0, 0, 30, 40)).toHaveLength(6)
   })
 })

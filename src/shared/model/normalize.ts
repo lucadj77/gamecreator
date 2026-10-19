@@ -1,6 +1,7 @@
 import { MessageError, msg } from '../messages'
 import type {
   GroupLayer,
+  ManualGuides,
   ImageLayer,
   Layer,
   LayerBase,
@@ -267,6 +268,11 @@ export function denormalizeTemplate(t: Template): RawTemplate {
     bleed: t.bleed,
     safeMargin: t.safeMargin,
     cornerRadius: t.cornerRadius,
+    ...(t.shape && t.shape !== 'rect' ? { shape: t.shape } : {}),
+    ...(t.shape === 'path' && t.shapePath ? { shapePath: t.shapePath } : {}),
+    ...(t.guides && (t.guides.x.length || t.guides.y.length)
+      ? { guides: tidy(t.guides) as ManualGuides }
+      : {}),
     ...(t.labelField ? { labelField: t.labelField } : {}),
     front: t.front.map(denormalizeLayer),
     back: t.back.map(denormalizeLayer)

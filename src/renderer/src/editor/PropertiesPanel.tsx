@@ -5,6 +5,7 @@ import { findLayer, isNameTaken, patchLayer } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import type {
   Anchor,
+  CardShape,
   GroupLayout,
   LayoutAlign,
   BlendMode,
@@ -171,13 +172,32 @@ function TemplateProperties({
         unit="mm"
         onChange={(safeMargin) => set({ safeMargin }, 'safeMargin')}
       />
-      <NumberField
-        label={t('prop.cornerRadius')}
-        value={tpl.cornerRadius}
-        min={0}
-        unit="mm"
-        onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
+      <SelectField<CardShape>
+        label={t('prop.cardShape')}
+        hint={t('editor.cardShapeHint')}
+        value={tpl.shape ?? 'rect'}
+        options={options(t, 'cardShape', ['rect', 'ellipse', 'hexagon', 'path'] as const)}
+        onChange={(shape) => set({ shape }, 'shape')}
       />
+      {(tpl.shape ?? 'rect') === 'rect' && (
+        <NumberField
+          label={t('prop.cornerRadius')}
+          value={tpl.cornerRadius}
+          min={0}
+          unit="mm"
+          onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
+        />
+      )}
+      {tpl.shape === 'path' && (
+        <TextField
+          label={t('prop.path')}
+          hint={t('editor.cardPathHint')}
+          value={tpl.shapePath ?? ''}
+          multiline
+          onChange={(shapePath) => set({ shapePath }, 'shapePath')}
+        />
+      )}
+      <GuideFields template={tpl} set={set} />
       <SelectField<string>
         label={t('prop.labelField')}
         hint={t('editor.labelFieldHint')}
@@ -265,6 +285,72 @@ function LayerProperties({
       {l.type === 'group' && <GroupProperties l={l as GroupLayer} set={set} col={col} />}
 
       {l.type !== 'value' && <DrawnProperties l={l} set={set} col={col} />}
+    </>
+  )
+}
+
+/** Guide manuali: si aggiungono qui e si spostano trascinandole sulla carta */
+function GuideFields({
+  template: tpl,
+  set
+}: {
+  template: Template
+  set(p: Partial<Template>, key: string): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const guides = tpl.guides ?? { x: [], y: [] }
+  const change = (axis: 'x' | 'y', list: number[]): void =>
+    set({ guides: { ...guides, [axis]: list } }, `guides.${axis}`)
+  return (
+    <>
+      <h3>{t('editor.guides')}</h3>
+      {(['x', 'y'] as const).map((axis) =>
+        guides[axis].map((v, i) => (
+          <div className="guide-row" key={`${axis}${i}`}>
+            <NumberField
+              label={t(axis === 'x' ? 'editor.guideV' : 'editor.guideH')}
+              value={v}
+              unit="mm"
+              onChange={(n) =>
+                change(
+                  axis,
+                  guides[axis].map((g, j) => (j === i ? n : g))
+                )
+              }
+            />
+            <button
+              type="button"
+              className="icon-btn"
+              title={t('editor.guideRemove')}
+              onClick={() =>
+                change(
+                  axis,
+                  guides[axis].filter((_, j) => j !== i)
+                )
+              }
+            >
+              ×
+            </button>
+          </div>
+        ))
+      )}
+      <div className="guide-buttons">
+        <button
+          type="button"
+          className="small-btn"
+          onClick={() => change('x', [...guides.x, tpl.width / 2])}
+        >
+          {t('editor.guideAddV')}
+        </button>
+        <button
+          type="button"
+          className="small-btn"
+          onClick={() => change('y', [...guides.y, tpl.height / 2])}
+        >
+          {t('editor.guideAddH')}
+        </button>
+      </div>
+      <p className="muted small">{t('editor.guidesHint')}</p>
     </>
   )
 }

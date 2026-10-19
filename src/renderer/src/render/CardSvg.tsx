@@ -1,7 +1,12 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
 import { resolveAsset } from '../../../shared/model/assets'
-import { anchorPoint, polygonVertices, roundedPolygonPath } from '../../../shared/model/geometry'
+import {
+  anchorPoint,
+  hexagonPoints,
+  polygonVertices,
+  roundedPolygonPath
+} from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
@@ -67,6 +72,8 @@ export default function CardSvg({
   const vw = t.width + 2 * b
   const vh = t.height + 2 * b
   const box = pasteboard ?? { x: -b, y: -b, w: vw, h: vh }
+  // 'cut' toglie solo gli angoli arrotondati: un cerchio o un esagono restano tali
+  const plainRect = (t.shape ?? 'rect') === 'rect'
   return (
     <svg
       width={box.w * scale}
@@ -77,10 +84,12 @@ export default function CardSvg({
     >
       <defs>
         <clipPath id={`${uid}-card`}>
-          {mode !== 'bleed' ? (
-            <rect width={t.width} height={t.height} rx={mode === 'trim' ? t.cornerRadius : 0} />
-          ) : (
+          {mode === 'bleed' ? (
             <rect x={-b} y={-b} width={vw} height={vh} />
+          ) : mode === 'cut' && plainRect ? (
+            <rect width={t.width} height={t.height} />
+          ) : (
+            <CardOutline template={t} />
           )}
         </clipPath>
         {pasteboard && (
@@ -94,15 +103,18 @@ export default function CardSvg({
           <g opacity={0.35}>
             <LayerList layers={layers} uid={`${uid}p`} />
           </g>
-          <rect
-            x={-b}
-            y={-b}
-            width={vw}
-            height={vh}
-            rx={mode === 'trim' ? t.cornerRadius : 0}
-            fill="#FFFFFF"
-            filter={`url(#${uid}-lift)`}
-          />
+          {mode === 'bleed' ? (
+            <rect
+              x={-b}
+              y={-b}
+              width={vw}
+              height={vh}
+              fill="#FFFFFF"
+              filter={`url(#${uid}-lift)`}
+            />
+          ) : (
+            <CardOutline template={t} fill="#FFFFFF" filter={`url(#${uid}-lift)`} />
+          )}
         </>
       )}
       <g clipPath={`url(#${uid}-card)`}>
@@ -110,10 +122,9 @@ export default function CardSvg({
         <LayerList layers={layers} uid={uid} />
       </g>
       {mode === 'bleed' && guides && (
-        <rect
-          width={t.width}
-          height={t.height}
-          rx={t.cornerRadius}
+        <CardOutline
+          template={t}
+          scale={scale}
           fill="none"
           stroke="#E5484D"
           strokeWidth={0.2}
@@ -121,6 +132,81 @@ export default function CardSvg({
         />
       )}
     </svg>
+  )
+}
+
+/**
+ * Contorno della carta rifilata: rettangolo con gli angoli arrotondati, ellisse, esagono o
+ * tracciato. Con inset il contorno si restringe (area sicura) o, negativo, si allarga.
+ */
+export function CardOutline({
+  template: t,
+  inset = 0,
+  scale = 1,
+  ...paint
+}: {
+  template: Template
+  inset?: number
+  /** Pixel per mm: serve al contorno di un tracciato, che non scala con la carta */
+  scale?: number
+} & React.SVGProps<SVGPathElement>): React.JSX.Element {
+  const x = inset
+  const y = inset
+  const w = Math.max(0, t.width - 2 * inset)
+  const h = Math.max(0, t.height - 2 * inset)
+  switch (t.shape ?? 'rect') {
+    case 'ellipse':
+      return (
+        <ellipse
+          cx={x + w / 2}
+          cy={y + h / 2}
+          rx={w / 2}
+          ry={h / 2}
+          {...(paint as React.SVGProps<SVGEllipseElement>)}
+        />
+      )
+    case 'hexagon':
+      return (
+        <path
+          d={`M${hexagonPoints(x, y, w, h)
+            .map((p) => `${p.x} ${p.y}`)
+            .join('L')}Z`}
+          {...paint}
+        />
+      )
+    case 'path':
+      if (t.shapePath?.trim())
+        return (
+          <path
+            d={t.shapePath}
+            transform={`translate(${x} ${y}) scale(${w} ${h})`}
+            {...paint}
+            // il tracciato è in coordinate 0-1: il tratto si misura in pixel dello schermo
+            vectorEffect="non-scaling-stroke"
+            strokeWidth={
+              paint.strokeWidth !== undefined ? Number(paint.strokeWidth) * scale : undefined
+            }
+            strokeDasharray={
+              typeof paint.strokeDasharray === 'string'
+                ? paint.strokeDasharray
+                    .split(/[\s,]+/)
+                    .map((v) => Number(v) * scale)
+                    .join(' ')
+                : undefined
+            }
+          />
+        )
+      break
+  }
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={w}
+      height={h}
+      rx={Math.max(0, t.cornerRadius - inset)}
+      {...(paint as React.SVGProps<SVGRectElement>)}
+    />
   )
 }
 

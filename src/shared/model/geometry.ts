@@ -208,3 +208,14 @@ export function roundedPolygonPath(pts: Point[], r: number): string {
   }
   return parts.join(' ') + ' Z'
 }
+
+/**
+ * Esagono inscritto nel riquadro: con i lati piatti in alto se è più largo che alto,
+ * altrimenti con le punte in alto.
+ */
+export function hexagonPoints(x: number, y: number, w: number, h: number): Point[] {
+  const p = (u: number, v: number): Point => ({ x: x + u * w, y: y + v * h })
+  return w >= h
+    ? [p(0.25, 0), p(0.75, 0), p(1, 0.5), p(0.75, 1), p(0.25, 1), p(0, 0.5)]
+    : [p(0.5, 0), p(1, 0.25), p(1, 0.75), p(0.5, 1), p(0, 0.75), p(0, 0.25)]
+}

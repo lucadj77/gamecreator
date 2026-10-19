@@ -195,6 +195,19 @@ button {
 .sidebar li > button:first-child {
   flex: 1;
   min-width: 0;
+  gap: 8px;
+}
+
+/* un nome lungo si accorcia con i puntini e non si attacca al formato o al conteggio */
+.sidebar li > button:first-child > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar li > button:first-child > span + span {
+  flex-shrink: 0;
 }
 
 /* duplica: accanto alla riga, non sopra il conteggio; visibile al passaggio e sulla riga scelta */
@@ -1004,6 +1017,9 @@ textarea.invalid {
 .dialog h2 {
   font-size: 16px;
   margin: 0 0 12px;
+  /* anche le finestre aperte dal pannello delle proprietà, i cui titoli sono in maiuscolo */
+  text-transform: none;
+  color: var(--text);
 }
 
 .dialog-form {

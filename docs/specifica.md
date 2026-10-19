@@ -337,20 +337,21 @@ Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al no
 
 ### 9.2 PDF di stampa
 
-| Opzione              | Valori                                                                                                                 |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| pagina               | A4, A3, Letter, personalizzata; verticale, orizzontale                                                                 |
-| margini e spaziatura | mm                                                                                                                     |
-| disposizione         | automatica (massimo di carte per pagina) o righe × colonne                                                             |
-| rotazione            | con la disposizione automatica, carte ruotate di 90° se dritte non entrano nella pagina o ne entrano di più            |
-| abbondanza           | inclusa o no; se inclusa le carte si toccano e i segni di taglio sono esterni                                          |
-| segni di taglio      | nessuno, angoli, linee intere; lunghezza, spessore, colore, sopra o sotto le carte                                     |
-| fronte-retro         | nessuno; pagine alternate con retro speculari (rilegatura lato lungo o corto); compensazione del disallineamento x e y |
-| piegatura            | fronte e retro affiancati sulla stessa pagina, con linea di piegatura                                                  |
-| file                 | unico, uno per set, uno per lato                                                                                       |
-| fogli di prova       | pagina riepilogo a bassa risoluzione con tutte le carte                                                                |
+| Opzione              | Valori                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| pagina               | A4, A3, Letter, personalizzata; verticale, orizzontale                                                                    |
+| margini e spaziatura | mm                                                                                                                        |
+| disposizione         | automatica (massimo di carte per pagina) o righe × colonne                                                                |
+| rotazione            | con la disposizione automatica, carte ruotate di 90° se dritte non entrano nella pagina o ne entrano di più               |
+| abbondanza           | inclusa o no; se inclusa le carte si toccano e i segni di taglio sono esterni                                             |
+| segni di taglio      | nessuno, angoli, linee intere; lunghezza, spessore, colore, sopra o sotto le carte                                        |
+| fronte-retro         | nessuno; pagine alternate con retro speculari (rilegatura lato lungo o corto); compensazione del disallineamento x e y    |
+| poster               | le carte più grandi della pagina si dividono su più pagine che si sovrappongono (mm), con il nome di ogni parte (A1, B1…) |
+| piegatura            | fronte e retro affiancati sulla stessa pagina, con linea di piegatura                                                     |
+| file                 | unico, uno per set, uno per lato                                                                                          |
+| fogli di prova       | pagina riepilogo a bassa risoluzione con tutte le carte                                                                   |
 
-Piegatura e fogli di prova non sono ancora disponibili. Le carte ruotate girano in senso orario; nel fronte-retro i retri ruotano in modo da combaciare con i fronti quando si gira il foglio. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
+Piegatura e fogli di prova non sono ancora disponibili. Il poster vale con la disposizione automatica: una carta che non entra nella pagina, nemmeno ruotata, si divide in parti uguali che si sovrappongono almeno quanto indicato (di base 10 mm), scegliendo l'orientamento con meno pagine. Ogni pagina porta i segni di taglio della carta dove cadono, dei trattini corti nei margini dove comincia la parte accanto e, sotto, il nome della parte con set e numero della carta. I retri seguono come pagine a parte, senza fronte-retro. Le carte ruotate girano in senso orario; nel fronte-retro i retri ruotano in modo da combaciare con i fronti quando si gira il foglio. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
 
 Il PDF è vettoriale, con i font incorporati e in RGB. Il CMYK richiesto da alcune tipografie richiede una conversione successiva: da valutare con Ghostscript in un secondo momento.
 

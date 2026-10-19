@@ -699,6 +699,11 @@ export const en = {
   'export.layoutFixed': 'Columns × rows',
   'export.perPageRotated': '{cols} × {rows} = {n} cards per page, rotated 90°',
   'export.rotate': 'Rotation',
+  'export.poster': 'Poster',
+  'export.posterSplit': 'Split cards larger than the page over several pages',
+  'export.posterOverlap': 'overlap',
+  'export.posterHint':
+    'Each part is named A1, B1… below it; the short marks in the margin show where the next part starts, to overlap or cut and butt the parts. Backs follow as separate pages.',
   'export.autoRotate': 'Rotate the cards when they would not fit or more of them fit',
   'export.perPage': '{cols} × {rows} = {n} cards per page',
   'export.gridTooBig': 'The cards do not fit on the page',

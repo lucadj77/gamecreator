@@ -713,6 +713,11 @@ export const it: Record<MessageKey, string> = {
   'export.layoutFixed': 'Colonne × righe',
   'export.perPageRotated': '{cols} × {rows} = {n} carte per pagina, ruotate di 90°',
   'export.rotate': 'Rotazione',
+  'export.poster': 'Poster',
+  'export.posterSplit': 'Dividi su più pagine le carte più grandi della pagina',
+  'export.posterOverlap': 'sovrapposizione',
+  'export.posterHint':
+    "Sotto ogni parte c'è il suo nome (A1, B1…); i trattini corti nei margini segnano dove inizia la parte accanto, per sovrapporre o tagliare e accostare. I retri seguono come pagine a parte.",
   'export.autoRotate': 'Ruota le carte se altrimenti non entrano o ne entrano di più',
   'export.perPage': '{cols} × {rows} = {n} carte per pagina',
   'export.gridTooBig': 'Le carte non stanno nella pagina',

@@ -64,6 +64,10 @@ export interface PdfOptions extends CommonOptions {
   split: 'single' | 'set' | 'side'
   /** Carte ruotate di 90° quando altrimenti non entrano nella pagina o ne entrano di più */
   autoRotate: boolean
+  /** Le carte più grandi della pagina si dividono su più pagine, da unire come un poster */
+  poster: boolean
+  /** Sovrapposizione tra le parti del poster, in mm */
+  posterOverlap: number
 }
 
 export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
@@ -133,7 +137,9 @@ export const DEFAULT_PDF: PdfOptions = {
   offsetX: 0,
   offsetY: 0,
   split: 'single',
-  autoRotate: true
+  autoRotate: true,
+  poster: true,
+  posterOverlap: 10
 }
 
 export const DEFAULT_TTS: TtsOptions = {
@@ -218,11 +224,23 @@ export interface SceneLine {
   y2: number
 }
 
+export interface SceneLabel {
+  x: number
+  y: number
+  text: string
+  /** Altezza del testo in mm */
+  size: number
+}
+
 export interface ScenePage {
   width: number
   height: number
   items: SceneItem[]
   lines: SceneLine[]
+  /** Solo questa parte della pagina mostra le carte: una parte di un poster */
+  clip?: { x: number; y: number; w: number; h: number }
+  /** Scritte sulla pagina, per esempio la posizione della parte di un poster */
+  labels?: SceneLabel[]
 }
 
 export interface Scene {

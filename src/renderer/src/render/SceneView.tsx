@@ -13,7 +13,7 @@ export default function ScenePageView({
   scene: Scene
   className?: string
 }): React.JSX.Element {
-  const lines = p.lines.length > 0 && (
+  const lines = (p.lines.length > 0 || !!p.labels?.length) && (
     <svg
       width={p.width * s.scale}
       height={p.height * s.scale}
@@ -23,8 +23,23 @@ export default function ScenePageView({
       {p.lines.map((l, i) => (
         <line key={i} {...l} stroke={s.lineColor} strokeWidth={s.lineWidth} strokeLinecap="butt" />
       ))}
+      {p.labels?.map((l, i) => (
+        <text
+          key={`t${i}`}
+          x={l.x}
+          y={l.y}
+          fontSize={l.size}
+          fontFamily="sans-serif"
+          fill={s.lineColor}
+          dominantBaseline="middle"
+        >
+          {l.text}
+        </text>
+      ))}
     </svg>
   )
+  // una parte di un poster mostra le carte solo nel suo riquadro
+  const c = p.clip ?? { x: 0, y: 0, w: p.width, h: p.height }
   return (
     <div
       className={className}
@@ -37,25 +52,36 @@ export default function ScenePageView({
       }}
     >
       {!s.linesOver && lines}
-      {p.items.map((it, i) => (
-        <div
-          key={i}
-          style={{
-            position: 'absolute',
-            left: it.x * s.scale,
-            top: it.y * s.scale,
-            ...turn(it, s.scale)
-          }}
-        >
-          <CardSvg
-            template={it.template}
-            side={it.side}
-            scale={s.scale}
-            mode={it.mode}
-            guides={false}
-          />
-        </div>
-      ))}
+      <div
+        style={{
+          position: 'absolute',
+          overflow: 'hidden',
+          left: c.x * s.scale,
+          top: c.y * s.scale,
+          width: c.w * s.scale,
+          height: c.h * s.scale
+        }}
+      >
+        {p.items.map((it, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              left: (it.x - c.x) * s.scale,
+              top: (it.y - c.y) * s.scale,
+              ...turn(it, s.scale)
+            }}
+          >
+            <CardSvg
+              template={it.template}
+              side={it.side}
+              scale={s.scale}
+              mode={it.mode}
+              guides={false}
+            />
+          </div>
+        ))}
+      </div>
       {s.linesOver && lines}
     </div>
   )

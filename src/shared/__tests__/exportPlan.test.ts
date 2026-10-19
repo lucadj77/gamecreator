@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_IMAGE, DEFAULT_PDF, DEFAULT_TTS, type ExportCard } from '../export'
-import { planImages, planPdf, planTts, sheetPage } from '../exportPlan'
+import { planImages, planPdf, planTts, posterLayout, sheetPage } from '../exportPlan'
 import { normalizeTemplate } from '../model/normalize'
 
 const tpl = normalizeTemplate({ name: 't', width: 63, height: 88, bleed: 3, front: [], back: [] })
@@ -34,6 +34,31 @@ describe("piano dell'esportazione", () => {
       ['a_2', 1]
     ])
     expect(plan.overflow).toEqual([])
+  })
+
+  it('poster: parti che si sovrappongono almeno quanto chiesto, orientamento con meno pagine', () => {
+    // plancia 400 × 300 su A4 con 10 mm di margine (190 × 277): ruotata bastano 2 × 2 pagine
+    const L = posterLayout(400, 300, 190, 277, 10, true)
+    expect([L.cols, L.rows, L.rotated]).toEqual([2, 2, true])
+    expect(190 - L.stepX).toBeGreaterThanOrEqual(10)
+    const up = posterLayout(400, 300, 190, 277, 10, false)
+    expect([up.cols, up.rows]).toEqual([3, 2])
+    // la fine dell'ultima parte coincide con il bordo della carta
+    expect((up.cols - 1) * up.stepX + up.tileW).toBeCloseTo(400)
+  })
+
+  it('PDF: una carta più grande della pagina diventa un poster con le parti nominate', () => {
+    const big = normalizeTemplate({ name: 'p', width: 400, height: 300, bleed: 3 })
+    const sets = [{ name: 'plancia', cards: [{ ...card(1), template: big }] }]
+    const o = { ...DEFAULT_PDF, sides: 'front' as const, bleed: false }
+    const plan = planPdf(o, sets, 'gioco')
+    expect(plan.overflow).toEqual([])
+    const pages = plan.docs[0].pages
+    expect(pages).toHaveLength(4)
+    expect(pages.map((p) => p.labels?.[0].text.split(' ')[0])).toEqual(['A1', 'B1', 'A2', 'B2'])
+    expect(pages[0].clip).toBeDefined()
+    // senza poster resta una pagina che esce dai bordi, segnalata
+    expect(planPdf({ ...o, poster: false }, sets, 'gioco').overflow).toEqual(['plancia'])
   })
 
   it("Tabletop Simulator: la carta nascosta occupa l'ultima posizione del foglio", () => {

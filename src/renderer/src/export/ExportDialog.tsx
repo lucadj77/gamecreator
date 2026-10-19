@@ -567,6 +567,29 @@ export default function ExportDialog({
                   'export.rotate',
                   check(pdf.autoRotate, (autoRotate) => patch({ autoRotate }), 'export.autoRotate')
                 )}
+              {pdf.layout === 'auto' &&
+                field(
+                  'export.poster',
+                  <>
+                    {check(pdf.poster, (poster) => patch({ poster }), 'export.posterSplit')}
+                    {pdf.poster && (
+                      <>
+                        <span className="unit">{t('export.posterOverlap')}</span>
+                        <input
+                          className="num narrow"
+                          type="number"
+                          min={0}
+                          value={pdf.posterOverlap}
+                          onChange={(e) =>
+                            patch({ posterOverlap: Math.max(0, num(e.target.value, 10)) })
+                          }
+                        />
+                        <span className="unit">mm</span>
+                      </>
+                    )}
+                  </>,
+                  t('export.posterHint')
+                )}
               {field(
                 'export.marks',
                 <>

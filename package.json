@@ -2,7 +2,7 @@
   "name": "naibi",
   "productName": "Naibi",
   "version": "1.0.0",
-  "description": "App desktop per creare carte e altri elementi di gioco",
+  "description": "Create cards and other game components",
   "main": "./out/main/index.js",
   "author": "Luca",
   "homepage": "https://github.com/lucadj77/naibi",

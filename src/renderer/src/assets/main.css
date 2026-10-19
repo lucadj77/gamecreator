@@ -2296,17 +2296,23 @@ div.font-row {
   font-weight: 700;
 }
 
-.start-header .about-link {
-  margin-left: 4px;
+.start-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 16px 8px;
+}
+
+.start-footer .about-link {
   padding: 2px 4px;
   border: none;
   background: none;
-  color: var(--accent);
-  font-size: 13px;
+  color: var(--muted);
+  font-size: 12px;
   cursor: pointer;
 }
 
-.start-header .about-link:hover {
+.start-footer .about-link:hover {
+  color: var(--text);
   text-decoration: underline;
 }
 

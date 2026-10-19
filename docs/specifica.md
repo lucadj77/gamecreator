@@ -440,7 +440,7 @@ All'avvio l'app mostra la schermata di ingresso, non l'ultimo progetto aperto. C
 
 - **Nuovo progetto…**: chiede nome e posizione (predefinita `Documenti/Naibi`, poi l'ultima usata) e crea la cartella `<posizione>/<nome>` con `naibi.json` e le cartelle `data/`, `templates/` e `assets/`. Il file dati `data/cards.xlsx` si scrive al primo salvataggio di un set. Dal nome della cartella si tolgono i caratteri non validi nei nomi di file; la cartella deve essere nuova o vuota.
 - **Apri progetto…**: sceglie una cartella che contiene `naibi.json` (o `gamecreator.json`, nei progetti creati prima del cambio di nome).
-- **Cosa vuol dire Naibi?**: accanto al nome dell'app, apre una finestra che racconta l'origine del nome.
+- **Cosa vuol dire Naibi?**: link discreto in basso a destra, apre una finestra che racconta l'origine del nome.
 - **Importa da Tabletop Creator…**: converte un progetto Tabletop Creator in un progetto nuovo, senza modificare l'originale.
 - **Progetti recenti**: fino a 24, dal più recente, con miniatura, nome, data dell'ultima apertura e cartella. Un progetto spostato o cancellato resta nell'elenco come "cartella non trovata"; la × toglie un progetto dall'elenco senza toccare la cartella.
 

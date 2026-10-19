@@ -54,9 +54,6 @@ export default function StartScreen({
     <div className="start">
       <header className="start-header">
         <h1>Naibi</h1>
-        <button className="about-link" onClick={() => setAbout(true)}>
-          {t('about.link')}
-        </button>
         <span className="spacer" />
         {settings}
       </header>
@@ -109,6 +106,11 @@ export default function StartScreen({
           ))}
         </ul>
       </div>
+      <footer className="start-footer">
+        <button className="about-link" onClick={() => setAbout(true)}>
+          {t('about.link')}
+        </button>
+      </footer>
       {about && <AboutDialog onClose={() => setAbout(false)} />}
       {creating && (
         <NewProjectDialog

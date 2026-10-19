@@ -15,7 +15,9 @@ import {
   mergeImageSettings,
   palette,
   resolveColor,
-  type ImageSettings
+  resolveFont,
+  type ImageSettings,
+  type Variables
 } from '../../../shared/model/variables'
 import { AssetsContext, StylesContext, VariablesContext, assetUrl } from './assets'
 import { useImageSize } from './imageSize'
@@ -32,6 +34,8 @@ interface Scale {
   ratio: number
   /** Colori con nome del progetto */
   pal: Record<string, string>
+  /** Variabili del progetto, per i font scritti come {variabile} negli stili */
+  vars?: Variables
 }
 
 export default function MarkupText({
@@ -50,7 +54,7 @@ export default function MarkupText({
   const variables = useContext(VariablesContext)
   const pal = useMemo(() => palette(variables), [variables])
   const { blocks } = parseMarkup(text)
-  const k = { unit, ratio, pal }
+  const k = { unit, ratio, pal, vars: variables }
   return (
     <>
       {blocks.map((b, i) => (
@@ -396,7 +400,7 @@ function textStyle(a: Attrs, k: Scale): CSSProperties {
         ? `calc(1em + ${v * pt * k.ratio}px)`
         : `${v * pt * k.ratio}px`
   }
-  if (a.font) s.fontFamily = `'${a.font}', sans-serif`
+  if (a.font) s.fontFamily = `'${resolveFont(a.font, k.vars)}', sans-serif`
   if (a.weight) s.fontWeight = a.weight
   if (a.italic) s.fontStyle = 'italic'
   const deco = [a.underline && 'underline', a.strike && 'line-through'].filter(Boolean)

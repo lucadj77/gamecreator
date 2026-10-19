@@ -129,6 +129,7 @@ export const en = {
   'editor.clipHint':
     'Put a shape (e.g. a circle) at the bottom of the group: the layers above it show only inside that shape, and the shape itself is not drawn.',
   'editor.srcPlaceholder': 'image name, or {field}',
+  'editor.fontFromVariable': 'From the variable: {font}',
   'editor.fontMissing':
     'This font is not in assets/fonts nor installed on this computer: the text uses a default font. Copy the font file into assets/fonts and reload the project.',
   'credits.open': 'Credits…',

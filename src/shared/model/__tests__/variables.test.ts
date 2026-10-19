@@ -9,6 +9,7 @@ import {
   palette,
   parseImageAttrs,
   resolveColor,
+  resolveFont,
   variableFields,
   type Variables
 } from '../variables'
@@ -109,5 +110,37 @@ describe('image attributes', () => {
   it('substitutes a field name followed by attributes', () => {
     expect(substituteFields('{icona tint=red}', { icona: 'spada' })).toBe('{spada tint=red}')
     expect(substituteFields('{spada*n tint=red}', { n: '3' })).toBe('{spada*3 tint=red}')
+  })
+})
+
+describe('variabili nel font', () => {
+  const vars: Variables = {
+    titoli: { type: 'text', text: 'Open Sans' },
+    corpo: { type: 'text', text: '{titoli}' }
+  }
+  const t = normalizeTemplate({
+    name: 't',
+    front: [
+      {
+        type: 'text',
+        name: 'nome',
+        font: '{titoli}',
+        text: 'Il [drago]{font={corpo}} e [altro]{font=Cinzel}'
+      }
+    ]
+  })
+
+  it('il font di un livello e font= nel markup prendono il testo della variabile', () => {
+    const bound = bindCard(t, rowToCard([], []), { variables: vars, hasFont: () => true })
+    const l = bound.template.front[0] as TextLayer
+    expect(l.font).toBe('Open Sans')
+    // nel markup gli spazi diventano _ come in font=Open_Sans
+    expect(l.text).toBe('Il [drago]{font=Open_Sans} e [altro]{font=Cinzel}')
+  })
+
+  it('resolveFont risolve solo i nomi tra graffe di variabili note', () => {
+    expect(resolveFont('{corpo}', vars)).toBe('Open Sans')
+    expect(resolveFont('titoli', vars)).toBe('titoli')
+    expect(resolveFont('{boh}', vars)).toBe('{boh}')
   })
 })

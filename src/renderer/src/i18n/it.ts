@@ -132,6 +132,7 @@ export const it: Record<MessageKey, string> = {
   'editor.clipHint':
     'Metti in fondo al gruppo una forma (es. un cerchio): i livelli sopra si vedono solo dentro quella forma, che non viene disegnata.',
   'editor.srcPlaceholder': "nome dell'immagine, o {campo}",
+  'editor.fontFromVariable': 'Dalla variabile: {font}',
   'editor.fontMissing':
     'Il font non è in assets/fonts né installato sul computer: il testo usa un font predefinito. Copia il file del font in assets/fonts e ricarica il progetto.',
   'credits.open': 'Crediti…',

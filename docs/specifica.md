@@ -166,7 +166,7 @@ L'interfaccia è in inglese, con la traduzione italiana come prima lingua aggiun
 
 ### 2.3 Font
 
-Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livello o nel markup (`font=Open_Sans`).
+Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livello o nel markup (`font=Open_Sans`). Al posto del nome si può scrivere una variabile di testo tra graffe, `{titoli}`, nel campo del font, negli stili e nel markup (`font={titoli}`): cambiando il testo della variabile cambia il font di tutti i livelli che la usano, come per le variabili colore. Il campo del font propone le variabili di testo e mostra il font che ne risulta.
 
 - I file di font del progetto stanno in `assets/fonts/` (`.ttf`, `.otf`, `.woff`, `.woff2`), anche in sottocartelle. All'apertura del progetto l'app legge da ogni file famiglia, peso e stile, compresi i font variabili, e li usa in anteprima e nell'esportazione; dopo aver copiato un font serve **Ricarica**. Se un file non si legge, la famiglia è il nome della sottocartella (`fonts/Open Sans/...`) o la parte del nome del file prima di `-`.
 - Nunito, il font predefinito, è incluso nell'app e funziona senza rete.

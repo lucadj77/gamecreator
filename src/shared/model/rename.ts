@@ -45,6 +45,8 @@ function renameInBraces(
         const name = star < 0 ? tok : tok.slice(0, star)
         if (name === from) return to + (star < 0 ? '' : tok.slice(star))
       }
+      // font={titoli} negli stili: senza graffe il valore è il nome di una famiglia
+      if (tok === `font={${from}}`) return `font={${to}}`
       // color=rosso, border=rosso/0.3, bg=scudo
       const eq = tok.indexOf('=')
       if (eq > 0 && VALUE_KEYS.has(tok.slice(0, eq))) {

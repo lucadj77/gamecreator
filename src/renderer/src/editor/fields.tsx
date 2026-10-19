@@ -1,7 +1,7 @@
 import type { MessageKey } from '../i18n/en'
 import { useContext, useId, useMemo, useState } from 'react'
 import { smoothCss } from '../render/smoothGradient'
-import { palette, resolveColor } from '../../../shared/model/variables'
+import { palette, resolveColor, resolveFont } from '../../../shared/model/variables'
 import { VariablesContext } from '../render/assets'
 import type { Fade, Shadow, Stroke } from '../../../shared/model/template'
 import {
@@ -216,7 +216,13 @@ export function FontField({
   const fonts = useProjectFonts()
   const listId = useId()
   const [picking, setPicking] = useState(false)
+  const variables = useContext(VariablesContext)
   const families = [...new Set([...fonts.families, ...APP_FONTS])]
+  // le variabili di testo si propongono come {nome}: cambiandole cambia il font di tutti i livelli
+  const textVars = Object.entries(variables ?? {})
+    .filter(([, v]) => v.type === 'text')
+    .map(([name]) => `{${name}}`)
+  const resolved = resolveFont(value, variables)
   return (
     <>
       <TextField
@@ -238,11 +244,16 @@ export function FontField({
       />
       {picking && <FontPicker value={value} onPick={onChange} onClose={() => setPicking(false)} />}
       <datalist id={listId}>
-        {families.map((f) => (
+        {[...textVars, ...families].map((f) => (
           <option key={f} value={f} />
         ))}
       </datalist>
-      {value.trim() && !fonts.has(value) && <p className="field-note">{t('editor.fontMissing')}</p>}
+      {resolved !== value && (
+        <p className="field-note">{t('editor.fontFromVariable', { font: resolved })}</p>
+      )}
+      {resolved.trim() && !/^\{.*\}$/.test(resolved.trim()) && !fonts.has(resolved) && (
+        <p className="field-note">{t('editor.fontMissing')}</p>
+      )}
     </>
   )
 }

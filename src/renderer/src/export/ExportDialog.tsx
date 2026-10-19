@@ -910,7 +910,10 @@ function missingFonts(project: LoadedProject, sets: ExportSet[], hasFont: FontCh
     for (const c of set.cards)
       for (const l of walkLayers([...c.template.front, ...c.template.back])) {
         if (l.type !== 'text' || !l.visible) continue
-        for (const f of [l.font, ...markupFonts(l.text, project.file.styles)])
+        for (const f of [
+          l.font,
+          ...markupFonts(l.text, project.file.styles, project.file.variables)
+        ])
           if (f.trim() && !isGenericFont(f) && !hasFont(f)) out.add(f)
       }
   return [...out].sort()

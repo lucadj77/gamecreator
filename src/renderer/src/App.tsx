@@ -1,3 +1,4 @@
+import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedProject, LoadedSet, ProjectFile, Sheet } from '../../shared/project'
@@ -156,6 +157,7 @@ function App(): React.JSX.Element {
   const [editingVariable, setEditingVariable] = useState<string | null>(null)
   const [creatingSet, setCreatingSet] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [backingUp, setBackingUp] = useState(false)
   const [importing, setImporting] = useState(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
@@ -979,6 +981,9 @@ function App(): React.JSX.Element {
                   <button onClick={() => setExporting(true)} title={t('tip.export')}>
                     {t('app.export')}
                   </button>
+                  <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
+                    {t('app.backup')}
+                  </button>
                   <span className="toolbar-group">
                     <button
                       className="primary"
@@ -1158,6 +1163,17 @@ function App(): React.JSX.Element {
                   load(folder)
                 }}
                 onClose={() => setImporting(false)}
+              />
+            )}
+            {backingUp && project && (
+              <BackupDialog
+                dirty={anyDirty}
+                onSave={saveAll}
+                onRestored={(folder) => {
+                  setBackingUp(false)
+                  if (discardOk()) load(folder)
+                }}
+                onClose={() => setBackingUp(false)}
               />
             )}
             {exporting && project && (

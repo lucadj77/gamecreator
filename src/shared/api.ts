@@ -33,6 +33,33 @@ export interface RecentProject {
 }
 
 /** API esposta dal preload al renderer come window.api */
+export interface BackupSettings {
+  /** Cartella dei backup; vuota per quella di base (Documenti/Naibi/Backup) */
+  folder: string
+  /** Backup automatico all'apertura del progetto */
+  auto: boolean
+  /** Quanti backup automatici tenere per progetto */
+  keep: number
+}
+
+export interface BackupItem {
+  file: string
+  name: string
+  /** Data del backup, in millisecondi */
+  date: number
+  size: number
+  auto: boolean
+}
+
+export interface BackupState {
+  /** Cartella dei backup del progetto aperto */
+  folder: string
+  /** Cartella di base, quando settings.folder è vuota */
+  defaultFolder: string
+  settings: BackupSettings
+  items: BackupItem[]
+}
+
 export interface Api {
   chooseProjectFolder(): Promise<string | null>
   /** Progetti aperti di recente, dal più recente */
@@ -85,6 +112,13 @@ export interface Api {
   saveCredits(text: string): Promise<string>
   /** Sceglie una cartella qualsiasi, partendo da current */
   chooseFolder(current?: string): Promise<string | null>
+  /** Backup del progetto aperto e impostazioni */
+  backups(): Promise<BackupState>
+  /** Crea subito un backup del progetto aperto (dei file salvati) */
+  createBackup(): Promise<BackupItem>
+  saveBackupSettings(settings: BackupSettings): Promise<BackupState>
+  /** Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso */
+  restoreBackup(file: string): Promise<string>
   /** Cartella proposta per un progetto Tabletop Creator convertito */
   defaultTtcTarget(source: string): Promise<string>
   /** Converte un progetto Tabletop Creator in un progetto nuovo; l'originale non si modifica */

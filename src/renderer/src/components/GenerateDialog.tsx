@@ -20,7 +20,7 @@ import MarkupText from '../render/MarkupText'
 import Segmented from './Segmented'
 
 // Generatore di carte: insiemi di valori → tutte le combinazioni come righe del set.
-// Vedi docs/specifica.md, sezione 7.2.
+// Vedi docs/specifica.md, sezione 8.3.
 
 const PREVIEW_ROWS = 8
 

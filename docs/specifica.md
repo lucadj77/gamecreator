@@ -462,3 +462,14 @@ All'avvio l'app mostra la schermata di ingresso, non l'ultimo progetto aperto. C
 La miniatura è la prima carta del primo set che ha carte (altrimenti il primo template), disegnata come nell'esportazione. Si crea alla prima apertura e si aggiorna a ogni salvataggio. Elenco e miniature stanno nei dati dell'app (`recent-projects.json` e `thumbnails/` nella cartella dati utente di Electron), non nel progetto: aprire un progetto non scrive nulla nella sua cartella.
 
 Nel progetto, la barra in alto ha nome e cartella del progetto, **Esporta…** e, vicini, **Salva**, **Ricarica** e **Chiudi**; **Chiudi** torna alla schermata di ingresso e chiede conferma se ci sono modifiche non salvate.
+
+## 12. Backup
+
+**Backup…** nella barra in alto apre la finestra dei backup del progetto aperto.
+
+- Un backup è un file zip con i file salvati del progetto, senza la cartella `export` e senza i file nascosti. Si chiama `<progetto> <data> <ora>.zip`, con `auto` alla fine se è automatico.
+- I backup stanno fuori dal progetto, in una sottocartella con il nome del progetto dentro la cartella dei backup (di base `Documenti/Naibi/Backup`, modificabile). Così non finiscono nei backup successivi e non occupano spazio nella cartella del progetto.
+- **Automatici.** Di base, all'apertura di un progetto si crea un backup, a meno che l'ultimo abbia meno di un'ora; si tengono gli ultimi 10 automatici per progetto (numero modificabile). I backup fatti a mano non si cancellano mai da soli. Il backup automatico non ritarda l'apertura.
+- **A mano.** **Crea un backup ora**; se ci sono modifiche non salvate, il pulsante diventa **Salva e crea un backup**.
+- **Ripristino.** Estrae il backup in una cartella nuova accanto al progetto, con il nome del backup, e la apre. Il progetto attuale non si modifica, quindi un ripristino non fa perdere nulla.
+- Le impostazioni (automatico sì o no, quanti tenerne, cartella) valgono per tutti i progetti e stanno nei dati dell'app, non nel progetto.

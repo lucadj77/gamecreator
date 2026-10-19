@@ -2662,3 +2662,49 @@ div.font-row {
   align-items: center;
   min-height: 22px;
 }
+
+/* backup */
+.backup-dialog {
+  width: min(560px, 90vw);
+}
+.backup-actions,
+.backup-folder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.backup-list {
+  width: 100%;
+  margin: 12px 0;
+  border-collapse: collapse;
+}
+.backup-list td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.backup-list td:last-child {
+  text-align: right;
+}
+.backup-settings {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.backup-folder code {
+  font-size: 12px;
+  word-break: break-all;
+}
+.dialog:has(> .backup-dialog) {
+  max-width: none;
+}
+.backup-intro {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+.backup-settings label:not(.check) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

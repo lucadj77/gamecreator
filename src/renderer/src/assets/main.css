@@ -899,6 +899,20 @@ textarea.invalid {
   margin-bottom: 6px;
 }
 
+.fade-preview {
+  height: 14px;
+  margin: 2px 0 4px;
+  border-radius: 3px;
+  background-size:
+    100% 100%,
+    8px 8px,
+    8px 8px;
+  background-position:
+    0 0,
+    0 0,
+    4px 4px;
+}
+
 .gradient-field {
   margin: 0 0 6px 16px;
 }
@@ -2498,4 +2512,18 @@ div.font-row {
 .set-template select {
   font-size: inherit;
   padding: 1px 4px;
+}
+
+.slider-row {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.slider-row input[type='range'] {
+  flex: 1;
+  width: 0;
+  min-width: 0;
 }

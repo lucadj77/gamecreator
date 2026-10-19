@@ -274,7 +274,8 @@ export function duplicateLayer(t: Template, l: Layer): Layer {
 export function newLayer(t: Template, type: LayerType, shape?: string): Layer {
   // testo largo e basso, forme e immagini quadrate
   const w = Math.round(t.width * (type === 'text' ? 0.6 : 0.4))
-  const h = type === 'text' ? 10 : w
+  // una linea è orizzontale: il riquadro alto 0 serve solo a selezionarla
+  const h = type === 'text' ? 10 : shape === 'line' ? 0 : w
   const base = {
     x: Math.round((t.width - w) / 2),
     y: Math.round((t.height - h) / 2),

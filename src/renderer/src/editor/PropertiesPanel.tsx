@@ -20,11 +20,13 @@ import type {
   ValueLayer
 } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
+import { lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
 import { cardFields, rowToCard, substituteFields, switchSource } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
-import { AssetsContext } from '../render/assets'
+import { AssetsContext, assetUrl } from '../render/assets'
+import { traceImage } from '../render/traceImage'
 import {
   CheckField,
   ColorField,
@@ -189,12 +191,10 @@ function TemplateProperties({
         />
       )}
       {tpl.shape === 'path' && (
-        <TextField
-          label={t('prop.path')}
-          hint={t('editor.cardPathHint')}
-          value={tpl.shapePath ?? ''}
-          multiline
-          onChange={(shapePath) => set({ shapePath }, 'shapePath')}
+        <OutlineField
+          hint={t('editor.cardOutlineHint')}
+          empty={!tpl.shapePath?.trim()}
+          onTraced={({ path }) => set({ shapePath: path }, 'shapePath')}
         />
       )}
       <GuideFields template={tpl} set={set} />
@@ -285,6 +285,51 @@ function LayerProperties({
       {l.type === 'group' && <GroupProperties l={l as GroupLayer} set={set} col={col} />}
 
       {l.type !== 'value' && <DrawnProperties l={l} set={set} col={col} />}
+    </>
+  )
+}
+
+/** Forma presa dal contorno di un'immagine del progetto */
+function OutlineField({
+  hint,
+  empty,
+  onTraced
+}: {
+  hint: string
+  empty: boolean
+  onTraced(r: { path: string; ratio: number }): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const assets = useContext(AssetsContext)
+  const [picking, setPicking] = useState(false)
+  const [error, setError] = useState(false)
+  const pick = async (name: string): Promise<void> => {
+    setPicking(false)
+    const r = resolveAsset(name, assets)
+    try {
+      if (!r.ok) throw new Error(name)
+      const traced = await traceImage(assetUrl(r.path))
+      if (!traced.path) throw new Error(name)
+      setError(false)
+      onTraced(traced)
+    } catch {
+      setError(true)
+    }
+  }
+  return (
+    <>
+      <div className="field">
+        <span className="field-label">{t('prop.outline')}</span>
+        <div className="field-control">
+          <button type="button" className="small-btn" onClick={() => setPicking(true)}>
+            {t('editor.outlinePick')}
+          </button>
+          {empty && <span className="muted small">{t('editor.outlineEmpty')}</span>}
+        </div>
+      </div>
+      {error && <p className="field-error">{t('editor.outlineFailed')}</p>}
+      <p className="muted small">{hint}</p>
+      {picking && <AssetPicker value="" onPick={pick} onClose={() => setPicking(false)} />}
     </>
   )
 }
@@ -433,24 +478,58 @@ const ALIGNS = ['start', 'center', 'end'] as const
 function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): React.JSX.Element {
   const { t } = useI18n()
   const [locked, setLocked] = useRatioLock(l.type as LockKind)
+  const line = l.type === 'shape' && l.shape === 'line'
+  const [a, b] = lineEnds(l)
+  const ends = (p: Point, q: Point): void => set(lineFromEnds(l, p, q))
+  const r = (v: number): number => Math.round(v * 100) / 100
   return (
     <>
       <h3>{t('editor.geometry')}</h3>
-      <div className="field-grid">
-        <NumberField label="X" hint={col('x')} value={l.x} unit="mm" onChange={(x) => set({ x })} />
-        <NumberField label="Y" hint={col('y')} value={l.y} unit="mm" onChange={(y) => set({ y })} />
-        <SizeFields
-          labels={[t('prop.w'), t('prop.h')]}
-          hints={[col('w'), col('h')]}
-          w={l.w}
-          h={l.h}
-          min={0.5}
-          unit="mm"
-          locked={locked}
-          onLock={setLocked}
-          onChange={(w, h) => set({ w, h })}
-        />
-      </div>
+      {line ? (
+        <div className="field-grid">
+          <NumberField label="Ax" value={r(a.x)} unit="mm" onChange={(x) => ends({ ...a, x }, b)} />
+          <NumberField label="Ay" value={r(a.y)} unit="mm" onChange={(y) => ends({ ...a, y }, b)} />
+          <NumberField label="Bx" value={r(b.x)} unit="mm" onChange={(x) => ends(a, { ...b, x })} />
+          <NumberField label="By" value={r(b.y)} unit="mm" onChange={(y) => ends(a, { ...b, y })} />
+          <NumberField
+            label="L"
+            hint={t('prop.length')}
+            value={r(l.w)}
+            min={0}
+            unit="mm"
+            onChange={(w) => set({ w })}
+          />
+        </div>
+      ) : (
+        <div className="field-grid">
+          <NumberField
+            label="X"
+            hint={col('x')}
+            value={l.x}
+            unit="mm"
+            onChange={(x) => set({ x })}
+          />
+          <NumberField
+            label="Y"
+            hint={col('y')}
+            value={l.y}
+            unit="mm"
+            onChange={(y) => set({ y })}
+          />
+          <SizeFields
+            labels={[t('prop.w'), t('prop.h')]}
+            hints={[col('w'), col('h')]}
+            w={l.w}
+            h={l.h}
+            min={0.5}
+            unit="mm"
+            locked={locked}
+            onLock={setLocked}
+            onChange={(w, h) => set({ w, h })}
+          />
+        </div>
+      )}
+      {line && <p className="muted small">{t('editor.lineHint')}</p>}
       <NumberField
         label={t('prop.rotation')}
         hint={col('rotation')}
@@ -1028,12 +1107,11 @@ function ShapeProperties({
         />
       )}
       {l.shape === 'path' && (
-        <TextField
-          label={t('prop.path')}
-          hint={t('editor.pathHint')}
-          value={l.path}
-          multiline
-          onChange={(path) => set({ path })}
+        <OutlineField
+          hint={t('editor.outlineHint')}
+          empty={!l.path.trim()}
+          // l'altezza segue le proporzioni dell'immagine
+          onTraced={({ path, ratio }) => set({ path, h: Math.round((l.w / ratio) * 100) / 100 })}
         />
       )}
     </>

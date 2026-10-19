@@ -219,3 +219,42 @@ export function hexagonPoints(x: number, y: number, w: number, h: number): Point
     ? [p(0.25, 0), p(0.75, 0), p(1, 0.5), p(0.75, 1), p(0.25, 1), p(0, 0.5)]
     : [p(0.5, 0), p(1, 0.25), p(1, 0.75), p(0.5, 1), p(0, 0.75), p(0, 0.25)]
 }
+
+/**
+ * Estremi di una linea: il segmento orizzontale a metà altezza del riquadro, ruotato con il
+ * livello. Il riquadro serve solo a selezionarla.
+ */
+export function lineEnds(l: LayerBase): [Point, Point] {
+  const c = anchorPoint(l)
+  const y = l.y + l.h / 2
+  return [
+    rotateAround({ x: l.x, y }, c, l.rotation),
+    rotateAround({ x: l.x + l.w, y }, c, l.rotation)
+  ]
+}
+
+/** Posizione, lunghezza e rotazione di una linea da A a B, tenendo altezza e ancoraggio */
+export function lineFromEnds(
+  l: LayerBase,
+  a: Point,
+  b: Point
+): Pick<LayerBase, 'x' | 'y' | 'w' | 'rotation'> {
+  const w = Math.hypot(b.x - a.x, b.y - a.y)
+  const rotation = w ? normalizeAngle((Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI) : 0
+  // frazioni del punto di ancoraggio nel riquadro
+  const probe = anchorPoint({ ...l, x: 0, y: 0, w: 1, h: 1 })
+  const h = l.h
+  // A è l'estremo sinistro del segmento non ruotato: A = P + R·(A₀ − P)
+  const r = (rotation * Math.PI) / 180
+  const dx = -probe.x * w
+  const dy = h / 2 - probe.y * h
+  const px = a.x - (dx * Math.cos(r) - dy * Math.sin(r))
+  const py = a.y - (dx * Math.sin(r) + dy * Math.cos(r))
+  const round = (v: number): number => Math.round(v * 1000) / 1000
+  return {
+    x: round(px - probe.x * w),
+    y: round(py - probe.y * h),
+    w: round(w),
+    rotation: round(rotation)
+  }
+}

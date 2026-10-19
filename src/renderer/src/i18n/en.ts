@@ -128,8 +128,6 @@ export const en = {
   'editor.lockedHint': 'A locked layer cannot be selected or moved on the card',
   'editor.clipHint':
     'Put a shape (e.g. a circle) at the bottom of the group: the layers above it show only inside that shape, and the shape itself is not drawn.',
-  'editor.pathHint':
-    'Free shape described as an SVG path (commands M, L, C, Z) in 0–1 coordinates of the layer box, e.g. M0 0 L1 0 L0.5 1 Z is a triangle. Meant for shapes imported from TTC or copied from a drawing program; a drawing tool will come later.',
   'editor.srcPlaceholder': 'image name, or {field}',
   'editor.fontMissing':
     'This font is not in assets/fonts nor installed on this computer: the text uses a default font. Copy the font file into assets/fonts and reload the project.',
@@ -358,7 +356,6 @@ export const en = {
   'shape.polygon': 'Polygon',
   'shape.star': 'Star',
   'shape.line': 'Line',
-  'shape.path': 'Path',
   'tool.text': 'Text (T)',
   'tool.image': 'Image',
   'tool.rect': 'Rectangle (R)',
@@ -377,9 +374,6 @@ export const en = {
   'cardShape.rect': 'Rectangle',
   'cardShape.ellipse': 'Circle or ellipse',
   'cardShape.hexagon': 'Hexagon',
-  'cardShape.path': 'Custom path',
-  'editor.cardPathHint':
-    'SVG path in 0–1 coordinates of the card, like a shape layer path. Example: M0.5 0 L1 1 L0 1 Z',
   'editor.guides': 'Guides',
   'editor.guideV': 'Vertical guide',
   'editor.guideH': 'Horizontal guide',
@@ -389,6 +383,19 @@ export const en = {
   'editor.guidesHint':
     'Layers snap to guides when snapping to objects is on. Drag a guide on the card to move it; drag it off the card to remove it.',
   'editor.guideDragHint': 'Drag to move, off the card to remove',
+  'prop.length': 'Length',
+  'editor.lineHint':
+    'A line goes from point A to point B: drag its ends on the card (Shift keeps the angle on steps of 15°).',
+  'prop.outline': 'Silhouette',
+  'editor.outlinePick': 'Choose image…',
+  'editor.outlineEmpty': 'no image chosen yet',
+  'editor.outlineFailed': 'No outline found in this image.',
+  'editor.outlineHint':
+    'The shape takes the outline of a project image (PNG with transparency or SVG; in images without transparency, the dark parts). The height follows the image proportions.',
+  'editor.cardOutlineHint':
+    'The card takes the outline of a project image (PNG with transparency or SVG; in images without transparency, the dark parts), stretched to the card size: set width and height with the image proportions.',
+  'shape.path': 'From an image',
+  'cardShape.path': 'From an image',
   'prop.cornerRadius': 'Corner radius',
   'prop.w': 'W',
   'prop.h': 'H',
@@ -444,11 +451,20 @@ export const en = {
   'fill.removeStop': 'Remove this color',
   'fill.addStop': '+ Color',
   'prop.fade': 'Fade',
-  'fade.from': 'From',
-  'fade.to': 'To',
-  'fade.opacity': 'Opacity in %',
-  'fade.opacityUnit': '% opacity at',
-  'fade.positionUnit': '%',
+  'fade.dir.down': 'Fades out downwards',
+  'fade.dir.up': 'Fades out upwards',
+  'fade.dir.right': 'Fades out to the right',
+  'fade.dir.left': 'Fades out to the left',
+  'fade.dir.out': 'From the center to the edges',
+  'fade.dir.in': 'From the edges to the center',
+  'fade.dir.angle': 'At an angle…',
+  'fade.start': 'Starts at',
+  'fade.end': 'Ends at',
+  'fade.faint': 'Opacity at the end',
+  'fade.preview': 'Opacity from start to end of the layer',
+  'fade.linearHint':
+    'Positions go along the layer in the chosen direction: before "starts at" the layer is fully visible, after "ends at" it has the final opacity.',
+  'fade.radialHint': 'Positions go from the center (0%) to the corners (100%) of the layer.',
   'editor.fadeHint':
     'The layer fades from one opacity to the other along a direction, or from the center outwards',
   'prop.opacity': 'Opacity',

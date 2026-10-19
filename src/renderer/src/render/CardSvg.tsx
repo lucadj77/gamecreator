@@ -1,5 +1,6 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { arrangeGroup } from '../../../shared/model/arrange'
+import { smoothStops } from './smoothGradient'
 import { resolveAsset } from '../../../shared/model/assets'
 import {
   anchorPoint,
@@ -342,7 +343,14 @@ function GradientDef({
   gradient: Gradient
   box: { x: number; y: number; w: number; h: number }
 }): React.JSX.Element {
-  const stops = g.stops.map((s, i) => <stop key={i} offset={s.at} stopColor={s.color} />)
+  const stops = smoothStops(g.stops).map((s, i) => (
+    <stop
+      key={i}
+      offset={s.at}
+      stopColor={s.color}
+      stopOpacity={s.opacity < 1 ? s.opacity : undefined}
+    />
+  ))
   return (
     <defs>
       {g.kind === 'linear' ? (
@@ -401,9 +409,9 @@ function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): Rea
       return (
         <line
           x1={l.x}
-          y1={l.y}
+          y1={l.y + l.h / 2}
           x2={l.x + l.w}
-          y2={l.y + l.h}
+          y2={l.y + l.h / 2}
           {...strokeProps(
             l.stroke ?? { color: isGradient(l.fill) ? '#000' : (l.fill ?? '#000'), width: 0.3 }
           )}

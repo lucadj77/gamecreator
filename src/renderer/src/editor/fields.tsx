@@ -1,4 +1,6 @@
+import type { MessageKey } from '../i18n/en'
 import { useContext, useId, useMemo, useState } from 'react'
+import { smoothCss } from '../render/smoothGradient'
 import { palette, resolveColor } from '../../../shared/model/variables'
 import { VariablesContext } from '../render/assets'
 import type { Fade, Shadow, Stroke } from '../../../shared/model/template'
@@ -639,9 +641,7 @@ export function FillField({
         <div className="gradient-field">
           <div
             className="gradient-preview"
-            style={{
-              background: value?.replace(/^radial-gradient\(/, 'radial-gradient(closest-corner, ')
-            }}
+            style={{ background: smoothCss(g.kind, g.angle, g.stops) }}
           />
           <Row label={t('fill.kind')}>
             <select
@@ -724,6 +724,28 @@ export function FillField({
 }
 
 /** Dissolvenza dell'opacità del livello */
+type FadeDirection = 'down' | 'up' | 'right' | 'left' | 'angle' | 'out' | 'in'
+
+const FADE_ANGLES: Partial<Record<FadeDirection, number>> = {
+  down: 180,
+  up: 0,
+  right: 90,
+  left: 270
+}
+
+/** Direzione della dissolvenza come la si sceglie nel pannello */
+function fadeDirection(f: Fade): FadeDirection {
+  if (f.kind === 'radial') return f.from >= f.to ? 'out' : 'in'
+  const d = (Object.keys(FADE_ANGLES) as FadeDirection[]).find(
+    (k) => FADE_ANGLES[k] === ((f.angle % 360) + 360) % 360
+  )
+  return d ?? 'angle'
+}
+
+/**
+ * Dissolvenza: il livello diventa trasparente in una direzione. Si scelgono la direzione, dove
+ * comincia e dove finisce la dissolvenza, e quanto resta visibile alla fine.
+ */
 export function FadeFields({
   value,
   onChange,
@@ -735,10 +757,53 @@ export function FadeFields({
 }): React.JSX.Element {
   const { t } = useI18n()
   const pct = (v: number): number => Math.round(v * 100)
-  const num = (s: string): number | null => {
-    const n = parseNumber(s)
-    return n === null ? null : Math.max(0, Math.min(1, n / 100))
+  const dir = value ? fadeDirection(value) : 'down'
+  // il lato trasparente: 'to' per tutte le direzioni tranne "dai bordi verso il centro"
+  const faint = value ? (dir === 'in' ? value.from : value.to) : 0
+  const setDir = (d: FadeDirection): void => {
+    if (!value) return
+    if (d === 'out') onChange({ ...value, kind: 'radial', from: 1, to: faint })
+    else if (d === 'in') onChange({ ...value, kind: 'radial', from: faint, to: 1 })
+    else
+      onChange({
+        ...value,
+        kind: 'linear',
+        angle: FADE_ANGLES[d] ?? value.angle,
+        from: 1,
+        to: faint
+      })
   }
+  const setFaint = (v: number): void => {
+    if (!value) return
+    onChange(dir === 'in' ? { ...value, from: v } : { ...value, to: v })
+  }
+  const slider = (label: MessageKey, v: number, set: (n: number) => void): React.JSX.Element => (
+    <Row label={t(label)}>
+      <span className="slider-row">
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={pct(v)}
+          onChange={(e) => set(Number(e.target.value) / 100)}
+        />
+        <input
+          className="num narrow"
+          type="number"
+          min={0}
+          max={100}
+          value={pct(v)}
+          onChange={(e) => {
+            const n = parseNumber(e.target.value)
+            if (n !== null) set(Math.max(0, Math.min(1, n / 100)))
+          }}
+        />
+        <span className="unit">%</span>
+      </span>
+    </Row>
+  )
+  const a = value ? pct(value.from) / 100 : 1
+  const b = value ? pct(value.to) / 100 : 0
   return (
     <>
       <Row label={t('prop.fade')} hint={hint}>
@@ -755,72 +820,51 @@ export function FadeFields({
           }
         />
         {value ? (
-          <>
-            <select
-              value={value.kind}
-              onChange={(e) => onChange({ ...value, kind: e.target.value as Fade['kind'] })}
-            >
-              <option value="linear">{t('fill.linear')}</option>
-              <option value="radial">{t('fill.radial')}</option>
-            </select>
-            {value.kind === 'linear' && (
-              <>
-                <input
-                  className="num narrow"
-                  type="number"
-                  step={15}
-                  title={t('fill.angle')}
-                  value={value.angle}
-                  onChange={(e) => {
-                    const a = parseNumber(e.target.value)
-                    if (a !== null) onChange({ ...value, angle: a })
-                  }}
-                />
-                <span className="unit">°</span>
-              </>
-            )}
-          </>
+          <select value={dir} onChange={(e) => setDir(e.target.value as FadeDirection)}>
+            {(['down', 'up', 'right', 'left', 'out', 'in', 'angle'] as const).map((d) => (
+              <option key={d} value={d}>
+                {t(`fade.dir.${d}` as MessageKey)}
+              </option>
+            ))}
+          </select>
         ) : (
           <span className="muted">{t('field.none')}</span>
         )}
       </Row>
       {value && (
         <div className="field-group">
-          {(
-            [
-              ['from', 'start', 'fade.from'],
-              ['to', 'end', 'fade.to']
-            ] as const
-          ).map(([op, at, label]) => (
-            <Row key={op} label={t(label)}>
+          {dir === 'angle' && (
+            <Row label={t('fill.angle')}>
               <input
                 className="num narrow"
                 type="number"
-                min={0}
-                max={100}
-                title={t('fade.opacity')}
-                value={pct(value[op])}
+                step={15}
+                value={value.angle}
                 onChange={(e) => {
-                  const v = num(e.target.value)
-                  if (v !== null) onChange({ ...value, [op]: v })
+                  const n = parseNumber(e.target.value)
+                  if (n !== null) onChange({ ...value, angle: n })
                 }}
               />
-              <span className="unit">{t('fade.opacityUnit')}</span>
-              <input
-                className="num narrow"
-                type="number"
-                min={0}
-                max={100}
-                title={t('fill.position')}
-                value={pct(value[at])}
-                onChange={(e) => {
-                  const v = num(e.target.value)
-                  if (v !== null) onChange({ ...value, [at]: v })
-                }}
-              />
-              <span className="unit">{t('fade.positionUnit')}</span>
+              <span className="unit">°</span>
             </Row>
-          ))}
+          )}
+          {slider('fade.start', value.start, (start) =>
+            onChange({ ...value, start: Math.min(start, value.end) })
+          )}
+          {slider('fade.end', value.end, (end) =>
+            onChange({ ...value, end: Math.max(end, value.start) })
+          )}
+          {slider('fade.faint', faint, setFaint)}
+          <div
+            className="fade-preview"
+            title={t('fade.preview')}
+            style={{
+              backgroundImage: `linear-gradient(to right, rgba(60,60,60,${a}) ${pct(value.start)}%, rgba(60,60,60,${b}) ${pct(value.end)}%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)`
+            }}
+          />
+          <p className="muted small">
+            {t(dir === 'out' || dir === 'in' ? 'fade.radialHint' : 'fade.linearHint')}
+          </p>
         </div>
       )}
     </>

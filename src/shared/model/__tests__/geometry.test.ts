@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  lineEnds,
+  lineFromEnds,
   hexagonPoints,
   anchorPoint,
   hitTest,
@@ -111,5 +113,24 @@ describe('esagono della carta', () => {
     expect(hexagonPoints(0, 0, 40, 30)[0]).toEqual({ x: 10, y: 0 })
     expect(hexagonPoints(0, 0, 30, 40)[0]).toEqual({ x: 15, y: 0 })
     expect(hexagonPoints(0, 0, 30, 40)).toHaveLength(6)
+  })
+})
+
+describe('linea da A a B', () => {
+  it('ricava posizione, lunghezza e angolo dagli estremi e viceversa', () => {
+    const l = normalizeLayer({ type: 'shape', shape: 'line', x: 0, y: 0, w: 10, h: 0 }, 0)
+    const A = { x: 10, y: 20 }
+    const B = { x: 40, y: 60 }
+    const placed = { ...l, ...lineFromEnds(l, A, B) }
+    expect(placed.w).toBeCloseTo(50)
+    const [a, b] = lineEnds(placed)
+    expect(a.x).toBeCloseTo(10)
+    expect(a.y).toBeCloseTo(20)
+    expect(b.x).toBeCloseTo(40)
+    expect(b.y).toBeCloseTo(60)
+    // con l'ancoraggio in alto a sinistra gli estremi restano gli stessi
+    const corner = { ...l, anchor: 'top-left' as const, h: 4 }
+    const [c, d] = lineEnds({ ...corner, ...lineFromEnds(corner, A, B) })
+    expect([c.x, c.y, d.x, d.y].map((v) => Math.round(v * 1000) / 1000)).toEqual([10, 20, 40, 60])
   })
 })

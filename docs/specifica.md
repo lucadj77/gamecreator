@@ -23,7 +23,7 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 
 Stato (ottobre 2026): fusione e vincoli ci sono. I vincoli si applicano quando si cambia il formato del template scegliendo "lascia i livelli"; "scala" ridimensiona il livello in proporzione alla carta. Nei gruppi vale il vincolo di ciascun figlio. Nelle celle il contorno si scrive `colore/spessore/tratteggio`, per esempio `red/0.3/dashed` o `#333/0.5/dotted`.
 
-La dissolvenza dell'opacità (pannello Aspetto) rende il livello trasparente in modo graduale: lineare con un angolo, o radiale dal centro, con l'opacità di inizio e di fine e i punti in cui inizia e finisce (0–100%). Non si imposta dal foglio.
+La dissolvenza dell'opacità (pannello Aspetto) rende il livello trasparente in modo graduale. Si sceglie la direzione (verso il basso, l'alto, destra, sinistra, con un angolo, verso i bordi o verso il centro) e con tre cursori dove comincia, dove finisce e quanto resta visibile alla fine; una barra mostra l'effetto. Non si imposta dal foglio.
 
 ## 2. Testo
 
@@ -202,15 +202,15 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 
 ## 4. Forma
 
-| Proprietà     | Valori                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
-| tipo          | rettangolo, ellisse, poligono regolare (n lati), stella (n punte, rapporto interno), linea, tracciato libero |
-| raggio angoli | mm, uguale o diverso per ogni angolo                                                                         |
-| riempimento ◆ | nessuno, colore, gradiente lineare o radiale, immagine ripetuta                                              |
-| contorno ◆    | colore, spessore, posizione (interno, centrato, esterno), tratteggio, terminazioni                           |
-| punti         | modificabili sulla tela per poligoni e tracciati                                                             |
+| Proprietà     | Valori                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------- |
+| tipo          | rettangolo, ellisse, poligono regolare (n lati), stella (n punte, rapporto interno), linea, da un'immagine |
+| raggio angoli | mm, uguale o diverso per ogni angolo                                                                       |
+| riempimento ◆ | nessuno, colore, gradiente lineare o radiale, immagine ripetuta                                            |
+| contorno ◆    | colore, spessore, posizione (interno, centrato, esterno), tratteggio, terminazioni                         |
+| punti         | modificabili sulla tela per poligoni e tracciati                                                           |
 
-Stato (ottobre 2026): il riempimento accetta un colore o un gradiente in sintassi CSS, sia nel pannello sia nelle celle: `linear-gradient(90deg, #A33A2A, #FFD27A 70%)` o `radial-gradient(white, rosso)`. Nei gradienti si possono usare le variabili di colore. L'immagine ripetuta come riempimento non c'è: si ottiene con un livello immagine in modalità "ripeti".
+Stato (ottobre 2026): il riempimento accetta un colore o un gradiente in sintassi CSS, sia nel pannello sia nelle celle: `linear-gradient(90deg, #A33A2A, #FFD27A 70%)` o `radial-gradient(white, rosso)`. Nei gradienti si possono usare le variabili di colore. Il passaggio tra due colori è ammorbidito: si mescolano in OKLab con un'accelerazione graduale, così il centro non si spegne e non si vede uno spigolo sui colori intermedi. La linea va da un punto A a un punto B: si trascinano gli estremi sulla carta (Maiuscolo tiene l'angolo a scatti di 15°) o si scrivono le coordinate. La forma "da un'immagine" usa la sagoma di una PNG con trasparenza o di una SVG del progetto (nelle immagini senza trasparenza, le parti scure); l'altezza segue le proporzioni dell'immagine. L'immagine ripetuta come riempimento non c'è: si ottiene con un livello immagine in modalità "ripeti".
 
 ## 5. Gruppo
 
@@ -288,7 +288,7 @@ Scelta rivista il 2026-10-18: i calcoli stanno nel template, non nei set (vedi d
 | Proprietà        | Valori                                                                                                                                                |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | dimensioni       | mm, scelte alla creazione e modificabili; preset: poker 63×88, bridge 57×89, mini 44×63, tarocchi 70×120, quadrata 70×70, segnalino tondo, plancia A4 |
-| forma            | rettangolo con raggio, cerchio, esagono, tracciato personalizzato                                                                                     |
+| forma            | rettangolo con raggio, cerchio, esagono, sagoma di un'immagine                                                                                        |
 | abbondanza       | mm (default 3)                                                                                                                                        |
 | area sicura      | mm dal bordo di taglio, solo come guida                                                                                                               |
 | retro            | nessuno, unico per il set, per carta (livelli del retro collegati al foglio)                                                                          |
@@ -303,7 +303,7 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 
 Accanto a larghezza e altezza, sia del template (nel pannello proprietà e nella finestra del nuovo template) sia dei livelli, un lucchetto mantiene le proporzioni: chiuso, cambiando una misura l'altra segue. Sul livello vale anche per le maniglie sulla carta, comprese quelle sui lati (l'altra misura cresce centrata); senza lucchetto Maiuscolo tiene le proporzioni solo per il trascinamento in corso. Lo stato del lucchetto è una preferenza dell'interfaccia, ricordata per tipo di livello e per i template.
 
-Stato (ottobre 2026): la forma della carta può essere rettangolo con raggio, cerchio o ellisse, esagono (con i lati piatti in alto se la carta è più larga che alta, con le punte in alto altrimenti) o tracciato SVG in coordinate 0–1. La forma ritaglia la carta nell'editor, nelle anteprime, nelle immagini e nel PDF senza abbondanza; con l'abbondanza la carta resta rettangolare e la forma compare come linea di taglio, perché la tipografia la ritaglia da lì. L'area sicura segue la forma. In Tabletop Simulator il mazzo resta di carte rettangolari, con la forma disegnata all'interno. Le guide manuali si aggiungono dal pannello del template (verticali e orizzontali), si spostano trascinandole sulla carta e si tolgono trascinandole fuori; i livelli vi si agganciano quando è attivo l'aggancio agli oggetti, e una guida trascinata si aggancia ai lati e al centro della carta e dell'area sicura.
+Stato (ottobre 2026): la forma della carta può essere rettangolo con raggio, cerchio o ellisse, esagono (con i lati piatti in alto se la carta è più larga che alta, con le punte in alto altrimenti) o la sagoma di un'immagine del progetto (PNG con trasparenza o SVG), salvata come tracciato SVG in coordinate 0–1. La forma ritaglia la carta nell'editor, nelle anteprime, nelle immagini e nel PDF senza abbondanza; con l'abbondanza la carta resta rettangolare e la forma compare come linea di taglio, perché la tipografia la ritaglia da lì. L'area sicura segue la forma. In Tabletop Simulator il mazzo resta di carte rettangolari, con la forma disegnata all'interno. Le guide manuali si aggiungono dal pannello del template (verticali e orizzontali), si spostano trascinandole sulla carta e si tolgono trascinandole fuori; i livelli vi si agganciano quando è attivo l'aggancio agli oggetti, e una guida trascinata si aggancia ai lati e al centro della carta e dell'area sicura.
 
 Le voci della barra laterale (set, template, stili, variabili) si riordinano trascinandole; ⌘Z annulla. Quando un elenco non è in ordine alfabetico, accanto al + compare **A–Z**, che lo riporta in ordine alfabetico. L'ordine si salva nel progetto (docs/formato.md).
 

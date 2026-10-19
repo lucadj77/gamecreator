@@ -131,8 +131,6 @@ export const it: Record<MessageKey, string> = {
   'editor.lockedHint': 'Un livello bloccato non si seleziona né si sposta sulla carta',
   'editor.clipHint':
     'Metti in fondo al gruppo una forma (es. un cerchio): i livelli sopra si vedono solo dentro quella forma, che non viene disegnata.',
-  'editor.pathHint':
-    'Forma libera descritta come tracciato SVG (comandi M, L, C, Z) in coordinate da 0 a 1 rispetto al riquadro: per esempio M0 0 L1 0 L0.5 1 Z è un triangolo. Serve per forme importate da TTC o copiate da un programma di disegno; uno strumento per disegnarle arriverà più avanti.',
   'editor.srcPlaceholder': "nome dell'immagine, o {campo}",
   'editor.fontMissing':
     'Il font non è in assets/fonts né installato sul computer: il testo usa un font predefinito. Copia il file del font in assets/fonts e ricarica il progetto.',
@@ -365,7 +363,6 @@ export const it: Record<MessageKey, string> = {
   'shape.polygon': 'Poligono',
   'shape.star': 'Stella',
   'shape.line': 'Linea',
-  'shape.path': 'Tracciato',
   'tool.text': 'Testo (T)',
   'tool.image': 'Immagine',
   'tool.rect': 'Rettangolo (R)',
@@ -384,9 +381,6 @@ export const it: Record<MessageKey, string> = {
   'cardShape.rect': 'Rettangolo',
   'cardShape.ellipse': 'Cerchio o ellisse',
   'cardShape.hexagon': 'Esagono',
-  'cardShape.path': 'Tracciato',
-  'editor.cardPathHint':
-    'Tracciato SVG in coordinate 0–1 della carta, come quello delle forme. Esempio: M0.5 0 L1 1 L0 1 Z',
   'editor.guides': 'Guide',
   'editor.guideV': 'Guida verticale',
   'editor.guideH': 'Guida orizzontale',
@@ -396,6 +390,19 @@ export const it: Record<MessageKey, string> = {
   'editor.guidesHint':
     "I livelli si agganciano alle guide quando è attivo l'aggancio agli oggetti. Trascina una guida sulla carta per spostarla, fuori dalla carta per toglierla.",
   'editor.guideDragHint': 'Trascina per spostare, fuori dalla carta per togliere',
+  'prop.length': 'Lunghezza',
+  'editor.lineHint':
+    "La linea va dal punto A al punto B: trascina gli estremi sulla carta (Maiuscolo tiene l'angolo a scatti di 15°).",
+  'prop.outline': 'Sagoma',
+  'editor.outlinePick': 'Scegli immagine…',
+  'editor.outlineEmpty': 'nessuna immagine scelta',
+  'editor.outlineFailed': 'In questa immagine non ho trovato un contorno.',
+  'editor.outlineHint':
+    "La forma prende il contorno di un'immagine del progetto (PNG con trasparenza o SVG; nelle immagini senza trasparenza, le parti scure). L'altezza segue le proporzioni dell'immagine.",
+  'editor.cardOutlineHint':
+    "La carta prende il contorno di un'immagine del progetto (PNG con trasparenza o SVG; nelle immagini senza trasparenza, le parti scure), adattato alla dimensione della carta: imposta larghezza e altezza con le proporzioni dell'immagine.",
+  'shape.path': "Da un'immagine",
+  'cardShape.path': "Da un'immagine",
   'prop.cornerRadius': 'Raggio angoli',
   'prop.w': 'L',
   'prop.h': 'A',
@@ -452,11 +459,20 @@ export const it: Record<MessageKey, string> = {
   'fill.removeStop': 'Togli questo colore',
   'fill.addStop': '+ Colore',
   'prop.fade': 'Dissolvenza',
-  'fade.from': 'Da',
-  'fade.to': 'A',
-  'fade.opacity': 'Opacità in %',
-  'fade.opacityUnit': '% di opacità al',
-  'fade.positionUnit': '%',
+  'fade.dir.down': 'Sparisce verso il basso',
+  'fade.dir.up': "Sparisce verso l'alto",
+  'fade.dir.right': 'Sparisce verso destra',
+  'fade.dir.left': 'Sparisce verso sinistra',
+  'fade.dir.out': 'Dal centro verso i bordi',
+  'fade.dir.in': 'Dai bordi verso il centro',
+  'fade.dir.angle': 'Con un angolo…',
+  'fade.start': 'Comincia al',
+  'fade.end': 'Finisce al',
+  'fade.faint': 'Opacità alla fine',
+  'fade.preview': "Opacità dall'inizio alla fine del livello",
+  'fade.linearHint':
+    'Le posizioni vanno lungo il livello nella direzione scelta: prima di "comincia al" il livello è del tutto visibile, dopo "finisce al" ha l\'opacità finale.',
+  'fade.radialHint': 'Le posizioni vanno dal centro (0%) agli angoli (100%) del livello.',
   'editor.fadeHint':
     "Il livello passa da un'opacità all'altra lungo una direzione, o dal centro verso i bordi",
   'prop.opacity': 'Opacità',
@@ -583,7 +599,8 @@ export const it: Record<MessageKey, string> = {
   'error.generic': '{text}',
   'load.noProjectFile': 'La cartella non contiene {file}',
   'load.unreadableProjectFile': '{file} non è leggibile: {error}',
-  'load.unsupportedDataFile': 'Formato del file dati non supportato: {ext} (usa .xlsx, .ods o .csv)',
+  'load.unsupportedDataFile':
+    'Formato del file dati non supportato: {ext} (usa .xlsx, .ods o .csv)',
   'load.newerFormat':
     "Il progetto usa il formato {version}, più recente di questa versione dell'app",
   'load.missingSheet': 'Il set "{set}" non trova il foglio "{sheet}"',

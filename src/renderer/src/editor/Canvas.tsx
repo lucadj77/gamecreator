@@ -13,6 +13,8 @@ import {
   angleFrom,
   handlePosition,
   hitTest,
+  lineEnds,
+  lineFromEnds,
   normalizeAngle,
   resizeWithHandle,
   snap,
@@ -67,6 +69,14 @@ type Gesture =
     }
   | { kind: 'rotate'; start: Template; layer: Layer; frame: GroupLayer[]; a0: number }
   | { kind: 'guide'; start: Template; axis: 'x' | 'y'; index: number; frame: GroupLayer[] }
+  | {
+      kind: 'end'
+      start: Template
+      layer: Layer
+      end: 0 | 1
+      frame: GroupLayer[]
+      lines: SnapLines
+    }
 
 interface Props {
   state: EditorState
@@ -295,7 +305,29 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const magnet = !e.altKey && guides.snapObjects
     const threshold = SNAP_PX / scale
     let next: Template
-    if (g.kind === 'guide') {
+    if (g.kind === 'end') {
+      // l'estremo di una linea: si aggancia a oggetti e griglia, Maiuscolo tiene l'angolo a 15°
+      const ends = lineEnds(g.layer)
+      const fixed = ends[1 - g.end]
+      let p: Point
+      if (e.shiftKey) {
+        const len = Math.hypot(q.x - fixed.x, q.y - fixed.y)
+        const a =
+          (snap((Math.atan2(q.y - fixed.y, q.x - fixed.x) * 180) / Math.PI, 15) * Math.PI) / 180
+        p = { x: fixed.x + len * Math.cos(a), y: fixed.y + len * Math.sin(a) }
+        setSnapped({ x: null, y: null })
+      } else {
+        const hx = magnet ? nearest([q.x], g.lines.x, threshold) : null
+        const hy = magnet ? nearest([q.y], g.lines.y, threshold) : null
+        p = { x: hx ? hx.line : snap(q.x, step), y: hy ? hy.line : snap(q.y, step) }
+        setSnapped({ x: hx?.line ?? null, y: hy?.line ?? null })
+      }
+      const [a, b] = g.end === 0 ? [p, fixed] : [fixed, p]
+      next = replace(g.start, side, g.layer.id, {
+        ...g.layer,
+        ...lineFromEnds(g.layer, a, b)
+      } as Layer)
+    } else if (g.kind === 'guide') {
       // una guida si aggancia ai lati e al centro della carta e dell'area sicura
       const v = g.axis === 'x' ? q.x : q.y
       const card = linesOf([cardArea(tpl, 'card'), cardArea(tpl, 'safe')])[g.axis]
@@ -515,43 +547,71 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
             {selected.map((l) => (
               <Framed key={l.id} chain={frameOf(l.id)} layer={l}>
                 <Outline b={l} className={l.locked ? 'sel-outline locked' : 'sel-outline'} />
-                {selected.length === 1 && !l.locked && (
+                {selected.length === 1 && !l.locked && l.type === 'shape' && l.shape === 'line' && (
                   <>
-                    <line
-                      x1={l.x + l.w / 2}
-                      y1={l.y}
-                      x2={l.x + l.w / 2}
-                      y2={l.y - ROTATE_PX * px}
-                      className="sel-outline"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <circle
-                      cx={l.x + l.w / 2}
-                      cy={l.y - ROTATE_PX * px}
-                      r={(HANDLE_PX / 2) * px}
-                      className="handle rotate"
-                      vectorEffect="non-scaling-stroke"
-                      onPointerDown={(e) => onHandleDown(e, l, 'rotate')}
-                    >
-                      <title>{t('editor.rotateHint')}</title>
-                    </circle>
-                    {HANDLES.map((h) => {
-                      const pos = handlePosition(l, h)
-                      return (
-                        <rect
-                          key={h}
-                          x={pos.x - (HANDLE_PX / 2) * px}
-                          y={pos.y - (HANDLE_PX / 2) * px}
-                          width={HANDLE_PX * px}
-                          height={HANDLE_PX * px}
-                          className={`handle h-${h}`}
-                          vectorEffect="non-scaling-stroke"
-                          onPointerDown={(e) => onHandleDown(e, l, h)}
-                        />
-                      )
-                    })}
+                    {[l.x, l.x + l.w].map((x, i) => (
+                      <circle
+                        key={i}
+                        cx={x}
+                        cy={l.y + l.h / 2}
+                        r={(HANDLE_PX / 2) * px}
+                        className="handle line-end"
+                        vectorEffect="non-scaling-stroke"
+                        onPointerDown={(e) => {
+                          if (e.button !== 0) return
+                          e.stopPropagation()
+                          begin(e, {
+                            kind: 'end',
+                            start: tpl,
+                            layer: l,
+                            end: i as 0 | 1,
+                            frame: frameOf(l.id),
+                            lines: snapLines([l.id], frameOf(l.id))
+                          })
+                        }}
+                      />
+                    ))}
                   </>
                 )}
+                {selected.length === 1 &&
+                  !l.locked &&
+                  !(l.type === 'shape' && l.shape === 'line') && (
+                    <>
+                      <line
+                        x1={l.x + l.w / 2}
+                        y1={l.y}
+                        x2={l.x + l.w / 2}
+                        y2={l.y - ROTATE_PX * px}
+                        className="sel-outline"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <circle
+                        cx={l.x + l.w / 2}
+                        cy={l.y - ROTATE_PX * px}
+                        r={(HANDLE_PX / 2) * px}
+                        className="handle rotate"
+                        vectorEffect="non-scaling-stroke"
+                        onPointerDown={(e) => onHandleDown(e, l, 'rotate')}
+                      >
+                        <title>{t('editor.rotateHint')}</title>
+                      </circle>
+                      {HANDLES.map((h) => {
+                        const pos = handlePosition(l, h)
+                        return (
+                          <rect
+                            key={h}
+                            x={pos.x - (HANDLE_PX / 2) * px}
+                            y={pos.y - (HANDLE_PX / 2) * px}
+                            width={HANDLE_PX * px}
+                            height={HANDLE_PX * px}
+                            className={`handle h-${h}`}
+                            vectorEffect="non-scaling-stroke"
+                            onPointerDown={(e) => onHandleDown(e, l, h)}
+                          />
+                        )
+                      })}
+                    </>
+                  )}
               </Framed>
             ))}
           </svg>

@@ -2119,6 +2119,21 @@ div.font-row {
   border-color: var(--accent);
 }
 
+.system-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.system-row .font-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.font-copy {
+  margin-right: 10px;
+  white-space: nowrap;
+}
+
 .font-row-head {
   display: flex;
   gap: 8px;

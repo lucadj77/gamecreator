@@ -12,6 +12,7 @@ import type {
 import type {
   AssetsUpdate,
   FontCatalog,
+  SystemFontFamily,
   FontVariant,
   IconCatalog,
   IconCollection,
@@ -76,6 +77,10 @@ export interface Api {
   fontCatalog(): Promise<FontCatalog>
   /** Scarica le varianti di un font Google in assets/fonts/<famiglia>/ */
   downloadFont(family: string, variants: FontVariant[]): Promise<AssetsUpdate>
+  /** Font installati sul computer, per famiglia */
+  systemFonts(): Promise<SystemFontFamily[]>
+  /** Copia i file di un font installato in assets/fonts/<famiglia>/ */
+  copySystemFont(family: string): Promise<AssetsUpdate>
   /** Scrive i crediti in export/credits.txt e restituisce il percorso */
   saveCredits(text: string): Promise<string>
   /** Sceglie una cartella qualsiasi, partendo da current */

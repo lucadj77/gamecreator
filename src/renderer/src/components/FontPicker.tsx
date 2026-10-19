@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { FontCatalog, FontFamilyEntry, FontVariant } from '../../../shared/library'
+import type {
+  FontCatalog,
+  FontFamilyEntry,
+  FontVariant,
+  SystemFontFamily
+} from '../../../shared/library'
 import { fuzzyFilter } from '../../../shared/model/fuzzy'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
@@ -9,8 +14,8 @@ import { publishAssetsUpdate } from '../render/assets'
 import { APP_FONTS, useProjectFonts } from '../render/fonts'
 import Segmented from './Segmented'
 
-// Scelta del font con anteprima: i font del progetto e quelli di Google, che si scaricano in
-// assets/fonts/. Vedi docs/specifica.md, sezione 10.2.
+// Scelta del font con anteprima: i font del progetto, quelli di Google, che si scaricano in
+// assets/fonts/, e quelli installati sul computer, che si possono copiare nel progetto. Vedi docs/specifica.md, sezione 10.2.
 
 const SAMPLE_KEY = 'fontPickerSample'
 const PAGE = 40
@@ -23,6 +28,17 @@ function loadCatalog(): Promise<FontCatalog> {
   catalogPromise.catch(() => (catalogPromise = null))
   return catalogPromise
 }
+
+let systemPromise: Promise<SystemFontFamily[]> | null = null
+
+/** La ricerca dei font del computer legge le cartelle del sistema: si fa una volta */
+function loadSystemFonts(): Promise<SystemFontFamily[]> {
+  systemPromise ??= window.api.systemFonts()
+  systemPromise.catch(() => (systemPromise = null))
+  return systemPromise
+}
+
+type Tab = 'project' | 'google' | 'system'
 
 /** Fogli di stile già aggiunti per le anteprime dei font Google */
 const previewLinks = new Set<string>()
@@ -69,13 +85,12 @@ export default function FontPicker({
 }): React.JSX.Element {
   const { t } = useI18n()
   const project = useProjectFonts()
-  const [tab, setTab] = useState<'project' | 'google'>(
-    project.families.length ? 'project' : 'google'
-  )
+  const [tab, setTab] = useState<Tab>(project.families.length ? 'project' : 'google')
   const [sample, setSampleState] = useState(() => loadSample(t('fonts.sample')))
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string | null>(null)
   const [catalog, setCatalog] = useState<FontCatalog | null>(null)
+  const [system, setSystem] = useState<SystemFontFamily[] | null>(null)
   /** Pagine mostrate: si torna alla prima quando cambiano ricerca o filtro */
   const [more, setMore] = useState({ view: '', limit: PAGE })
   const [open, setOpen] = useState<FontFamilyEntry | null>(null)
@@ -99,6 +114,13 @@ export default function FontPicker({
       .catch((e) => setError(messageFromError(e)))
   }, [tab, catalog])
 
+  useEffect(() => {
+    if (tab !== 'system' || system) return
+    loadSystemFonts()
+      .then(setSystem)
+      .catch((e) => setError(messageFromError(e)))
+  }, [tab, system])
+
   const own = useMemo(
     () => new Set([...project.families, ...APP_FONTS].map((f) => f.toLowerCase())),
     [project.families]
@@ -110,7 +132,12 @@ export default function FontPicker({
     return fuzzyFilter(list, query, (f) => f[0])
   }, [catalog, category, query])
 
-  const view = `${category}|${query}`
+  const systemList = useMemo(
+    () => (system ? fuzzyFilter(system, query, (f) => f.family) : []),
+    [system, query]
+  )
+
+  const view = `${tab}|${category}|${query}`
   const limit = more.view === view ? more.limit : PAGE
   const visible = google.slice(0, limit)
   useEffect(() => {
@@ -156,6 +183,20 @@ export default function FontPicker({
     }
   }
 
+  const copy = async (family: string): Promise<void> => {
+    setBusy(true)
+    setError(null)
+    try {
+      publishAssetsUpdate(await window.api.copySystemFont(family))
+      onPick(family)
+      onClose()
+    } catch (e) {
+      setError(messageFromError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const preview = (family: string): React.CSSProperties => ({
     fontFamily: `'${family}', ${t('fonts.fallbackFamily')}`
   })
@@ -168,9 +209,10 @@ export default function FontPicker({
             value={tab}
             options={[
               ['project', t('fonts.tabProject')],
-              ['google', 'Google Fonts']
+              ['google', 'Google Fonts'],
+              ['system', t('fonts.tabSystem')]
             ]}
-            onChange={(v) => setTab(v as 'project' | 'google')}
+            onChange={(v) => setTab(v as Tab)}
           />
           <input
             autoFocus
@@ -224,6 +266,59 @@ export default function FontPicker({
             ))}
           {tab === 'project' && projectFamilies.length === 0 && (
             <p className="muted">{t('fonts.noProjectFonts')}</p>
+          )}
+          {tab === 'system' && !system && !error && <p className="muted">{t('fonts.scanning')}</p>}
+          {tab === 'system' &&
+            systemList.slice(0, limit).map((f) => (
+              <div
+                key={f.family}
+                className={
+                  f.family.toLowerCase() === value.trim().toLowerCase()
+                    ? 'font-row system-row on'
+                    : 'font-row system-row'
+                }
+              >
+                <button
+                  className="font-row-main"
+                  onClick={() => {
+                    onPick(f.family)
+                    onClose()
+                  }}
+                >
+                  <span className="font-row-head">
+                    <b>{f.family}</b>
+                    <span className="muted small">
+                      {f.styles === 1 ? t('fonts.oneStyle') : t('fonts.styles', { n: f.styles })}
+                      {own.has(f.family.toLowerCase())
+                        ? ` · ${t('fonts.inProject')}`
+                        : f.reason
+                          ? ` · ${t(`fonts.reason.${f.reason}`)}`
+                          : ''}
+                    </span>
+                  </span>
+                  <span className="font-sample" style={preview(f.family)}>
+                    {sample}
+                  </span>
+                </button>
+                {f.copyable && !own.has(f.family.toLowerCase()) && (
+                  <button
+                    className="font-copy"
+                    disabled={busy}
+                    title={t('fonts.copyHint')}
+                    onClick={() => copy(f.family)}
+                  >
+                    {t('fonts.copy')}
+                  </button>
+                )}
+              </div>
+            ))}
+          {tab === 'system' && systemList.length > limit && (
+            <button className="more-btn" onClick={() => setMore({ view, limit: limit + PAGE })}>
+              {t('icons.more', { n: systemList.length - limit })}
+            </button>
+          )}
+          {tab === 'system' && system && systemList.length === 0 && (
+            <p className="muted">{t('fonts.noMatch')}</p>
           )}
           {tab === 'google' && !catalog && !error && <p className="muted">{t('icons.loading')}</p>}
           {tab === 'google' && catalog && !navigator.onLine && (
@@ -288,7 +383,11 @@ export default function FontPicker({
         {error && <p className="field-error">{t(error)}</p>}
         <div className="dialog-buttons">
           <span className="muted small spacer-right">
-            {tab === 'google' ? t('fonts.googleNote') : t('fonts.projectNote')}
+            {tab === 'google'
+              ? t('fonts.googleNote')
+              : tab === 'system'
+                ? t('fonts.systemNote')
+                : t('fonts.projectNote')}
           </span>
           <button onClick={onClose} disabled={busy}>
             {t('dialog.cancel')}

@@ -154,6 +154,17 @@ export const en = {
   'fonts.sampleLabel': 'Preview text',
   'fonts.fallbackFamily': 'monospace',
   'fonts.tabProject': 'In the project',
+  'fonts.tabSystem': 'On this computer',
+  'fonts.scanning': 'Looking for installed fonts…',
+  'fonts.reason.collection': 'in a collection, cannot be copied',
+  'fonts.reason.restricted': 'the maker does not allow copying it',
+  'fonts.copy': 'Copy to project',
+  'fonts.copyHint':
+    'Copies the font files to assets/fonts, so the project looks the same on another computer. Check first that the license allows it.',
+  'fonts.systemNote':
+    'A font from this computer only shows where it is installed: to export elsewhere, copy it to the project if the license allows it.',
+  'fonts.cannotCopy': 'The files of {family} cannot be copied to the project',
+  'license.unknown': 'to be checked',
   'fonts.search': 'Search fonts',
   'fonts.inProject': 'in the project',
   'fonts.inApp': 'included in the app',

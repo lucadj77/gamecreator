@@ -24,6 +24,7 @@ import { fontCatalog, iconCatalog } from './library/catalogs'
 import { importIcons } from './library/icons'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
+import { copySystemFont, systemFonts } from './library/systemFonts'
 import type { FontVariant, IconCollection, IconImport } from '../shared/library'
 import {
   defaultTtsFolder,
@@ -175,6 +176,14 @@ function registerIpc(): void {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     return downloadGoogleFont(folder, family, variants)
+  })
+
+  ipcMain.handle('library:system-fonts', () => systemFonts())
+
+  ipcMain.handle('library:copy-system-font', async (_, family: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return copySystemFont(folder, family)
   })
 
   ipcMain.handle('library:save-credits', async (_, text: string) => {

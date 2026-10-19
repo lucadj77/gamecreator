@@ -157,6 +157,17 @@ export const it: Record<MessageKey, string> = {
   'fonts.sampleLabel': 'Testo di prova',
   'fonts.fallbackFamily': 'monospace',
   'fonts.tabProject': 'Nel progetto',
+  'fonts.tabSystem': 'Sul computer',
+  'fonts.scanning': 'Ricerca dei font installati…',
+  'fonts.reason.collection': 'in una raccolta, non si copia',
+  'fonts.reason.restricted': 'il produttore non ne permette la copia',
+  'fonts.copy': 'Copia nel progetto',
+  'fonts.copyHint':
+    'Copia i file del font in assets/fonts, così il progetto si vede uguale anche su un altro computer. Prima verifica che la licenza lo permetta.',
+  'fonts.systemNote':
+    'Un font del computer si vede solo dove è installato: per esportare altrove copialo nel progetto, se la licenza lo permette.',
+  'fonts.cannotCopy': 'I file di {family} non si possono copiare nel progetto',
+  'license.unknown': 'da verificare',
   'fonts.search': 'Cerca un font',
   'fonts.inProject': 'nel progetto',
   'fonts.inApp': "incluso nell'app",

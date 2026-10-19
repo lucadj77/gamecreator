@@ -423,12 +423,13 @@ Licenza: CC0, non serve citare l'autore. La voce in `assets/sources.json` resta 
 
 ### 10.2 Font di Google Fonts
 
-Il pulsante **Aa** accanto al campo del font apre una finestra con due schede:
+Il pulsante **Aa** accanto al campo del font apre una finestra con tre schede:
 
 - **Progetto**: i font in `assets/fonts/` più quelli dell'app, con l'anteprima del testo di prova; un clic sceglie la famiglia.
 - **Google Fonts**: il catalogo (circa 1900 famiglie) con filtro per categoria e ricerca approssimata. L'anteprima si scarica da Google mentre si scorre, quindi richiede la rete. Aprendo una famiglia si scelgono pesi e corsivi (di base normale e grassetto, più il corsivo se c'è) e **Scarica** salva i file in `assets/fonts/<Famiglia>/` insieme al testo della licenza, aggiunge le voci a `assets/sources.json` e assegna la famiglia al livello.
+- **Sul computer**: i font installati, letti dalle cartelle dei font del sistema (macOS, Windows, Linux) alla prima apertura della scheda. Un clic usa la famiglia così com'è installata; **Copia nel progetto** copia i file in `assets/fonts/<Famiglia>/` e li registra in `assets/sources.json` (fonte "computer", con l'autore e, se il file la dichiara, la licenza OFL, Apache o UFL; altrimenti "da verificare"). Non si copiano i font che stanno solo in una raccolta (`.ttc`, frequenti su macOS) né quelli il cui produttore vieta l'incorporamento (OS/2 fsType); restano usabili, ma solo su quel computer.
 
-Si scaricano file TTF statici, uno per peso: nel PDF si incorporano come TrueType, mentre i font variabili diventerebbero Type 3. I font installati sul computer non compaiono nell'elenco: si possono scrivere a mano nel campo, ma per esportare su un altro computer conviene copiarli in `assets/fonts/`. Le licenze di Google Fonts (OFL, Apache, UFL) permettono l'uso nei giochi stampati; per circa 160 famiglie il catalogo non indica la licenza, che si ricava al momento del download.
+Si scaricano file TTF statici, uno per peso: nel PDF si incorporano come TrueType, mentre i font variabili diventerebbero Type 3. Un progetto che usa un font del computer senza copiarlo si vede uguale solo dove quel font è installato. Le licenze di Google Fonts (OFL, Apache, UFL) permettono l'uso nei giochi stampati; per circa 160 famiglie il catalogo non indica la licenza, che si ricava al momento del download.
 
 ### 10.3 Crediti
 

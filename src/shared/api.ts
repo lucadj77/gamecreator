@@ -126,6 +126,12 @@ export interface Api {
   defaultTtcTarget(source: string): Promise<string>
   /** Converte un progetto Tabletop Creator in un progetto nuovo; l'originale non si modifica */
   importTtc(options: TtcImportOptions): Promise<TtcImportResult>
+  /** Come lanciare il comando naibi su questo computer; ready è falso se va prima compilato */
+  naibiCommand(): Promise<{ command: string; ready: boolean }>
+  /** Scrive la skill in <cartella>/naibi/SKILL.md e ne restituisce il percorso */
+  saveSkill(folder: string, text: string): Promise<string>
+  /** Cartella proposta per salvare la skill: quella delle skill di Claude Code, se c'è */
+  skillsFolder(): Promise<string>
   /** Solo nella finestra nascosta che disegna le esportazioni */
   exportPage: ExportPageApi
 }

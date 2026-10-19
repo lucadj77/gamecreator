@@ -5,6 +5,7 @@ import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import appIcon from '../assets/app-icon.png'
+import AiToolsDialog from './AiToolsDialog'
 
 // Schermata di ingresso: progetti recenti con miniatura, nuovo progetto, apertura e importazione.
 
@@ -31,6 +32,7 @@ export default function StartScreen({
   const [recent, setRecent] = useState<RecentProject[] | null>(null)
   const [creating, setCreating] = useState(false)
   const [about, setAbout] = useState(false)
+  const [aiTools, setAiTools] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -70,6 +72,9 @@ export default function StartScreen({
           </button>
           <button onClick={onImport} title={t('tip.importTtc')}>
             {t('start.importTtc')}
+          </button>
+          <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
+            {t('app.aiTools')}
           </button>
           {loading && <span className="muted">{t('app.loading')}</span>}
         </div>
@@ -114,6 +119,7 @@ export default function StartScreen({
         </button>
       </footer>
       {about && <AboutDialog onClose={() => setAbout(false)} />}
+      {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
       {creating && (
         <NewProjectDialog
           onCreate={(folder) => {

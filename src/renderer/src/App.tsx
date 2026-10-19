@@ -1,3 +1,4 @@
+import AiToolsDialog from './components/AiToolsDialog'
 import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -158,6 +159,7 @@ function App(): React.JSX.Element {
   const [creatingSet, setCreatingSet] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [backingUp, setBackingUp] = useState(false)
+  const [aiTools, setAiTools] = useState(false)
   const [importing, setImporting] = useState(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
@@ -984,6 +986,9 @@ function App(): React.JSX.Element {
                   <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
                     {t('app.backup')}
                   </button>
+                  <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
+                    {t('app.aiTools')}
+                  </button>
                   <span className="toolbar-group">
                     <button
                       className="primary"
@@ -1165,6 +1170,7 @@ function App(): React.JSX.Element {
                 onClose={() => setImporting(false)}
               />
             )}
+            {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
             {backingUp && project && (
               <BackupDialog
                 dirty={anyDirty}

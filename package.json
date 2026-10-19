@@ -20,7 +20,8 @@
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux",
     "demo-data": "node scripts/make-demo-data.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "naibi": "node bin/naibi.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -51,5 +52,8 @@
     "typescript": "^5.9.3",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
+  },
+  "bin": {
+    "naibi": "bin/naibi.mjs"
   }
 }

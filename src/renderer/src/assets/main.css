@@ -2708,3 +2708,52 @@ div.font-row {
   align-items: center;
   gap: 8px;
 }
+
+/* proprietà avanzate del pannello */
+.prop-item {
+  position: relative;
+}
+.prop-move {
+  position: absolute;
+  top: 2px;
+  left: -14px;
+  width: 14px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0;
+  cursor: pointer;
+}
+.prop-item:hover > .prop-move,
+.prop-move:focus-visible {
+  opacity: 1;
+}
+.prop-move:hover {
+  color: var(--text);
+}
+details.advanced {
+  margin: 4px 0 8px;
+}
+details.advanced > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 4px 0;
+  user-select: none;
+}
+details.advanced > summary:hover {
+  color: var(--text);
+}
+details.advanced > button.link {
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  text-decoration: underline;
+  cursor: pointer;
+}

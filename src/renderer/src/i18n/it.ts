@@ -511,6 +511,10 @@ export const it: Record<MessageKey, string> = {
   'prop.fit': 'Adattamento',
   'prop.minSize': 'Dimensione minima',
   'prop.src': 'Immagine',
+  'editor.advanced': 'Avanzate ({n})',
+  'editor.moveToAdvanced': 'Sposta in Avanzate',
+  'editor.showAlways': 'Mostra sempre',
+  'editor.resetAdvanced': 'Ripristina la disposizione predefinita',
   'prop.imageRotation': 'Ruota immagine',
   'editor.imageRotationHint':
     "Ruota l'immagine dentro il riquadro, che resta fermo; l'adattamento tiene conto della rotazione.",

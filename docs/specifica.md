@@ -23,6 +23,8 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 
 Stato (ottobre 2026): fusione e vincoli ci sono. I vincoli si applicano quando si cambia il formato del template scegliendo "lascia i livelli"; "scala" ridimensiona il livello in proporzione alla carta. Nei gruppi vale il vincolo di ciascun figlio. Nelle celle il contorno si scrive `colore/spessore/tratteggio`, per esempio `red/0.3/dashed` o `#333/0.5/dotted`.
 
+**Avanzate.** Nel pannello proprietà ogni sezione mostra sempre le voci più usate e raccoglie le altre in **Avanzate**, chiusa (si ricorda se la si apre). Passando sopra una voce compare a sinistra una freccia: ↓ la sposta in Avanzate, ↑ la riporta tra quelle sempre visibili. La disposizione è una preferenza dell'interfaccia, uguale per tutti i progetti, per sezione (geometria, aspetto, testo, immagine, forma); **Ripristina la disposizione predefinita** in fondo ad Avanzate torna a quella di base. Di base stanno in Avanzate: punto di ancoraggio e vincoli; fusione, dissolvenza, ombra e blocco; per il testo spaziatura tra lettere e paragrafi, rientro, margini interni, maiuscole, sottolineato, barrato, a capo e contorno; per le immagini riflessioni, regolazioni, raggio, contorno e immagine mancante.
+
 La dissolvenza dell'opacità (pannello Aspetto) rende il livello trasparente in modo graduale. Si sceglie la direzione (verso il basso, l'alto, destra, sinistra, con un angolo, verso i bordi o verso il centro) e con tre cursori dove comincia, dove finisce e quanto resta visibile alla fine; una barra mostra l'effetto. Non si imposta dal foglio.
 
 ## 2. Testo

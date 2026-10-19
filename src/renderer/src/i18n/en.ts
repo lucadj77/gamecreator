@@ -503,6 +503,10 @@ export const en = {
   'prop.fit': 'Fit',
   'prop.minSize': 'Minimum size',
   'prop.src': 'Image',
+  'editor.advanced': 'Advanced ({n})',
+  'editor.moveToAdvanced': 'Move to Advanced',
+  'editor.showAlways': 'Always show',
+  'editor.resetAdvanced': 'Restore the default layout',
   'prop.imageRotation': 'Rotate image',
   'editor.imageRotationHint':
     'Rotates the image inside its frame, which stays still; fitting takes the rotation into account.',

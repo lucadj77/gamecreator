@@ -349,7 +349,7 @@ export const en = {
   'layerType.image': 'Image',
   'layerType.shape': 'Shape',
   'source.formulaHelp':
-    'Start with = for an Excel-style expression: =IF({strength}>3; "Strong"; "Weak"). Functions: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK. & joins text.',
+    'Start with = for an Excel-style expression: =IF({strength}>3; "Strong"; "Weak"). Functions: IF, AND, OR, NOT, MIN, MAX, ABS, ROUND, FLOOR, CEILING, UPPER, LOWER, LEN, CONCAT, ISBLANK, COUNTIN (how many times a text contains another: COUNTIN({cost}; "gold")). & joins text.',
   'source.formulaError': 'Formula error: {error}',
   'source.formulaPreviewDefaults': 'With the template values: {value}',
   'source.computedHint': 'Calculated by the formula above',

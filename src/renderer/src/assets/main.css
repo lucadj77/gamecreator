@@ -22,6 +22,13 @@
   --accent-soft: #e4ecfb;
   --warning-bg: #fff4d6;
   --error-bg: #fde2e1;
+  --mk-punct: #8a8a90;
+  --mk-ref: #1f7a4d;
+  --mk-style: #8a3fb0;
+  --mk-attr: #2f6fde;
+  --mk-value: #b0581a;
+  --mk-md: #c2410c;
+  --mk-error: #d33;
   color-scheme: light dark;
 }
 
@@ -36,6 +43,13 @@
   --accent-soft: #2a3550;
   --warning-bg: #4a3d14;
   --error-bg: #4d2120;
+  --mk-punct: #8f8f96;
+  --mk-ref: #5fc790;
+  --mk-style: #c690e6;
+  --mk-attr: #7aa7f5;
+  --mk-value: #e9a06a;
+  --mk-md: #f0965a;
+  --mk-error: #ff6b6b;
 
   color-scheme: dark;
 }
@@ -55,6 +69,13 @@
     --accent-soft: #2a3550;
     --warning-bg: #4a3d14;
     --error-bg: #4d2120;
+  --mk-punct: #8f8f96;
+  --mk-ref: #5fc790;
+  --mk-style: #c690e6;
+  --mk-attr: #7aa7f5;
+  --mk-value: #e9a06a;
+  --mk-md: #f0965a;
+  --mk-error: #ff6b6b;
   }
 }
 
@@ -1298,6 +1319,59 @@ button.layer-source.open {
   width: 100%;
 }
 
+/* il testo lo disegna lo strato colorato sopra il campo; il campo tiene cursore e selezione */
+.markup-field {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+.markup-field > textarea {
+  flex: 1;
+  width: 100%;
+  color: transparent;
+  caret-color: var(--text);
+}
+
+.markup-field > textarea::placeholder {
+  color: var(--muted);
+}
+
+.markup-overlay {
+  position: absolute;
+  pointer-events: none;
+  overflow: hidden;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  border-color: transparent !important;
+  background: none !important;
+}
+
+.markup-overlay .mk-punct {
+  color: var(--mk-punct);
+}
+.markup-overlay .mk-ref {
+  color: var(--mk-ref);
+}
+.markup-overlay .mk-style {
+  color: var(--mk-style);
+}
+.markup-overlay .mk-attr {
+  color: var(--mk-attr);
+}
+.markup-overlay .mk-value {
+  color: var(--mk-value);
+}
+.markup-overlay .mk-md,
+.markup-overlay .mk-escape {
+  color: var(--mk-md);
+}
+.markup-overlay .mk-err {
+  text-decoration: wavy underline var(--mk-error);
+  text-decoration-skip-ink: none;
+}
+
 .markup-help {
   position: fixed;
   z-index: 100;
@@ -1357,6 +1431,23 @@ button.layer-source.open {
   padding: 6px 9px;
   border-top: 1px solid var(--border);
   color: var(--muted);
+}
+
+.markup-help-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.markup-help-sample {
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.markup-help-sample p {
+  margin: 0;
 }
 
 .markup-problems {

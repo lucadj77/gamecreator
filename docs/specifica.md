@@ -135,7 +135,7 @@ Nell'editor della carta, nei campi di testo del pannello e nelle celle della tab
 - dentro `{...}` dopo `]` compaiono gli attributi, ciascuno con una riga che spiega cosa fa, poi i valori possibili (stili dopo `.`, colori dopo `color=`, forme dopo `bg=`);
 - il markup è colorato e gli errori (attributo sconosciuto, variabile inesistente, immagine ambigua) sono sottolineati con la spiegazione al passaggio del mouse.
 
-Stato attuale: i suggerimenti funzionano nel pannello proprietà, nei campi della carta e nelle celle della tabella (↑↓ per scegliere, Invio o Tab per inserire, Esc per chiudere); gli errori sono elencati sotto il campo e sotto la carta. La colorazione del markup dentro il campo e l'anteprima delle variabili sono da fare.
+Stato attuale: i suggerimenti funzionano nel pannello proprietà, nei campi della carta e nelle celle della tabella (↑↓ per scegliere, Invio o Tab per inserire, Esc per chiudere); gli errori sono elencati sotto il campo e sotto la carta. Mentre si scrive, il campo colora il markup: graffe e quadre, nomi di campi e variabili, stili, attributi e valori, segni Markdown e caratteri letterali; gli errori sono sottolineati. Tra i suggerimenti le variabili immagine mostrano l'icona, e sotto l'elenco si vede l'anteprima della variabile scelta: l'icona, il testo già formattato, il colore o il valore.
 
 #### Editor del formato e degli stili
 

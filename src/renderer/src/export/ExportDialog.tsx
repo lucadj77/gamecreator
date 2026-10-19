@@ -70,7 +70,7 @@ export default function ExportDialog({
   onClose
 }: {
   project: LoadedProject
-  /** Opzioni salvate in gamecreator.json dopo un'esportazione */
+  /** Opzioni salvate nel file di progetto dopo un'esportazione */
   onProfiles(p: ExportProfiles): void
   onClose(): void
 }): React.JSX.Element {
@@ -178,7 +178,7 @@ export default function ExportDialog({
       : kind === 'pdf'
         ? { name: '', kind, options: pdf }
         : { name: '', kind, options: tts }
-  /** I profili si scrivono subito in gamecreator.json, come le ultime opzioni */
+  /** I profili si scrivono subito nel file di progetto, come le ultime opzioni */
   const saveNamed = (list: NamedProfile[], active: string): void => {
     setNamed(list)
     setActiveProfile(active)

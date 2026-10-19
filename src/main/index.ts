@@ -23,6 +23,7 @@ import { saveExportProfiles } from './project/exportProfiles'
 import { fontCatalog, iconCatalog } from './library/catalogs'
 import { importIcons } from './library/icons'
 import { downloadGoogleFont } from './library/googleFonts'
+import { adoptLegacyData } from './legacyData'
 import type { FontVariant, IconCollection, IconImport } from '../shared/library'
 import {
   defaultTtsFolder,
@@ -31,6 +32,7 @@ import {
   type ExportProfiles
 } from '../shared/export'
 
+adoptLegacyData()
 registerAssetScheme()
 
 function createWindow(): void {
@@ -39,7 +41,7 @@ function createWindow(): void {
     height: 800,
     show: false,
     autoHideMenuBar: true,
-    title: 'GameCreator',
+    title: 'Naibi',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -93,7 +95,7 @@ function registerIpc(): void {
     }
   )
 
-  ipcMain.handle('project:default-parent', () => join(app.getPath('documents'), 'GameCreator'))
+  ipcMain.handle('project:default-parent', () => join(app.getPath('documents'), 'Naibi'))
   ipcMain.handle('project:create', (_, name: string, parent: string, data?: 'xlsx' | 'ods') =>
     createProject(name, parent, data)
   )
@@ -202,7 +204,7 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.gamecreator.app')
+  electronApp.setAppUserModelId('com.naibi.app')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

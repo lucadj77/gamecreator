@@ -214,7 +214,7 @@ async function findGhostscript(): Promise<string | null> {
 async function toCmyk(pdf: Buffer): Promise<Buffer | null> {
   const gs = await findGhostscript()
   if (!gs) return null
-  const dir = await mkdtemp(join(tmpdir(), 'gamecreator-cmyk-'))
+  const dir = await mkdtemp(join(tmpdir(), 'naibi-cmyk-'))
   try {
     const input = join(dir, 'rgb.pdf')
     const output = join(dir, 'cmyk.pdf')
@@ -259,7 +259,7 @@ async function exportTts(
   if (o.destination !== 'tts') targets.push(join(env.projectFolder, 'export', 'tts'))
   if (o.destination !== 'project') {
     const root = o.ttsFolder.trim() || defaultTtsFolder(env.platform, env.home, env.documents)
-    targets.push(join(root, safeName(project || 'GameCreator')))
+    targets.push(join(root, safeName(project || 'Naibi')))
   }
   for (const t of targets) if (!ctx.result.folders.includes(t)) ctx.result.folders.push(t)
 

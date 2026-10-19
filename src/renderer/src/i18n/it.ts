@@ -233,7 +233,7 @@ export const it: Record<MessageKey, string> = {
   'editor.showSafe': 'Area sicura',
   'editor.zoomHint': 'Zoom con ⌘/Ctrl + rotella del mouse o pizzicando il trackpad',
   'editor.zoomFit': 'Adatta',
-  'tip.openProject': 'Apri una cartella che contiene un progetto GameCreator',
+  'tip.openProject': 'Apri una cartella che contiene un progetto Naibi',
   'tip.reload': 'Rileggi il progetto dal disco; le modifiche non salvate si perdono',
   'tip.export': 'Esporta le carte come immagini, PDF o mazzi per Tabletop Simulator',
   'tip.openSet': 'Mostra e modifica le carte di questo set. Trascina per riordinare',
@@ -917,7 +917,7 @@ export const it: Record<MessageKey, string> = {
   'variable.delete': 'Elimina variabile',
   'variable.save': 'Salva variabile',
   'tip.importTtc':
-    "Importa da Tabletop Creator: converte un progetto in un nuovo progetto GameCreator; l'originale non cambia",
+    "Importa da Tabletop Creator: converte un progetto in un nuovo progetto Naibi; l'originale non cambia",
   'ttc.title': 'Importa da Tabletop Creator',
   'ttc.intro':
     'Il progetto si converte in una cartella nuova: template, set, variabili e immagini. La cartella di Tabletop Creator viene solo letta.',
@@ -979,6 +979,18 @@ export const it: Record<MessageKey, string> = {
     'Ancora nessun progetto recente. Creane uno nuovo, apri la cartella di un progetto o importane uno da Tabletop Creator.',
   'start.missing': 'Cartella non trovata',
   'start.remove': "Togli dall'elenco (la cartella non viene cancellata)",
+  'about.link': 'Cosa vuol dire Naibi?',
+  'about.title': 'Cosa vuol dire Naibi?',
+  'about.p1': '*Naibi* è il nome con cui le carte da gioco arrivarono in Italia, nel Trecento.',
+  'about.p2':
+    "La parola viene dall'arabo *nā'ib*, \"luogotenente\". Nei mazzi dei Mamelucchi, che regnavano su Egitto e Siria, le figure erano il re (*malik*), il suo luogotenente (*nā'ib malik*) e un secondo luogotenente. Gli europei presero il nome di una figura per indicare il gioco intero.",
+  'about.p3':
+    'Il 23 marzo 1377 Firenze vietò "un gioco chiamato *naibbe*" appena arrivato in città. Pochi anni dopo una cronaca di Viterbo racconta che il gioco delle carte "venne de Seracinia e chiamasi tra loro naib".',
+  'about.p4':
+    'In italiano la parola è stata poi sostituita da "carte", mentre in spagnolo vive ancora: le carte si chiamano *naipes*. Sono rimasti anche i semi. Coppe, denari e spade vengono dai mazzi mamelucchi. I bastoni erano in origine mazze da polo, un gioco allora sconosciuto in Europa.',
+  'about.p5':
+    "Naibi è un'app per creare carte e componenti di gioco: ci è sembrato giusto chiamarla con il primo nome che le carte hanno avuto da noi.",
+  'about.close': 'Chiudi',
   'newProject.title': 'Nuovo progetto',
   'newProject.location': 'Posizione',
   'newProject.folder': 'Il progetto sarà creato in {folder}',

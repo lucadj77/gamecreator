@@ -2296,6 +2296,30 @@ div.font-row {
   font-weight: 700;
 }
 
+.start-header .about-link {
+  margin-left: 4px;
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.start-header .about-link:hover {
+  text-decoration: underline;
+}
+
+.about-text {
+  max-height: 60vh;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+
+.about-text p {
+  margin: 0 0 10px;
+}
+
 .start-body {
   flex: 1;
   overflow-y: auto;

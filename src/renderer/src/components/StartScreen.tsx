@@ -29,6 +29,7 @@ export default function StartScreen({
   const { t, lang } = useI18n()
   const [recent, setRecent] = useState<RecentProject[] | null>(null)
   const [creating, setCreating] = useState(false)
+  const [about, setAbout] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -52,7 +53,10 @@ export default function StartScreen({
   return (
     <div className="start">
       <header className="start-header">
-        <h1>GameCreator</h1>
+        <h1>Naibi</h1>
+        <button className="about-link" onClick={() => setAbout(true)}>
+          {t('about.link')}
+        </button>
         <span className="spacer" />
         {settings}
       </header>
@@ -105,6 +109,7 @@ export default function StartScreen({
           ))}
         </ul>
       </div>
+      {about && <AboutDialog onClose={() => setAbout(false)} />}
       {creating && (
         <NewProjectDialog
           onCreate={(folder) => {
@@ -203,6 +208,32 @@ function NewProjectDialog({
           </button>
         </div>
       </form>
+    </Dialog>
+  )
+}
+
+const ABOUT_PARAGRAPHS = ['about.p1', 'about.p2', 'about.p3', 'about.p4', 'about.p5'] as const
+
+/** Le parole tra asterischi vanno in corsivo */
+function italics(text: string): React.ReactNode[] {
+  return text.split(/\*([^*]+)\*/).map((part, i) => (i % 2 ? <em key={i}>{part}</em> : part))
+}
+
+/** Origine del nome dell'app */
+function AboutDialog({ onClose }: { onClose(): void }): React.JSX.Element {
+  const { t } = useI18n()
+  return (
+    <Dialog title={t('about.title')} onClose={onClose}>
+      <div className="about-text">
+        {ABOUT_PARAGRAPHS.map((key) => (
+          <p key={key}>{italics(t(key))}</p>
+        ))}
+      </div>
+      <div className="dialog-buttons">
+        <button className="primary" autoFocus onClick={onClose}>
+          {t('about.close')}
+        </button>
+      </div>
     </Dialog>
   )
 }

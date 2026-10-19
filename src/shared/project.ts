@@ -1,4 +1,4 @@
-// Formato di progetto GameCreator: vedi docs/formato.md
+// Formato di progetto Naibi: vedi docs/formato.md
 
 import type { Template } from './model/template'
 import type { Message } from './messages'
@@ -7,7 +7,9 @@ import type { Sources } from './library'
 import type { Variables } from './model/variables'
 import type { ListOrder } from './model/order'
 
-export const PROJECT_FILE = 'gamecreator.json'
+export const PROJECT_FILE = 'naibi.json'
+/** Nome del file dei progetti creati quando l'app si chiamava GameCreator */
+export const LEGACY_PROJECT_FILE = 'gamecreator.json'
 export const FORMAT_VERSION = 1
 
 export interface SetDefinition {

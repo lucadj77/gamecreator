@@ -1,6 +1,8 @@
-# GameCreator
+# Naibi
 
 App desktop per creare carte e altri elementi di gioco a partire da fogli di calcolo, ispirata a Tabletop Creator. Funziona su file locali.
+
+Il nome viene da _naibi_, la parola con cui nel Trecento si chiamavano in Italia le carte da gioco, dall'arabo _nā'ib_ ("luogotenente"), una delle figure dei mazzi mamelucchi. L'app prima si chiamava GameCreator: i progetti con `gamecreator.json` si aprono ancora.
 
 Stato: apre una cartella di progetto, legge template e fogli dati e disegna le carte di ogni set, in tabella con anteprima o in griglia. Interfaccia in inglese e italiano.
 

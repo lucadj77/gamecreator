@@ -2,7 +2,7 @@ import { createHash } from 'crypto'
 import { access, mkdir, readFile, rename, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { app } from 'electron'
-import { PROJECT_FILE } from '../../shared/project'
+import { projectFilePath } from './projectFile'
 import type { RecentProject } from '../../shared/api'
 import type { ExportContext, Scene } from '../../shared/export'
 import type { Template } from '../../shared/model/template'
@@ -56,7 +56,7 @@ export async function listRecent(): Promise<RecentProject[]> {
   const list = await readEntries()
   return Promise.all(
     list.map(async (e) => {
-      const missing = !(await exists(join(e.folder, PROJECT_FILE)))
+      const missing = !(await exists(await projectFilePath(e.folder)))
       let thumbnail: string | undefined
       try {
         thumbnail =

@@ -1,5 +1,5 @@
 // Conversione di un progetto Tabletop Creator (cartella di JSON, vedi docs/analisi-ttc.md) nel
-// formato di GameCreator: blueprint → template, set → fogli, variabili → variabili del progetto.
+// formato di Naibi: blueprint → template, set → fogli, variabili → variabili del progetto.
 // Qui solo la conversione dei dati; la lettura dei file e la copia delle immagini stanno in
 // src/main/import/ttc.ts. Ciò che non si può riprodurre finisce nelle note dell'importazione.
 
@@ -126,7 +126,7 @@ interface Context {
   notes: Message[]
   /** File di assets/ del progetto, percorsi relativi */
   assets: string[]
-  /** Codice delle variabili di Tabletop Creator → nome della variabile in GameCreator */
+  /** Codice delle variabili di Tabletop Creator → nome della variabile in Naibi */
   rename: Map<string, string>
   variables: Variables
   library: Set<string>
@@ -175,7 +175,7 @@ function refName(code: string, ctx: Context): string {
 const variableName = (s: string): string => s.replace(/[^\p{L}\p{N}_-]/gu, '_') || 'icon'
 
 /**
- * Altezza delle icone nel testo rispetto a quelle di GameCreator (1.15 em): in Tabletop Creator
+ * Altezza delle icone nel testo rispetto a quelle di Naibi (1.15 em): in Tabletop Creator
  * sono alte circa 0.8 em.
  */
 const ICON_SCALE = 0.7
@@ -254,7 +254,7 @@ function sideGroups(bp: Json, side: 'front' | 'back'): Group[] {
 
 /**
  * Riquadro del livello. In Tabletop Creator la posizione è l'angolo del rettangolo che contiene
- * il pannello già ruotato; in GameCreator il livello ruota intorno al suo centro.
+ * il pannello già ruotato; in Naibi il livello ruota intorno al suo centro.
  */
 function frame(d: Json): { x: number; y: number; w: number; h: number; rotation: number } {
   const [px, py] = pair(d.layout_position) ?? [0, 0]
@@ -437,7 +437,7 @@ function shapeLayer(d: Json, base: RawLayer, name: string, tn: TemplateNotes): R
   if (radius && layer.shape === 'rect') layer.radius = radius
   if (bool(d.procedural_rectangle_radius_free)) note(tn, 'ttc.unsupported.cornerRadii', name)
   if (border && layer.stroke) {
-    // il contorno di GameCreator è centrato sul bordo: si rientra di metà spessore
+    // il contorno di Naibi è centrato sul bordo: si rientra di metà spessore
     const half = border / 2
     layer.x = r3((base.x as number) + half)
     layer.y = r3((base.y as number) + half)

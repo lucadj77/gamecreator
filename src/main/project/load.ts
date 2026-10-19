@@ -1,5 +1,5 @@
 import { access, readFile, readdir } from 'fs/promises'
-import { join } from 'path'
+import { basename, join } from 'path'
 import {
   FORMAT_VERSION,
   PROJECT_FILE,
@@ -7,6 +7,7 @@ import {
   type ProjectFile,
   type Sheet
 } from '../../shared/project'
+import { projectFilePath } from './projectFile'
 import { readSpreadsheet } from './spreadsheet'
 import { listAssets } from './assets'
 import { readProjectFonts } from './fonts'
@@ -17,14 +18,15 @@ import { MessageError, messageFromError, msg, type Message } from '../../shared/
 
 export async function loadProject(folder: string): Promise<LoadedProject> {
   let file: ProjectFile
+  const path = await projectFilePath(folder)
   try {
-    file = JSON.parse(await readFile(join(folder, PROJECT_FILE), 'utf8'))
+    file = JSON.parse(await readFile(path, 'utf8'))
   } catch (e) {
     const err = e as NodeJS.ErrnoException
     if (err.code === 'ENOENT')
       throw new MessageError(msg('load.noProjectFile', { file: PROJECT_FILE }))
     throw new MessageError(
-      msg('load.unreadableProjectFile', { file: PROJECT_FILE, error: err.message })
+      msg('load.unreadableProjectFile', { file: basename(path), error: err.message })
     )
   }
 

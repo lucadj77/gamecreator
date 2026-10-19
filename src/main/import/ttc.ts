@@ -64,7 +64,7 @@ export async function isTtcProject(folder: string): Promise<boolean> {
 
 /** Nome proposto per la cartella del progetto convertito: accanto all'originale */
 export function defaultTarget(source: string): string {
-  return join(dirname(source), `${basename(source)} GameCreator`)
+  return join(dirname(source), `${basename(source)} Naibi`)
 }
 
 export async function importTtc(opts: TtcImportOptions): Promise<TtcImportResult> {

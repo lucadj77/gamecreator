@@ -1,4 +1,5 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from 'react'
+import { arrangeGroup } from '../../../shared/model/arrange'
 import { resolveAsset } from '../../../shared/model/assets'
 import { anchorPoint, polygonVertices, roundedPolygonPath } from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
@@ -599,7 +600,7 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
  * sopra si vedono solo dentro la sua forma.
  */
 function GroupView({
-  layer: l,
+  layer: group,
   id,
   uid
 }: {
@@ -607,8 +608,9 @@ function GroupView({
   id: string
   uid: string
 }): React.JSX.Element {
+  const l = arrangeGroup(group)
   const mask = l.clip ? l.children[l.children.length - 1] : undefined
-  if (!mask || l.children.length < 2) return <LayerList layers={l.children} uid={uid} />
+  if (!mask || group.children.length < 2) return <LayerList layers={l.children} uid={uid} />
   const a = anchorPoint(mask)
   return (
     <>

@@ -154,10 +154,25 @@ export interface ShapeLayer extends LayerBase {
   path: string
 }
 
+export type GroupLayout = 'none' | 'row' | 'column' | 'grid'
+export type LayoutAlign = 'start' | 'center' | 'end'
+
 export interface GroupLayer extends LayerBase {
   type: 'group'
   clip: boolean
   children: Layer[]
+  /** Disposizione automatica dei figli dentro il riquadro del gruppo */
+  layout: GroupLayout
+  /** Spazio tra i figli in mm */
+  gap: number
+  /** Colonne della griglia */
+  columns: number
+  /** Posizione del contenuto nel riquadro, lungo la riga o la colonna */
+  justify: LayoutAlign
+  /** Allineamento di ciascun figlio nell'altra direzione */
+  alignItems: LayoutAlign
+  /** Quante volte ripetere i figli: un numero o un campo, come {forza} */
+  repeat: string
 }
 
 /**

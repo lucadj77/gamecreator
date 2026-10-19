@@ -1,4 +1,5 @@
 import { msg, type Message } from '../messages'
+import { parseRepeat } from './arrange'
 import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { isGenericFont, markupFonts } from './fonts'
@@ -129,7 +130,13 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
           }
         }
       }
-      if (out.type === 'group') out = { ...out, children: apply(out.children) }
+      if (out.type === 'group') {
+        // un campo vuoto vale 0; un campo che non c'è (template senza dati) resta 1
+        const repeat = substituteFields(out.repeat, fields).trim() || '0'
+        if (parseRepeat(repeat) === null && !/\{[^}]*\}/.test(repeat))
+          problems.push(msg('bind.invalidValue', { column: `${layer.name}.repeat`, value: repeat }))
+        out = { ...out, repeat, children: apply(out.children) }
+      }
       return paintLayer(out, pal)
     })
 

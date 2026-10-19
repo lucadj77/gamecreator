@@ -221,6 +221,10 @@ Stato (ottobre 2026): il riempimento accetta un colore o un gradiente in sintass
 | disposizione automatica | nessuna, riga, colonna, griglia; spaziatura e allineamento                                                      |
 | ripetizione ◆           | ripete il contenuto N volte, con N fisso o da un campo (per esempio un'icona di forza ripetuta `{forza}` volte) |
 
+Stato (ottobre 2026): disposizione e ripetizione ci sono. Con la disposizione il riquadro del gruppo diventa l'area in cui i figli si mettono, uno dopo l'altro nell'ordine del pannello livelli, con la spaziatura scelta. "Contenuto" sposta l'insieme all'inizio, al centro o alla fine dell'area (nella griglia in entrambe le direzioni); "ogni figlio" allinea ciascun figlio nell'altra direzione. I figli tengono la loro misura e quelli nascosti non occupano spazio; nella griglia le celle hanno la misura del figlio più grande.
+
+"Ripeti" accetta un numero o un campo, per esempio `{forza}`, e si può cambiare anche dalla colonna `nome.repeat`. Una cella vuota vale 0; nel template senza dati un campo vale 1. Le copie seguono la disposizione; senza disposizione l'insieme dei figli si ripete in riga. Con "ritaglia" la maschera resta ferma e non si ripete. Nell'editor le copie si vedono ma non si selezionano: si modifica il primo esemplare.
+
 ## 6. Variabili e stili
 
 ### 6.1 Variabili

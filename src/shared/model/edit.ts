@@ -1,4 +1,5 @@
-import { normalizeLayer, walkLayers } from './normalize'
+import { arrangeModel } from './arrange'
+import { isArranged, normalizeLayer, walkLayers } from './normalize'
 import {
   isDrawn,
   type Constraints,
@@ -80,6 +81,8 @@ export function boundsOf(all: Layer[]): Bounds {
 }
 
 function fitGroup(g: GroupLayer): GroupLayer {
+  // con la disposizione automatica il riquadro resta e i figli vi si dispongono
+  if (isArranged(g)) return arrangeModel(g)
   if (!g.children.some(isDrawn)) return g
   // un gruppo ritagliato occupa solo la sua maschera, il livello in fondo
   if (g.clip && g.children.length > 1) return { ...g, ...boundsOf(g.children.slice(-1)) }
@@ -94,6 +97,8 @@ export function translateLayer(l: Layer, dx: number, dy: number): Layer {
 
 /** Porta il livello nel nuovo riquadro, scalando in proporzione i figli dei gruppi */
 export function transformInto(l: Layer, b: Bounds): Layer {
+  // un gruppo che dispone i figli cambia solo il riquadro, i figli tengono la loro misura
+  if (l.type === 'group' && isArranged(l)) return arrangeModel({ ...l, ...b })
   const sx = l.w ? b.w / l.w : 1
   const sy = l.h ? b.h / l.h : 1
   const map = (c: Layer): Layer => {
@@ -324,6 +329,11 @@ export function resizeTemplate(
 ): Template {
   if (mode === 'keep') {
     const follow = (l: Layer): Layer => {
+      if (l.type === 'group' && isArranged(l)) {
+        const [x, w] = constrain(l.constraints.h, l.x, l.w, t.width, width)
+        const [y, h] = constrain(l.constraints.v, l.y, l.h, t.height, height)
+        return arrangeModel({ ...l, x, y, w, h, children: l.children.map(follow) })
+      }
       if (l.type === 'group') return fitGroup({ ...l, children: l.children.map(follow) })
       const [x, w] = constrain(l.constraints.h, l.x, l.w, t.width, width)
       const [y, h] = constrain(l.constraints.v, l.y, l.h, t.height, height)
@@ -349,9 +359,19 @@ export function resizeTemplate(
     return [a, z - a]
   }
   const scale = (l: Layer): Layer => {
-    if (l.type === 'group') return fitGroup({ ...l, children: l.children.map(scale) })
     const [x, w] = edge(l.x, l.w, t.width, width, sx)
     const [y, h] = edge(l.y, l.h, t.height, height, sy)
+    if (l.type === 'group' && isArranged(l))
+      return arrangeModel({
+        ...l,
+        x,
+        y,
+        w,
+        h,
+        gap: l.gap * Math.min(sx, sy),
+        children: l.children.map(scale)
+      })
+    if (l.type === 'group') return fitGroup({ ...l, children: l.children.map(scale) })
     const out = { ...l, x, y, w, h } as Layer
     if (out.type === 'text') out.size = out.size * Math.min(sx, sy)
     return out

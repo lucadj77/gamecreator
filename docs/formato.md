@@ -134,6 +134,7 @@ Un file JSON per template in `templates/`. Le unità sono millimetri, la dimensi
 - Il primo livello dell'elenco è quello in cima.
 - Tipi: `text`, `image`, `shape` (`rect`, `ellipse`, `polygon`, `star`, `line`, `path`), `group` (con `children`).
 - La colonna con il nome del livello ne sostituisce il valore principale: il testo per `text`, il file per `image`, il riempimento per `shape`, la visibilità per `group`.
+- Un `group` con `layout` (`row`, `column`, `grid`) o con `repeat` diverso da 1 salva il proprio riquadro (`x`, `y`, `w`, `h`): i figli vi si dispongono dentro con `gap`, `columns`, `justify` e `alignItems` (`start`, `center`, `end`). `repeat` è un numero o un campo, come `"{forza}"`; le copie non si salvano.
 - In testi e nomi di file, `{campo}` prende il valore di quella colonna della stessa riga.
 
 L'analisi del formato di Tabletop Creator da cui deriva questa struttura è in [analisi-ttc.md](analisi-ttc.md).

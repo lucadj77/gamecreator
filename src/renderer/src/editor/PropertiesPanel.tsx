@@ -5,6 +5,8 @@ import { findLayer, isNameTaken, patchLayer } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import type {
   Anchor,
+  GroupLayout,
+  LayoutAlign,
   BlendMode,
   Constraints,
   GroupLayer,
@@ -260,19 +262,86 @@ function LayerProperties({
       {l.type === 'image' && <ImageProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'shape' && <ShapeProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'value' && <ValueProperties l={l} set={set} col={col} computed={computed} />}
-      {l.type === 'group' && (
-        <CheckField
-          label={t('prop.clip')}
-          hint={t('editor.clipHint')}
-          value={(l as GroupLayer).clip}
-          onChange={(clip) => set({ clip } as Partial<GroupLayer>)}
-        />
-      )}
+      {l.type === 'group' && <GroupProperties l={l as GroupLayer} set={set} col={col} />}
 
       {l.type !== 'value' && <DrawnProperties l={l} set={set} col={col} />}
     </>
   )
 }
+
+function GroupProperties({
+  l,
+  set,
+  col
+}: Omit<TypeProps<GroupLayer>, 'computed'>): React.JSX.Element {
+  const { t } = useI18n()
+  const arranged = l.layout !== 'none' || l.repeat.trim() !== '1'
+  return (
+    <>
+      <CheckField
+        label={t('prop.clip')}
+        hint={t('editor.clipHint')}
+        value={l.clip}
+        onChange={(clip) => set({ clip })}
+      />
+      <h3>{t('editor.layout')}</h3>
+      <SelectField<GroupLayout>
+        label={t('prop.layout')}
+        hint={t('editor.layoutHint')}
+        value={l.layout}
+        options={options(t, 'layout', ['none', 'row', 'column', 'grid'] as const)}
+        onChange={(layout) => set({ layout })}
+      />
+      <TextField
+        label={t('prop.repeat')}
+        hint={`${t('editor.repeatHint')} ${col('repeat')}`}
+        value={l.repeat}
+        placeholder="1"
+        validate={(v) =>
+          !v.trim() || /^\s*\d+\s*$/.test(v) || /\{[^}]+\}/.test(v)
+            ? null
+            : t('editor.repeatInvalid')
+        }
+        onChange={(repeat) => set({ repeat: repeat.trim() || '1' })}
+      />
+      {arranged && (
+        <>
+          <NumberField
+            label={t('prop.gap')}
+            value={l.gap}
+            unit="mm"
+            step={0.5}
+            onChange={(gap) => set({ gap })}
+          />
+          {l.layout === 'grid' && (
+            <NumberField
+              label={t('prop.columns')}
+              value={l.columns}
+              step={1}
+              min={1}
+              onChange={(columns) => set({ columns: Math.max(1, Math.round(columns)) })}
+            />
+          )}
+          <SelectField<LayoutAlign>
+            label={t('prop.justify')}
+            value={l.justify}
+            options={options(t, l.layout === 'column' ? 'justifyV' : 'justifyH', ALIGNS)}
+            onChange={(justify) => set({ justify })}
+          />
+          <SelectField<LayoutAlign>
+            label={t('prop.alignItems')}
+            value={l.alignItems}
+            options={options(t, l.layout === 'column' ? 'justifyH' : 'justifyV', ALIGNS)}
+            onChange={(alignItems) => set({ alignItems })}
+          />
+          <p className="muted small">{t('editor.arrangedHint')}</p>
+        </>
+      )}
+    </>
+  )
+}
+
+const ALIGNS = ['start', 'center', 'end'] as const
 
 /** Geometria e aspetto: i livelli valore non li hanno */
 function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): React.JSX.Element {

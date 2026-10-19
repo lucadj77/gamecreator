@@ -147,22 +147,39 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
       }
     case 'group': {
       const children = (raw.children ?? []).map(normalizeLayer)
-      return {
+      const g: GroupLayer = {
         ...base,
-        clip: false,
+        ...GROUP_DEFAULTS,
         ...(raw as Partial<GroupLayer>),
         id: base.id,
         type: 'group',
-        children,
-        // il riquadro di un gruppo è l'ingombro dei figli, o della maschera se ritaglia
-        ...extent(raw.clip && children.length > 1 ? children.slice(-1) : children)
+        children
       }
+      // il riquadro di un gruppo è l'ingombro dei figli, o della maschera se ritaglia;
+      // con la disposizione automatica è salvato nel file
+      if (isArranged(g) && raw.w !== undefined && raw.h !== undefined) return g
+      return { ...g, ...extent(raw.clip && children.length > 1 ? children.slice(-1) : children) }
     }
     default:
       throw new MessageError(
         msg('template.unknownLayerType', { layer: base.name, type: String(raw.type) })
       )
   }
+}
+
+const GROUP_DEFAULTS = {
+  clip: false,
+  layout: 'none',
+  gap: 2,
+  columns: 3,
+  justify: 'start',
+  alignItems: 'center',
+  repeat: '1'
+} as const
+
+/** Il gruppo dispone i figli da sé: ha un riquadro proprio invece dell'ingombro dei figli */
+export function isArranged(g: GroupLayer): boolean {
+  return g.layout !== 'none' || g.repeat.trim() !== '1'
 }
 
 function extent(all: Layer[]): Partial<LayerBase> {
@@ -208,7 +225,7 @@ const TYPE_DEFAULTS: Record<Layer['type'], Record<string, unknown>> = {
   text: TEXT_DEFAULTS,
   image: IMAGE_DEFAULTS,
   shape: SHAPE_DEFAULTS,
-  group: { clip: false },
+  group: GROUP_DEFAULTS,
   value: { value: '' }
 }
 
@@ -228,11 +245,14 @@ export function denormalizeLayer(l: Layer): RawLayer {
   for (const [k, v] of Object.entries(l)) {
     if (k === 'id' || k === 'type' || k === 'name' || k === 'children') continue
     // il riquadro di un gruppo si ricava dai figli
-    if ((l.type === 'group' || l.type === 'value') && ['x', 'y', 'w', 'h'].includes(k)) continue
+    // (salvo con la disposizione automatica, dove è il riquadro in cui si dispongono)
+    const fitted = l.type === 'value' || (l.type === 'group' && !isArranged(l))
+    if (fitted && ['x', 'y', 'w', 'h'].includes(k)) continue
     // un valore non si disegna: delle proprietà comuni conta solo la fonte
     if (l.type === 'value' && k !== 'source' && k !== 'value') continue
     const value = tidy(v)
-    if (k in defaults && JSON.stringify(value) === JSON.stringify(defaults[k])) continue
+    const frame = l.type === 'group' && ['x', 'y', 'w', 'h'].includes(k)
+    if (!frame && k in defaults && JSON.stringify(value) === JSON.stringify(defaults[k])) continue
     out[k] = value
   }
   if (l.type === 'group') out.children = l.children.map(denormalizeLayer)

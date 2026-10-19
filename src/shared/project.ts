@@ -5,6 +5,7 @@ import type { Message } from './messages'
 import type { ExportProfiles } from './export'
 import type { Sources } from './library'
 import type { Variables } from './model/variables'
+import type { ListOrder } from './model/order'
 
 export const PROJECT_FILE = 'gamecreator.json'
 export const FORMAT_VERSION = 1
@@ -33,6 +34,8 @@ export interface ProjectFile {
   variables?: Variables
   /** Ultime opzioni usate per ogni tipo di esportazione */
   export?: ExportProfiles
+  /** Ordine scelto a mano di template, stili e variabili nella barra laterale; assente: alfabetico */
+  order?: ListOrder
 }
 
 export interface Sheet {

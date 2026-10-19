@@ -68,6 +68,7 @@ export const en = {
   'sidebar.deleteTemplateConfirm': 'Delete the template "{name}"? Its file goes to the trash.',
   'sidebar.templateInUse':
     'The template "{name}" is used by these sets: {sets}. Delete them first.',
+  'sidebar.sortAlpha': 'Sort alphabetically (drag the items to choose another order)',
   'sidebar.duplicate': 'Duplicate',
   'duplicate.setTitle': 'Duplicate set',
   'duplicate.templateTitle': 'Duplicate template',
@@ -231,8 +232,8 @@ export const en = {
   'tip.openProject': 'Open a folder that contains a GameCreator project',
   'tip.reload': 'Read the project again from disk; unsaved changes are lost',
   'tip.export': 'Export the cards as images, PDF or Tabletop Simulator decks',
-  'tip.openSet': 'Show and edit the cards of this set',
-  'tip.openTemplate': 'Edit this template',
+  'tip.openSet': 'Show and edit the cards of this set. Drag to reorder',
+  'tip.openTemplate': 'Edit this template. Drag to reorder',
   'tip.addCard': 'Add a new card at the end of the set',
   'tip.duplicateCards': 'Duplicate the selected cards',
   'tip.deleteCards': 'Delete the selected cards',

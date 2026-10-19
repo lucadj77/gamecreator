@@ -23,7 +23,8 @@ export const it: Record<MessageKey, string> = {
   'set.viewHint':
     "Righe mostrate: {shown} su {total}. Ordine e filtro valgono solo qui: il foglio e l'esportazione non cambiano.",
   'tip.ratioLocked': 'Larghezza e altezza cambiano insieme, in proporzione. Clic per sbloccarle',
-  'tip.ratioUnlocked': 'Larghezza e altezza cambiano separatamente. Clic per mantenere le proporzioni',
+  'tip.ratioUnlocked':
+    'Larghezza e altezza cambiano separatamente. Clic per mantenere le proporzioni',
   'tip.filterRows':
     'Mostra solo le righe che contengono questo testo (maiuscole e accenti non contano)',
   'tip.filterColumn': 'Colonna in cui cercare il testo del filtro',
@@ -69,6 +70,7 @@ export const it: Record<MessageKey, string> = {
     'Eliminare il set "{name}"? Il suo foglio resta nel file dei dati e si può ricollegare con Nuovo set.',
   'sidebar.deleteTemplateConfirm': 'Eliminare il template "{name}"? Il file va nel cestino.',
   'sidebar.templateInUse': 'Il template "{name}" è usato da questi set: {sets}. Eliminali prima.',
+  'sidebar.sortAlpha': 'Ordina alfabeticamente (trascina le voci per scegliere un altro ordine)',
   'sidebar.duplicate': 'Duplica',
   'duplicate.setTitle': 'Duplica set',
   'duplicate.templateTitle': 'Duplica template',
@@ -236,8 +238,8 @@ export const it: Record<MessageKey, string> = {
   'tip.openProject': 'Apri una cartella che contiene un progetto GameCreator',
   'tip.reload': 'Rileggi il progetto dal disco; le modifiche non salvate si perdono',
   'tip.export': 'Esporta le carte come immagini, PDF o mazzi per Tabletop Simulator',
-  'tip.openSet': 'Mostra e modifica le carte di questo set',
-  'tip.openTemplate': 'Modifica questo template',
+  'tip.openSet': 'Mostra e modifica le carte di questo set. Trascina per riordinare',
+  'tip.openTemplate': 'Modifica questo template. Trascina per riordinare',
   'tip.addCard': 'Aggiungi una carta in fondo al set',
   'tip.duplicateCards': 'Duplica le carte selezionate',
   'tip.deleteCards': 'Elimina le carte selezionate',

@@ -276,6 +276,23 @@ select {
   margin-bottom: 16px;
 }
 
+.sidebar li.dragging {
+  opacity: 0.4;
+}
+
+.sidebar li.drop-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.sidebar li.drop-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.icon-btn.sort-alpha {
+  font-size: 10px;
+  letter-spacing: -0.02em;
+}
+
 .sidebar li.static {
   padding: 4px 12px;
 }

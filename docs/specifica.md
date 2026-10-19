@@ -23,6 +23,8 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 
 Stato (ottobre 2026): fusione e vincoli ci sono. I vincoli si applicano quando si cambia il formato del template scegliendo "lascia i livelli"; "scala" ridimensiona il livello in proporzione alla carta. Nei gruppi vale il vincolo di ciascun figlio. Nelle celle il contorno si scrive `colore/spessore/tratteggio`, per esempio `red/0.3/dashed` o `#333/0.5/dotted`.
 
+**Avanzate.** Nel pannello proprietà ogni sezione mostra sempre le voci più usate e raccoglie le altre in **Avanzate**, chiusa (si ricorda se la si apre). Passando sopra una voce compare a sinistra una freccia: ↓ la sposta in Avanzate, ↑ la riporta tra quelle sempre visibili. La disposizione è una preferenza dell'interfaccia, uguale per tutti i progetti, per sezione (geometria, aspetto, testo, immagine, forma); **Ripristina la disposizione predefinita** in fondo ad Avanzate torna a quella di base. Di base stanno in Avanzate: punto di ancoraggio e vincoli; fusione, dissolvenza, ombra e blocco; per il testo spaziatura tra lettere e paragrafi, rientro, margini interni, maiuscole, sottolineato, barrato, a capo e contorno; per le immagini riflessioni, regolazioni, raggio, contorno e immagine mancante.
+
 La dissolvenza dell'opacità (pannello Aspetto) rende il livello trasparente in modo graduale. Si sceglie la direzione (verso il basso, l'alto, destra, sinistra, con un angolo, verso i bordi o verso il centro) e con tre cursori dove comincia, dove finisce e quanto resta visibile alla fine; una barra mostra l'effetto. Non si imposta dal foglio.
 
 ## 2. Testo
@@ -122,14 +124,15 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 
 #### Variabili e campi
 
-| Scrivi                        | Ottieni                                                          |
-| ----------------------------- | ---------------------------------------------------------------- |
-| `{spada}`                     | variabile del progetto (icona, testo formattato, colore, valore) |
-| `{forza}`                     | valore di un campo della carta, anche calcolato                  |
-| `{spada*3}` · `{spada*forza}` | icona ripetuta tre volte o tante volte quanto vale il campo      |
-| `\{`, `\*`, `\[`              | carattere letterale                                              |
+| Scrivi                        | Ottieni                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| `{spada}`                     | variabile del progetto (icona, testo formattato, colore, valore)                 |
+| `{forza}`                     | valore di un campo della carta, anche calcolato                                  |
+| `{spada*3}` · `{spada*forza}` | icona ripetuta tre volte o tante volte quanto vale il campo                      |
+| `{img}` · `{img*3}`           | l'immagine che il livello immagine `img` mostra su quella carta, una o tre volte |
+| `\{`, `\*`, `\[`              | carattere letterale                                                              |
 
-Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala.
+Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala. Il nome di un livello immagine (o della colonna da cui prende il valore) richiama l'immagine che quel livello mostra sulla carta, non il nome del file: con `img` = `spada`, `Ottieni {img}` disegna la spada. Nelle ripetizioni anche un campo di testo dà il nome dell'immagine: con `risorsa` = `legno` o `{legno}`, `{risorsa*2}` vale `{legno*2}`.
 
 `{nome}` che non è né un campo né una variabile si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
 
@@ -181,6 +184,7 @@ Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livell
 | adattamento               | riempi (ritaglia), adatta (bande vuote), allunga, dimensione originale, ripeti                                                      |
 | allineamento interno      | 9 posizioni                                                                                                                         |
 | zoom, spostamento x e y ◆ | %, mm                                                                                                                               |
+| rotazione dell'immagine ◆ | gradi; ruota l'immagine dentro il riquadro, che resta fermo                                                                         |
 | specchia                  | orizzontale, verticale ◆                                                                                                            |
 | tinta ◆                   | colore e intensità; ricolora le icone monocromatiche                                                                                |
 | regolazioni               | scala di grigi, luminosità, contrasto, saturazione                                                                                  |
@@ -188,7 +192,7 @@ Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livell
 | contorno                  | colore, spessore                                                                                                                    |
 | immagine mancante         | mostra segnaposto, nascondi livello                                                                                                 |
 
-Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per le immagini raster), a partire dalla posizione data dall'allineamento interno; lo zoom cambia la dimensione delle piastrelle. Le regolazioni si applicano prima della tinta. Il contorno può essere continuo, tratteggiato o a punti, come quello delle forme.
+Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per le immagini raster), a partire dalla posizione data dall'allineamento interno; lo zoom cambia la dimensione delle piastrelle. La rotazione dell'immagine gira intorno al centro dell'immagine; l'adattamento tiene conto della rotazione: con **riempi** l'immagine ruotata copre sempre tutto il riquadro, con **adatta** ci sta tutta dentro. Un'immagine orizzontale ruotata di 90° riempie così un riquadro verticale senza bande. Con **ripeti** ruota tutta la trama. Le regolazioni si applicano prima della tinta. Il contorno può essere continuo, tratteggiato o a punti, come quello delle forme.
 
 ### 3.1 Risoluzione dei nomi di file
 
@@ -278,7 +282,7 @@ Scelta rivista il 2026-10-18: i calcoli stanno nel template, non nei set (vedi d
 - **Livello valore.** Un livello di tipo `value` non si disegna: contiene un valore della carta che le formule e i testi degli altri livelli usano come `{nome}`. Una colonna con lo stesso nome lo cambia carta per carta; può avere a sua volta una formula. I livelli valore si calcolano in ordine, quindi uno può usare quelli che lo precedono.
 - **Campi disponibili.** `{campo}` vale, nell'ordine di precedenza: il livello valore calcolato, la cella non vuota della riga, il valore del livello nel template. Senza dati (nell'editor) le formule mostrano il risultato con i valori del template. Una cella vuota lascia il valore del template; una cella con soli spazi lo svuota (per le colonne delle proprietà, come `titolo.size`, conta come vuota).
 - **Composizione.** Una formula senza `=` iniziale compone testo: `{nome}.png`, `Forza {forza}`. Se contiene `+ - * /` e il risultato è numerico, si calcola: `{forza}+2`.
-- **Espressione.** Con `=` iniziale è un'espressione come in Excel: `=IF({forza}>3; "Forte"; "Debole")`. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` o `,`. Funzioni (nomi in inglese): `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`.
+- **Espressione.** Con `=` iniziale è un'espressione come in Excel: `=IF({forza}>3; "Forte"; "Debole")`. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` o `,`. Funzioni (nomi in inglese): `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN` (quante volte un testo compare in un altro, senza badare alle maiuscole: `COUNTIN({risorse}; "legno")`).
 - I campi mancanti e gli errori sono segnalati sotto la carta e nel pannello proprietà.
 
 ## 8. Template e set
@@ -323,6 +327,20 @@ Le voci della barra laterale (set, template, stili, variabili) si riordinano tra
 - Sotto l'anteprima della carta, **Modifica template** apre nell'editor il template del set.
 - Il cestino accanto a un set lo toglie dal progetto dopo una conferma. Il foglio dei dati resta nel file, tra quelli non collegati, e si può ricollegare con **Nuovo set**; ⌘Z annulla.
 - Il cestino accanto a un template lo elimina dopo una conferma, spostando il file nel cestino del sistema. Un template usato da un set non si elimina: prima vanno eliminati i set che lo usano.
+
+### 8.3 Generare le carte
+
+**Genera…** nell'intestazione del set crea le righe del foglio combinando insiemi di valori, con un'anteprima prima di aggiungerle.
+
+- **Insiemi.** Ogni insieme ha una colonna di destinazione, un elenco di valori e quanti valori mettere su ogni carta. I valori si scrivono uno per riga o separati da `,` o `;`; `1-5` o `1..5` diventa 1, 2, 3, 4, 5. **Da una cartella…** riempie l'elenco con i nomi delle immagini di una cartella degli asset.
+- **Più insiemi** si combinano in tutti i modi possibili (prodotto cartesiano): 6 semi × i numeri 1-5 danno 30 carte. Due insiemi con la stessa colonna finiscono nella stessa cella, separati da uno spazio: `{spade} 3`.
+- **Più valori per carta.** Con più di un valore per carta si sceglie se ammettere le ripetizioni e se conta l'ordine: combinazioni o permutazioni, con o senza ripetizioni. I valori si uniscono con il separatore scelto (di base nessuno). 4 risorse, 3 per carta, con ripetizioni e senza ordine danno 20 carte.
+- **Limiti per valore.** Per ogni valore si possono fissare un minimo e un massimo di presenze sulla carta, diversi da valore a valore (per esempio oro al massimo una volta, legno almeno una).
+- **Come icona.** Se attivo, ogni valore si scrive come `{valore}`, così il testo mostra l'icona o la variabile con quel nome; i numeri e i valori già tra graffe restano come sono. Per le colonne che alimentano un livello immagine è spento di base, perché lì serve il nome del file.
+- **Filtro.** Un'espressione come quelle dei campi calcolati (sezione 7, senza `=`) che tiene solo le carte per cui è vera. Usa `{colonna}` per il contenuto della cella e `{colonna_1}`, `{colonna_2}`… per i singoli valori scelti, oltre a `COUNTIN`. Esempio: `COUNTIN({costo}; "oro") + COUNTIN({costo}; "gemma") <= 1`.
+- **Copie.** Valore della colonna `amount` per ogni carta generata.
+- **Anteprima.** Mostra quante carte nasceranno (e su quante combinazioni, se c'è un filtro) e le prime righe con le icone. Oltre 5000 carte la generazione si ferma e lo segnala.
+- **Aggiungi in fondo** accoda le righe a quelle del set; **Sostituisci le carte** cancella prima le righe esistenti, dopo una conferma. Le colonne che mancano nel foglio si aggiungono in fondo. ⌘Z annulla.
 
 ## 9. Esportazione
 
@@ -448,3 +466,15 @@ All'avvio l'app mostra la schermata di ingresso, non l'ultimo progetto aperto. C
 La miniatura è la prima carta del primo set che ha carte (altrimenti il primo template), disegnata come nell'esportazione. Si crea alla prima apertura e si aggiorna a ogni salvataggio. Elenco e miniature stanno nei dati dell'app (`recent-projects.json` e `thumbnails/` nella cartella dati utente di Electron), non nel progetto: aprire un progetto non scrive nulla nella sua cartella.
 
 Nel progetto, la barra in alto ha nome e cartella del progetto, **Esporta…** e, vicini, **Salva**, **Ricarica** e **Chiudi**; **Chiudi** torna alla schermata di ingresso e chiede conferma se ci sono modifiche non salvate.
+
+## 12. Backup
+
+**Backup…** nella barra in alto apre la finestra dei backup del progetto aperto.
+
+- Un backup contiene i file salvati del progetto, senza la cartella `export` e senza i file nascosti. Ogni backup è un file zip, `<progetto> <data> <ora>.zip` (con `auto` alla fine se è automatico), con i dati, i template e le impostazioni.
+- I file di `assets` (immagini, icone, font) non stanno nello zip ma nella sottocartella `assets` della cartella dei backup, comune a tutti i backup del progetto: ogni contenuto si salva una volta sola, con il nome dato dal suo hash, e lo zip ne contiene l'elenco (`naibi-backup.json`: percorso nel progetto → file). Un backup aggiunge solo le immagini nuove o cambiate; quando si tolgono backup automatici, si tolgono anche i file che nessun backup rimasto usa. La finestra mostra lo spazio occupato da tutti i backup del progetto.
+- I backup stanno fuori dal progetto, in una sottocartella con il nome del progetto dentro la cartella dei backup (di base `Documenti/Naibi/Backup`, modificabile). Così non finiscono nei backup successivi e non occupano spazio nella cartella del progetto.
+- **Automatici.** Di base, all'apertura di un progetto si crea un backup, a meno che l'ultimo abbia meno di un'ora; si tengono gli ultimi 10 automatici per progetto (numero modificabile). I backup fatti a mano non si cancellano mai da soli. Il backup automatico non ritarda l'apertura.
+- **A mano.** **Crea un backup ora**; se ci sono modifiche non salvate, il pulsante diventa **Salva e crea un backup**.
+- **Ripristino.** Estrae il backup in una cartella nuova accanto al progetto, con il nome del backup, rimette al loro posto i file di `assets` presi dalla cartella comune, e apre la cartella. Il progetto attuale non si modifica, quindi un ripristino non fa perdere nulla.
+- Le impostazioni (automatico sì o no, quanti tenerne, cartella) valgono per tutti i progetti e stanno nei dati dell'app, non nel progetto.

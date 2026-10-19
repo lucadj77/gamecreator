@@ -89,7 +89,7 @@ La posizione di Tabletop Creator è il riquadro che contiene il pannello ruotato
 Finisce nelle note mostrate a fine importazione:
 
 - testo senza a capo (va a capo), adattamento alla sola larghezza o altezza (diventa "adatta dentro");
-- rotazione dell'immagine dentro il riquadro, maschere, immagini a 9 sezioni, raggi diversi per angolo;
+- maschere, immagini a 9 sezioni, raggi diversi per angolo;
 - arrotondamento degli angoli dei poligoni e bordi sfumati delle forme;
 - carte non rettangolari (importate come rettangoli);
 - tag del testo senza equivalente e valori delle carte per proprietà non supportate.

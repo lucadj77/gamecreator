@@ -1,6 +1,7 @@
 import { useContext, useMemo, useState } from 'react'
 import AssetPicker from '../components/AssetPicker'
 import { ImageIcon } from '../components/icons'
+import { P, Section } from './advanced'
 import { findLayer, isNameTaken, patchLayer } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import type {
@@ -484,118 +485,179 @@ function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): R
   const r = (v: number): number => Math.round(v * 100) / 100
   return (
     <>
-      <h3>{t('editor.geometry')}</h3>
-      {line ? (
-        <div className="field-grid">
-          <NumberField label="Ax" value={r(a.x)} unit="mm" onChange={(x) => ends({ ...a, x }, b)} />
-          <NumberField label="Ay" value={r(a.y)} unit="mm" onChange={(y) => ends({ ...a, y }, b)} />
-          <NumberField label="Bx" value={r(b.x)} unit="mm" onChange={(x) => ends(a, { ...b, x })} />
-          <NumberField label="By" value={r(b.y)} unit="mm" onChange={(y) => ends(a, { ...b, y })} />
+      <Section scope="geometry" title={t('editor.geometry')}>
+        {line ? (
+          <div className="field-grid">
+            <NumberField
+              label="Ax"
+              value={r(a.x)}
+              unit="mm"
+              onChange={(x) => ends({ ...a, x }, b)}
+            />
+            <NumberField
+              label="Ay"
+              value={r(a.y)}
+              unit="mm"
+              onChange={(y) => ends({ ...a, y }, b)}
+            />
+            <NumberField
+              label="Bx"
+              value={r(b.x)}
+              unit="mm"
+              onChange={(x) => ends(a, { ...b, x })}
+            />
+            <NumberField
+              label="By"
+              value={r(b.y)}
+              unit="mm"
+              onChange={(y) => ends(a, { ...b, y })}
+            />
+            <NumberField
+              label="L"
+              hint={t('prop.length')}
+              value={r(l.w)}
+              min={0}
+              unit="mm"
+              onChange={(w) => set({ w })}
+            />
+          </div>
+        ) : (
+          <div className="field-grid">
+            <NumberField
+              label="X"
+              hint={col('x')}
+              value={l.x}
+              unit="mm"
+              onChange={(x) => set({ x })}
+            />
+            <NumberField
+              label="Y"
+              hint={col('y')}
+              value={l.y}
+              unit="mm"
+              onChange={(y) => set({ y })}
+            />
+            <SizeFields
+              labels={[t('prop.w'), t('prop.h')]}
+              hints={[col('w'), col('h')]}
+              w={l.w}
+              h={l.h}
+              min={0.5}
+              unit="mm"
+              locked={locked}
+              onLock={setLocked}
+              onChange={(w, h) => set({ w, h })}
+            />
+          </div>
+        )}
+        {line && <p className="muted small">{t('editor.lineHint')}</p>}
+        <P id="rotation">
           <NumberField
-            label="L"
-            hint={t('prop.length')}
-            value={r(l.w)}
+            label={t('prop.rotation')}
+            hint={col('rotation')}
+            value={l.rotation}
+            step={1}
+            min={-360}
+            max={360}
+            unit="°"
+            onChange={(rotation) => set({ rotation })}
+          />
+        </P>
+        <P id="anchor" adv>
+          <SelectField<Anchor>
+            label={t('prop.anchor')}
+            hint={t('editor.anchorHint')}
+            value={l.anchor}
+            options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
+            onChange={(anchor) => set({ anchor })}
+          />
+        </P>
+        <P id="constraintH" adv>
+          <SelectField<Constraints['h']>
+            label={t('prop.constraintH')}
+            hint={t('editor.constraintsHint')}
+            value={l.constraints.h}
+            options={options(t, 'constraintH', [
+              'left',
+              'right',
+              'center',
+              'both',
+              'scale'
+            ] as const)}
+            onChange={(h) => set({ constraints: { ...l.constraints, h } })}
+          />
+        </P>
+        <P id="constraintV" adv>
+          <SelectField<Constraints['v']>
+            label={t('prop.constraintV')}
+            hint={t('editor.constraintsHint')}
+            value={l.constraints.v}
+            options={options(t, 'constraintV', [
+              'top',
+              'bottom',
+              'center',
+              'both',
+              'scale'
+            ] as const)}
+            onChange={(v) => set({ constraints: { ...l.constraints, v } })}
+          />
+        </P>
+      </Section>
+      <Section scope="appearance" title={t('editor.appearance')}>
+        <P id="opacity">
+          <NumberField
+            label={t('prop.opacity')}
+            hint={col('opacity')}
+            value={l.opacity}
+            factor={100}
+            step={5}
             min={0}
-            unit="mm"
-            onChange={(w) => set({ w })}
+            max={1}
+            unit="%"
+            onChange={(opacity) => set({ opacity })}
           />
-        </div>
-      ) : (
-        <div className="field-grid">
-          <NumberField
-            label="X"
-            hint={col('x')}
-            value={l.x}
-            unit="mm"
-            onChange={(x) => set({ x })}
+        </P>
+        <P id="blend" adv>
+          <SelectField<BlendMode>
+            label={t('prop.blend')}
+            hint={col('blend')}
+            value={l.blend}
+            options={options(t, 'blend', ['normal', 'multiply', 'screen', 'overlay'] as const)}
+            onChange={(blend) => set({ blend })}
           />
-          <NumberField
-            label="Y"
-            hint={col('y')}
-            value={l.y}
-            unit="mm"
-            onChange={(y) => set({ y })}
+        </P>
+        <P id="fade" adv>
+          <FadeFields
+            value={l.fade}
+            hint={t('editor.fadeHint')}
+            onChange={(fade) => set({ fade })}
           />
-          <SizeFields
-            labels={[t('prop.w'), t('prop.h')]}
-            hints={[col('w'), col('h')]}
-            w={l.w}
-            h={l.h}
-            min={0.5}
-            unit="mm"
-            locked={locked}
-            onLock={setLocked}
-            onChange={(w, h) => set({ w, h })}
+        </P>
+        <P id="shadow" adv>
+          <ShadowFields
+            value={l.shadow}
+            hint={col('shadow')}
+            onChange={(shadow) => set({ shadow })}
           />
-        </div>
-      )}
-      {line && <p className="muted small">{t('editor.lineHint')}</p>}
-      <NumberField
-        label={t('prop.rotation')}
-        hint={col('rotation')}
-        value={l.rotation}
-        step={1}
-        min={-360}
-        max={360}
-        unit="°"
-        onChange={(rotation) => set({ rotation })}
-      />
-      <SelectField<Anchor>
-        label={t('prop.anchor')}
-        hint={t('editor.anchorHint')}
-        value={l.anchor}
-        options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
-        onChange={(anchor) => set({ anchor })}
-      />
-      <SelectField<Constraints['h']>
-        label={t('prop.constraintH')}
-        hint={t('editor.constraintsHint')}
-        value={l.constraints.h}
-        options={options(t, 'constraintH', ['left', 'right', 'center', 'both', 'scale'] as const)}
-        onChange={(h) => set({ constraints: { ...l.constraints, h } })}
-      />
-      <SelectField<Constraints['v']>
-        label={t('prop.constraintV')}
-        hint={t('editor.constraintsHint')}
-        value={l.constraints.v}
-        options={options(t, 'constraintV', ['top', 'bottom', 'center', 'both', 'scale'] as const)}
-        onChange={(v) => set({ constraints: { ...l.constraints, v } })}
-      />
-
-      <h3>{t('editor.appearance')}</h3>
-      <NumberField
-        label={t('prop.opacity')}
-        hint={col('opacity')}
-        value={l.opacity}
-        factor={100}
-        step={5}
-        min={0}
-        max={1}
-        unit="%"
-        onChange={(opacity) => set({ opacity })}
-      />
-      <SelectField<BlendMode>
-        label={t('prop.blend')}
-        hint={col('blend')}
-        value={l.blend}
-        options={options(t, 'blend', ['normal', 'multiply', 'screen', 'overlay'] as const)}
-        onChange={(blend) => set({ blend })}
-      />
-      <FadeFields value={l.fade} hint={t('editor.fadeHint')} onChange={(fade) => set({ fade })} />
-      <ShadowFields value={l.shadow} hint={col('shadow')} onChange={(shadow) => set({ shadow })} />
-      <CheckField
-        label={t('prop.visible')}
-        hint={l.type === 'group' ? col() : col('visible')}
-        disabled={l.type === 'group' && l.source.kind === 'formula'}
-        value={l.visible}
-        onChange={(visible) => set({ visible })}
-      />
-      <CheckField
-        label={t('prop.locked')}
-        hint={t('editor.lockedHint')}
-        value={l.locked}
-        onChange={(locked) => set({ locked })}
-      />
+        </P>
+        <P id="visible">
+          <CheckField
+            label={t('prop.visible')}
+            hint={l.type === 'group' ? col() : col('visible')}
+            disabled={l.type === 'group' && l.source.kind === 'formula'}
+            value={l.visible}
+            onChange={(visible) => set({ visible })}
+          />
+        </P>
+        <P id="locked" adv>
+          <CheckField
+            label={t('prop.locked')}
+            hint={t('editor.lockedHint')}
+            value={l.locked}
+            onChange={(locked) => set({ locked })}
+          />
+        </P>
+      </Section>
     </>
   )
 }
@@ -654,168 +716,209 @@ function TextProperties({
           onChange={(text) => set({ text })}
         />
       )}
-      <h3>{t('editor.typography')}</h3>
-      <FontField
-        label={t('prop.font')}
-        hint={col('font')}
-        value={l.font}
-        onChange={(font) => set({ font })}
-      />
-      <SelectField<number>
-        label={t('prop.weight')}
-        hint={col('weight')}
-        value={l.weight}
-        options={WEIGHTS.map((w) => [w, `${w} · ${t(`weight.${w}` as MessageKey)}`])}
-        onChange={(weight) => set({ weight })}
-      />
-      <CheckField
-        label={t('prop.italic')}
-        hint={col('italic')}
-        value={l.italic}
-        onChange={(italic) => set({ italic })}
-      />
-      <NumberField
-        label={t('prop.size')}
-        hint={col('size')}
-        value={l.size}
-        min={1}
-        unit="pt"
-        onChange={(size) => set({ size })}
-      />
-      <ColorField
-        label={t('prop.color')}
-        hint={col('color')}
-        value={l.color}
-        onChange={(color) => color && set({ color })}
-      />
-      <SelectField
-        label={t('prop.align')}
-        hint={col('align')}
-        value={l.align}
-        options={options(t, 'align', ['left', 'center', 'right', 'justify'] as const)}
-        onChange={(align) => set({ align })}
-      />
-      <SelectField
-        label={t('prop.valign')}
-        hint={col('valign')}
-        value={l.valign}
-        options={options(t, 'valign', ['top', 'middle', 'bottom'] as const)}
-        onChange={(valign) => set({ valign })}
-      />
-      <NumberField
-        label={t('prop.lineHeight')}
-        hint={col('lineHeight')}
-        value={l.lineHeight}
-        step={0.05}
-        min={0.5}
-        onChange={(lineHeight) => set({ lineHeight })}
-      />
-      <NumberField
-        label={t('prop.letterSpacing')}
-        hint={col('letterSpacing')}
-        value={l.letterSpacing}
-        step={10}
-        onChange={(letterSpacing) => set({ letterSpacing })}
-      />
-      <NumberField
-        label={t('prop.paragraphSpacing')}
-        hint={col('paragraphSpacing')}
-        value={l.paragraphSpacing}
-        min={0}
-        unit="mm"
-        onChange={(paragraphSpacing) => set({ paragraphSpacing })}
-      />
-      <NumberField
-        label={t('prop.indent')}
-        hint={col('indent')}
-        value={l.indent}
-        unit="mm"
-        onChange={(indent) => set({ indent })}
-      />
-      <NumberField
-        label={t('prop.padding')}
-        hint={col('padding')}
-        value={l.padding}
-        min={0}
-        unit="mm"
-        disabled={!!l.paddingSides}
-        onChange={(padding) => set({ padding })}
-      />
-      <CheckField
-        label={t('prop.paddingSides')}
-        hint={t('editor.paddingSidesHint')}
-        value={!!l.paddingSides}
-        onChange={(on) =>
-          set({ paddingSides: on ? [l.padding, l.padding, l.padding, l.padding] : null })
-        }
-      />
-      {l.paddingSides && (
-        <div className="field-grid sides-grid">
-          {(['top', 'right', 'bottom', 'left'] as const).map((side, i) => (
+      <Section scope="text" title={t('editor.typography')}>
+        <P id="font">
+          <FontField
+            label={t('prop.font')}
+            hint={col('font')}
+            value={l.font}
+            onChange={(font) => set({ font })}
+          />
+        </P>
+        <P id="weight">
+          <SelectField<number>
+            label={t('prop.weight')}
+            hint={col('weight')}
+            value={l.weight}
+            options={WEIGHTS.map((w) => [w, `${w} · ${t(`weight.${w}` as MessageKey)}`])}
+            onChange={(weight) => set({ weight })}
+          />
+        </P>
+        <P id="italic">
+          <CheckField
+            label={t('prop.italic')}
+            hint={col('italic')}
+            value={l.italic}
+            onChange={(italic) => set({ italic })}
+          />
+        </P>
+        <P id="size">
+          <NumberField
+            label={t('prop.size')}
+            hint={col('size')}
+            value={l.size}
+            min={1}
+            unit="pt"
+            onChange={(size) => set({ size })}
+          />
+        </P>
+        <P id="color">
+          <ColorField
+            label={t('prop.color')}
+            hint={col('color')}
+            value={l.color}
+            onChange={(color) => color && set({ color })}
+          />
+        </P>
+        <P id="align">
+          <SelectField
+            label={t('prop.align')}
+            hint={col('align')}
+            value={l.align}
+            options={options(t, 'align', ['left', 'center', 'right', 'justify'] as const)}
+            onChange={(align) => set({ align })}
+          />
+        </P>
+        <P id="valign">
+          <SelectField
+            label={t('prop.valign')}
+            hint={col('valign')}
+            value={l.valign}
+            options={options(t, 'valign', ['top', 'middle', 'bottom'] as const)}
+            onChange={(valign) => set({ valign })}
+          />
+        </P>
+        <P id="lineHeight">
+          <NumberField
+            label={t('prop.lineHeight')}
+            hint={col('lineHeight')}
+            value={l.lineHeight}
+            step={0.05}
+            min={0.5}
+            onChange={(lineHeight) => set({ lineHeight })}
+          />
+        </P>
+        <P id="letterSpacing" adv>
+          <NumberField
+            label={t('prop.letterSpacing')}
+            hint={col('letterSpacing')}
+            value={l.letterSpacing}
+            step={10}
+            onChange={(letterSpacing) => set({ letterSpacing })}
+          />
+        </P>
+        <P id="paragraphSpacing" adv>
+          <NumberField
+            label={t('prop.paragraphSpacing')}
+            hint={col('paragraphSpacing')}
+            value={l.paragraphSpacing}
+            min={0}
+            unit="mm"
+            onChange={(paragraphSpacing) => set({ paragraphSpacing })}
+          />
+        </P>
+        <P id="indent" adv>
+          <NumberField
+            label={t('prop.indent')}
+            hint={col('indent')}
+            value={l.indent}
+            unit="mm"
+            onChange={(indent) => set({ indent })}
+          />
+        </P>
+        <P id="padding" adv>
+          <NumberField
+            label={t('prop.padding')}
+            hint={col('padding')}
+            value={l.padding}
+            min={0}
+            unit="mm"
+            disabled={!!l.paddingSides}
+            onChange={(padding) => set({ padding })}
+          />
+        </P>
+        <P id="paddingSides" adv>
+          <CheckField
+            label={t('prop.paddingSides')}
+            hint={t('editor.paddingSidesHint')}
+            value={!!l.paddingSides}
+            onChange={(on) =>
+              set({ paddingSides: on ? [l.padding, l.padding, l.padding, l.padding] : null })
+            }
+          />
+          {l.paddingSides && (
+            <div className="field-grid sides-grid">
+              {(['top', 'right', 'bottom', 'left'] as const).map((side, i) => (
+                <NumberField
+                  key={side}
+                  label={t(`side.${side}` as MessageKey)}
+                  value={l.paddingSides![i]}
+                  min={0}
+                  unit="mm"
+                  onChange={(v) => {
+                    const next = [...l.paddingSides!] as [number, number, number, number]
+                    next[i] = v
+                    set({ paddingSides: next })
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </P>
+        <P id="transform" adv>
+          <SelectField
+            label={t('prop.transform')}
+            hint={col('transform')}
+            value={l.transform}
+            options={options(t, 'transform', ['none', 'upper', 'lower', 'capitalize'] as const)}
+            onChange={(transform) => set({ transform })}
+          />
+        </P>
+        <P id="underline" adv>
+          <CheckField
+            label={t('prop.underline')}
+            hint={col('underline')}
+            value={l.underline}
+            onChange={(underline) => set({ underline })}
+          />
+        </P>
+        <P id="strike" adv>
+          <CheckField
+            label={t('prop.strike')}
+            hint={col('strike')}
+            value={l.strike}
+            onChange={(strike) => set({ strike })}
+          />
+        </P>
+        <P id="wrap" adv>
+          <CheckField
+            label={t('prop.wrap')}
+            hint={col('wrap')}
+            value={l.wrap}
+            onChange={(wrap) => set({ wrap })}
+          />
+        </P>
+        <P id="stroke" adv>
+          <StrokeField
+            label={t('prop.stroke')}
+            hint={col('stroke')}
+            value={l.stroke}
+            allowPercent
+            onChange={(stroke) => set({ stroke })}
+          />
+        </P>
+        <P id="fit">
+          <SelectField
+            label={t('prop.fit')}
+            hint={col('fit')}
+            value={l.fit}
+            options={options(t, 'textFit', ['none', 'shrink', 'truncate'] as const)}
+            onChange={(fit) => set({ fit })}
+          />
+        </P>
+        {l.fit === 'shrink' && (
+          <P id="minSize">
             <NumberField
-              key={side}
-              label={t(`side.${side}` as MessageKey)}
-              value={l.paddingSides![i]}
-              min={0}
-              unit="mm"
-              onChange={(v) => {
-                const next = [...l.paddingSides!] as [number, number, number, number]
-                next[i] = v
-                set({ paddingSides: next })
-              }}
+              label={t('prop.minSize')}
+              hint={col('minSize')}
+              value={l.minSize}
+              min={1}
+              unit="pt"
+              onChange={(minSize) => set({ minSize })}
             />
-          ))}
-        </div>
-      )}
-      <SelectField
-        label={t('prop.transform')}
-        hint={col('transform')}
-        value={l.transform}
-        options={options(t, 'transform', ['none', 'upper', 'lower', 'capitalize'] as const)}
-        onChange={(transform) => set({ transform })}
-      />
-      <CheckField
-        label={t('prop.underline')}
-        hint={col('underline')}
-        value={l.underline}
-        onChange={(underline) => set({ underline })}
-      />
-      <CheckField
-        label={t('prop.strike')}
-        hint={col('strike')}
-        value={l.strike}
-        onChange={(strike) => set({ strike })}
-      />
-      <CheckField
-        label={t('prop.wrap')}
-        hint={col('wrap')}
-        value={l.wrap}
-        onChange={(wrap) => set({ wrap })}
-      />
-      <StrokeField
-        label={t('prop.stroke')}
-        hint={col('stroke')}
-        value={l.stroke}
-        allowPercent
-        onChange={(stroke) => set({ stroke })}
-      />
-      <SelectField
-        label={t('prop.fit')}
-        hint={col('fit')}
-        value={l.fit}
-        options={options(t, 'textFit', ['none', 'shrink', 'truncate'] as const)}
-        onChange={(fit) => set({ fit })}
-      />
-      {l.fit === 'shrink' && (
-        <NumberField
-          label={t('prop.minSize')}
-          hint={col('minSize')}
-          value={l.minSize}
-          min={1}
-          unit="pt"
-          onChange={(minSize) => set({ minSize })}
-        />
-      )}
+          </P>
+        )}
+      </Section>
     </>
   )
 }
@@ -883,131 +986,175 @@ function ImageProperties({
             : t('editor.srcMissing')}
         </p>
       )}
-      <SelectField
-        label={t('prop.fit')}
-        hint={col('fit')}
-        value={l.fit}
-        options={options(t, 'imageFit', [
-          'cover',
-          'contain',
-          'stretch',
-          'original',
-          'tile'
-        ] as const)}
-        onChange={(fit) => set({ fit })}
-      />
-      {l.fit !== 'stretch' && (
-        <SelectField<Anchor>
-          label={t('prop.imageAlign')}
-          hint={col('align')}
-          value={l.align}
-          options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
-          onChange={(align) => set({ align })}
-        />
-      )}
-      <NumberField
-        label={t('prop.zoom')}
-        hint={`${t('editor.zoomImageHint')} ${col('zoom')}`}
-        value={l.zoom}
-        factor={100}
-        step={5}
-        min={0.01}
-        unit="%"
-        onChange={(zoom) => set({ zoom })}
-      />
-      <NumberField
-        label={t('prop.offsetX')}
-        hint={col('offsetX')}
-        value={l.offsetX}
-        unit="mm"
-        onChange={(offsetX) => set({ offsetX })}
-      />
-      <NumberField
-        label={t('prop.offsetY')}
-        hint={col('offsetY')}
-        value={l.offsetY}
-        unit="mm"
-        onChange={(offsetY) => set({ offsetY })}
-      />
-      <CheckField
-        label={t('prop.flipH')}
-        hint={col('flipH')}
-        value={l.flipH}
-        onChange={(flipH) => set({ flipH })}
-      />
-      <CheckField
-        label={t('prop.flipV')}
-        hint={col('flipV')}
-        value={l.flipV}
-        onChange={(flipV) => set({ flipV })}
-      />
-      <ColorField
-        label={t('prop.tint')}
-        hint={col('tint')}
-        value={l.tint}
-        nullable
-        onChange={(tint) => set({ tint })}
-      />
-      <CheckField
-        label={t('prop.grayscale')}
-        hint={col('grayscale')}
-        value={l.grayscale}
-        onChange={(grayscale) => set({ grayscale })}
-      />
-      <NumberField
-        label={t('prop.brightness')}
-        hint={col('brightness')}
-        value={l.brightness}
-        factor={100}
-        step={5}
-        min={0}
-        unit="%"
-        onChange={(brightness) => set({ brightness })}
-      />
-      <NumberField
-        label={t('prop.contrast')}
-        hint={col('contrast')}
-        value={l.contrast}
-        factor={100}
-        step={5}
-        min={0}
-        unit="%"
-        onChange={(contrast) => set({ contrast })}
-      />
-      {!l.grayscale && (
-        <NumberField
-          label={t('prop.saturation')}
-          hint={col('saturation')}
-          value={l.saturation}
-          factor={100}
-          step={5}
-          min={0}
-          unit="%"
-          onChange={(saturation) => set({ saturation })}
-        />
-      )}
-      <NumberField
-        label={t('prop.radius')}
-        hint={col('radius')}
-        value={l.radius}
-        min={0}
-        unit="mm"
-        onChange={(radius) => set({ radius })}
-      />
-      <StrokeField
-        label={t('prop.stroke')}
-        hint={col('stroke')}
-        value={l.stroke}
-        dashable
-        onChange={(stroke) => set({ stroke })}
-      />
-      <SelectField
-        label={t('prop.missing')}
-        hint={col('missing')}
-        value={l.missing}
-        options={options(t, 'missing', ['placeholder', 'hide'] as const)}
-        onChange={(missing) => set({ missing })}
-      />
+      <Section scope="image">
+        <P id="fit">
+          <SelectField
+            label={t('prop.fit')}
+            hint={col('fit')}
+            value={l.fit}
+            options={options(t, 'imageFit', [
+              'cover',
+              'contain',
+              'stretch',
+              'original',
+              'tile'
+            ] as const)}
+            onChange={(fit) => set({ fit })}
+          />
+        </P>
+        {l.fit !== 'stretch' && (
+          <P id="align">
+            <SelectField<Anchor>
+              label={t('prop.imageAlign')}
+              hint={col('align')}
+              value={l.align}
+              options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
+              onChange={(align) => set({ align })}
+            />
+          </P>
+        )}
+        <P id="zoom">
+          <NumberField
+            label={t('prop.zoom')}
+            hint={`${t('editor.zoomImageHint')} ${col('zoom')}`}
+            value={l.zoom}
+            factor={100}
+            step={5}
+            min={0.01}
+            unit="%"
+            onChange={(zoom) => set({ zoom })}
+          />
+        </P>
+        <P id="imageRotation">
+          <NumberField
+            label={t('prop.imageRotation')}
+            hint={`${t('editor.imageRotationHint')} ${col('imageRotation')}`}
+            value={l.imageRotation}
+            step={90}
+            min={-360}
+            max={360}
+            unit="°"
+            onChange={(imageRotation) => set({ imageRotation })}
+          />
+        </P>
+        <P id="offsetX">
+          <NumberField
+            label={t('prop.offsetX')}
+            hint={col('offsetX')}
+            value={l.offsetX}
+            unit="mm"
+            onChange={(offsetX) => set({ offsetX })}
+          />
+        </P>
+        <P id="offsetY">
+          <NumberField
+            label={t('prop.offsetY')}
+            hint={col('offsetY')}
+            value={l.offsetY}
+            unit="mm"
+            onChange={(offsetY) => set({ offsetY })}
+          />
+        </P>
+        <P id="flipH" adv>
+          <CheckField
+            label={t('prop.flipH')}
+            hint={col('flipH')}
+            value={l.flipH}
+            onChange={(flipH) => set({ flipH })}
+          />
+        </P>
+        <P id="flipV" adv>
+          <CheckField
+            label={t('prop.flipV')}
+            hint={col('flipV')}
+            value={l.flipV}
+            onChange={(flipV) => set({ flipV })}
+          />
+        </P>
+        <P id="tint">
+          <ColorField
+            label={t('prop.tint')}
+            hint={col('tint')}
+            value={l.tint}
+            nullable
+            onChange={(tint) => set({ tint })}
+          />
+        </P>
+        <P id="grayscale" adv>
+          <CheckField
+            label={t('prop.grayscale')}
+            hint={col('grayscale')}
+            value={l.grayscale}
+            onChange={(grayscale) => set({ grayscale })}
+          />
+        </P>
+        <P id="brightness" adv>
+          <NumberField
+            label={t('prop.brightness')}
+            hint={col('brightness')}
+            value={l.brightness}
+            factor={100}
+            step={5}
+            min={0}
+            unit="%"
+            onChange={(brightness) => set({ brightness })}
+          />
+        </P>
+        <P id="contrast" adv>
+          <NumberField
+            label={t('prop.contrast')}
+            hint={col('contrast')}
+            value={l.contrast}
+            factor={100}
+            step={5}
+            min={0}
+            unit="%"
+            onChange={(contrast) => set({ contrast })}
+          />
+        </P>
+        {!l.grayscale && (
+          <P id="saturation" adv>
+            <NumberField
+              label={t('prop.saturation')}
+              hint={col('saturation')}
+              value={l.saturation}
+              factor={100}
+              step={5}
+              min={0}
+              unit="%"
+              onChange={(saturation) => set({ saturation })}
+            />
+          </P>
+        )}
+        <P id="radius" adv>
+          <NumberField
+            label={t('prop.radius')}
+            hint={col('radius')}
+            value={l.radius}
+            min={0}
+            unit="mm"
+            onChange={(radius) => set({ radius })}
+          />
+        </P>
+        <P id="stroke" adv>
+          <StrokeField
+            label={t('prop.stroke')}
+            hint={col('stroke')}
+            value={l.stroke}
+            dashable
+            onChange={(stroke) => set({ stroke })}
+          />
+        </P>
+        <P id="missing" adv>
+          <SelectField
+            label={t('prop.missing')}
+            hint={col('missing')}
+            value={l.missing}
+            options={options(t, 'missing', ['placeholder', 'hide'] as const)}
+            onChange={(missing) => set({ missing })}
+          />
+        </P>
+      </Section>
     </>
   )
 }
@@ -1048,72 +1195,86 @@ function ShapeProperties({
   const set = setLayer as SetFn<ShapeLayer>
   return (
     <>
-      <SelectField<ShapeKind>
-        label={t('prop.shape')}
-        hint={col('shape')}
-        value={l.shape}
-        options={options(t, 'shape', SHAPES)}
-        onChange={(shape) => set({ shape })}
-      />
-      {/* con una formula il valore è il suo risultato: il campo non serve */}
-      {!computed && (
-        <FillField
-          label={t('prop.fill')}
-          hint={col()}
-          value={l.fill}
-          fallback="#CCCCCC"
-          onChange={(fill) => set({ fill })}
-        />
-      )}
-      <StrokeField
-        label={t('prop.stroke')}
-        hint={col('stroke')}
-        value={l.stroke}
-        dashable
-        onChange={(stroke) => set({ stroke })}
-      />
-      {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (
-        <NumberField
-          label={t('prop.radius')}
-          hint={col('radius')}
-          value={l.radius}
-          min={0}
-          unit="mm"
-          onChange={(radius) => set({ radius })}
-        />
-      )}
-      {(l.shape === 'polygon' || l.shape === 'star') && (
-        <NumberField
-          label={l.shape === 'star' ? t('prop.points') : t('prop.sides')}
-          hint={col('sides')}
-          value={l.sides}
-          step={1}
-          min={3}
-          max={64}
-          onChange={(sides) => set({ sides: Math.round(sides) })}
-        />
-      )}
-      {l.shape === 'star' && (
-        <NumberField
-          label={t('prop.innerRatio')}
-          hint={col('innerRatio')}
-          value={l.innerRatio}
-          factor={100}
-          step={5}
-          min={0.05}
-          max={1}
-          unit="%"
-          onChange={(innerRatio) => set({ innerRatio })}
-        />
-      )}
-      {l.shape === 'path' && (
-        <OutlineField
-          hint={t('editor.outlineHint')}
-          empty={!l.path.trim()}
-          // l'altezza segue le proporzioni dell'immagine
-          onTraced={({ path, ratio }) => set({ path, h: Math.round((l.w / ratio) * 100) / 100 })}
-        />
-      )}
+      <Section scope="shape">
+        <P id="shape">
+          <SelectField<ShapeKind>
+            label={t('prop.shape')}
+            hint={col('shape')}
+            value={l.shape}
+            options={options(t, 'shape', SHAPES)}
+            onChange={(shape) => set({ shape })}
+          />
+        </P>
+        {/* con una formula il valore è il suo risultato: il campo non serve */}
+        {!computed && (
+          <P id="fill">
+            <FillField
+              label={t('prop.fill')}
+              hint={col()}
+              value={l.fill}
+              fallback="#CCCCCC"
+              onChange={(fill) => set({ fill })}
+            />
+          </P>
+        )}
+        <P id="stroke">
+          <StrokeField
+            label={t('prop.stroke')}
+            hint={col('stroke')}
+            value={l.stroke}
+            dashable
+            onChange={(stroke) => set({ stroke })}
+          />
+        </P>
+        {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (
+          <P id="radius">
+            <NumberField
+              label={t('prop.radius')}
+              hint={col('radius')}
+              value={l.radius}
+              min={0}
+              unit="mm"
+              onChange={(radius) => set({ radius })}
+            />
+          </P>
+        )}
+        {(l.shape === 'polygon' || l.shape === 'star') && (
+          <P id="sides">
+            <NumberField
+              label={l.shape === 'star' ? t('prop.points') : t('prop.sides')}
+              hint={col('sides')}
+              value={l.sides}
+              step={1}
+              min={3}
+              max={64}
+              onChange={(sides) => set({ sides: Math.round(sides) })}
+            />
+          </P>
+        )}
+        {l.shape === 'star' && (
+          <P id="innerRatio">
+            <NumberField
+              label={t('prop.innerRatio')}
+              hint={col('innerRatio')}
+              value={l.innerRatio}
+              factor={100}
+              step={5}
+              min={0.05}
+              max={1}
+              unit="%"
+              onChange={(innerRatio) => set({ innerRatio })}
+            />
+          </P>
+        )}
+        {l.shape === 'path' && (
+          <OutlineField
+            hint={t('editor.outlineHint')}
+            empty={!l.path.trim()}
+            // l'altezza segue le proporzioni dell'immagine
+            onTraced={({ path, ratio }) => set({ path, h: Math.round((l.w / ratio) * 100) / 100 })}
+          />
+        )}
+      </Section>
     </>
   )
 }

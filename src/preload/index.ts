@@ -35,6 +35,10 @@ const api: Api = {
   copySystemFont: (family) => ipcRenderer.invoke('library:copy-system-font', family),
   saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),
   chooseFolder: (current) => ipcRenderer.invoke('folder:choose', current),
+  backups: () => ipcRenderer.invoke('backup:list'),
+  createBackup: () => ipcRenderer.invoke('backup:create'),
+  saveBackupSettings: (settings) => ipcRenderer.invoke('backup:settings', settings),
+  restoreBackup: (file) => ipcRenderer.invoke('backup:restore', file),
   defaultTtcTarget: (source) => ipcRenderer.invoke('ttc:default-target', source),
   importTtc: (options) => ipcRenderer.invoke('ttc:import', options),
   exportPage: {

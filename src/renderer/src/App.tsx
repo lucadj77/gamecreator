@@ -1,3 +1,5 @@
+import BackupDialog from './components/BackupDialog'
+import GenerateDialog from './components/GenerateDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedProject, LoadedSet, ProjectFile, Sheet } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
@@ -155,6 +157,7 @@ function App(): React.JSX.Element {
   const [editingVariable, setEditingVariable] = useState<string | null>(null)
   const [creatingSet, setCreatingSet] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [backingUp, setBackingUp] = useState(false)
   const [importing, setImporting] = useState(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
@@ -978,6 +981,9 @@ function App(): React.JSX.Element {
                   <button onClick={() => setExporting(true)} title={t('tip.export')}>
                     {t('app.export')}
                   </button>
+                  <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
+                    {t('app.backup')}
+                  </button>
                   <span className="toolbar-group">
                     <button
                       className="primary"
@@ -1159,6 +1165,17 @@ function App(): React.JSX.Element {
                 onClose={() => setImporting(false)}
               />
             )}
+            {backingUp && project && (
+              <BackupDialog
+                dirty={anyDirty}
+                onSave={saveAll}
+                onRestored={(folder) => {
+                  setBackingUp(false)
+                  if (discardOk()) load(folder)
+                }}
+                onClose={() => setBackingUp(false)}
+              />
+            )}
             {exporting && project && (
               <ExportDialog
                 project={project}
@@ -1226,6 +1243,7 @@ function SetView({
   const [selection, setSelection] = useState<number[]>([0])
   const [side, setSide] = useState<Side>('front')
   const [addingColumn, setAddingColumn] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
   const [rowView, setRowView] = useState<RowView>(NO_VIEW)
   const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
@@ -1446,6 +1464,9 @@ function SetView({
           <button disabled={none} onClick={remove} title={t('tip.deleteCards')}>
             {t('set.delete')}
           </button>
+          <button onClick={() => setGenerating(true)} title={t('tip.generateCards')}>
+            {t('set.generate')}
+          </button>
           <span className="sep" />
           <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
             {t('set.addColumn')}
@@ -1566,6 +1587,17 @@ function SetView({
           />
           {preview}
         </>
+      )}
+      {generating && (
+        <GenerateDialog
+          sheet={sheet}
+          template={template}
+          onApply={(s) => {
+            onChange(s)
+            setGenerating(false)
+          }}
+          onClose={() => setGenerating(false)}
+        />
       )}
       {addingColumn && (
         <AddColumnDialog

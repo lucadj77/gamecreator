@@ -470,10 +470,44 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     const key = res.reason === 'ambiguous' ? 'asset.ambiguous' : 'asset.missing'
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
   }
+  // l'immagine ruotata si adatta al riquadro con l'ingombro che ha da ruotata
+  const angle = l.imageRotation % 360
+  const rad = (angle * Math.PI) / 180
+  const cos = Math.abs(Math.cos(rad))
+  const sin = Math.abs(Math.sin(rad))
+  const turned =
+    size && angle
+      ? { ...size, w: size.w * cos + size.h * sin, h: size.w * sin + size.h * cos }
+      : size
   // finché non si conoscono le dimensioni si lascia fare a preserveAspectRatio
-  const z = zoomRect(size ? fitRect(l, size, l.fit, l.align) : l, l.zoom)
+  // "riempi" ruotato: l'immagine deve contenere il riquadro, cioè coprire l'ingombro del
+  // riquadro ruotato all'indietro; "adatta" usa invece l'ingombro dell'immagine ruotata
+  const fitted =
+    turned && size && angle && l.fit === 'cover'
+      ? fitRect(
+          l,
+          {
+            ...turned,
+            mmPerUnit: Math.max((l.w * cos + l.h * sin) / size.w, (l.w * sin + l.h * cos) / size.h)
+          },
+          'original',
+          l.align
+        )
+      : turned
+        ? fitRect(l, turned, l.fit, l.align)
+        : l
+  const z = zoomRect(fitted, l.zoom)
   const r = { ...z, x: z.x + l.offsetX, y: z.y + l.offsetY }
-  const rect = { x: r.x, y: r.y, width: r.w, height: r.h }
+  const cx = r.x + r.w / 2
+  const cy = r.y + r.h / 2
+  // dentro l'ingombro ruotato l'immagine ha le sue proporzioni (tranne con "deforma")
+  const k = size && turned && l.fit !== 'stretch' ? r.w / turned.w : 0
+  const iw = k ? size!.w * k : r.w
+  const ih = k ? size!.h * k : r.h
+  const rect = angle
+    ? { x: cx - iw / 2, y: cy - ih / 2, width: iw, height: ih }
+    : { x: r.x, y: r.y, width: r.w, height: r.h }
+  const turn = angle ? `rotate(${angle} ${cx} ${cy})` : undefined
   const flip =
     l.flipH || l.flipV
       ? `translate(${l.flipH ? 2 * l.x + l.w : 0} ${l.flipV ? 2 * l.y + l.h : 0}) scale(${l.flipH ? -1 : 1} ${l.flipV ? -1 : 1})`
@@ -506,6 +540,7 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
             y={r.y}
             width={r.w}
             height={r.h}
+            patternTransform={turn}
           >
             {image}
           </pattern>
@@ -523,7 +558,9 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
             filter={filter}
           />
         ) : (
-          <g transform={flip}>{image}</g>
+          <g transform={flip}>
+            <g transform={turn}>{image}</g>
+          </g>
         )}
       </g>
       {l.stroke && (

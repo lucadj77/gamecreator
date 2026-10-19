@@ -192,3 +192,31 @@ describe('markup nelle carte', () => {
     ])
   })
 })
+
+describe('campi immagine nel testo', () => {
+  const tpl = normalizeTemplate({
+    name: 't',
+    front: [
+      { type: 'image', name: 'img', src: 'scudo' },
+      { type: 'image', name: 'ritratto', src: '{nome}' },
+      { type: 'text', name: 'testo', text: '' }
+    ]
+  })
+  const text = (fields: Record<string, string>): string => {
+    const card = bindCard(tpl, { fields, amount: 1 })
+    return (card.template.front[2] as TextLayer).text
+  }
+
+  it("{img} e {img*3} disegnano l'immagine del campo", () => {
+    expect(text({ img: 'spada', testo: 'Ottieni {img} e {img*3}, poi {img*2 tint=red}' })).toBe(
+      'Ottieni {spada} e {spada*3}, poi {spada*2 tint=red}'
+    )
+    // senza cella vale l'immagine del template; un campo del numero funziona ancora
+    expect(text({ n: '2', testo: '{img*n}' })).toBe('{scudo*2}')
+  })
+
+  it("l'immagine composta da un altro campo e i campi di testo ripetuti", () => {
+    expect(text({ nome: 'Arciere', testo: '{ritratto} {nome}' })).toBe('{Arciere} Arciere')
+    expect(text({ risorsa: '{legno}', testo: '{risorsa*2}' })).toBe('{legno*2}')
+  })
+})

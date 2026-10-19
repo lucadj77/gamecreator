@@ -4,7 +4,7 @@
   "description": "App desktop per creare carte e altri elementi di gioco",
   "main": "./out/main/index.js",
   "author": "Luca",
-  "homepage": "https://github.com/lucadj77/gamecreator",
+  "homepage": "https://github.com/lucadj77/naibi",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",

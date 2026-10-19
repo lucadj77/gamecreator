@@ -1,6 +1,6 @@
 import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
 import { mkdir, writeFile } from 'fs/promises'
-import { join } from 'path'
+import { dirname, join, resolve } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
@@ -16,7 +16,7 @@ import {
 } from './protocol'
 import { MessageError, msg } from '../shared/messages'
 import type { Template } from '../shared/model/template'
-import type { Theme, TtcImportOptions } from '../shared/api'
+import type { BackupSettings, BackupState, Theme, TtcImportOptions } from '../shared/api'
 import { defaultTarget, importTtc } from './import/ttc'
 import { runExport } from './export/run'
 import { saveExportProfiles } from './project/exportProfiles'
@@ -24,6 +24,16 @@ import { fontCatalog, iconCatalog } from './library/catalogs'
 import { importIcons } from './library/icons'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
+import {
+  autoBackup,
+  backupDirName,
+  backupsSize,
+  createBackup,
+  listBackups,
+  readBackupSettings,
+  restoreBackup,
+  writeBackupSettings
+} from './project/backup'
 import { copySystemFont, systemFonts } from './library/systemFonts'
 import type { FontVariant, IconCollection, IconImport } from '../shared/library'
 import {
@@ -66,6 +76,36 @@ function createWindow(): void {
   }
 }
 
+const backupSettingsFile = (): string => join(app.getPath('userData'), 'backup-settings.json')
+const defaultBackupRoot = (): string => join(app.getPath('documents'), 'Naibi', 'Backup')
+/** Nome del progetto aperto, per la cartella dei backup */
+let projectName = ''
+
+/** I backup si fanno uno alla volta: la pulizia non deve togliere file a un backup in corso */
+let backupQueue: Promise<unknown> = Promise.resolve()
+function queued<T>(job: () => Promise<T>): Promise<T> {
+  const run = backupQueue.then(job, job)
+  backupQueue = run.catch(() => undefined)
+  return run
+}
+
+async function backupDir(settings?: BackupSettings): Promise<string> {
+  const s = settings ?? (await readBackupSettings(backupSettingsFile()))
+  return join(s.folder || defaultBackupRoot(), backupDirName(projectName))
+}
+
+async function backupState(): Promise<BackupState> {
+  const settings = await readBackupSettings(backupSettingsFile())
+  const folder = await backupDir(settings)
+  return {
+    folder,
+    defaultFolder: defaultBackupRoot(),
+    settings,
+    items: await listBackups(folder),
+    totalSize: await backupsSize(folder)
+  }
+}
+
 function registerIpc(): void {
   ipcMain.handle('project:choose-folder', async () => {
     const result = await dialog.showOpenDialog({
@@ -78,6 +118,13 @@ function registerIpc(): void {
   ipcMain.handle('project:load', async (_, folder: string) => {
     const project = await loadProject(folder)
     setProjectFolder(folder)
+    projectName = project.file.name || folder
+    // il backup automatico non ritarda l'apertura, e un errore non la impedisce
+    readBackupSettings(backupSettingsFile())
+      .then(async (settings) =>
+        autoBackup(folder, projectName, await backupDir(settings), settings)
+      )
+      .catch((e) => console.error(e))
     // l'elenco dei recenti non è essenziale: un errore non impedisce di aprire il progetto
     await addRecent(folder, project.file.name).catch((e) => console.error(e))
     return project
@@ -200,6 +247,26 @@ function registerIpc(): void {
       properties: ['openDirectory', 'createDirectory']
     })
     return result.canceled ? null : result.filePaths[0]
+  })
+
+  ipcMain.handle('backup:list', () => backupState())
+  ipcMain.handle('backup:create', async () => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    const dir = await backupDir()
+    const name = projectName
+    return queued(() => createBackup(folder, name, dir))
+  })
+  ipcMain.handle('backup:settings', async (_, settings: BackupSettings) => {
+    await writeBackupSettings(backupSettingsFile(), settings)
+    return backupState()
+  })
+  // si estraggono solo i backup del progetto aperto, accanto al progetto
+  ipcMain.handle('backup:restore', async (_, file: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    if (dirname(resolve(file)) !== resolve(await backupDir())) throw new Error('not a backup')
+    return restoreBackup(file, dirname(folder))
   })
 
   ipcMain.handle('ttc:default-target', (_, source: string) => defaultTarget(source))

@@ -4,8 +4,11 @@ import {
   findParent,
   groupLayers,
   insertLayer,
+  layersFromClipboard,
+  layersToClipboard,
   moveLayer,
   newLayer,
+  pasteLayers,
   patchLayer,
   removeLayers,
   translateLayer,
@@ -21,6 +24,10 @@ export interface Commands {
   add(type: LayerType, shape?: ShapeKind): void
   remove(): void
   duplicate(): void
+  /** Testo da mettere negli appunti per i livelli selezionati, o null se non ce ne sono */
+  copy(): string | null
+  /** Incolla i livelli copiati, anche da un altro template; false se il testo non ne contiene */
+  paste(text: string): boolean
   group(): void
   ungroup(): void
   move(direction: 'up' | 'down'): void
@@ -68,6 +75,23 @@ export function commands(state: EditorState, dispatch: React.Dispatch<EditorActi
         ids.push(copy.id)
       }
       if (ids.length) change(t, ids)
+    },
+
+    copy() {
+      return layersToClipboard(tpl, side, selection)
+    },
+
+    paste(text) {
+      const data = layersFromClipboard(text)
+      if (!data) return false
+      // come un livello nuovo: nel gruppo in cui si è entrati, sopra al livello selezionato
+      const scopeGroup = state.scope ? findLayer(layers, state.scope) : null
+      const above =
+        selection[0] ?? (scopeGroup?.type === 'group' ? scopeGroup.children[0]?.id : undefined)
+      // nello stesso template si spostano, per non coprire gli originali
+      const r = pasteLayers(tpl, side, data.layers, above, data.template === tpl.name)
+      change(r.template, r.ids)
+      return true
     },
 
     group() {

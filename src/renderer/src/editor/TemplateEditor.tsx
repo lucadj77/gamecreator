@@ -82,10 +82,35 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
     else return
     e.preventDefault()
   }
-  // si riregistra a ogni render per leggere lo stato corrente
+  // copia, taglia e incolla passano dagli appunti del sistema: i livelli si incollano anche in un
+  // altro template o in un'altra finestra. Gli eventi arrivano sia dalla tastiera sia dal menu Modifica
+  const onClipboard = (e: ClipboardEvent): void => {
+    const target = e.target as HTMLElement
+    if (target.closest?.('input, textarea, select, [role="dialog"]')) return
+    if (e.type === 'paste') {
+      if (cmd.paste(e.clipboardData?.getData('text/plain') ?? '')) e.preventDefault()
+      return
+    }
+    // con del testo selezionato nella pagina vale la copia normale
+    if (window.getSelection()?.toString()) return
+    const text = cmd.copy()
+    if (!text) return
+    e.clipboardData?.setData('text/plain', text)
+    e.preventDefault()
+    if (e.type === 'cut') cmd.remove()
+  }
+  // si riregistrano a ogni render per leggere lo stato corrente
   useEffect(() => {
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    document.addEventListener('copy', onClipboard)
+    document.addEventListener('cut', onClipboard)
+    document.addEventListener('paste', onClipboard)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.removeEventListener('copy', onClipboard)
+      document.removeEventListener('cut', onClipboard)
+      document.removeEventListener('paste', onClipboard)
+    }
   })
 
   const previewSet = preview ? sets[preview.set] : null

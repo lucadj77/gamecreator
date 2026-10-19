@@ -331,7 +331,7 @@ export const it: Record<MessageKey, string> = {
   'field.strokeWidth': 'Spessore in mm',
   'field.strokeWidthPercent': 'Spessore in mm, o in % della dimensione del testo (es. 8%)',
   'layers.hint':
-    'Trascina un livello per riordinarlo, o sul centro di un gruppo per metterlo dentro. Maiuscolo- o ⌘-clic per selezionarne più di uno, poi raggruppali.',
+    'Trascina un livello per riordinarlo, o sul centro di un gruppo per metterlo dentro. Maiuscolo- o ⌘-clic per selezionarne più di uno, poi raggruppali. ⌘C e ⌘V copiano i livelli in un altro template.',
   'editor.multiSelectionTitle': '{n} livelli selezionati',
   'editor.multiEdit':
     'Le proprietà qui sotto mostrano i valori di {name}; ogni modifica vale per tutti i livelli selezionati. Posizione e dimensioni si cambiano con Allinea o sulla carta.',

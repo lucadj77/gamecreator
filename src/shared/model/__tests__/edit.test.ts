@@ -4,9 +4,12 @@ import {
   findLayer,
   groupLayers,
   insertLayer,
+  layersFromClipboard,
+  layersToClipboard,
   moveLayer,
   moveLayerTo,
   newLayer,
+  pasteLayers,
   patchLayer,
   patchLayers,
   removeLayers,
@@ -218,5 +221,51 @@ describe('modifiche a più livelli', () => {
       { color: '#000000', width: 3 },
       { color: '#FFFFFF', width: 3 }
     ])
+  })
+})
+
+describe('copia e incolla tra template', () => {
+  const other = normalizeTemplate({
+    name: 'altro',
+    front: [{ type: 'text', id: 'x', name: 'nome', x: 0, y: 0, w: 20, h: 10 }]
+  })
+
+  it('copia in ordine di sovrapposizione, con i figli dei gruppi', () => {
+    const { template, groupId } = groupLayers(base, 'front', ['a', 'b'])
+    const text = layersToClipboard(template, 'front', ['c', groupId!])!
+    const data = layersFromClipboard(text)!
+    expect(data.template).toBe('t')
+    expect(data.layers.map((l) => l.name)).toEqual(['group', 'sfondo'])
+    expect(walkLayers(data.layers)).toHaveLength(4)
+    expect(layersToClipboard(base, 'front', [])).toBeNull()
+    expect(layersFromClipboard('testo qualsiasi')).toBeNull()
+    expect(layersFromClipboard('{"a":1}')).toBeNull()
+  })
+
+  it('incolla in un altro template con nomi liberi e la stessa colonna', () => {
+    const data = layersFromClipboard(layersToClipboard(base, 'front', ['a', 'b'])!)!
+    const r = pasteLayers(other, 'front', data.layers)
+    expect(r.template.front.map((l) => l.name)).toEqual(['nome_2', 'banda', 'nome'])
+    expect(r.ids).toEqual([r.template.front[0].id, r.template.front[1].id])
+    expect(r.ids).not.toContain('a')
+    const pasted = r.template.front[0]
+    // stessa posizione: il template è un altro
+    expect([pasted.x, pasted.y]).toEqual([10, 10])
+    // rinominato, continua a leggere la colonna nome
+    expect(pasted.source).toEqual({ kind: 'column', column: 'nome' })
+    expect(r.template.front[1].source).toEqual({ kind: 'column', column: null })
+  })
+
+  it('incolla sopra al livello indicato, spostando se richiesto', () => {
+    const data = layersFromClipboard(layersToClipboard(base, 'front', ['a', 'b'])!)!
+    const r = pasteLayers(base, 'front', data.layers, 'c', true)
+    expect(r.template.front.map((l) => l.name)).toEqual([
+      'nome',
+      'banda',
+      'nome_2',
+      'banda_2',
+      'sfondo'
+    ])
+    expect([r.template.front[2].x, r.template.front[2].y]).toEqual([12, 12])
   })
 })

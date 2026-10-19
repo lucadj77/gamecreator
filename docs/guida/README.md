@@ -101,6 +101,8 @@ Sulla tela i livelli si spostano trascinandoli, si ridimensionano con le manigli
 
 Nell'elenco dei livelli si trascina un livello per cambiarne l'ordine, o sul centro di un gruppo per metterlo dentro. Con Maiuscolo o ⌘ si selezionano più livelli; ⌘G li raggruppa. Con più livelli selezionati il pannello delle proprietà mostra le voci che hanno in comune (opacità, rotazione, visibilità, e quelle del tipo se sono tutti dello stesso tipo, per esempio colore e dimensione del testo): una modifica vale per tutti. I campi mostrano i valori del primo livello selezionato.
 
+I livelli selezionati si copiano con ⌘C (⌘X per tagliarli) e si incollano con ⌘V in un altro template, anche di un altro progetto, o nello stesso. Arrivano con tutte le proprietà, sopra al livello selezionato. Se il template ha già un livello con lo stesso nome, quello incollato prende un nome nuovo (per esempio `nome_2`) ma continua a leggere la colonna di prima. Nello stesso template la copia è spostata di 2 mm per non coprire l'originale.
+
 ### 4.3 Le proprietà del template
 
 Senza livelli selezionati, il pannello mostra le proprietà del template: misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia.
@@ -476,6 +478,7 @@ Su Windows e Linux ⌘ è Ctrl.
 | editor        | ⌘Z, ⇧⌘Z (o ⌘Y)        | annulla e ripete                                |
 | editor        | T, R, E               | nuovo testo, rettangolo, ellisse                |
 | editor        | ⌘D                    | duplica i livelli selezionati                   |
+| editor        | ⌘C, ⌘X, ⌘V            | copia, taglia e incolla livelli tra template    |
 | editor        | ⌘G, ⇧⌘G               | raggruppa e separa                              |
 | editor        | ⌘A                    | seleziona tutti i livelli                       |
 | editor        | Canc                  | elimina i livelli selezionati                   |

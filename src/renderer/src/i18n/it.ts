@@ -728,6 +728,9 @@ export const it: Record<MessageKey, string> = {
   'variable.type.value': 'Valore',
   'variable.src': 'Immagine',
   'variable.srcHint': 'Nome del file in assets/, senza estensione',
+  'variable.textColor': 'Colore del testo in cui è inserita',
+  'variable.textColorHint':
+    "L'icona prende il colore del testo: nera in un testo nero, bianca in un testo bianco. Nel testo si scrive anche {nome tint=currentColor}",
   'variable.tint': 'Tinta',
   'variable.tintHint': 'Ricolora le icone a un solo colore',
   'variable.scale': 'Dimensione',

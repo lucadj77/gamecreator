@@ -717,6 +717,9 @@ export const en = {
   'variable.type.value': 'Value',
   'variable.src': 'Image',
   'variable.srcHint': 'File name in assets/, without extension',
+  'variable.textColor': 'Color of the surrounding text',
+  'variable.textColorHint':
+    'The icon takes the text color: black in black text, white in white text. In text you can also write {name tint=currentColor}',
   'variable.tint': 'Tint',
   'variable.tintHint': 'Recolors single-color icons',
   'variable.scale': 'Size',

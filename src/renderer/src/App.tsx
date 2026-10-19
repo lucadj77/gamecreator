@@ -16,6 +16,12 @@ import {
   NO_VIEW,
   type RowView
 } from '../../shared/model/sheet'
+import {
+  renameInDefinitions,
+  renameInSheet,
+  renameInTemplate,
+  type RefKind
+} from '../../shared/model/rename'
 import { hitTest, toLocal } from '../../shared/model/geometry'
 import {
   denormalizeTemplate,
@@ -86,7 +92,8 @@ function loadUiZoom(): number {
 
 type View = 'table' | 'grid'
 /** Stato dei dati per annulla/ripristina */
-type DataSnapshot = { sets: LoadedSet[]; file: ProjectFile }
+/** Stato dei dati per ⌘Z; i template solo quando li ha cambiati una rinomina */
+type DataSnapshot = { sets: LoadedSet[]; file: ProjectFile; templates?: Template[] }
 const COALESCE_MS = 1200
 type Selected = { kind: 'set'; index: number } | { kind: 'template'; name: string }
 
@@ -133,6 +140,8 @@ function App(): React.JSX.Element {
   const [creating, setCreating] = useState(false)
   /** Stile aperto nell'editor: '' per uno nuovo */
   const [editingStyle, setEditingStyle] = useState<string | null>(null)
+  // cambia quando una rinomina riscrive i template: l'editor aperto riparte dal template nuovo
+  const [editorRev, setEditorRev] = useState(0)
   /** Variabile aperta nell'editor: '' per una nuova */
   const [editingVariable, setEditingVariable] = useState<string | null>(null)
   const [creatingSet, setCreatingSet] = useState(false)
@@ -246,7 +255,11 @@ function App(): React.JSX.Element {
     const from = redo ? history.future : history.past
     const snap = from[from.length - 1]
     if (!snap) return
-    const current = { sets: project.sets, file: project.file }
+    const current: DataSnapshot = {
+      sets: project.sets,
+      file: project.file,
+      templates: snap.templates && project.templates
+    }
     setHistory((h) =>
       redo
         ? { past: [...h.past, current], future: h.future.slice(0, -1), at: 0 }
@@ -257,6 +270,7 @@ function App(): React.JSX.Element {
     setProject({
       ...project,
       ...snap,
+      templates: snap.templates ?? project.templates,
       unusedSheets: project.unusedSheets.filter((x) => !linked.has(x)),
       unusedData: project.unusedData?.filter((x) => !linked.has(x.name))
     })
@@ -271,23 +285,43 @@ function App(): React.JSX.Element {
       return next
     })
     if (snap.file !== project.file) setFileDirty(true)
+    if (snap.templates)
+      markRenamed(project, { ...project, templates: snap.templates, sets: snap.sets })
   }
 
-  /** Salva template, fogli e progetto modificati */
+  /** Dopo una rinomina: template e fogli cambiati vanno salvati, l'editor riparte dal template nuovo */
+  const markRenamed = (before: LoadedProject, after: LoadedProject): void => {
+    const tpls = after.templates.filter((t, i) => t !== before.templates[i]).map((t) => t.name)
+    const sheets = after.sets.flatMap((x, i) =>
+      x.data && x.data !== before.sets[i].data ? [x.data.name] : []
+    )
+    if (tpls.length) {
+      setDirty((d) => new Set([...d, ...tpls]))
+      setEditorRev((r) => r + 1)
+    }
+    if (sheets.length) setDirtySheets((d) => new Set([...d, ...sheets]))
+  }
+
   /** Crea, modifica, rinomina (con `oldName`) o elimina (def null) uno stile del progetto */
   const saveStyle = useCallback((name: string, def: string | null, oldName?: string): void => {
     setProject((p) => {
       if (!p) return p
-      const styles = { ...p.file.styles }
-      if (oldName && oldName !== name) delete styles[oldName]
+      const renaming = !!oldName && oldName !== name && def !== null
+      const base = renaming ? renameReferences(p, 'style', oldName, name) : p
+      const styles = { ...base.file.styles }
+      if (renaming) delete styles[oldName]
       if (def === null) delete styles[name]
       else styles[name] = def
       setHistory((h) => ({
-        past: [...h.past.slice(-99), { sets: p.sets, file: p.file }],
+        past: [
+          ...h.past.slice(-99),
+          { sets: p.sets, file: p.file, templates: renaming ? p.templates : undefined }
+        ],
         future: [],
         at: 0
       }))
-      return { ...p, file: { ...p.file, styles } }
+      if (renaming) markRenamed(p, base)
+      return { ...base, file: { ...base.file, styles } }
     })
     setFileDirty(true)
   }, [])
@@ -296,16 +330,22 @@ function App(): React.JSX.Element {
   const saveVariable = (name: string, v: Variable | null, oldName?: string): void => {
     setProject((p) => {
       if (!p) return p
-      const variables = { ...p.file.variables }
-      if (oldName && oldName !== name) delete variables[oldName]
+      const renaming = !!oldName && oldName !== name && v !== null
+      const base = renaming ? renameReferences(p, 'variable', oldName, name) : p
+      const variables = { ...base.file.variables }
+      if (renaming) delete variables[oldName]
       if (v === null) delete variables[name]
       else variables[name] = v
       setHistory((h) => ({
-        past: [...h.past.slice(-99), { sets: p.sets, file: p.file }],
+        past: [
+          ...h.past.slice(-99),
+          { sets: p.sets, file: p.file, templates: renaming ? p.templates : undefined }
+        ],
         future: [],
         at: 0
       }))
-      return { ...p, file: { ...p.file, variables } }
+      if (renaming) markRenamed(p, base)
+      return { ...base, file: { ...base.file, variables } }
     })
     setFileDirty(true)
   }
@@ -877,7 +917,7 @@ function App(): React.JSX.Element {
                   )}
                   {editing ? (
                     <TemplateEditor
-                      key={editing.name}
+                      key={`${editing.name}:${editorRev}`}
                       template={editing}
                       sets={project.sets.filter((s) => s.template === editing.name)}
                       onChange={updateTemplate}
@@ -1435,6 +1475,24 @@ function SetView({
 }
 
 const PREVIEW_SCALE = 4.4
+
+/** Il progetto con i riferimenti a una variabile o a uno stile rinominati ovunque */
+function renameReferences(
+  p: LoadedProject,
+  kind: RefKind,
+  from: string,
+  to: string
+): LoadedProject {
+  const templates = p.templates.map((t) => renameInTemplate(t, kind, from, to))
+  const sets = p.sets.map((x) => {
+    if (!x.data) return x
+    const tpl = p.templates.find((t) => t.name === x.template) ?? null
+    const data = renameInSheet(x.data, tpl, kind, from, to)
+    return data === x.data ? x : { ...x, data }
+  })
+  const defs = renameInDefinitions(p.file.variables ?? {}, p.file.styles ?? {}, kind, from, to)
+  return { ...p, templates, sets, file: { ...p.file, ...defs } }
+}
 
 /** Livelli sotto il punto, dal più in alto, entrando nei gruppi */
 function hitsAt(layers: Layer[], p: { x: number; y: number }): Layer[] {

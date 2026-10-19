@@ -46,7 +46,7 @@ export interface Api {
   /** Cartella proposta per i progetti nuovi */
   defaultProjectsFolder(): Promise<string>
   /** Crea un progetto vuoto in <parent>/<nome> e ne restituisce la cartella */
-  createProject(name: string, parent: string): Promise<string>
+  createProject(name: string, parent: string, data?: 'xlsx' | 'ods'): Promise<string>
   loadProject(folder: string): Promise<LoadedProject>
   /** Salva il template nel progetto aperto */
   saveTemplate(template: Template): Promise<void>

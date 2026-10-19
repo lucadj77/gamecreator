@@ -21,6 +21,10 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 | vincoli              | sinistra, destra, centro, entrambi (orizzontale e verticale) | comportamento quando cambia la dimensione del template o del gruppo  |
 | sorgente del valore  | fissa, colonna, formula                                      | vedi sezione 7                                                       |
 
+Stato (ottobre 2026): fusione e vincoli ci sono. I vincoli si applicano quando si cambia il formato del template scegliendo "lascia i livelli"; "scala" ridimensiona il livello in proporzione alla carta. Nei gruppi vale il vincolo di ciascun figlio. Nelle celle il contorno si scrive `colore/spessore/tratteggio`, per esempio `red/0.3/dashed` o `#333/0.5/dotted`.
+
+La dissolvenza dell'opacità (pannello Aspetto) rende il livello trasparente in modo graduale. Si sceglie la direzione (verso il basso, l'alto, destra, sinistra, con un angolo, verso i bordi o verso il centro) e con tre cursori dove comincia, dove finisce e quanto resta visibile alla fine; una barra mostra l'effetto. Non si imposta dal foglio.
+
 ## 2. Testo
 
 | Proprietà                | Valori                                                                             |
@@ -43,6 +47,8 @@ Ogni proprietà segnata con ◆ può essere esposta in tabella, cioè diventare 
 | adattamento              | nessuno, riduci per stare nel riquadro (dimensione minima e massima), tronca con … |
 | a capo                   | automatico, nessuno                                                                |
 | icone inline             | altezza rispetto alla riga (%), spostamento verticale                              |
+
+Stato: ci sono tutte le proprietà della tabella tranne il troncamento con … e la trasformazione in Iniziali, che segue la regola del browser (ogni parola). I margini interni sono uguali sui quattro lati o, con **Margini per lato**, diversi per ciascuno. Senza a capo automatico ogni paragrafo resta su una riga.
 
 ### 2.1 Markup del testo
 
@@ -135,7 +141,7 @@ Nell'editor della carta, nei campi di testo del pannello e nelle celle della tab
 - dentro `{...}` dopo `]` compaiono gli attributi, ciascuno con una riga che spiega cosa fa, poi i valori possibili (stili dopo `.`, colori dopo `color=`, forme dopo `bg=`);
 - il markup è colorato e gli errori (attributo sconosciuto, variabile inesistente, immagine ambigua) sono sottolineati con la spiegazione al passaggio del mouse.
 
-Stato attuale: i suggerimenti funzionano nel pannello proprietà, nei campi della carta e nelle celle della tabella (↑↓ per scegliere, Invio o Tab per inserire, Esc per chiudere); gli errori sono elencati sotto il campo e sotto la carta. La colorazione del markup dentro il campo e l'anteprima delle variabili sono da fare.
+Stato attuale: i suggerimenti funzionano nel pannello proprietà, nei campi della carta e nelle celle della tabella (↑↓ per scegliere, Invio o Tab per inserire, Esc per chiudere); gli errori sono elencati sotto il campo e sotto la carta. Mentre si scrive, il campo colora il markup: graffe e quadre, nomi di campi e variabili, stili, attributi e valori, segni Markdown e caratteri letterali; gli errori sono sottolineati. Tra i suggerimenti le variabili immagine mostrano l'icona, e sotto l'elenco si vede l'anteprima della variabile scelta: l'icona, il testo già formattato, il colore o il valore.
 
 #### Editor del formato e degli stili
 
@@ -182,6 +188,8 @@ Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livell
 | contorno                  | colore, spessore                                                                                                                    |
 | immagine mancante         | mostra segnaposto, nascondi livello                                                                                                 |
 
+Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per le immagini raster), a partire dalla posizione data dall'allineamento interno; lo zoom cambia la dimensione delle piastrelle. Le regolazioni si applicano prima della tinta. Il contorno può essere continuo, tratteggiato o a punti, come quello delle forme.
+
 ### 3.1 Risoluzione dei nomi di file
 
 Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta il nome del file, senza percorso e senza estensione. Accanto al campo dell'immagine, nel pannello delle proprietà e nei campi della carta, un pulsante apre le miniature delle immagini di `assets/`, con ricerca approssimata per nome e filtro per cartella; un clic scrive il nome.
@@ -194,13 +202,15 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 
 ## 4. Forma
 
-| Proprietà     | Valori                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
-| tipo          | rettangolo, ellisse, poligono regolare (n lati), stella (n punte, rapporto interno), linea, tracciato libero |
-| raggio angoli | mm, uguale o diverso per ogni angolo                                                                         |
-| riempimento ◆ | nessuno, colore, gradiente lineare o radiale, immagine ripetuta                                              |
-| contorno ◆    | colore, spessore, posizione (interno, centrato, esterno), tratteggio, terminazioni                           |
-| punti         | modificabili sulla tela per poligoni e tracciati                                                             |
+| Proprietà     | Valori                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------- |
+| tipo          | rettangolo, ellisse, poligono regolare (n lati), stella (n punte, rapporto interno), linea, da un'immagine |
+| raggio angoli | mm, uguale o diverso per ogni angolo                                                                       |
+| riempimento ◆ | nessuno, colore, gradiente lineare o radiale, immagine ripetuta                                            |
+| contorno ◆    | colore, spessore, posizione (interno, centrato, esterno), tratteggio, terminazioni                         |
+| punti         | modificabili sulla tela per poligoni e tracciati                                                           |
+
+Stato (ottobre 2026): il riempimento accetta un colore o un gradiente in sintassi CSS, sia nel pannello sia nelle celle: `linear-gradient(90deg, #A33A2A, #FFD27A 70%)` o `radial-gradient(white, rosso)`. Nei gradienti si possono usare le variabili di colore. Il passaggio tra due colori è ammorbidito: si mescolano in OKLab con un'accelerazione graduale, così il centro non si spegne e non si vede uno spigolo sui colori intermedi. La linea va da un punto A a un punto B: si trascinano gli estremi sulla carta (Maiuscolo tiene l'angolo a scatti di 15°) o si scrivono le coordinate. La forma "da un'immagine" usa la sagoma di una PNG con trasparenza o di una SVG del progetto (nelle immagini senza trasparenza, le parti scure); l'altezza segue le proporzioni dell'immagine. L'immagine ripetuta come riempimento non c'è: si ottiene con un livello immagine in modalità "ripeti".
 
 ## 5. Gruppo
 
@@ -210,6 +220,10 @@ Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta
 | ritaglia ai bordi       | sì/no; con il primo figlio come maschera                                                                        |
 | disposizione automatica | nessuna, riga, colonna, griglia; spaziatura e allineamento                                                      |
 | ripetizione ◆           | ripete il contenuto N volte, con N fisso o da un campo (per esempio un'icona di forza ripetuta `{forza}` volte) |
+
+Stato (ottobre 2026): disposizione e ripetizione ci sono. Con la disposizione il riquadro del gruppo diventa l'area in cui i figli si mettono, uno dopo l'altro nell'ordine del pannello livelli, con la spaziatura scelta. "Contenuto" sposta l'insieme all'inizio, al centro o alla fine dell'area (nella griglia in entrambe le direzioni); "ogni figlio" allinea ciascun figlio nell'altra direzione. I figli tengono la loro misura e quelli nascosti non occupano spazio; nella griglia le celle hanno la misura del figlio più grande.
+
+"Ripeti" accetta un numero o un campo, per esempio `{forza}`, e si può cambiare anche dalla colonna `nome.repeat`. Una cella vuota vale 0; nel template senza dati un campo vale 1. Le copie seguono la disposizione; senza disposizione l'insieme dei figli si ripete in riga. Con "ritaglia" la maschera resta ferma e non si ripete. Nell'editor le copie si vedono ma non si selezionano: si modifica il primo esemplare.
 
 ## 6. Variabili e stili
 
@@ -274,7 +288,7 @@ Scelta rivista il 2026-10-18: i calcoli stanno nel template, non nei set (vedi d
 | Proprietà        | Valori                                                                                                                                                |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | dimensioni       | mm, scelte alla creazione e modificabili; preset: poker 63×88, bridge 57×89, mini 44×63, tarocchi 70×120, quadrata 70×70, segnalino tondo, plancia A4 |
-| forma            | rettangolo con raggio, cerchio, esagono, tracciato personalizzato                                                                                     |
+| forma            | rettangolo con raggio, cerchio, esagono, sagoma di un'immagine                                                                                        |
 | abbondanza       | mm (default 3)                                                                                                                                        |
 | area sicura      | mm dal bordo di taglio, solo come guida                                                                                                               |
 | retro            | nessuno, unico per il set, per carta (livelli del retro collegati al foglio)                                                                          |
@@ -286,6 +300,12 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 - **ridimensiona in proporzione**: posizioni, dimensioni e testi scalano con il nuovo formato (se le proporzioni cambiano, si sceglie se adattare alla larghezza, all'altezza o deformare);
 - **mantieni**: i livelli restano dove sono e si applicano solo i vincoli di ciascun livello (sezione 1);
 - **annulla**.
+
+Accanto a larghezza e altezza, sia del template (nel pannello proprietà e nella finestra del nuovo template) sia dei livelli, un lucchetto mantiene le proporzioni: chiuso, cambiando una misura l'altra segue. Sul livello vale anche per le maniglie sulla carta, comprese quelle sui lati (l'altra misura cresce centrata); senza lucchetto Maiuscolo tiene le proporzioni solo per il trascinamento in corso. Lo stato del lucchetto è una preferenza dell'interfaccia, ricordata per tipo di livello e per i template.
+
+Stato (ottobre 2026): la forma della carta può essere rettangolo con raggio, cerchio o ellisse, esagono (con i lati piatti in alto se la carta è più larga che alta, con le punte in alto altrimenti) o la sagoma di un'immagine del progetto (PNG con trasparenza o SVG), salvata come tracciato SVG in coordinate 0–1. La forma ritaglia la carta nell'editor, nelle anteprime, nelle immagini e nel PDF senza abbondanza; con l'abbondanza la carta resta rettangolare e la forma compare come linea di taglio, perché la tipografia la ritaglia da lì. L'area sicura segue la forma. In Tabletop Simulator il mazzo resta di carte rettangolari, con la forma disegnata all'interno. Le guide manuali si aggiungono dal pannello del template (verticali e orizzontali), si spostano trascinandole sulla carta e si tolgono trascinandole fuori; i livelli vi si agganciano quando è attivo l'aggancio agli oggetti, e una guida trascinata si aggancia ai lati e al centro della carta e dell'area sicura.
+
+Le voci della barra laterale (set, template, stili, variabili) si riordinano trascinandole; ⌘Z annulla. Quando un elenco non è in ordine alfabetico, accanto al + compare **A–Z**, che lo riporta in ordine alfabetico. L'ordine si salva nel progetto (docs/formato.md).
 
 ### 8.2 Set
 
@@ -308,7 +328,7 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.
 
-Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `gamecreator.json` sotto la chiave `export`, una per tipo; i profili con nome restano da fare. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
+Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `gamecreator.json` sotto la chiave `export`, una per tipo. In cima alla finestra, **Profilo** sceglie un profilo con nome, il cui tipo e le cui opzioni (set e cartella compresi) passano nella finestra; **Salva** aggiorna il profilo scelto con le opzioni attuali, **Salva come…** ne crea uno nuovo e × lo elimina. I profili si scrivono subito nel progetto, sotto `export.named`. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
 
 **Anteprima…**, accanto a **Esporta**, mostra uno alla volta i file che l'esportazione scriverà con le opzioni attuali, senza scrivere nulla: le immagini delle carte con il nome del file, le pagine del PDF con i segni di taglio, i fogli di Tabletop Simulator con la carta nascosta. Si scorrono con ‹ › o con le frecce, e da lì si può esportare. L'anteprima e l'esportazione usano lo stesso piano (`src/shared/exportPlan.ts`), quindi impaginazione e nomi coincidono.
 
@@ -316,33 +336,38 @@ Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una fin
 
 | Opzione       | Valori                                                                                                  |
 | ------------- | ------------------------------------------------------------------------------------------------------- |
-| formato       | PNG, JPG (qualità); WebP non ancora                                                                     |
+| formato       | PNG, JPG, WebP (qualità per JPG e WebP)                                                                 |
 | risoluzione   | 150, 300, 600 DPI o personalizzata                                                                      |
 | abbondanza    | inclusa, esclusa                                                                                        |
 | lati          | fronte, retro, entrambi                                                                                 |
-| sfondo        | fuori dagli angoli arrotondati: bianco o trasparente (PNG, senza abbondanza)                            |
+| sfondo        | fuori dagli angoli arrotondati: bianco o trasparente (PNG e WebP, senza abbondanza)                     |
 | nome dei file | modello con `%set`, `%n` (posizione nel set), `%copy`, `%side`, `{campo}`; per esempio `%set/%n_{nome}` |
 
 Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al nome (`_front`, `_back`); con le copie succede lo stesso per `%copy`. I nomi ripetuti ricevono `_2`, `_3`.
 
 ### 9.2 PDF di stampa
 
-| Opzione              | Valori                                                                                                                 |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| pagina               | A4, A3, Letter, personalizzata; verticale, orizzontale                                                                 |
-| margini e spaziatura | mm                                                                                                                     |
-| disposizione         | automatica (massimo di carte per pagina) o righe × colonne                                                             |
-| rotazione            | con la disposizione automatica, carte ruotate di 90° se dritte non entrano nella pagina o ne entrano di più            |
-| abbondanza           | inclusa o no; se inclusa le carte si toccano e i segni di taglio sono esterni                                          |
-| segni di taglio      | nessuno, angoli, linee intere; lunghezza, spessore, colore, sopra o sotto le carte                                     |
-| fronte-retro         | nessuno; pagine alternate con retro speculari (rilegatura lato lungo o corto); compensazione del disallineamento x e y |
-| piegatura            | fronte e retro affiancati sulla stessa pagina, con linea di piegatura                                                  |
-| file                 | unico, uno per set, uno per lato                                                                                       |
-| fogli di prova       | pagina riepilogo a bassa risoluzione con tutte le carte                                                                |
+| Opzione              | Valori                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| pagina               | A4, A3, Letter, personalizzata; verticale, orizzontale                                                                    |
+| margini e spaziatura | mm                                                                                                                        |
+| disposizione         | automatica (massimo di carte per pagina) o righe × colonne                                                                |
+| rotazione            | con la disposizione automatica, carte ruotate di 90° se dritte non entrano nella pagina o ne entrano di più               |
+| abbondanza           | inclusa o no; se inclusa le carte si toccano e i segni di taglio sono esterni                                             |
+| segni di taglio      | nessuno, angoli, linee intere; lunghezza, spessore, colore, sopra o sotto le carte                                        |
+| fronte-retro         | nessuno; pagine alternate con retro speculari (rilegatura lato lungo o corto); compensazione del disallineamento x e y    |
+| poster               | le carte più grandi della pagina si dividono su più pagine che si sovrappongono (mm), con il nome di ogni parte (A1, B1…) |
+| piegatura            | fronte e retro affiancati sulla stessa pagina, con linea di piegatura                                                     |
+| file                 | unico, uno per set, uno per lato                                                                                          |
+| fogli di prova       | PDF a parte con tutte le carte in piccolo, con set e numero                                                               |
 
-Piegatura e fogli di prova non sono ancora disponibili. Le carte ruotate girano in senso orario; nel fronte-retro i retri ruotano in modo da combaciare con i fronti quando si gira il foglio. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
+Il poster vale con la disposizione automatica: una carta che non entra nella pagina, nemmeno ruotata, si divide in parti uguali che si sovrappongono almeno quanto indicato (di base 10 mm), scegliendo l'orientamento con meno pagine. Ogni pagina porta i segni di taglio della carta dove cadono, dei trattini corti nei margini dove comincia la parte accanto e, sotto, il nome della parte con set e numero della carta. I retri seguono come pagine a parte, senza fronte-retro. Le carte ruotate girano in senso orario; nel fronte-retro i retri ruotano in modo da combaciare con i fronti quando si gira il foglio. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
 
-Il PDF è vettoriale, con i font incorporati e in RGB. Il CMYK richiesto da alcune tipografie richiede una conversione successiva: da valutare con Ghostscript in un secondo momento.
+Con la piegatura ogni carta occupa una cella larga il doppio, con il fronte a sinistra e il retro a destra, entrambi dritti: piegando lungo i trattini (sopra e sotto la coppia) il retro finisce dietro il fronte. Con l'abbondanza la coppia la ha solo all'esterno; senza, le carte sono rettangoli di taglio. Fronte-retro, scelta dei lati, rotazione e poster non valgono.
+
+Il foglio di prova è un PDF in più (`nome_proof.pdf`) con tutte le carte del set in piccolo, una per riga del foglio senza copie, con set e numero sotto; i retri compaiono se si esportano.
+
+Il PDF è vettoriale, con i font incorporati e in RGB. **Converti in CMYK** passa il PDF a Ghostscript (`-sColorConversionStrategy=CMYK`), se è installato sul computer (cercato nel PATH e nelle cartelle di Homebrew). Senza Ghostscript, o se la conversione non riesce, il PDF resta RGB e la finestra lo segnala. La conversione usa il profilo predefinito di Ghostscript: per un profilo colore preciso della tipografia serve ancora un programma di prestampa.
 
 ### 9.3 Tabletop Simulator
 
@@ -360,7 +385,15 @@ La griglia automatica sceglie, tra 2 × 2 e 10 × 7, quella con meno posizioni v
 
 ### 9.4 Preset per tipografie
 
-Profili precompilati per i servizi di stampa più comuni (una immagine per carta a 300 DPI con abbondanza, nomi file richiesti dal servizio). I parametri esatti vanno verificati sul sito di ciascun servizio prima di definirli.
+Nello stesso menu dei profili, un gruppo di preset per i servizi di stampa e per la stampa in casa. Un preset cambia tipo e opzioni ma lascia i set e la cartella scelti; non si modifica, ma si può salvare come profilo del progetto e cambiare da lì.
+
+| Preset                                  | Opzioni                                                                                                          |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| MakePlayingCards, un'immagine per carta | PNG a 300 DPI con abbondanza, fronte e retro, senza copie, fronti e retri in cartelle separate (`%set/%side/%n`) |
+| The Game Crafter, un'immagine per carta | PNG a 300 DPI con abbondanza, fronte e retro, senza copie (`%set/%n_%side`)                                      |
+| Stampa in casa, A4 o Letter             | PDF fronte-retro (lato lungo), senza abbondanza, segni di taglio agli angoli, con le copie                       |
+
+La dimensione in pixel dipende dal template. MakePlayingCards chiede per le carte poker almeno 822 × 1122 px a 300 DPI, cioè 36 px (3,05 mm) di abbondanza per lato; The Game Crafter stampa a 300 DPI con 1/8" (3,2 mm) di abbondanza e altrettanto di area sicura. I 3 mm predefiniti dei template vanno bene per entrambi: una carta 63 × 88 con 3 mm esce a 815 × 1110 px. Prima di ordinare conviene controllare le specifiche sul sito del servizio, che possono cambiare.
 
 ## 10. Icone, font e crediti
 

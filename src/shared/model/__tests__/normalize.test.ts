@@ -31,3 +31,23 @@ describe('denormalizeTemplate', () => {
     expect(isValidTemplateName('')).toBe(false)
   })
 })
+
+describe('forma della carta e guide', () => {
+  it('salva forma, tracciato e guide solo se servono', () => {
+    const plain = denormalizeTemplate(normalizeTemplate({ name: 't', guides: { x: [], y: [] } }))
+    expect(plain).not.toHaveProperty('shape')
+    expect(plain).not.toHaveProperty('guides')
+    const t = normalizeTemplate({
+      name: 't',
+      shape: 'path',
+      shapePath: 'M0 0 L1 0 L0.5 1 Z',
+      guides: { x: [31.5000001], y: [] }
+    })
+    expect(denormalizeTemplate(t)).toMatchObject({
+      shape: 'path',
+      shapePath: 'M0 0 L1 0 L0.5 1 Z',
+      guides: { x: [31.5], y: [] }
+    })
+    expect(denormalizeTemplate({ ...t, shape: 'ellipse' })).not.toHaveProperty('shapePath')
+  })
+})

@@ -134,4 +134,44 @@ describe('modifiche', () => {
     expect(kept.front[0].x).toBe(10)
     expect(kept.width).toBe(126)
   })
+
+  it('lasciando i livelli si applicano i vincoli di ciascuno', () => {
+    const t = normalizeTemplate({
+      name: 'v',
+      front: [
+        {
+          type: 'shape',
+          name: 'dx',
+          x: 50,
+          y: 70,
+          w: 10,
+          h: 10,
+          constraints: { h: 'right', v: 'bottom' }
+        },
+        {
+          type: 'shape',
+          name: 'mezzo',
+          x: 26.5,
+          y: 0,
+          w: 10,
+          h: 10,
+          constraints: { h: 'center', v: 'top' }
+        },
+        {
+          type: 'shape',
+          name: 'banda',
+          x: 0,
+          y: 30,
+          w: 63,
+          h: 10,
+          constraints: { h: 'both', v: 'scale' }
+        }
+      ]
+    })
+    const [dx, mezzo, banda] = resizeTemplate(t, 73, 98, 'keep').front
+    expect([dx.x, dx.y, dx.w]).toEqual([60, 80, 10])
+    expect(mezzo.x).toBe(31.5)
+    expect(banda.w).toBe(73)
+    expect(banda.y).toBeCloseTo((30 * 98) / 88)
+  })
 })

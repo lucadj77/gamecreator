@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { isValidTemplateName } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
+import { RatioLock } from './fields'
+import { useRatioLock } from './ratioLock'
 
 export function Dialog({
   title,
@@ -56,6 +58,18 @@ export function NewTemplateDialog({
   const [height, setHeight] = useState('88')
   const w = Number(width.replace(',', '.'))
   const h = Number(height.replace(',', '.'))
+  const [locked, setLocked] = useRatioLock('template')
+  /** Con il lucchetto chiuso l'altra misura segue in proporzione */
+  const follow = (
+    text: string,
+    from: number,
+    other: number,
+    setOther: (s: string) => void
+  ): void => {
+    const v = Number(text.replace(',', '.'))
+    if (locked && v > 0 && from > 0 && other > 0)
+      setOther(String(Math.round(((v * other) / from) * 100) / 100))
+  }
   const error = !name
     ? null
     : !isValidTemplateName(name)
@@ -103,11 +117,28 @@ export function NewTemplateDialog({
         <div className="dialog-row">
           <label>
             {t('prop.width')}
-            <input className="num" value={width} onChange={(e) => setWidth(e.target.value)} /> mm
+            <input
+              className="num"
+              value={width}
+              onChange={(e) => {
+                setWidth(e.target.value)
+                follow(e.target.value, w, h, setHeight)
+              }}
+            />{' '}
+            mm
           </label>
+          <RatioLock locked={locked} onChange={setLocked} />
           <label>
             {t('prop.height')}
-            <input className="num" value={height} onChange={(e) => setHeight(e.target.value)} /> mm
+            <input
+              className="num"
+              value={height}
+              onChange={(e) => {
+                setHeight(e.target.value)
+                follow(e.target.value, h, w, setWidth)
+              }}
+            />{' '}
+            mm
           </label>
         </div>
         <div className="dialog-buttons">

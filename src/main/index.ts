@@ -94,7 +94,9 @@ function registerIpc(): void {
   )
 
   ipcMain.handle('project:default-parent', () => join(app.getPath('documents'), 'GameCreator'))
-  ipcMain.handle('project:create', (_, name: string, parent: string) => createProject(name, parent))
+  ipcMain.handle('project:create', (_, name: string, parent: string, data?: 'xlsx' | 'ods') =>
+    createProject(name, parent, data)
+  )
 
   // si scrive solo nel progetto aperto, qualunque cartella arrivi dal renderer
   ipcMain.handle('template:save', async (_, template: Template) => {

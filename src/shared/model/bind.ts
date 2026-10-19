@@ -1,4 +1,6 @@
 import { msg, type Message } from '../messages'
+import { parseRepeat } from './arrange'
+import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula } from './formula'
@@ -128,7 +130,13 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
           }
         }
       }
-      if (out.type === 'group') out = { ...out, children: apply(out.children) }
+      if (out.type === 'group') {
+        // un campo vuoto vale 0; un campo che non c'è (template senza dati) resta 1
+        const repeat = substituteFields(out.repeat, fields).trim() || '0'
+        if (parseRepeat(repeat) === null && !/\{[^}]*\}/.test(repeat))
+          problems.push(msg('bind.invalidValue', { column: `${layer.name}.repeat`, value: repeat }))
+        out = { ...out, repeat, children: apply(out.children) }
+      }
       return paintLayer(out, pal)
     })
 
@@ -271,7 +279,11 @@ function paintLayer(l: Layer, pal: Record<string, string>): Layer {
       return {
         ...l,
         shadow,
-        fill: l.fill && resolveColor(l.fill, pal),
+        fill:
+          l.fill &&
+          (isGradient(l.fill)
+            ? mapGradientColors(l.fill, (c) => resolveColor(c, pal))
+            : resolveColor(l.fill, pal)),
         stroke: stroke(l.stroke)
       }
     case 'image':
@@ -309,14 +321,15 @@ export function parseValue(key: string, current: unknown, raw: string): unknown 
   return v
 }
 
-/** "colore/spessore", spessore in mm o in % */
+/** "colore/spessore/tratteggio", spessore in mm o in %, tratteggio dashed o dotted */
 function parseStroke(v: string): Stroke | undefined {
-  const [color, width] = v.split('/').map((p) => p.trim())
+  const [color, width, style] = v.split('/').map((p) => p.trim())
   if (!color) return undefined
-  if (width === undefined) return { color, width: 0.3 }
-  if (width.endsWith('%')) return { color, width }
+  const dash: Pick<Stroke, 'dash'> = style === 'dashed' || style === 'dotted' ? { dash: style } : {}
+  if (width === undefined || width === '') return { color, width: 0.3, ...dash }
+  if (width.endsWith('%')) return { color, width, ...dash }
   const n = Number(width.replace(',', '.'))
-  return Number.isFinite(n) ? { color, width: n } : undefined
+  return Number.isFinite(n) ? { color, width: n, ...dash } : undefined
 }
 
 /** "colore/sfocatura/dx/dy" in mm */

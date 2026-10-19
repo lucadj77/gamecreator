@@ -5,13 +5,17 @@ import {
   parseAttrs,
   serializeAttrs,
   spanAt,
-  type Attrs
+  type Attrs,
+  type MarkupProblem
 } from '../../../shared/model/markup'
+import { highlightMarkup, type HighlightKind } from '../../../shared/model/markupHighlight'
 import { suggestAt, type Suggestion, type SuggestionResult } from '../../../shared/model/markupHelp'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext, SaveStyleContext, StylesContext, VariablesContext } from '../render/assets'
 import FormatDialog from './FormatDialog'
+import MarkupText from '../render/MarkupText'
+import { palette, resolveColor, type Variable } from '../../../shared/model/variables'
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   ref?: React.Ref<HTMLTextAreaElement>
@@ -52,6 +56,22 @@ export default function MarkupTextarea({
   /** Selezione da formattare: una porzione [testo]{...} esistente o un testo selezionato */
   const [target, setTarget] = useState<FormatTarget | null>(null)
   const [formatting, setFormatting] = useState<FormatTarget | null>(null)
+
+  const overlayRef = useRef<HTMLDivElement>(null)
+  // lo strato colorato ricopia misure e carattere del campo, che cambiano con il contenuto
+  useLayoutEffect(() => {
+    const el = ref.current
+    const ov = overlayRef.current
+    if (!el || !ov) return
+    const sync = (): void => matchOverlay(el, ov)
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  useLayoutEffect(() => {
+    if (ref.current && overlayRef.current) overlayRef.current.scrollTop = ref.current.scrollTop
+  })
 
   const setRefs = (el: HTMLTextAreaElement | null): void => {
     ref.current = el
@@ -110,52 +130,61 @@ export default function MarkupTextarea({
     el.setSelectionRange(start, start + inner.length)
   }
 
-  const problems = showProblems ? markupProblems(value, styles, fields) : []
+  const allProblems = markupProblems(value, styles, fields)
+  const problems = showProblems ? allProblems : []
   const current = help?.items[help.index]
 
   return (
     <span className="markup-input">
-      <textarea
-        {...rest}
-        ref={setRefs}
-        value={value}
-        spellCheck={false}
-        onChange={(e) => {
-          dismissed.current = false
-          onChange(e)
-          refresh(e.currentTarget)
-        }}
-        onBlur={(e) => {
-          setHelp(null)
-          onBlur?.(e)
-        }}
-        onKeyDown={(e) => {
-          if (help) {
-            const n = help.items.length
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-              e.preventDefault()
-              e.stopPropagation()
-              const d = e.key === 'ArrowDown' ? 1 : -1
-              setHelp({ ...help, index: (help.index + d + n) % n })
-              return
+      <span className="markup-field">
+        <textarea
+          {...rest}
+          ref={setRefs}
+          onScroll={(e) => {
+            if (overlayRef.current) overlayRef.current.scrollTop = e.currentTarget.scrollTop
+          }}
+          value={value}
+          spellCheck={false}
+          onChange={(e) => {
+            dismissed.current = false
+            onChange(e)
+            refresh(e.currentTarget)
+          }}
+          onBlur={(e) => {
+            setHelp(null)
+            onBlur?.(e)
+          }}
+          onKeyDown={(e) => {
+            if (help) {
+              const n = help.items.length
+              if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault()
+                e.stopPropagation()
+                const d = e.key === 'ArrowDown' ? 1 : -1
+                setHelp({ ...help, index: (help.index + d + n) % n })
+                return
+              }
+              if ((e.key === 'Enter' && !e.altKey && !e.shiftKey) || e.key === 'Tab') {
+                e.preventDefault()
+                e.stopPropagation()
+                if (current) accept(current)
+                return
+              }
+              if (e.key === 'Escape') {
+                e.preventDefault()
+                e.stopPropagation()
+                dismissed.current = true
+                setHelp(null)
+                return
+              }
             }
-            if ((e.key === 'Enter' && !e.altKey && !e.shiftKey) || e.key === 'Tab') {
-              e.preventDefault()
-              e.stopPropagation()
-              if (current) accept(current)
-              return
-            }
-            if (e.key === 'Escape') {
-              e.preventDefault()
-              e.stopPropagation()
-              dismissed.current = true
-              setHelp(null)
-              return
-            }
-          }
-          onKeyDown?.(e)
-        }}
-      />
+            onKeyDown?.(e)
+          }}
+        />
+        <div className="markup-overlay" ref={overlayRef} aria-hidden>
+          {highlighted(value, allProblems)}
+        </div>
+      </span>
       {help && pos && (
         <div
           className="markup-help"
@@ -179,6 +208,11 @@ export default function MarkupTextarea({
                 {(s.kind === 'color' || s.swatch) && (
                   <span className="swatch" style={{ background: s.swatch ?? s.label }} />
                 )}
+                {s.kind === 'variable' && variables[s.label]?.type === 'image' && (
+                  <span className="variable-icon">
+                    <MarkupText text={`{${s.label}}`} unit={3} ratio={1} paragraphSpacing={0} />
+                  </span>
+                )}
                 <span className="markup-help-label">{s.label}</span>
                 <span className="markup-help-kind">
                   {t(`markupHelp.kind.${s.kind}` as MessageKey)}
@@ -186,6 +220,9 @@ export default function MarkupTextarea({
               </li>
             ))}
           </ul>
+          {current?.kind === 'variable' && variables[current.label] && (
+            <VariablePreview name={current.label} v={variables[current.label]} />
+          )}
           {current?.attribute && (
             <p className="markup-help-detail">
               {t(`markupHelp.attr.${current.attribute}` as MessageKey)}
@@ -236,6 +273,111 @@ export default function MarkupTextarea({
       )}
     </span>
   )
+}
+
+/** Anteprima della variabile proposta: l'icona o il testo già formattato, il colore, il valore */
+function VariablePreview({ name, v }: { name: string; v: Variable }): React.JSX.Element {
+  const { t } = useI18n()
+  const variables = useContext(VariablesContext)
+  return (
+    <div className="markup-help-detail markup-help-preview">
+      <span className="muted">{t(`variable.type.${v.type}`)}</span>
+      {v.type === 'color' ? (
+        <>
+          <span
+            className="swatch"
+            style={{ background: resolveColor(v.color, palette(variables)) }}
+          />
+          <code>{v.color}</code>
+        </>
+      ) : v.type === 'value' ? (
+        <code>{v.value}</code>
+      ) : (
+        <span className="markup-help-sample">
+          {/* il testo di una variabile si sostituisce prima del disegno: qui si disegna il suo */}
+          <MarkupText
+            text={v.type === 'text' ? v.text : `{${name}}`}
+            unit={4}
+            ratio={1}
+            paragraphSpacing={0}
+          />
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** Il testo diviso in pezzi colorati; gli errori sono sottolineati */
+function highlighted(src: string, problems: MarkupProblem[]): React.ReactNode[] {
+  const pieces = highlightMarkup(src)
+  const cuts = new Set([0, src.length])
+  for (const p of [...pieces, ...problems]) {
+    cuts.add(Math.max(0, Math.min(src.length, p.from)))
+    cuts.add(Math.max(0, Math.min(src.length, p.to)))
+  }
+  const points = [...cuts].sort((a, b) => a - b)
+  const out: React.ReactNode[] = []
+  let k = 0
+  for (let i = 0; i + 1 < points.length; i++) {
+    const [a, b] = [points[i], points[i + 1]]
+    while (k < pieces.length && pieces[k].to <= a) k++
+    const kind: HighlightKind | undefined =
+      pieces[k] && pieces[k].from <= a && pieces[k].to >= b ? pieces[k].kind : undefined
+    const err = problems.some((p) => p.from < b && p.to > a)
+    const text = src.slice(a, b)
+    out.push(
+      kind || err ? (
+        <span key={a} className={[kind && `mk-${kind}`, err && 'mk-err'].filter(Boolean).join(' ')}>
+          {text}
+        </span>
+      ) : (
+        text
+      )
+    )
+  }
+  // un a capo finale occupa una riga anche nello strato colorato
+  out.push('\u200b')
+  return out
+}
+
+const COPIED = [
+  'boxSizing',
+  'paddingTop',
+  'paddingRight',
+  'paddingBottom',
+  'paddingLeft',
+  'borderTopWidth',
+  'borderRightWidth',
+  'borderBottomWidth',
+  'borderLeftWidth',
+  'borderTopStyle',
+  'borderRightStyle',
+  'borderBottomStyle',
+  'borderLeftStyle',
+  'fontFamily',
+  'fontSize',
+  'fontWeight',
+  'fontStyle',
+  'lineHeight',
+  'letterSpacing',
+  'wordSpacing',
+  'textIndent',
+  'tabSize'
+] as const
+
+/** Porta lo strato colorato esattamente sopra il testo del campo */
+function matchOverlay(el: HTMLTextAreaElement, ov: HTMLDivElement): void {
+  const cs = getComputedStyle(el)
+  for (const p of COPIED) ov.style[p] = cs[p]
+  // la barra di scorrimento del campo restringe il testo: lo strato la compensa a destra
+  const borders = parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth)
+  const bar = el.offsetWidth - el.clientWidth - borders
+  ov.style.paddingRight = `${parseFloat(cs.paddingRight) + Math.max(0, bar)}px`
+  ov.style.top = `${el.offsetTop}px`
+  ov.style.left = `${el.offsetLeft}px`
+  ov.style.width = `${el.offsetWidth}px`
+  ov.style.height = `${el.offsetHeight}px`
+  ov.scrollTop = el.scrollTop
 }
 
 function setNativeValue(el: HTMLTextAreaElement, value: string): void {

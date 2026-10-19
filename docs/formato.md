@@ -70,7 +70,13 @@ progetto/
 
 Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 
-`export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`. La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
+`export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`. La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. Sotto `named` stanno i profili con nome, ciascuno con `name`, `kind` e `options`. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
+
+`order` (facoltativo) ricorda l'ordine scelto a mano trascinando le voci della barra laterale, con una chiave per elenco: `templates`, `styles`, `variables`. Senza la chiave l'elenco è in ordine alfabetico; i nomi che non compaiono vanno in fondo, in ordine alfabetico. L'ordine dei set è quello di `sets`.
+
+```json
+"order": { "variables": ["spada", "scudo", "rosso"] }
+```
 
 ## Fogli dati
 
@@ -84,7 +90,7 @@ Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 Il file dati di riferimento resta `.xlsx`. È uno standard pubblico (ECMA-376, ISO/IEC 29500) ed è il formato letto e scritto meglio da Excel, Numbers, LibreOffice e Google Fogli. Inoltre tiene più set in un file, conserva le formule e non ha problemi di codifica o di separatore.
 
 - `.csv` è supportato per un singolo set, ma non regge più fogli e su Excel dà problemi con accenti e separatore (virgola o punto e virgola a seconda della lingua di sistema).
-- `.ods` (OpenDocument, ISO/IEC 26300) è aperto quanto xlsx, ma Excel lo gestisce peggio. Da aggiungere più avanti in lettura e scrittura.
+- `.ods` (OpenDocument, ISO/IEC 26300) è aperto quanto xlsx e si legge e scrive come l'xlsx: più set in un file, e nel salvataggio si riscrivono solo le celle delle colonne con intestazione (le celle con lo stesso testo restano com'erano, con formule, formattazione e note). Excel però lo gestisce peggio, per questo il formato consigliato resta xlsx. Si sceglie alla creazione del progetto, o cambiando `dataFile` in `gamecreator.json`.
 
 ## Template
 
@@ -125,9 +131,11 @@ Un file JSON per template in `templates/`. Le unità sono millimetri, la dimensi
 }
 ```
 
+- Facoltativi: `shape` (`rect` di base, `ellipse`, `hexagon`, `path` con `shapePath`, tracciato SVG in coordinate 0–1 della carta) e `guides` (`{ "x": [mm...], "y": [mm...] }`, guide manuali dell'editor).
 - Il primo livello dell'elenco è quello in cima.
-- Tipi: `text`, `image`, `shape` (`rect`, `ellipse`, `polygon`, `star`, `line`, `path`), `group` (con `children`).
+- Tipi: `text`, `image`, `shape` (`rect`, `ellipse`, `polygon`, `star`, `line`, `path`), `group` (con `children`). Una `line` va dal centro del lato sinistro al centro del lato destro del suo riquadro, ruotato di `rotation`: `w` è la lunghezza. Un `path` ha in `path` il tracciato in coordinate 0–1 del riquadro, ricavato dalla sagoma di un'immagine.
 - La colonna con il nome del livello ne sostituisce il valore principale: il testo per `text`, il file per `image`, il riempimento per `shape`, la visibilità per `group`.
+- Un `group` con `layout` (`row`, `column`, `grid`) o con `repeat` diverso da 1 salva il proprio riquadro (`x`, `y`, `w`, `h`): i figli vi si dispongono dentro con `gap`, `columns`, `justify` e `alignItems` (`start`, `center`, `end`). `repeat` è un numero o un campo, come `"{forza}"`; le copie non si salvano.
 - In testi e nomi di file, `{campo}` prende il valore di quella colonna della stessa riga.
 
 L'analisi del formato di Tabletop Creator da cui deriva questa struttura è in [analisi-ttc.md](analisi-ttc.md).

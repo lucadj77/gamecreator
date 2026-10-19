@@ -39,6 +39,15 @@ import {
 } from './components/usePanelWidth'
 import PanelSideButton from './components/PanelSideButton'
 import SidebarSection from './components/SidebarSection'
+import { useDragReorder } from './components/useDragReorder'
+import {
+  alphabetical,
+  isAlphabetical,
+  moveItem,
+  orderNames,
+  renameInOrder,
+  type OrderKind
+} from '../../shared/model/order'
 import {
   PanelIcon,
   SetsIcon,
@@ -250,6 +259,48 @@ function App(): React.JSX.Element {
     setFileDirty(true)
   }
 
+  /** Sposta un set nella barra laterale; il set aperto resta aperto. ⌘Z annulla */
+  const reorderSets = (order: number[]): void => {
+    if (!project || order.every((x, i) => x === i)) return
+    setHistory((h) => ({
+      past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    setProject({
+      ...project,
+      sets: order.map((i) => project.sets[i]),
+      file: { ...project.file, sets: order.map((i) => project.file.sets[i]) }
+    })
+    setFileDirty(true)
+    if (selected.kind === 'set') setSelected({ kind: 'set', index: order.indexOf(selected.index) })
+  }
+  const moveSet = (from: number, to: number): void =>
+    reorderSets(moveItem(project?.sets.map((_, i) => i) ?? [], from, to))
+  const sortSetsAlpha = (): void => {
+    if (!project) return
+    const idx = project.sets.map((_, i) => i)
+    reorderSets(idx.sort((a, b) => alphabetical(project.sets[a].name, project.sets[b].name)))
+  }
+
+  /** Ordine scelto a mano di template, stili o variabili; `null` torna all'ordine alfabetico */
+  const setListOrder = (kind: OrderKind, names: string[] | null): void => {
+    if (!project) return
+    const order = { ...project.file.order }
+    if (names) order[kind] = names
+    else delete order[kind]
+    setHistory((h) => ({
+      past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    setProject({
+      ...project,
+      file: { ...project.file, order: Object.keys(order).length ? order : undefined }
+    })
+    setFileDirty(true)
+  }
+
   const undoData = (redo: boolean): void => {
     if (!project) return
     const from = redo ? history.future : history.past
@@ -321,7 +372,10 @@ function App(): React.JSX.Element {
         at: 0
       }))
       if (renaming) markRenamed(p, base)
-      return { ...base, file: { ...base.file, styles } }
+      const order = renaming
+        ? renameInOrder(base.file.order, 'styles', oldName, name)
+        : base.file.order
+      return { ...base, file: { ...base.file, styles, order } }
     })
     setFileDirty(true)
   }, [])
@@ -345,7 +399,10 @@ function App(): React.JSX.Element {
         at: 0
       }))
       if (renaming) markRenamed(p, base)
-      return { ...base, file: { ...base.file, variables } }
+      const order = renaming
+        ? renameInOrder(base.file.order, 'variables', oldName, name)
+        : base.file.order
+      return { ...base, file: { ...base.file, variables, order } }
     })
     setFileDirty(true)
   }
@@ -587,9 +644,46 @@ function App(): React.JSX.Element {
 
   // la barra laterale sta a sinistra o a destra, a scelta
   const allStyles = { ...BUILTIN_STYLES, ...project?.file.styles }
-  const styleList = Object.keys(allStyles).sort()
+  const order = project?.file.order
+  const styleList = orderNames(Object.keys(allStyles), order?.styles)
   const variables = project?.file.variables ?? NO_VARIABLES
-  const variableList = Object.entries(variables).sort(([a], [b]) => a.localeCompare(b))
+  const variableList = orderNames(Object.keys(variables), order?.variables).map(
+    (n): [string, Variable] => [n, variables[n]]
+  )
+  const templateList = orderNames(
+    project?.templates.map((x) => x.name) ?? [],
+    order?.templates
+  ).flatMap((n) => project?.templates.find((x) => x.name === n) ?? [])
+  // trascinando una voce si salva l'ordine dell'elenco come appare
+  const dragSets = useDragReorder(moveSet)
+  const dragTemplates = useDragReorder((a, b) =>
+    setListOrder(
+      'templates',
+      moveItem(
+        templateList.map((x) => x.name),
+        a,
+        b
+      )
+    )
+  )
+  const dragStyles = useDragReorder((a, b) => setListOrder('styles', moveItem(styleList, a, b)))
+  const dragVariables = useDragReorder((a, b) =>
+    setListOrder(
+      'variables',
+      moveItem(
+        variableList.map(([n]) => n),
+        a,
+        b
+      )
+    )
+  )
+  /** Pulsante "A–Z" accanto al +, solo quando l'elenco non è già alfabetico */
+  const sortButton = (names: string[], onSort: () => void): React.ReactNode =>
+    !isAlphabetical(names) && (
+      <button className="icon-btn sort-alpha" title={t('sidebar.sortAlpha')} onClick={onSort}>
+        A–Z
+      </button>
+    )
   // sezioni della barra laterale, per la versione ridotta a icone
   const sidebarSections: [string, React.ReactNode, string][] = [
     ['sets', <SetsIcon key="sets" />, t('sidebar.sets')],
@@ -646,6 +740,11 @@ function App(): React.JSX.Element {
             onToggle={(open) => setSectionClosed('sets', !open)}
             actions={
               <>
+                {project &&
+                  sortButton(
+                    project.sets.map((x) => x.name),
+                    sortSetsAlpha
+                  )}
                 <button
                   className="icon-btn"
                   title={t('sidebar.newSet')}
@@ -658,7 +757,7 @@ function App(): React.JSX.Element {
           >
             <ul>
               {project.sets.map((s, i) => (
-                <li key={s.name}>
+                <li key={s.name} {...dragSets.itemProps(i)}>
                   <button
                     className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
                     onClick={() => setSelected({ kind: 'set', index: i })}
@@ -698,6 +797,10 @@ function App(): React.JSX.Element {
             onToggle={(open) => setSectionClosed('templates', !open)}
             actions={
               <>
+                {sortButton(
+                  templateList.map((x) => x.name),
+                  () => setListOrder('templates', null)
+                )}
                 <button
                   className="icon-btn"
                   title={t('sidebar.newTemplate')}
@@ -709,8 +812,8 @@ function App(): React.JSX.Element {
             }
           >
             <ul>
-              {project.templates.map((tpl) => (
-                <li key={tpl.name}>
+              {templateList.map((tpl, i) => (
+                <li key={tpl.name} {...dragTemplates.itemProps(i)}>
                   <button
                     className={
                       selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''
@@ -754,6 +857,7 @@ function App(): React.JSX.Element {
             onToggle={(open) => setSectionClosed('styles', !open)}
             actions={
               <>
+                {sortButton(styleList, () => setListOrder('styles', null))}
                 <button
                   className="icon-btn"
                   title={t('sidebar.newStyle')}
@@ -765,8 +869,8 @@ function App(): React.JSX.Element {
             }
           >
             <ul>
-              {styleList.map((name) => (
-                <li key={name}>
+              {styleList.map((name, i) => (
+                <li key={name} {...dragStyles.itemProps(i)}>
                   <button onClick={() => setEditingStyle(name)} title={allStyles[name]}>
                     <span>.{name}</span>
                     {!(name in (project.file.styles ?? {})) && (
@@ -785,6 +889,10 @@ function App(): React.JSX.Element {
             onToggle={(open) => setSectionClosed('variables', !open)}
             actions={
               <>
+                {sortButton(
+                  variableList.map(([n]) => n),
+                  () => setListOrder('variables', null)
+                )}
                 <button
                   className="icon-btn"
                   title={t('sidebar.newVariable')}
@@ -796,8 +904,8 @@ function App(): React.JSX.Element {
             }
           >
             <ul>
-              {variableList.map(([name, v]) => (
-                <li key={name}>
+              {variableList.map(([name, v], i) => (
+                <li key={name} {...dragVariables.itemProps(i)}>
                   <button
                     onClick={() => setEditingVariable(name)}
                     title={t(`variable.type.${v.type}`)}

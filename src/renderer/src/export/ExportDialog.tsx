@@ -15,6 +15,7 @@ import {
   type ExportKind,
   type ExportProfiles,
   type ExportProgress,
+  type NamedProfile,
   type ExportResult,
   type ExportSet,
   type ImageOptions,
@@ -25,6 +26,8 @@ import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
 import ExportPreview from './ExportPreview'
+import ProfileBar from './ProfileBar'
+import { EXPORT_PRESETS } from '../../../shared/exportPresets'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { useI18n } from '../i18n/context'
@@ -95,6 +98,12 @@ export default function ExportDialog({
   const { has: hasFont } = useProjectFonts()
   const [credits, setCredits] = useState(false)
   const [preview, setPreview] = useState<ExportJob | null>(null)
+  const [named, setNamed] = useState<NamedProfile[]>(saved.named ?? [])
+  const [activeProfile, setActiveProfile] = useState('')
+  const presets = useMemo(
+    () => EXPORT_PRESETS.map((p) => ({ ...p.profile, name: t(p.label) }) as NamedProfile),
+    [t]
+  )
   const running = progress !== null
 
   useEffect(() => {
@@ -145,11 +154,50 @@ export default function ExportDialog({
         : { ...base, kind, options: tts }
   }
 
+  /** Profilo scelto: tipo e opzioni nella finestra. Un preset non cambia set e cartella */
+  const pickProfile = (p: NamedProfile | null): void => {
+    setActiveProfile(p?.name ?? '')
+    if (!p) return
+    const preset = presets.some((x) => x.name === p.name)
+    const keep = <T extends { sets: string[] }>(o: T): Partial<T> =>
+      preset ? ({ sets: o.sets, ...('folder' in o ? { folder: o.folder } : {}) } as Partial<T>) : {}
+    if (p.kind === 'images') setImg((o) => ({ ...DEFAULT_IMAGE, ...p.options, ...keep(o) }))
+    else if (p.kind === 'pdf') setPdf((o) => ({ ...DEFAULT_PDF, ...p.options, ...keep(o) }))
+    else
+      setTts((o) => ({
+        ...DEFAULT_TTS,
+        nickname: defaultNickname(project),
+        ...p.options,
+        ...keep(o)
+      }))
+    setKind(p.kind)
+  }
+  const currentProfile = (): NamedProfile =>
+    kind === 'images'
+      ? { name: '', kind, options: img }
+      : kind === 'pdf'
+        ? { name: '', kind, options: pdf }
+        : { name: '', kind, options: tts }
+  /** I profili si scrivono subito in gamecreator.json, come le ultime opzioni */
+  const saveNamed = (list: NamedProfile[], active: string): void => {
+    setNamed(list)
+    setActiveProfile(active)
+    const profiles: ExportProfiles = { ...saved, named: list.length ? list : undefined }
+    window.api.saveExportProfiles(profiles).catch(() => undefined)
+    onProfiles(profiles)
+  }
+
   const run = async (): Promise<void> => {
     setError(null)
     setResult(null)
     setProgress({ done: 0, total: 0 })
-    const profiles: ExportProfiles = { ...saved, images: img, pdf, tts }
+    const profiles: ExportProfiles = {
+      ...saved,
+      images: img,
+      pdf,
+      tts,
+      named: named.length ? named : undefined
+    }
     try {
       window.api.saveExportProfiles(profiles).catch(() => undefined)
       onProfiles(profiles)
@@ -295,7 +343,18 @@ export default function ExportDialog({
             ['pdf', t('export.pdf')],
             ['tts', t('export.tts')]
           ]}
-          onChange={setKind}
+          onChange={(k) => {
+            setKind(k)
+            setActiveProfile('')
+          }}
+        />
+        <ProfileBar
+          profiles={named}
+          presets={presets}
+          active={activeProfile}
+          current={currentProfile}
+          onPick={pickProfile}
+          onChange={saveNamed}
         />
         <div className="export-fields">
           {field(
@@ -327,11 +386,12 @@ export default function ExportDialog({
                     img.format,
                     [
                       ['png', 'PNG'],
-                      ['jpg', 'JPG']
+                      ['jpg', 'JPG'],
+                      ['webp', 'WebP']
                     ],
                     (format) => patch({ format })
                   )}
-                  {img.format === 'jpg' && (
+                  {img.format !== 'png' && (
                     <>
                       <span className="unit">{t('export.quality')}</span>
                       <input
@@ -396,7 +456,7 @@ export default function ExportDialog({
                 'export.sides',
                 select(img.sides, sides, (s) => patch({ sides: s }))
               )}
-              {img.format === 'png' &&
+              {img.format !== 'jpg' &&
                 !img.bleed &&
                 field(
                   'export.background',
@@ -503,10 +563,40 @@ export default function ExportDialog({
                 </>,
                 perPage ?? undefined
               )}
+              {field(
+                'export.fold',
+                check(pdf.fold, (fold) => patch({ fold }), 'export.foldPairs'),
+                pdf.fold ? t('export.foldHint') : undefined
+              )}
               {pdf.layout === 'auto' &&
+                !pdf.fold &&
                 field(
                   'export.rotate',
                   check(pdf.autoRotate, (autoRotate) => patch({ autoRotate }), 'export.autoRotate')
+                )}
+              {pdf.layout === 'auto' &&
+                !pdf.fold &&
+                field(
+                  'export.poster',
+                  <>
+                    {check(pdf.poster, (poster) => patch({ poster }), 'export.posterSplit')}
+                    {pdf.poster && (
+                      <>
+                        <span className="unit">{t('export.posterOverlap')}</span>
+                        <input
+                          className="num narrow"
+                          type="number"
+                          min={0}
+                          value={pdf.posterOverlap}
+                          onChange={(e) =>
+                            patch({ posterOverlap: Math.max(0, num(e.target.value, 10)) })
+                          }
+                        />
+                        <span className="unit">mm</span>
+                      </>
+                    )}
+                  </>,
+                  t('export.posterHint')
                 )}
               {field(
                 'export.marks',
@@ -550,33 +640,36 @@ export default function ExportDialog({
                   )}
                 </>
               )}
-              {field(
-                'export.duplex',
-                select(
-                  pdf.duplex,
-                  [
-                    ['none', t('export.duplexNone')],
-                    ['long', t('export.duplexLong')],
-                    ['short', t('export.duplexShort')]
-                  ],
-                  (duplex) => patch({ duplex })
-                )
-              )}
-              {pdf.duplex === 'none'
-                ? field(
-                    'export.sides',
-                    select(pdf.sides, sides, (s) => patch({ sides: s }))
+              {!pdf.fold &&
+                field(
+                  'export.duplex',
+                  select(
+                    pdf.duplex,
+                    [
+                      ['none', t('export.duplexNone')],
+                      ['long', t('export.duplexLong')],
+                      ['short', t('export.duplexShort')]
+                    ],
+                    (duplex) => patch({ duplex })
                   )
-                : field(
-                    'export.offset',
-                    <>
-                      <span className="unit">x</span>
-                      {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
-                      <span className="unit">y</span>
-                      {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
-                    </>,
-                    t('export.offsetHint')
-                  )}
+                )}
+              {pdf.fold
+                ? null
+                : pdf.duplex === 'none'
+                  ? field(
+                      'export.sides',
+                      select(pdf.sides, sides, (s) => patch({ sides: s }))
+                    )
+                  : field(
+                      'export.offset',
+                      <>
+                        <span className="unit">x</span>
+                        {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
+                        <span className="unit">y</span>
+                        {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
+                      </>,
+                      t('export.offsetHint')
+                    )}
               {field(
                 'export.files',
                 select(
@@ -588,6 +681,14 @@ export default function ExportDialog({
                   ],
                   (split) => patch({ split })
                 )
+              )}
+              {field(
+                'export.extras',
+                <>
+                  {check(pdf.proof, (proof) => patch({ proof }), 'export.proof')}
+                  {check(pdf.cmyk, (cmyk) => patch({ cmyk }), 'export.cmyk')}
+                </>,
+                pdf.cmyk ? t('export.cmykHint') : undefined
               )}
               {field('export.folder', folderField(pdf.folder, defaults.export, 'folder'))}
             </>

@@ -3,12 +3,15 @@ import { extname } from 'path'
 import ExcelJS from 'exceljs'
 import Papa from 'papaparse'
 import type { Sheet } from '../../shared/project'
+import { readOds, writeOds } from './ods'
 import { MessageError, msg } from '../../shared/messages'
 
 export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   const ext = extname(path).toLowerCase()
   if (ext === '.xlsx') return readXlsx(path)
   if (ext === '.csv') return [await readCsv(path)]
+  if (ext === '.ods')
+    return (await readOds(await readFile(path))).map((t) => toSheet(t.name, t.rows))
   throw new MessageError(msg('load.unsupportedDataFile', { ext }))
 }
 
@@ -59,6 +62,7 @@ export async function writeSpreadsheet(path: string, sheets: Sheet[]): Promise<v
   const ext = extname(path).toLowerCase()
   if (ext === '.xlsx') return writeXlsx(path, sheets)
   if (ext === '.csv') return writeCsv(path, sheets)
+  if (ext === '.ods') return writeOdsFile(path, sheets)
   throw new MessageError(msg('load.unsupportedDataFile', { ext }))
 }
 
@@ -109,6 +113,13 @@ function toCellValue(v: string): string | number | null {
   if (v === '') return null
   if (/^-?(0|[1-9]\d*)(\.\d+)?$/.test(v)) return Number(v)
   return v
+}
+
+async function writeOdsFile(path: string, sheets: Sheet[]): Promise<void> {
+  const data = (await exists(path)) ? await readFile(path) : null
+  const tmp = path + '.tmp'
+  await writeFile(tmp, await writeOds(data, sheets))
+  await rename(tmp, path)
 }
 
 async function writeCsv(path: string, sheets: Sheet[]): Promise<void> {

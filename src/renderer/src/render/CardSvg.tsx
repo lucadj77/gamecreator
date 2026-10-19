@@ -1,11 +1,25 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from 'react'
+import { arrangeGroup } from '../../../shared/model/arrange'
+import { smoothStops } from './smoothGradient'
 import { resolveAsset } from '../../../shared/model/assets'
-import { anchorPoint, polygonVertices, roundedPolygonPath } from '../../../shared/model/geometry'
+import {
+  anchorPoint,
+  hexagonPoints,
+  polygonVertices,
+  roundedPolygonPath
+} from '../../../shared/model/geometry'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
 import MarkupText from './MarkupText'
+import {
+  isGradient,
+  linearEnds,
+  parseGradient,
+  type Gradient
+} from '../../../shared/model/gradient'
 import type {
+  Fade,
   GroupLayer,
   ImageLayer,
   Layer,
@@ -59,6 +73,8 @@ export default function CardSvg({
   const vw = t.width + 2 * b
   const vh = t.height + 2 * b
   const box = pasteboard ?? { x: -b, y: -b, w: vw, h: vh }
+  // 'cut' toglie solo gli angoli arrotondati: un cerchio o un esagono restano tali
+  const plainRect = (t.shape ?? 'rect') === 'rect'
   return (
     <svg
       width={box.w * scale}
@@ -69,10 +85,12 @@ export default function CardSvg({
     >
       <defs>
         <clipPath id={`${uid}-card`}>
-          {mode !== 'bleed' ? (
-            <rect width={t.width} height={t.height} rx={mode === 'trim' ? t.cornerRadius : 0} />
-          ) : (
+          {mode === 'bleed' ? (
             <rect x={-b} y={-b} width={vw} height={vh} />
+          ) : mode === 'cut' && plainRect ? (
+            <rect width={t.width} height={t.height} />
+          ) : (
+            <CardOutline template={t} />
           )}
         </clipPath>
         {pasteboard && (
@@ -86,15 +104,18 @@ export default function CardSvg({
           <g opacity={0.35}>
             <LayerList layers={layers} uid={`${uid}p`} />
           </g>
-          <rect
-            x={-b}
-            y={-b}
-            width={vw}
-            height={vh}
-            rx={mode === 'trim' ? t.cornerRadius : 0}
-            fill="#FFFFFF"
-            filter={`url(#${uid}-lift)`}
-          />
+          {mode === 'bleed' ? (
+            <rect
+              x={-b}
+              y={-b}
+              width={vw}
+              height={vh}
+              fill="#FFFFFF"
+              filter={`url(#${uid}-lift)`}
+            />
+          ) : (
+            <CardOutline template={t} fill="#FFFFFF" filter={`url(#${uid}-lift)`} />
+          )}
         </>
       )}
       <g clipPath={`url(#${uid}-card)`}>
@@ -102,10 +123,9 @@ export default function CardSvg({
         <LayerList layers={layers} uid={uid} />
       </g>
       {mode === 'bleed' && guides && (
-        <rect
-          width={t.width}
-          height={t.height}
-          rx={t.cornerRadius}
+        <CardOutline
+          template={t}
+          scale={scale}
           fill="none"
           stroke="#E5484D"
           strokeWidth={0.2}
@@ -113,6 +133,81 @@ export default function CardSvg({
         />
       )}
     </svg>
+  )
+}
+
+/**
+ * Contorno della carta rifilata: rettangolo con gli angoli arrotondati, ellisse, esagono o
+ * tracciato. Con inset il contorno si restringe (area sicura) o, negativo, si allarga.
+ */
+export function CardOutline({
+  template: t,
+  inset = 0,
+  scale = 1,
+  ...paint
+}: {
+  template: Template
+  inset?: number
+  /** Pixel per mm: serve al contorno di un tracciato, che non scala con la carta */
+  scale?: number
+} & React.SVGProps<SVGPathElement>): React.JSX.Element {
+  const x = inset
+  const y = inset
+  const w = Math.max(0, t.width - 2 * inset)
+  const h = Math.max(0, t.height - 2 * inset)
+  switch (t.shape ?? 'rect') {
+    case 'ellipse':
+      return (
+        <ellipse
+          cx={x + w / 2}
+          cy={y + h / 2}
+          rx={w / 2}
+          ry={h / 2}
+          {...(paint as React.SVGProps<SVGEllipseElement>)}
+        />
+      )
+    case 'hexagon':
+      return (
+        <path
+          d={`M${hexagonPoints(x, y, w, h)
+            .map((p) => `${p.x} ${p.y}`)
+            .join('L')}Z`}
+          {...paint}
+        />
+      )
+    case 'path':
+      if (t.shapePath?.trim())
+        return (
+          <path
+            d={t.shapePath}
+            transform={`translate(${x} ${y}) scale(${w} ${h})`}
+            {...paint}
+            // il tracciato è in coordinate 0-1: il tratto si misura in pixel dello schermo
+            vectorEffect="non-scaling-stroke"
+            strokeWidth={
+              paint.strokeWidth !== undefined ? Number(paint.strokeWidth) * scale : undefined
+            }
+            strokeDasharray={
+              typeof paint.strokeDasharray === 'string'
+                ? paint.strokeDasharray
+                    .split(/[\s,]+/)
+                    .map((v) => Number(v) * scale)
+                    .join(' ')
+                : undefined
+            }
+          />
+        )
+      break
+  }
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={w}
+      height={h}
+      rx={Math.max(0, t.cornerRadius - inset)}
+      {...(paint as React.SVGProps<SVGRectElement>)}
+    />
   )
 }
 
@@ -136,6 +231,7 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
       transform={l.rotation ? `rotate(${l.rotation} ${ax} ${ay})` : undefined}
       opacity={l.opacity < 1 ? l.opacity : undefined}
       filter={l.shadow ? `url(#${id}-shadow)` : undefined}
+      style={l.blend !== 'normal' ? { mixBlendMode: l.blend } : undefined}
     >
       {l.shadow && (
         <defs>
@@ -149,10 +245,13 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
           </filter>
         </defs>
       )}
-      {l.type === 'shape' && <ShapeView layer={l} />}
-      {l.type === 'image' && <ImageView layer={l} id={id} />}
-      {l.type === 'text' && <TextView layer={l} />}
-      {l.type === 'group' && <GroupView layer={l} id={id} uid={uid} />}
+      {l.fade && <FadeMask id={`${id}-fade`} layer={l} fade={l.fade} />}
+      <g mask={l.fade ? `url(#${id}-fade)` : undefined}>
+        {l.type === 'shape' && <ShapeView layer={l} id={id} />}
+        {l.type === 'image' && <ImageView layer={l} id={id} />}
+        {l.type === 'text' && <TextView layer={l} />}
+        {l.type === 'group' && <GroupView layer={l} id={id} uid={uid} />}
+      </g>
     </g>
   )
 }
@@ -160,17 +259,140 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
 function strokeProps(
   s: Stroke | null,
   fontSizeMm?: number
-): { stroke?: string; strokeWidth?: number } {
+): { stroke?: string; strokeWidth?: number; strokeDasharray?: string; strokeLinecap?: 'round' } {
   if (!s) return {}
-  return { stroke: s.color, strokeWidth: strokeWidth(s, fontSizeMm) }
+  const w = strokeWidth(s, fontSizeMm)
+  return { stroke: s.color, strokeWidth: w, ...dash(s, w) }
+}
+
+/** Trattini lunghi tre volte lo spessore; i punti sono trattini nulli con le estremità tonde */
+function dash(s: Stroke, w: number): { strokeDasharray?: string; strokeLinecap?: 'round' } {
+  if (s.dash === 'dashed') return { strokeDasharray: `${3 * w} ${2 * w}` }
+  if (s.dash === 'dotted') return { strokeDasharray: `0 ${2 * w}`, strokeLinecap: 'round' }
+  return {}
 }
 
 function strokeWidth(s: Stroke, fontSizeMm = 0): number {
   return typeof s.width === 'string' ? (parseFloat(s.width) / 100) * fontSizeMm : s.width
 }
 
-function ShapeView({ layer: l }: { layer: ShapeLayer }): React.JSX.Element {
-  const paint = { fill: l.fill ?? 'none', ...strokeProps(l.stroke) }
+/**
+ * Maschera della dissolvenza, nel riquadro del livello: bianco opaco mostra, trasparente
+ * nasconde. Ciò che esce dal riquadro (ombre, contorni) prende l'opacità del bordo più vicino.
+ */
+function FadeMask({
+  id,
+  layer: l,
+  fade: f
+}: {
+  id: string
+  layer: LayerBase
+  fade: Fade
+}): React.JSX.Element {
+  const stops = (
+    <>
+      <stop offset={f.start} stopColor="#FFFFFF" stopOpacity={f.from} />
+      <stop offset={f.end} stopColor="#FFFFFF" stopOpacity={f.to} />
+    </>
+  )
+  const pad = Math.max(l.w, l.h)
+  return (
+    <defs>
+      {f.kind === 'linear' ? (
+        <linearGradient id={`${id}-g`} gradientUnits="userSpaceOnUse" {...linearEnds(f.angle, l)}>
+          {stops}
+        </linearGradient>
+      ) : (
+        <radialGradient
+          id={`${id}-g`}
+          gradientUnits="userSpaceOnUse"
+          cx={l.x + l.w / 2}
+          cy={l.y + l.h / 2}
+          r={Math.hypot(l.w, l.h) / 2}
+        >
+          {stops}
+        </radialGradient>
+      )}
+      <mask
+        id={id}
+        maskUnits="userSpaceOnUse"
+        x={l.x - pad}
+        y={l.y - pad}
+        width={l.w + 2 * pad}
+        height={l.h + 2 * pad}
+      >
+        <rect
+          x={l.x - pad}
+          y={l.y - pad}
+          width={l.w + 2 * pad}
+          height={l.h + 2 * pad}
+          fill={`url(#${id}-g)`}
+        />
+      </mask>
+    </defs>
+  )
+}
+
+/** Sfumatura di un riempimento, nel riquadro dato */
+function GradientDef({
+  id,
+  gradient: g,
+  box
+}: {
+  id: string
+  gradient: Gradient
+  box: { x: number; y: number; w: number; h: number }
+}): React.JSX.Element {
+  const stops = smoothStops(g.stops).map((s, i) => (
+    <stop
+      key={i}
+      offset={s.at}
+      stopColor={s.color}
+      stopOpacity={s.opacity < 1 ? s.opacity : undefined}
+    />
+  ))
+  return (
+    <defs>
+      {g.kind === 'linear' ? (
+        <linearGradient id={id} gradientUnits="userSpaceOnUse" {...linearEnds(g.angle, box)}>
+          {stops}
+        </linearGradient>
+      ) : (
+        <radialGradient
+          id={id}
+          gradientUnits="userSpaceOnUse"
+          cx={box.x + box.w / 2}
+          cy={box.y + box.h / 2}
+          r={Math.hypot(box.w, box.h) / 2}
+        >
+          {stops}
+        </radialGradient>
+      )}
+    </defs>
+  )
+}
+
+function ShapeView({ layer: l, id }: { layer: ShapeLayer; id: string }): React.JSX.Element {
+  const gradient = isGradient(l.fill) ? parseGradient(l.fill) : null
+  // il tracciato è in coordinate 0-1: la sfumatura si calcola nello stesso spazio
+  const def = gradient && (
+    <GradientDef
+      id={`${id}-fill`}
+      gradient={gradient}
+      box={l.shape === 'path' ? { x: 0, y: 0, w: 1, h: 1 } : l}
+    />
+  )
+  const fill = gradient ? `url(#${id}-fill)` : (l.fill ?? 'none')
+  return (
+    <>
+      {def}
+      <ShapeBody layer={l} fill={fill} />
+    </>
+  )
+}
+
+function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): React.JSX.Element {
+  const paint = { fill, ...strokeProps(l.stroke) }
   switch (l.shape) {
     case 'ellipse':
       return <ellipse cx={l.x + l.w / 2} cy={l.y + l.h / 2} rx={l.w / 2} ry={l.h / 2} {...paint} />
@@ -187,22 +409,26 @@ function ShapeView({ layer: l }: { layer: ShapeLayer }): React.JSX.Element {
       return (
         <line
           x1={l.x}
-          y1={l.y}
+          y1={l.y + l.h / 2}
           x2={l.x + l.w}
-          y2={l.y + l.h}
-          {...strokeProps(l.stroke ?? { color: l.fill ?? '#000', width: 0.3 })}
+          y2={l.y + l.h / 2}
+          {...strokeProps(
+            l.stroke ?? { color: isGradient(l.fill) ? '#000' : (l.fill ?? '#000'), width: 0.3 }
+          )}
         />
       )
     case 'path': {
       // il tracciato è in coordinate 0-1: lo spessore si riporta in mm dividendo per la scala
       const sw = l.stroke ? l.stroke.width : 0
+      const k = (l.w + l.h) / 2
       return (
         <path
           d={l.path}
           transform={`translate(${l.x} ${l.y}) scale(${l.w} ${l.h})`}
-          fill={l.fill ?? 'none'}
+          fill={fill}
           stroke={l.stroke?.color}
-          strokeWidth={typeof sw === 'number' ? sw / ((l.w + l.h) / 2) : undefined}
+          strokeWidth={typeof sw === 'number' ? sw / k : undefined}
+          {...(l.stroke && typeof sw === 'number' ? dash(l.stroke, sw / k) : {})}
         />
       )
     }
@@ -215,7 +441,8 @@ const PRESERVE: Record<ImageLayer['fit'], string> = {
   cover: 'xMidYMid slice',
   contain: 'xMidYMid meet',
   stretch: 'none',
-  original: 'xMidYMid meet'
+  original: 'xMidYMid meet',
+  tile: 'xMidYMid meet'
 }
 
 /** Ingrandisce o riduce il riquadro dell'immagine intorno al centro */
@@ -244,35 +471,60 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
   }
   // finché non si conoscono le dimensioni si lascia fare a preserveAspectRatio
-  const z = zoomRect(size ? fitRect(l, size, l.fit) : l, l.zoom)
+  const z = zoomRect(size ? fitRect(l, size, l.fit, l.align) : l, l.zoom)
   const r = { ...z, x: z.x + l.offsetX, y: z.y + l.offsetY }
   const rect = { x: r.x, y: r.y, width: r.w, height: r.h }
   const flip =
     l.flipH || l.flipV
       ? `translate(${l.flipH ? 2 * l.x + l.w : 0} ${l.flipV ? 2 * l.y + l.h : 0}) scale(${l.flipH ? -1 : 1} ${l.flipV ? -1 : 1})`
       : undefined
+  const adjusted =
+    l.grayscale || l.brightness !== 1 || l.contrast !== 1 || l.saturation !== 1 || !!l.tint
+  const filter = adjusted ? `url(#${id}-fx)` : undefined
+  const tile = l.fit === 'tile' && size
+  const image = (
+    <image
+      href={assetUrl(res.path)}
+      {...(tile ? { x: 0, y: 0, width: r.w, height: r.h } : rect)}
+      preserveAspectRatio={size ? 'none' : PRESERVE[l.fit]}
+      filter={tile ? undefined : filter}
+    />
+  )
   return (
     <>
       <defs>
         <clipPath id={`${id}-clip`}>
           <rect x={l.x} y={l.y} width={l.w} height={l.h} rx={l.radius} />
         </clipPath>
-        {l.tint && (
-          // ricolora mantenendo la trasparenza: pensato per icone monocromatiche
-          <filter id={`${id}-tint`}>
-            <feFlood floodColor={l.tint} />
-            <feComposite in2="SourceAlpha" operator="in" />
-          </filter>
+        {adjusted && <ImageFilter id={`${id}-fx`} layer={l} />}
+        {tile && (
+          // la piastrella parte dalla posizione dell'immagine allineata e si ripete in ogni verso
+          <pattern
+            id={`${id}-tile`}
+            patternUnits="userSpaceOnUse"
+            x={r.x}
+            y={r.y}
+            width={r.w}
+            height={r.h}
+          >
+            {image}
+          </pattern>
         )}
       </defs>
       <g clipPath={`url(#${id}-clip)`}>
-        <image
-          href={assetUrl(res.path)}
-          {...rect}
-          preserveAspectRatio={size ? 'none' : PRESERVE[l.fit]}
-          transform={flip}
-          filter={l.tint ? `url(#${id}-tint)` : undefined}
-        />
+        {tile ? (
+          <rect
+            x={l.x}
+            y={l.y}
+            width={l.w}
+            height={l.h}
+            fill={`url(#${id}-tile)`}
+            transform={flip}
+            filter={filter}
+          />
+        ) : (
+          <g transform={flip}>{image}</g>
+        )}
       </g>
       {l.stroke && (
         <rect
@@ -286,6 +538,34 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
         />
       )}
     </>
+  )
+}
+
+/**
+ * Regolazioni dell'immagine e tinta, in quest'ordine: saturazione (zero per la scala di
+ * grigi), luminosità e contrasto, poi la tinta che ricolora mantenendo la trasparenza.
+ */
+function ImageFilter({ id, layer: l }: { id: string; layer: ImageLayer }): React.JSX.Element {
+  const sat = l.grayscale ? 0 : l.saturation
+  const slope = l.brightness * l.contrast
+  const intercept = 0.5 - 0.5 * l.contrast
+  return (
+    <filter id={id} colorInterpolationFilters="sRGB">
+      {sat !== 1 && <feColorMatrix type="saturate" values={String(sat)} />}
+      {(l.brightness !== 1 || l.contrast !== 1) && (
+        <feComponentTransfer>
+          <feFuncR type="linear" slope={slope} intercept={intercept} />
+          <feFuncG type="linear" slope={slope} intercept={intercept} />
+          <feFuncB type="linear" slope={slope} intercept={intercept} />
+        </feComponentTransfer>
+      )}
+      {l.tint && (
+        <>
+          <feFlood floodColor={l.tint} />
+          <feComposite in2="SourceAlpha" operator="in" />
+        </>
+      )}
+    </filter>
   )
 }
 
@@ -328,7 +608,7 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
   const empty = showEmpty && !l.text.trim()
   const boxRef = useRef<HTMLDivElement>(null)
   const [fitted, setFitted] = useState<{ key: string; size: number } | null>(null)
-  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.lineHeight}|${l.fit}`
+  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.lineHeight}|${l.fit}|${l.padding}|${l.paddingSides}|${l.indent}|${l.wrap}`
   const size = fitted && fitted.key === fitKey ? fitted.size : l.size
 
   // "riduci per stare nel riquadro": si scende di mezzo punto finché il testo non sta
@@ -355,7 +635,9 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
             width: '100%',
             height: '100%',
             boxSizing: 'border-box',
-            padding: l.padding * s,
+            padding: l.paddingSides
+              ? l.paddingSides.map((p) => `${p * s}px`).join(' ')
+              : l.padding * s,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: VALIGN[l.valign],
@@ -377,8 +659,12 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
                 : l.transform === 'lower'
                   ? 'lowercase'
                   : l.transform,
-            whiteSpace: 'pre-wrap',
-            overflowWrap: 'break-word',
+            textIndent: l.indent ? l.indent * s : undefined,
+            textDecorationLine:
+              [l.underline && 'underline', l.strike && 'line-through'].filter(Boolean).join(' ') ||
+              undefined,
+            whiteSpace: l.wrap ? 'pre-wrap' : 'pre',
+            overflowWrap: l.wrap ? 'break-word' : 'normal',
             WebkitTextStroke: l.stroke
               ? `${strokeWidth(l.stroke, sizeMm) * 2 * s}px ${l.stroke.color}`
               : undefined,
@@ -408,7 +694,7 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
  * sopra si vedono solo dentro la sua forma.
  */
 function GroupView({
-  layer: l,
+  layer: group,
   id,
   uid
 }: {
@@ -416,8 +702,9 @@ function GroupView({
   id: string
   uid: string
 }): React.JSX.Element {
+  const l = arrangeGroup(group)
   const mask = l.clip ? l.children[l.children.length - 1] : undefined
-  if (!mask || l.children.length < 2) return <LayerList layers={l.children} uid={uid} />
+  if (!mask || group.children.length < 2) return <LayerList layers={l.children} uid={uid} />
   const a = anchorPoint(mask)
   return (
     <>
@@ -428,7 +715,7 @@ function GroupView({
           transform={mask.rotation ? `rotate(${mask.rotation} ${a.x} ${a.y})` : undefined}
         >
           {mask.type === 'shape' && mask.shape !== 'line' ? (
-            <ShapeView layer={mask} />
+            <ShapeBody layer={mask} fill="#000" />
           ) : (
             <rect x={mask.x} y={mask.y} width={mask.w} height={mask.h} />
           )}

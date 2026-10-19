@@ -8,7 +8,11 @@ import { MessageError, msg } from '../../shared/messages'
  * Crea un progetto vuoto in <parent>/<nome>: gamecreator.json e le cartelle. Il file dati si
  * scrive al primo salvataggio di un set. La cartella deve essere nuova o vuota.
  */
-export async function createProject(name: string, parent: string): Promise<string> {
+export async function createProject(
+  name: string,
+  parent: string,
+  data: 'xlsx' | 'ods' = 'xlsx'
+): Promise<string> {
   const folderName = projectFolderName(name)
   if (!folderName || !parent.trim()) throw new MessageError(msg('newProject.invalidName'))
   const folder = join(parent, folderName)
@@ -23,7 +27,7 @@ export async function createProject(name: string, parent: string): Promise<strin
   const file: ProjectFile = {
     formatVersion: FORMAT_VERSION,
     name: name.trim(),
-    dataFile: 'data/cards.xlsx',
+    dataFile: data === 'ods' ? 'data/cards.ods' : 'data/cards.xlsx',
     sets: []
   }
   await writeFile(join(folder, PROJECT_FILE), JSON.stringify(file, null, 2) + '\n', {

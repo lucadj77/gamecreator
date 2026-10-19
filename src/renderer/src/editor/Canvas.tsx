@@ -13,6 +13,8 @@ import {
   angleFrom,
   handlePosition,
   hitTest,
+  lineEnds,
+  lineFromEnds,
   normalizeAngle,
   resizeWithHandle,
   snap,
@@ -25,10 +27,11 @@ import {
 import { cardArea, unionBounds } from '../../../shared/model/align'
 import { linesOf, nearest, snapBox, type SnapLines } from '../../../shared/model/snap'
 import { isDrawn, type GroupLayer, type Layer, type Template } from '../../../shared/model/template'
-import CardSvg from '../render/CardSvg'
+import CardSvg, { CardOutline } from '../render/CardSvg'
 import { ShowEmptyContext } from '../render/assets'
 import { useI18n } from '../i18n/context'
 import type { EditorAction, EditorState } from './useEditor'
+import { isRatioLocked } from './ratioLock'
 
 /** Passo minimo in mm quando la griglia non è magnetica; Alt disattiva ogni aggancio */
 const SNAP = 0.5
@@ -65,6 +68,15 @@ type Gesture =
       lines: SnapLines
     }
   | { kind: 'rotate'; start: Template; layer: Layer; frame: GroupLayer[]; a0: number }
+  | { kind: 'guide'; start: Template; axis: 'x' | 'y'; index: number; frame: GroupLayer[] }
+  | {
+      kind: 'end'
+      start: Template
+      layer: Layer
+      end: 0 | 1
+      frame: GroupLayer[]
+      lines: SnapLines
+    }
 
 interface Props {
   state: EditorState
@@ -196,7 +208,8 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const areas = [cardArea(tpl, 'card')]
     if (guides.safe) areas.push(cardArea(tpl, 'safe'))
     if (guides.bleed && tpl.bleed > 0) areas.push({ x: -tpl.bleed, y: -tpl.bleed, w: vw, h: vh })
-    return linesOf([...boxes, ...areas])
+    const lines = linesOf([...boxes, ...areas])
+    return { x: [...lines.x, ...(tpl.guides?.x ?? [])], y: [...lines.y, ...(tpl.guides?.y ?? [])] }
   }
 
   const begin = (e: React.PointerEvent, g: Gesture): void => {
@@ -292,7 +305,40 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const magnet = !e.altKey && guides.snapObjects
     const threshold = SNAP_PX / scale
     let next: Template
-    if (g.kind === 'move') {
+    if (g.kind === 'end') {
+      // l'estremo di una linea: si aggancia a oggetti e griglia, Maiuscolo tiene l'angolo a 15°
+      const ends = lineEnds(g.layer)
+      const fixed = ends[1 - g.end]
+      let p: Point
+      if (e.shiftKey) {
+        const len = Math.hypot(q.x - fixed.x, q.y - fixed.y)
+        const a =
+          (snap((Math.atan2(q.y - fixed.y, q.x - fixed.x) * 180) / Math.PI, 15) * Math.PI) / 180
+        p = { x: fixed.x + len * Math.cos(a), y: fixed.y + len * Math.sin(a) }
+        setSnapped({ x: null, y: null })
+      } else {
+        const hx = magnet ? nearest([q.x], g.lines.x, threshold) : null
+        const hy = magnet ? nearest([q.y], g.lines.y, threshold) : null
+        p = { x: hx ? hx.line : snap(q.x, step), y: hy ? hy.line : snap(q.y, step) }
+        setSnapped({ x: hx?.line ?? null, y: hy?.line ?? null })
+      }
+      const [a, b] = g.end === 0 ? [p, fixed] : [fixed, p]
+      next = replace(g.start, side, g.layer.id, {
+        ...g.layer,
+        ...lineFromEnds(g.layer, a, b)
+      } as Layer)
+    } else if (g.kind === 'guide') {
+      // una guida si aggancia ai lati e al centro della carta e dell'area sicura
+      const v = g.axis === 'x' ? q.x : q.y
+      const card = linesOf([cardArea(tpl, 'card'), cardArea(tpl, 'safe')])[g.axis]
+      const hit = magnet ? nearest([v], card, threshold) : null
+      const value = hit ? hit.line : snap(v, step)
+      setSnapped(g.axis === 'x' ? { x: value, y: null } : { x: null, y: value })
+      const list = [...(g.start.guides?.[g.axis] ?? [])]
+      list[g.index] = value
+      const all = g.start.guides ?? { x: [], y: [] }
+      next = { ...g.start, guides: { ...all, [g.axis]: list } }
+    } else if (g.kind === 'move') {
       const rx = q.x - g.p0.x
       const ry = q.y - g.p0.y
       // un lato o il centro vicino a un altro oggetto ha la precedenza sulla griglia
@@ -324,7 +370,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         setSnapped({ x: hx?.line ?? null, y: hy?.line ?? null })
       }
       const box = resizeWithHandle(g.layer, g.handle, local, {
-        keepRatio: e.shiftKey,
+        keepRatio: e.shiftKey || isRatioLocked(g.layer.type),
         step: resizeStep
       })
       next = replace(g.start, side, g.layer.id, applyBounds(g.layer, box))
@@ -345,7 +391,24 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       return
     }
     if (!gesture.current) return
+    const ended = gesture.current
     gesture.current = null
+    // una guida trascinata fuori dalla carta si toglie
+    if (ended.kind === 'guide') {
+      const list = tpl.guides?.[ended.axis] ?? []
+      const v = list[ended.index]
+      const size = ended.axis === 'x' ? tpl.width : tpl.height
+      if (v !== undefined && (v < -tpl.bleed || v > size + tpl.bleed)) {
+        const guides = tpl.guides ?? { x: [], y: [] }
+        dispatch({
+          type: 'gestureUpdate',
+          template: {
+            ...tpl,
+            guides: { ...guides, [ended.axis]: list.filter((_, i) => i !== ended.index) }
+          }
+        })
+      }
+    }
     setFrozen(null)
     setSnapped({ x: null, y: null })
     overlayRef.current?.releasePointerCapture(e.pointerId)
@@ -405,14 +468,38 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
           >
             {guides.grid && <GridLines stage={stage} step={guides.gridStep} scale={scale} />}
             {guides.safe && (
-              <rect
-                x={tpl.safeMargin}
-                y={tpl.safeMargin}
-                width={tpl.width - 2 * tpl.safeMargin}
-                height={tpl.height - 2 * tpl.safeMargin}
+              <CardOutline
+                template={tpl}
+                inset={tpl.safeMargin}
                 className="safe-area"
                 vectorEffect="non-scaling-stroke"
               />
+            )}
+            {(['x', 'y'] as const).map((axis) =>
+              (tpl.guides?.[axis] ?? []).map((v, index) => {
+                const line =
+                  axis === 'x'
+                    ? { x1: v, x2: v, y1: stage.y, y2: stage.y + stage.h }
+                    : { x1: stage.x, x2: stage.x + stage.w, y1: v, y2: v }
+                return (
+                  <g key={`${axis}${index}`} className={`manual-guide ${axis}`}>
+                    <line {...line} vectorEffect="non-scaling-stroke" />
+                    {/* linea larga e invisibile: si prende facilmente col mouse */}
+                    <line
+                      {...line}
+                      className="manual-guide-hit"
+                      style={{ strokeWidth: 8 * px }}
+                      onPointerDown={(e) => {
+                        if (e.button !== 0) return
+                        e.stopPropagation()
+                        begin(e, { kind: 'guide', start: tpl, axis, index, frame: [] })
+                      }}
+                    >
+                      <title>{t('editor.guideDragHint')}</title>
+                    </line>
+                  </g>
+                )
+              })
             )}
             {/* i livelli che escono dalla carta hanno un contorno: si ritrovano anche se chiari */}
             {layers
@@ -460,43 +547,71 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
             {selected.map((l) => (
               <Framed key={l.id} chain={frameOf(l.id)} layer={l}>
                 <Outline b={l} className={l.locked ? 'sel-outline locked' : 'sel-outline'} />
-                {selected.length === 1 && !l.locked && (
+                {selected.length === 1 && !l.locked && l.type === 'shape' && l.shape === 'line' && (
                   <>
-                    <line
-                      x1={l.x + l.w / 2}
-                      y1={l.y}
-                      x2={l.x + l.w / 2}
-                      y2={l.y - ROTATE_PX * px}
-                      className="sel-outline"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <circle
-                      cx={l.x + l.w / 2}
-                      cy={l.y - ROTATE_PX * px}
-                      r={(HANDLE_PX / 2) * px}
-                      className="handle rotate"
-                      vectorEffect="non-scaling-stroke"
-                      onPointerDown={(e) => onHandleDown(e, l, 'rotate')}
-                    >
-                      <title>{t('editor.rotateHint')}</title>
-                    </circle>
-                    {HANDLES.map((h) => {
-                      const pos = handlePosition(l, h)
-                      return (
-                        <rect
-                          key={h}
-                          x={pos.x - (HANDLE_PX / 2) * px}
-                          y={pos.y - (HANDLE_PX / 2) * px}
-                          width={HANDLE_PX * px}
-                          height={HANDLE_PX * px}
-                          className={`handle h-${h}`}
-                          vectorEffect="non-scaling-stroke"
-                          onPointerDown={(e) => onHandleDown(e, l, h)}
-                        />
-                      )
-                    })}
+                    {[l.x, l.x + l.w].map((x, i) => (
+                      <circle
+                        key={i}
+                        cx={x}
+                        cy={l.y + l.h / 2}
+                        r={(HANDLE_PX / 2) * px}
+                        className="handle line-end"
+                        vectorEffect="non-scaling-stroke"
+                        onPointerDown={(e) => {
+                          if (e.button !== 0) return
+                          e.stopPropagation()
+                          begin(e, {
+                            kind: 'end',
+                            start: tpl,
+                            layer: l,
+                            end: i as 0 | 1,
+                            frame: frameOf(l.id),
+                            lines: snapLines([l.id], frameOf(l.id))
+                          })
+                        }}
+                      />
+                    ))}
                   </>
                 )}
+                {selected.length === 1 &&
+                  !l.locked &&
+                  !(l.type === 'shape' && l.shape === 'line') && (
+                    <>
+                      <line
+                        x1={l.x + l.w / 2}
+                        y1={l.y}
+                        x2={l.x + l.w / 2}
+                        y2={l.y - ROTATE_PX * px}
+                        className="sel-outline"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <circle
+                        cx={l.x + l.w / 2}
+                        cy={l.y - ROTATE_PX * px}
+                        r={(HANDLE_PX / 2) * px}
+                        className="handle rotate"
+                        vectorEffect="non-scaling-stroke"
+                        onPointerDown={(e) => onHandleDown(e, l, 'rotate')}
+                      >
+                        <title>{t('editor.rotateHint')}</title>
+                      </circle>
+                      {HANDLES.map((h) => {
+                        const pos = handlePosition(l, h)
+                        return (
+                          <rect
+                            key={h}
+                            x={pos.x - (HANDLE_PX / 2) * px}
+                            y={pos.y - (HANDLE_PX / 2) * px}
+                            width={HANDLE_PX * px}
+                            height={HANDLE_PX * px}
+                            className={`handle h-${h}`}
+                            vectorEffect="non-scaling-stroke"
+                            onPointerDown={(e) => onHandleDown(e, l, h)}
+                          />
+                        )
+                      })}
+                    </>
+                  )}
               </Framed>
             ))}
           </svg>

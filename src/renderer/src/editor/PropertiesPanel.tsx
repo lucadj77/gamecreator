@@ -5,6 +5,11 @@ import { findLayer, isNameTaken, patchLayer } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import type {
   Anchor,
+  CardShape,
+  GroupLayout,
+  LayoutAlign,
+  BlendMode,
+  Constraints,
   GroupLayer,
   ImageLayer,
   Layer,
@@ -15,16 +20,21 @@ import type {
   ValueLayer
 } from '../../../shared/model/template'
 import { walkLayers } from '../../../shared/model/normalize'
+import { lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
 import { cardFields, rowToCard, substituteFields, switchSource } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
-import { AssetsContext } from '../render/assets'
+import { AssetsContext, assetUrl } from '../render/assets'
+import { traceImage } from '../render/traceImage'
 import {
   CheckField,
   ColorField,
   FontField,
   NumberField,
+  SizeFields,
+  FillField,
+  FadeFields,
   SelectField,
   ShadowFields,
   StrokeField,
@@ -35,6 +45,7 @@ import type { Commands } from './commands'
 import PanelSideButton from '../components/PanelSideButton'
 import AlignSection from './AlignSection'
 import type { PanelSide } from '../components/usePanelWidth'
+import { useRatioLock, type LockKind } from './ratioLock'
 
 interface Props {
   state: EditorState
@@ -124,6 +135,7 @@ function TemplateProperties({
   onResize(width: number, height: number): void
 }): React.JSX.Element {
   const { t } = useI18n()
+  const [locked, setLocked] = useRatioLock('template')
   const set = (p: Partial<Template>, key: string): void =>
     dispatch({ type: 'change', template: { ...tpl, ...p }, key: `template.${key}` })
   return (
@@ -133,21 +145,20 @@ function TemplateProperties({
         <span className="field-label">{t('prop.name')}</span>
         <span className="field-control">{tpl.name}</span>
       </div>
-      <NumberField
-        label={t('prop.width')}
-        value={tpl.width}
+      <SizeFields
+        labels={[t('prop.width'), t('prop.height')]}
+        w={tpl.width}
+        h={tpl.height}
         min={5}
         unit="mm"
         deferred
-        onChange={(w) => onResize(w, tpl.height)}
-      />
-      <NumberField
-        label={t('prop.height')}
-        value={tpl.height}
-        min={5}
-        unit="mm"
-        deferred
-        onChange={(h) => onResize(tpl.width, h)}
+        layout="column"
+        locked={locked}
+        onLock={setLocked}
+        // con il lucchetto l'altra misura si arrotonda al decimo di millimetro
+        onChange={(w, h) =>
+          locked ? onResize(Math.round(w * 10) / 10, Math.round(h * 10) / 10) : onResize(w, h)
+        }
       />
       <NumberField
         label={t('prop.bleed')}
@@ -163,13 +174,30 @@ function TemplateProperties({
         unit="mm"
         onChange={(safeMargin) => set({ safeMargin }, 'safeMargin')}
       />
-      <NumberField
-        label={t('prop.cornerRadius')}
-        value={tpl.cornerRadius}
-        min={0}
-        unit="mm"
-        onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
+      <SelectField<CardShape>
+        label={t('prop.cardShape')}
+        hint={t('editor.cardShapeHint')}
+        value={tpl.shape ?? 'rect'}
+        options={options(t, 'cardShape', ['rect', 'ellipse', 'hexagon', 'path'] as const)}
+        onChange={(shape) => set({ shape }, 'shape')}
       />
+      {(tpl.shape ?? 'rect') === 'rect' && (
+        <NumberField
+          label={t('prop.cornerRadius')}
+          value={tpl.cornerRadius}
+          min={0}
+          unit="mm"
+          onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
+        />
+      )}
+      {tpl.shape === 'path' && (
+        <OutlineField
+          hint={t('editor.cardOutlineHint')}
+          empty={!tpl.shapePath?.trim()}
+          onTraced={({ path }) => set({ shapePath: path }, 'shapePath')}
+        />
+      )}
+      <GuideFields template={tpl} set={set} />
       <SelectField<string>
         label={t('prop.labelField')}
         hint={t('editor.labelFieldHint')}
@@ -254,46 +282,254 @@ function LayerProperties({
       {l.type === 'image' && <ImageProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'shape' && <ShapeProperties l={l} set={set} col={col} computed={computed} />}
       {l.type === 'value' && <ValueProperties l={l} set={set} col={col} computed={computed} />}
-      {l.type === 'group' && (
-        <CheckField
-          label={t('prop.clip')}
-          hint={t('editor.clipHint')}
-          value={(l as GroupLayer).clip}
-          onChange={(clip) => set({ clip } as Partial<GroupLayer>)}
-        />
-      )}
+      {l.type === 'group' && <GroupProperties l={l as GroupLayer} set={set} col={col} />}
 
       {l.type !== 'value' && <DrawnProperties l={l} set={set} col={col} />}
     </>
   )
 }
 
+/** Forma presa dal contorno di un'immagine del progetto */
+function OutlineField({
+  hint,
+  empty,
+  onTraced
+}: {
+  hint: string
+  empty: boolean
+  onTraced(r: { path: string; ratio: number }): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const assets = useContext(AssetsContext)
+  const [picking, setPicking] = useState(false)
+  const [error, setError] = useState(false)
+  const pick = async (name: string): Promise<void> => {
+    setPicking(false)
+    const r = resolveAsset(name, assets)
+    try {
+      if (!r.ok) throw new Error(name)
+      const traced = await traceImage(assetUrl(r.path))
+      if (!traced.path) throw new Error(name)
+      setError(false)
+      onTraced(traced)
+    } catch {
+      setError(true)
+    }
+  }
+  return (
+    <>
+      <div className="field">
+        <span className="field-label">{t('prop.outline')}</span>
+        <div className="field-control">
+          <button type="button" className="small-btn" onClick={() => setPicking(true)}>
+            {t('editor.outlinePick')}
+          </button>
+          {empty && <span className="muted small">{t('editor.outlineEmpty')}</span>}
+        </div>
+      </div>
+      {error && <p className="field-error">{t('editor.outlineFailed')}</p>}
+      <p className="muted small">{hint}</p>
+      {picking && <AssetPicker value="" onPick={pick} onClose={() => setPicking(false)} />}
+    </>
+  )
+}
+
+/** Guide manuali: si aggiungono qui e si spostano trascinandole sulla carta */
+function GuideFields({
+  template: tpl,
+  set
+}: {
+  template: Template
+  set(p: Partial<Template>, key: string): void
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const guides = tpl.guides ?? { x: [], y: [] }
+  const change = (axis: 'x' | 'y', list: number[]): void =>
+    set({ guides: { ...guides, [axis]: list } }, `guides.${axis}`)
+  return (
+    <>
+      <h3>{t('editor.guides')}</h3>
+      {(['x', 'y'] as const).map((axis) =>
+        guides[axis].map((v, i) => (
+          <div className="guide-row" key={`${axis}${i}`}>
+            <NumberField
+              label={t(axis === 'x' ? 'editor.guideV' : 'editor.guideH')}
+              value={v}
+              unit="mm"
+              onChange={(n) =>
+                change(
+                  axis,
+                  guides[axis].map((g, j) => (j === i ? n : g))
+                )
+              }
+            />
+            <button
+              type="button"
+              className="icon-btn"
+              title={t('editor.guideRemove')}
+              onClick={() =>
+                change(
+                  axis,
+                  guides[axis].filter((_, j) => j !== i)
+                )
+              }
+            >
+              ×
+            </button>
+          </div>
+        ))
+      )}
+      <div className="guide-buttons">
+        <button
+          type="button"
+          className="small-btn"
+          onClick={() => change('x', [...guides.x, tpl.width / 2])}
+        >
+          {t('editor.guideAddV')}
+        </button>
+        <button
+          type="button"
+          className="small-btn"
+          onClick={() => change('y', [...guides.y, tpl.height / 2])}
+        >
+          {t('editor.guideAddH')}
+        </button>
+      </div>
+      <p className="muted small">{t('editor.guidesHint')}</p>
+    </>
+  )
+}
+
+function GroupProperties({
+  l,
+  set,
+  col
+}: Omit<TypeProps<GroupLayer>, 'computed'>): React.JSX.Element {
+  const { t } = useI18n()
+  const arranged = l.layout !== 'none' || l.repeat.trim() !== '1'
+  return (
+    <>
+      <CheckField
+        label={t('prop.clip')}
+        hint={t('editor.clipHint')}
+        value={l.clip}
+        onChange={(clip) => set({ clip })}
+      />
+      <h3>{t('editor.layout')}</h3>
+      <SelectField<GroupLayout>
+        label={t('prop.layout')}
+        hint={t('editor.layoutHint')}
+        value={l.layout}
+        options={options(t, 'layout', ['none', 'row', 'column', 'grid'] as const)}
+        onChange={(layout) => set({ layout })}
+      />
+      <TextField
+        label={t('prop.repeat')}
+        hint={`${t('editor.repeatHint')} ${col('repeat')}`}
+        value={l.repeat}
+        placeholder="1"
+        validate={(v) =>
+          !v.trim() || /^\s*\d+\s*$/.test(v) || /\{[^}]+\}/.test(v)
+            ? null
+            : t('editor.repeatInvalid')
+        }
+        onChange={(repeat) => set({ repeat: repeat.trim() || '1' })}
+      />
+      {arranged && (
+        <>
+          <NumberField
+            label={t('prop.gap')}
+            value={l.gap}
+            unit="mm"
+            step={0.5}
+            onChange={(gap) => set({ gap })}
+          />
+          {l.layout === 'grid' && (
+            <NumberField
+              label={t('prop.columns')}
+              value={l.columns}
+              step={1}
+              min={1}
+              onChange={(columns) => set({ columns: Math.max(1, Math.round(columns)) })}
+            />
+          )}
+          <SelectField<LayoutAlign>
+            label={t('prop.justify')}
+            value={l.justify}
+            options={options(t, l.layout === 'column' ? 'justifyV' : 'justifyH', ALIGNS)}
+            onChange={(justify) => set({ justify })}
+          />
+          <SelectField<LayoutAlign>
+            label={t('prop.alignItems')}
+            value={l.alignItems}
+            options={options(t, l.layout === 'column' ? 'justifyH' : 'justifyV', ALIGNS)}
+            onChange={(alignItems) => set({ alignItems })}
+          />
+          <p className="muted small">{t('editor.arrangedHint')}</p>
+        </>
+      )}
+    </>
+  )
+}
+
+const ALIGNS = ['start', 'center', 'end'] as const
+
 /** Geometria e aspetto: i livelli valore non li hanno */
 function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): React.JSX.Element {
   const { t } = useI18n()
+  const [locked, setLocked] = useRatioLock(l.type as LockKind)
+  const line = l.type === 'shape' && l.shape === 'line'
+  const [a, b] = lineEnds(l)
+  const ends = (p: Point, q: Point): void => set(lineFromEnds(l, p, q))
+  const r = (v: number): number => Math.round(v * 100) / 100
   return (
     <>
       <h3>{t('editor.geometry')}</h3>
-      <div className="field-grid">
-        <NumberField label="X" hint={col('x')} value={l.x} unit="mm" onChange={(x) => set({ x })} />
-        <NumberField label="Y" hint={col('y')} value={l.y} unit="mm" onChange={(y) => set({ y })} />
-        <NumberField
-          label={t('prop.w')}
-          hint={col('w')}
-          value={l.w}
-          min={0.5}
-          unit="mm"
-          onChange={(w) => set({ w })}
-        />
-        <NumberField
-          label={t('prop.h')}
-          hint={col('h')}
-          value={l.h}
-          min={0.5}
-          unit="mm"
-          onChange={(h) => set({ h })}
-        />
-      </div>
+      {line ? (
+        <div className="field-grid">
+          <NumberField label="Ax" value={r(a.x)} unit="mm" onChange={(x) => ends({ ...a, x }, b)} />
+          <NumberField label="Ay" value={r(a.y)} unit="mm" onChange={(y) => ends({ ...a, y }, b)} />
+          <NumberField label="Bx" value={r(b.x)} unit="mm" onChange={(x) => ends(a, { ...b, x })} />
+          <NumberField label="By" value={r(b.y)} unit="mm" onChange={(y) => ends(a, { ...b, y })} />
+          <NumberField
+            label="L"
+            hint={t('prop.length')}
+            value={r(l.w)}
+            min={0}
+            unit="mm"
+            onChange={(w) => set({ w })}
+          />
+        </div>
+      ) : (
+        <div className="field-grid">
+          <NumberField
+            label="X"
+            hint={col('x')}
+            value={l.x}
+            unit="mm"
+            onChange={(x) => set({ x })}
+          />
+          <NumberField
+            label="Y"
+            hint={col('y')}
+            value={l.y}
+            unit="mm"
+            onChange={(y) => set({ y })}
+          />
+          <SizeFields
+            labels={[t('prop.w'), t('prop.h')]}
+            hints={[col('w'), col('h')]}
+            w={l.w}
+            h={l.h}
+            min={0.5}
+            unit="mm"
+            locked={locked}
+            onLock={setLocked}
+            onChange={(w, h) => set({ w, h })}
+          />
+        </div>
+      )}
+      {line && <p className="muted small">{t('editor.lineHint')}</p>}
       <NumberField
         label={t('prop.rotation')}
         hint={col('rotation')}
@@ -311,6 +547,20 @@ function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): R
         options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
         onChange={(anchor) => set({ anchor })}
       />
+      <SelectField<Constraints['h']>
+        label={t('prop.constraintH')}
+        hint={t('editor.constraintsHint')}
+        value={l.constraints.h}
+        options={options(t, 'constraintH', ['left', 'right', 'center', 'both', 'scale'] as const)}
+        onChange={(h) => set({ constraints: { ...l.constraints, h } })}
+      />
+      <SelectField<Constraints['v']>
+        label={t('prop.constraintV')}
+        hint={t('editor.constraintsHint')}
+        value={l.constraints.v}
+        options={options(t, 'constraintV', ['top', 'bottom', 'center', 'both', 'scale'] as const)}
+        onChange={(v) => set({ constraints: { ...l.constraints, v } })}
+      />
 
       <h3>{t('editor.appearance')}</h3>
       <NumberField
@@ -324,6 +574,14 @@ function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): R
         unit="%"
         onChange={(opacity) => set({ opacity })}
       />
+      <SelectField<BlendMode>
+        label={t('prop.blend')}
+        hint={col('blend')}
+        value={l.blend}
+        options={options(t, 'blend', ['normal', 'multiply', 'screen', 'overlay'] as const)}
+        onChange={(blend) => set({ blend })}
+      />
+      <FadeFields value={l.fade} hint={t('editor.fadeHint')} onChange={(fade) => set({ fade })} />
       <ShadowFields value={l.shadow} hint={col('shadow')} onChange={(shadow) => set({ shadow })} />
       <CheckField
         label={t('prop.visible')}
@@ -468,19 +726,71 @@ function TextProperties({
         onChange={(paragraphSpacing) => set({ paragraphSpacing })}
       />
       <NumberField
+        label={t('prop.indent')}
+        hint={col('indent')}
+        value={l.indent}
+        unit="mm"
+        onChange={(indent) => set({ indent })}
+      />
+      <NumberField
         label={t('prop.padding')}
         hint={col('padding')}
         value={l.padding}
         min={0}
         unit="mm"
+        disabled={!!l.paddingSides}
         onChange={(padding) => set({ padding })}
       />
+      <CheckField
+        label={t('prop.paddingSides')}
+        hint={t('editor.paddingSidesHint')}
+        value={!!l.paddingSides}
+        onChange={(on) =>
+          set({ paddingSides: on ? [l.padding, l.padding, l.padding, l.padding] : null })
+        }
+      />
+      {l.paddingSides && (
+        <div className="field-grid sides-grid">
+          {(['top', 'right', 'bottom', 'left'] as const).map((side, i) => (
+            <NumberField
+              key={side}
+              label={t(`side.${side}` as MessageKey)}
+              value={l.paddingSides![i]}
+              min={0}
+              unit="mm"
+              onChange={(v) => {
+                const next = [...l.paddingSides!] as [number, number, number, number]
+                next[i] = v
+                set({ paddingSides: next })
+              }}
+            />
+          ))}
+        </div>
+      )}
       <SelectField
         label={t('prop.transform')}
         hint={col('transform')}
         value={l.transform}
         options={options(t, 'transform', ['none', 'upper', 'lower', 'capitalize'] as const)}
         onChange={(transform) => set({ transform })}
+      />
+      <CheckField
+        label={t('prop.underline')}
+        hint={col('underline')}
+        value={l.underline}
+        onChange={(underline) => set({ underline })}
+      />
+      <CheckField
+        label={t('prop.strike')}
+        hint={col('strike')}
+        value={l.strike}
+        onChange={(strike) => set({ strike })}
+      />
+      <CheckField
+        label={t('prop.wrap')}
+        hint={col('wrap')}
+        value={l.wrap}
+        onChange={(wrap) => set({ wrap })}
       />
       <StrokeField
         label={t('prop.stroke')}
@@ -577,9 +887,24 @@ function ImageProperties({
         label={t('prop.fit')}
         hint={col('fit')}
         value={l.fit}
-        options={options(t, 'imageFit', ['cover', 'contain', 'stretch', 'original'] as const)}
+        options={options(t, 'imageFit', [
+          'cover',
+          'contain',
+          'stretch',
+          'original',
+          'tile'
+        ] as const)}
         onChange={(fit) => set({ fit })}
       />
+      {l.fit !== 'stretch' && (
+        <SelectField<Anchor>
+          label={t('prop.imageAlign')}
+          hint={col('align')}
+          value={l.align}
+          options={ANCHORS.map((a) => [a, t(`anchor.${a}` as MessageKey)])}
+          onChange={(align) => set({ align })}
+        />
+      )}
       <NumberField
         label={t('prop.zoom')}
         hint={`${t('editor.zoomImageHint')} ${col('zoom')}`}
@@ -623,6 +948,44 @@ function ImageProperties({
         nullable
         onChange={(tint) => set({ tint })}
       />
+      <CheckField
+        label={t('prop.grayscale')}
+        hint={col('grayscale')}
+        value={l.grayscale}
+        onChange={(grayscale) => set({ grayscale })}
+      />
+      <NumberField
+        label={t('prop.brightness')}
+        hint={col('brightness')}
+        value={l.brightness}
+        factor={100}
+        step={5}
+        min={0}
+        unit="%"
+        onChange={(brightness) => set({ brightness })}
+      />
+      <NumberField
+        label={t('prop.contrast')}
+        hint={col('contrast')}
+        value={l.contrast}
+        factor={100}
+        step={5}
+        min={0}
+        unit="%"
+        onChange={(contrast) => set({ contrast })}
+      />
+      {!l.grayscale && (
+        <NumberField
+          label={t('prop.saturation')}
+          hint={col('saturation')}
+          value={l.saturation}
+          factor={100}
+          step={5}
+          min={0}
+          unit="%"
+          onChange={(saturation) => set({ saturation })}
+        />
+      )}
       <NumberField
         label={t('prop.radius')}
         hint={col('radius')}
@@ -635,6 +998,7 @@ function ImageProperties({
         label={t('prop.stroke')}
         hint={col('stroke')}
         value={l.stroke}
+        dashable
         onChange={(stroke) => set({ stroke })}
       />
       <SelectField
@@ -693,11 +1057,10 @@ function ShapeProperties({
       />
       {/* con una formula il valore è il suo risultato: il campo non serve */}
       {!computed && (
-        <ColorField
+        <FillField
           label={t('prop.fill')}
           hint={col()}
           value={l.fill}
-          nullable
           fallback="#CCCCCC"
           onChange={(fill) => set({ fill })}
         />
@@ -706,6 +1069,7 @@ function ShapeProperties({
         label={t('prop.stroke')}
         hint={col('stroke')}
         value={l.stroke}
+        dashable
         onChange={(stroke) => set({ stroke })}
       />
       {(l.shape === 'rect' || l.shape === 'polygon' || l.shape === 'star') && (
@@ -743,12 +1107,11 @@ function ShapeProperties({
         />
       )}
       {l.shape === 'path' && (
-        <TextField
-          label={t('prop.path')}
-          hint={t('editor.pathHint')}
-          value={l.path}
-          multiline
-          onChange={(path) => set({ path })}
+        <OutlineField
+          hint={t('editor.outlineHint')}
+          empty={!l.path.trim()}
+          // l'altezza segue le proporzioni dell'immagine
+          onTraced={({ path, ratio }) => set({ path, h: Math.round((l.w / ratio) * 100) / 100 })}
         />
       )}
     </>

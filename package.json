@@ -1,5 +1,6 @@
 {
   "name": "naibi",
+  "productName": "Naibi",
   "version": "1.0.0",
   "description": "App desktop per creare carte e altri elementi di gioco",
   "main": "./out/main/index.js",
@@ -12,6 +13,7 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
+    "predev": "node scripts/dev-app-name.mjs",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "install-electron && electron-builder install-app-deps",

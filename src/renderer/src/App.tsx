@@ -10,7 +10,11 @@ import {
   isValidSheetName,
   moveRow,
   newSheet,
-  removeRows
+  removeRows,
+  applyOrder,
+  viewRows,
+  NO_VIEW,
+  type RowView
 } from '../../shared/model/sheet'
 import { hitTest, toLocal } from '../../shared/model/geometry'
 import {
@@ -1075,6 +1079,7 @@ function SetView({
   const [side, setSide] = useState<Side>('front')
   const [addingColumn, setAddingColumn] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
+  const [rowView, setRowView] = useState<RowView>(NO_VIEW)
   const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
   const [previewSide, togglePreviewSide] = usePanelSide('preview', 'right')
   // dimensione delle miniature: pixel per millimetro
@@ -1113,6 +1118,8 @@ function SetView({
     return rows.map((row) => bindCard(template, rowToCard(headers, row), bindCtx))
   }, [template, set.data, bindCtx])
 
+  const order = useMemo(() => (set.data ? viewRows(set.data, rowView) : []), [set.data, rowView])
+
   if (!set.data) {
     return (
       <section className="content">
@@ -1121,6 +1128,16 @@ function SetView({
     )
   }
   const sheet = set.data
+  const viewActive = rowView.sort !== null || rowView.filter.trim() !== ''
+  /** Clic su un'intestazione: crescente, decrescente, poi l'ordine del foglio */
+  const sortBy = (column: string): void =>
+    setRowView((v) =>
+      v.sort !== column
+        ? { ...v, sort: column, desc: false }
+        : v.desc
+          ? { ...v, sort: null, desc: false }
+          : { ...v, desc: true }
+    )
   const current = selection[0] ?? -1
   const card = cards[current]
   const none = current < 0 || current >= sheet.rows.length
@@ -1285,16 +1302,91 @@ function SetView({
           <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
             {t('set.addColumn')}
           </button>
-          <span className="muted small">
-            {view === 'grid' && template ? t('set.gridHint') : t('set.editHint')}
-          </span>
+          <span className="sep" />
+          <input
+            type="search"
+            className="row-filter"
+            placeholder={t('set.filter')}
+            title={t('tip.filterRows')}
+            value={rowView.filter}
+            onChange={(e) => setRowView((v) => ({ ...v, filter: e.target.value }))}
+          />
+          <select
+            className="row-filter-column"
+            title={t('tip.filterColumn')}
+            value={rowView.filterColumn ?? ''}
+            onChange={(e) => setRowView((v) => ({ ...v, filterColumn: e.target.value || null }))}
+          >
+            <option value="">{t('set.filterAll')}</option>
+            {sheet.headers
+              .filter((h) => h && !h.includes('.'))
+              .map((h) => (
+                <option key={h} value={h}>
+                  {h}
+                </option>
+              ))}
+          </select>
+          {view === 'grid' && (
+            <select
+              title={t('tip.sortColumn')}
+              value={rowView.sort ?? ''}
+              onChange={(e) =>
+                setRowView((v) => ({ ...v, sort: e.target.value || null, desc: false }))
+              }
+            >
+              <option value="">{t('set.sortNone')}</option>
+              {sheet.headers
+                .filter((h) => h && !h.includes('.'))
+                .map((h) => (
+                  <option key={h} value={h}>
+                    {t('set.sortBy', { column: h })}
+                  </option>
+                ))}
+            </select>
+          )}
+          {rowView.sort !== null && (
+            <>
+              {view === 'grid' && (
+                <button
+                  title={t('tip.sortDirection')}
+                  onClick={() => setRowView((v) => ({ ...v, desc: !v.desc }))}
+                >
+                  {rowView.desc ? '↓' : '↑'}
+                </button>
+              )}
+              <button
+                title={t('tip.applyOrder')}
+                onClick={() => {
+                  onChange(applyOrder(sheet, rowView))
+                  setRowView((v) => ({ ...v, sort: null, desc: false }))
+                }}
+              >
+                {t('set.applyOrder')}
+              </button>
+            </>
+          )}
+          {viewActive && (
+            <button title={t('tip.clearView')} onClick={() => setRowView(NO_VIEW)}>
+              {t('set.clearView')}
+            </button>
+          )}
         </div>
+        <p className="muted small set-hint">
+          {viewActive
+            ? t('set.viewHint', { shown: order.length, total: sheet.rows.length })
+            : view === 'grid' && template
+              ? t('set.gridHint')
+              : t('set.editHint')}
+        </p>
         {view === 'table' || !template ? (
           <DataTable
             sheet={sheet}
             selected={selection}
             onSelect={setSelection}
             onChange={onChange}
+            rows={order}
+            sort={{ column: rowView.sort, desc: rowView.desc }}
+            onSort={sortBy}
           />
         ) : (
           <CardGrid
@@ -1302,11 +1394,16 @@ function SetView({
             side={side}
             selected={current}
             onSelect={(i) => setSelection([i])}
-            onMove={(from, to) => {
-              onChange(moveRow(sheet, from, to))
-              setSelection([to])
-            }}
+            onMove={
+              viewActive
+                ? undefined
+                : (from, to) => {
+                    onChange(moveRow(sheet, from, to))
+                    setSelection([to])
+                  }
+            }
             scale={thumb}
+            order={order}
           />
         )}
       </section>

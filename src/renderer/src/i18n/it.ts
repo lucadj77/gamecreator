@@ -14,6 +14,25 @@ export const it: Record<MessageKey, string> = {
   'set.delete': 'Elimina',
   'set.addColumn': '+ Colonna',
   'set.deleteConfirm': 'Eliminare {n} carte?',
+  'set.filter': 'Filtra…',
+  'set.filterAll': 'in tutte le colonne',
+  'set.sortNone': 'Ordine del foglio',
+  'set.sortBy': 'Ordina per {column}',
+  'set.applyOrder': 'Applica questo ordine',
+  'set.clearView': 'Mostra tutto',
+  'set.viewHint':
+    "Righe mostrate: {shown} su {total}. Ordine e filtro valgono solo qui: il foglio e l'esportazione non cambiano.",
+  'tip.filterRows':
+    'Mostra solo le righe che contengono questo testo (maiuscole e accenti non contano)',
+  'tip.filterColumn': 'Colonna in cui cercare il testo del filtro',
+  'tip.sortColumn': 'Ordina le carte nella vista per una colonna',
+  'tip.sortDirection': 'Crescente o decrescente',
+  'tip.applyOrder': 'Riordina le righe del foglio come le vedi ora; ⌘Z annulla',
+  'tip.clearView': 'Togli ordinamento e filtro',
+  'table.sortHint':
+    "Ordina per {column}: un clic crescente, due decrescente, tre l'ordine del foglio",
+  'table.rowHintSorted': 'Con un ordinamento o un filtro attivo le righe non si trascinano',
+  'table.noMatch': 'Nessuna riga corrisponde al filtro.',
   'set.editHint':
     'Doppio clic o scrivi in una cella per modificarla; Alt+Invio per andare a capo. Trascina il numero di riga per spostarla.',
   'preview.clickHint': 'Fai clic su un livello per modificarne il campo',

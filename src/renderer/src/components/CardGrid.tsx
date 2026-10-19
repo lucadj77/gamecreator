@@ -13,9 +13,19 @@ interface Props {
   onMove?(from: number, to: number): void
   /** Pixel per millimetro */
   scale: number
+  /** Carte mostrate, come indici, nell'ordine della vista (di base tutte) */
+  order?: number[]
 }
 
-function CardGrid({ cards, side, selected, onSelect, onMove, scale }: Props): React.JSX.Element {
+function CardGrid({
+  cards,
+  side,
+  selected,
+  onSelect,
+  onMove,
+  scale,
+  order
+}: Props): React.JSX.Element {
   const { t } = useI18n()
   const [dragging, setDragging] = useState<number | null>(null)
   const [drop, setDrop] = useState<{ index: number; after: boolean } | null>(null)
@@ -23,53 +33,58 @@ function CardGrid({ cards, side, selected, onSelect, onMove, scale }: Props): Re
     setDragging(null)
     setDrop(null)
   }
+  const shown = order ?? cards.map((_, i) => i)
   return (
     <div className="card-grid">
-      {cards.map((c, i) => (
-        <button
-          key={i}
-          className={[
-            'card-cell',
-            i === selected && 'selected',
-            dragging === i && 'dragging',
-            drop?.index === i && dragging !== i && (drop.after ? 'drop-after' : 'drop-before')
-          ]
-            .filter(Boolean)
-            .join(' ')}
-          onClick={() => onSelect(i)}
-          draggable={!!onMove}
-          onDragStart={(e) => {
-            e.dataTransfer.effectAllowed = 'move'
-            e.dataTransfer.setData('text/plain', String(i + 1))
-            setDragging(i)
-          }}
-          onDragEnd={reset}
-          onDragOver={(e) => {
-            if (dragging === null) return
-            e.preventDefault()
-            // metà sinistra: prima della carta, metà destra: dopo
-            const r = e.currentTarget.getBoundingClientRect()
-            const after = e.clientX > r.left + r.width / 2
-            if (drop?.index !== i || drop.after !== after) setDrop({ index: i, after })
-          }}
-          onDrop={(e) => {
-            e.preventDefault()
-            if (dragging !== null && drop && onMove) {
-              let to = drop.index + (drop.after ? 1 : 0)
-              if (dragging < to) to -= 1
-              if (to !== dragging) onMove(dragging, to)
-            }
-            reset()
-          }}
-        >
-          <CardSvg template={c.template} side={side} scale={scale} />
-          <span className="card-caption" title={`${i + 1}`}>
-            <span className="card-label">{c.label || i + 1}</span>
-            {c.amount !== 1 && <span className="muted"> {t('set.copies', { n: c.amount })}</span>}
-            {c.problems.length > 0 && <span className="problem-dot" aria-label="!" />}
-          </span>
-        </button>
-      ))}
+      {shown.map((i) => {
+        const c = cards[i]
+        if (!c) return null
+        return (
+          <button
+            key={i}
+            className={[
+              'card-cell',
+              i === selected && 'selected',
+              dragging === i && 'dragging',
+              drop?.index === i && dragging !== i && (drop.after ? 'drop-after' : 'drop-before')
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            onClick={() => onSelect(i)}
+            draggable={!!onMove}
+            onDragStart={(e) => {
+              e.dataTransfer.effectAllowed = 'move'
+              e.dataTransfer.setData('text/plain', String(i + 1))
+              setDragging(i)
+            }}
+            onDragEnd={reset}
+            onDragOver={(e) => {
+              if (dragging === null) return
+              e.preventDefault()
+              // metà sinistra: prima della carta, metà destra: dopo
+              const r = e.currentTarget.getBoundingClientRect()
+              const after = e.clientX > r.left + r.width / 2
+              if (drop?.index !== i || drop.after !== after) setDrop({ index: i, after })
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              if (dragging !== null && drop && onMove) {
+                let to = drop.index + (drop.after ? 1 : 0)
+                if (dragging < to) to -= 1
+                if (to !== dragging) onMove(dragging, to)
+              }
+              reset()
+            }}
+          >
+            <CardSvg template={c.template} side={side} scale={scale} />
+            <span className="card-caption" title={`${i + 1}`}>
+              <span className="card-label">{c.label || i + 1}</span>
+              {c.amount !== 1 && <span className="muted"> {t('set.copies', { n: c.amount })}</span>}
+              {c.problems.length > 0 && <span className="problem-dot" aria-label="!" />}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

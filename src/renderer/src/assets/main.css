@@ -981,6 +981,22 @@ textarea.invalid {
   flex-wrap: wrap;
 }
 
+.set-actions .row-filter {
+  width: 140px;
+}
+
+.set-hint {
+  margin: -4px 0 8px;
+}
+
+.th-sort {
+  cursor: pointer;
+}
+
+.sort-mark {
+  color: var(--accent);
+}
+
 .set-actions .sep {
   width: 1px;
   align-self: stretch;

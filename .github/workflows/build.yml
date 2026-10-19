@@ -1,6 +1,6 @@
 # Costruisce l'app per Mac, Windows e Linux. Si avvia a mano (Actions → Build → Run workflow),
 # sulle PR che toccano la configurazione della build e su ogni tag v*: in quel caso i pacchetti
-# finiscono in una release in bozza da pubblicare a mano.
+# finiscono in una release pubblica con il nome del tag.
 name: Build
 
 on:
@@ -65,5 +65,5 @@ jobs:
           merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          draft: false
           files: dist/*

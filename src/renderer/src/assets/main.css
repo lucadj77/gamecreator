@@ -2577,3 +2577,88 @@ div.font-row {
   width: 0;
   min-width: 0;
 }
+
+.generate-dialog {
+  width: min(720px, 86vw);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 78vh;
+  overflow-y: auto;
+}
+
+.generate-set {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.generate-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.generate-row label,
+.generate-values {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.generate-values {
+  align-items: flex-start;
+}
+
+.generate-values textarea {
+  flex: 1;
+}
+
+.generate-row .grow {
+  flex: 1;
+}
+
+.generate-row .grow input {
+  flex: 1;
+}
+
+.generate-row .spacer-left {
+  margin-left: auto;
+}
+
+.generate-preview table {
+  border-collapse: collapse;
+  font-size: 12px;
+  width: 100%;
+}
+
+.generate-preview th,
+.generate-preview td {
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  text-align: left;
+}
+
+.dialog:has(> .generate-dialog) {
+  max-width: none;
+}
+
+.generate-limit-grid {
+  display: grid;
+  grid-template-columns: auto 70px 70px;
+  gap: 4px 10px;
+  align-items: center;
+  justify-content: start;
+  margin-top: 4px;
+}
+
+.generate-limit-value {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+}

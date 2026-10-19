@@ -201,7 +201,13 @@ const FUNCTIONS: Record<string, Fn> = {
   LOWER: (a) => toText(a[0]()).toLowerCase(),
   LEN: (a) => toText(a[0]()).length,
   CONCAT: (a) => a.map((x) => toText(x())).join(''),
-  ISBLANK: (a) => toText(a[0]()).trim() === ''
+  ISBLANK: (a) => toText(a[0]()).trim() === '',
+  /** Quante volte compare un testo: COUNTIN({risorse}; "legno") */
+  COUNTIN: (a) => {
+    const text = toText(a[0]()).toLowerCase()
+    const part = toText(a[1]?.() ?? '').toLowerCase()
+    return part ? text.split(part).length - 1 : 0
+  }
 }
 
 export const FORMULA_FUNCTIONS = Object.keys(FUNCTIONS)

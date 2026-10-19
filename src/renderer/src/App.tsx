@@ -1,3 +1,4 @@
+import GenerateDialog from './components/GenerateDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LoadedProject, LoadedSet, ProjectFile, Sheet } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
@@ -1226,6 +1227,7 @@ function SetView({
   const [selection, setSelection] = useState<number[]>([0])
   const [side, setSide] = useState<Side>('front')
   const [addingColumn, setAddingColumn] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
   const [rowView, setRowView] = useState<RowView>(NO_VIEW)
   const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
@@ -1446,6 +1448,9 @@ function SetView({
           <button disabled={none} onClick={remove} title={t('tip.deleteCards')}>
             {t('set.delete')}
           </button>
+          <button onClick={() => setGenerating(true)} title={t('tip.generateCards')}>
+            {t('set.generate')}
+          </button>
           <span className="sep" />
           <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
             {t('set.addColumn')}
@@ -1566,6 +1571,17 @@ function SetView({
           />
           {preview}
         </>
+      )}
+      {generating && (
+        <GenerateDialog
+          sheet={sheet}
+          template={template}
+          onApply={(s) => {
+            onChange(s)
+            setGenerating(false)
+          }}
+          onClose={() => setGenerating(false)}
+        />
       )}
       {addingColumn && (
         <AddColumnDialog

@@ -40,6 +40,10 @@ jobs:
       - run: npm ci
       - run: npx electron-vite build
       - run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          # sulle PR electron-builder salta la firma; quella ad hoc del Mac non usa segreti e senza
+          # macOS dice che l'app è danneggiata
+          CSC_FOR_PULL_REQUEST: 'true'
       - uses: actions/upload-artifact@v4
         with:
           name: naibi-${{ runner.os }}

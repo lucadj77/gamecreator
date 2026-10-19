@@ -204,11 +204,17 @@ function truthy(v: string): boolean {
   return s !== '' && s !== '0' && s !== 'false' && s !== 'no'
 }
 
+/** Come entrano le carte generate nel set */
+export type GenerateMode = 'append' | 'replace' | 'update'
+
 /**
  * Carte generate nel foglio del set: le colonne che mancano si aggiungono in fondo, le altre
- * colonne delle righe nuove restano vuote. "replace" toglie prima le righe esistenti.
+ * colonne delle righe nuove restano vuote. "replace" toglie prima le righe esistenti; "update"
+ * scrive le colonne generate nelle righe già presenti, una carta generata per riga nell'ordine
+ * del foglio, senza toccare le altre colonne né amount. Le carte generate in più si aggiungono
+ * in fondo.
  */
-export function addGenerated(s: Sheet, gen: GeneratedCards, mode: 'append' | 'replace'): Sheet {
+export function addGenerated(s: Sheet, gen: GeneratedCards, mode: GenerateMode): Sheet {
   const headers = [...s.headers]
   for (const h of gen.headers) if (!headers.includes(h)) headers.push(h)
   const widen = (r: string[]): string[] =>
@@ -219,5 +225,15 @@ export function addGenerated(s: Sheet, gen: GeneratedCards, mode: 'append' | 're
     r.forEach((v, i) => (out[index[i]] = v))
     return out
   })
+  if (mode === 'update') {
+    const updated = s.rows.map((r, i) => {
+      const g = gen.rows[i]
+      if (!g) return widen(r)
+      const out = [...widen(r)]
+      g.forEach((v, j) => gen.headers[j] !== 'amount' && (out[index[j]] = v))
+      return out
+    })
+    return { ...s, headers, rows: [...updated, ...rows.slice(s.rows.length)] }
+  }
   return { ...s, headers, rows: [...(mode === 'replace' ? [] : s.rows.map(widen)), ...rows] }
 }

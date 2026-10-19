@@ -196,7 +196,7 @@ Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per
 
 ### 3.1 Risoluzione dei nomi di file
 
-Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta il nome del file, senza percorso e senza estensione. Accanto al campo dell'immagine, nel pannello delle proprietà e nei campi della carta, un pulsante apre le miniature delle immagini di `assets/`, con ricerca approssimata per nome e filtro per cartella; un clic scrive il nome.
+Ovunque si indichi un'immagine (livello, campo, formula, variabile, `bg=`) basta il nome del file, senza percorso e senza estensione. Accanto al campo dell'immagine, nel pannello delle proprietà e nei campi della carta, un pulsante apre le miniature delle immagini di `assets/`, con ricerca approssimata per nome e filtro per cartella; un clic scrive il nome. Nell'editor di formattazione il campo **Sfondo** (`bg=`) si scrive a mano, con i suggerimenti, o si sceglie con lo stesso pulsante, che qui propone prima le forme predefinite e le variabili immagine e poi le immagini di `assets/`.
 
 1. Si cerca in tutto `assets/`, sottocartelle comprese.
 2. Un nome con estensione (`spada.png`) o con percorso (`icone/spada`) vale così com'è.
@@ -311,6 +311,10 @@ Stato (ottobre 2026): la forma della carta può essere rettangolo con raggio, ce
 
 Le voci della barra laterale (set, template, stili, variabili) si riordinano trascinandole; ⌘Z annulla. Quando un elenco non è in ordine alfabetico, accanto al + compare **A–Z**, che lo riporta in ordine alfabetico. L'ordine si salva nel progetto (docs/formato.md).
 
+Soffermando il puntatore su una voce della barra laterale compare accanto alla barra un'anteprima del contenuto: per un set le prime tre carte (fronte), per un template il fronte e il retro con i dati della prima carta di un set che lo usa (altrimenti con i valori predefiniti), per uno stile una frase di prova con i suoi attributi, per una variabile l'icona, il colore, il testo o il valore.
+
+Nei campi numerici del pannello delle proprietà, trascinare l'etichetta a destra o a sinistra cambia il valore come un cursore: un passo ogni 4 pixel, con Maiuscolo passi da 10, con Alt decimi di passo. I campi con un minimo e un massimo (rotazione, opacità) hanno anche un cursore accanto alla casella. Le frecce su e giù cambiano il valore di un passo, come prima.
+
 ### 8.2 Set
 
 | Proprietà            | Valori                                                                                                                          |
@@ -323,6 +327,7 @@ Le voci della barra laterale (set, template, stili, variabili) si riordinano tra
 | ordinamento e filtro | per qualsiasi colonna, solo nella vista, senza cambiare l'ordine salvato; si può rendere definitivo con "Applica questo ordine" |
 
 - Ordinamento e filtro: nella tabella un clic sull'intestazione ordina per quella colonna (crescente, decrescente, poi l'ordine del foglio); nella griglia si sceglie la colonna dal menu. I numeri si ordinano come numeri, i testi senza markup, maiuscole e accenti, le celle vuote vanno in fondo. Il filtro cerca il testo in tutte le colonne o in una sola. Con ordinamento o filtro attivi le righe non si trascinano; **Applica questo ordine** riordina il foglio (⌘Z annulla), **Mostra tutto** torna alla vista normale.
+- PagSu e PagGiù passano alla carta precedente o successiva, nell'ordine della vista (con ordinamento e filtro), sia nella tabella sia nella griglia. Valgono anche mentre si scrive in un campo della carta accanto all'anteprima, e il cursore resta nello stesso campo della carta nuova; non valgono mentre si modifica una cella della tabella.
 - Il template del set si cambia dal menu nell'intestazione del set; i dati restano gli stessi, e le colonne che il nuovo template non usa vengono ignorate. ⌘Z annulla.
 - Sotto l'anteprima della carta, **Modifica template** apre nell'editor il template del set.
 - Il cestino accanto a un set lo toglie dal progetto dopo una conferma. Il foglio dei dati resta nel file, tra quelli non collegati, e si può ricollegare con **Nuovo set**; ⌘Z annulla.
@@ -340,7 +345,7 @@ Le voci della barra laterale (set, template, stili, variabili) si riordinano tra
 - **Filtro.** Un'espressione come quelle dei campi calcolati (sezione 7, senza `=`) che tiene solo le carte per cui è vera. Usa `{colonna}` per il contenuto della cella e `{colonna_1}`, `{colonna_2}`… per i singoli valori scelti, oltre a `COUNTIN`. Esempio: `COUNTIN({costo}; "oro") + COUNTIN({costo}; "gemma") <= 1`.
 - **Copie.** Valore della colonna `amount` per ogni carta generata.
 - **Anteprima.** Mostra quante carte nasceranno (e su quante combinazioni, se c'è un filtro) e le prime righe con le icone. Oltre 5000 carte la generazione si ferma e lo segnala.
-- **Aggiungi in fondo** accoda le righe a quelle del set; **Sostituisci le carte** cancella prima le righe esistenti, dopo una conferma. Le colonne che mancano nel foglio si aggiungono in fondo. ⌘Z annulla.
+- **Aggiungi in fondo** accoda le righe a quelle del set; **Sostituisci le carte** cancella prima le righe esistenti, dopo una conferma. **Aggiorna le carte** (solo se il set ha già carte) scrive le colonne generate nelle righe presenti, una carta generata per riga nell'ordine del foglio, senza toccare le altre colonne né `amount`: per esempio, dopo aver generato 30 carte da 6 semi e i numeri 1-5, si riempie la colonna del ritratto con le 30 immagini di una cartella. Le carte generate in più si aggiungono in fondo; se sono meno, le ultime righe restano come sono. Le colonne che mancano nel foglio si aggiungono in fondo. ⌘Z annulla.
 
 ## 9. Esportazione
 

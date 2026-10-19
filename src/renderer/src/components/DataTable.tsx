@@ -88,6 +88,19 @@ function DataTable({
       ?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   }, [active])
 
+  // la selezione cambiata da fuori (PagSu, PagGiù) porta con sé la cella attiva e resta visibile
+  const first = selected[0]
+  const [prevFirst, setPrevFirst] = useState(first)
+  if (first !== prevFirst) {
+    setPrevFirst(first)
+    if (active && first !== undefined && !selected.includes(active.row))
+      setActive({ ...active, row: first })
+  }
+  useEffect(() => {
+    if (first === undefined) return
+    wrapRef.current?.querySelector(`tr[data-row="${first}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [first])
+
   const onKeyDown = (e: React.KeyboardEvent): void => {
     if (editing || !active || e.metaKey || e.ctrlKey) return
     const k = e.key
@@ -171,6 +184,7 @@ function DataTable({
             return (
               <tr
                 key={r}
+                data-row={r}
                 className={[
                   selected.includes(r) && 'selected',
                   dropRow === r && dragRow !== null && (dragRow < r ? 'drop-after' : 'drop-before')

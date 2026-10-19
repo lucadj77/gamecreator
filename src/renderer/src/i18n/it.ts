@@ -91,6 +91,10 @@ export const it: Record<MessageKey, string> = {
 
   'sidebar.sets': 'Set',
   'sidebar.templates': 'Template',
+  'sidebarPreview.set': 'Template {template} · {n} righe',
+  'sidebarPreview.noCards': 'Nessuna carta da mostrare',
+  'sidebarPreview.template': '{w} × {h} mm · fronte e retro',
+  'sidebarPreview.sample': 'Testo di prova 123',
   'sidebar.unusedSheets': 'Fogli non collegati a un set: {names}',
 
   'set.templateLabel': 'template',
@@ -228,6 +232,9 @@ export const it: Record<MessageKey, string> = {
     'Non ci sono immagini in assets/. Copiaci file SVG, PNG, WebP o JPG e ricarica il progetto.',
   'assetPicker.noMatch': 'Nessuna immagine corrisponde alla ricerca.',
   'assetPicker.count': '{n} di {total}',
+  'assetPicker.shapes': 'Forme',
+  'assetPicker.variables': 'Variabili immagine',
+  'assetPicker.files': 'Immagini di assets/',
   'assetPicker.open': 'Scegli tra le immagini di assets/',
   'editor.srcMissing': 'Nessuna immagine con questo nome in assets/',
   'editor.srcAmbiguous':
@@ -313,6 +320,8 @@ export const it: Record<MessageKey, string> = {
   'arrange.arrange': 'Disponi',
   'arrange.arrangeHint':
     'Mette i livelli in ordine di lettura su una griglia di celle grandi quanto il livello più grande, ognuno centrato nella sua cella',
+  'field.scrubHint':
+    'Trascina a destra o a sinistra per cambiare il valore (Maiusc: passi più grandi, Alt: più fini)',
   'field.enabled': 'Attivo',
   'field.none': 'nessuno',
   'field.strokeWidth': 'Spessore in mm',
@@ -736,6 +745,9 @@ export const it: Record<MessageKey, string> = {
   'format.pad': 'Margine interno',
   'format.padHint': 'mm, verticale/orizzontale',
   'format.bg': 'Sfondo',
+  'format.bgHint': 'Una forma, una variabile immagine o il nome di un file di assets/',
+  'format.bgPick': 'Scegli tra forme, variabili immagine e immagini di assets/',
+  'format.imageVariable': 'variabile immagine',
   'format.bgColor': 'Colore dello sfondo',
   'format.bgSize': 'Dimensione dello sfondo',
   'format.bgSizeHint': '% della riga o mm',
@@ -1091,6 +1103,15 @@ export const it: Record<MessageKey, string> = {
   'generate.replaceConfirm':
     'Le {n} carte del set verranno sostituite. Puoi sempre annullare con ⌘Z. Continuare?',
   'generate.create': 'Genera {n} carte',
+  'generate.appendHint': 'Le carte generate si aggiungono dopo quelle del set',
+  'generate.replaceHint': 'Le carte del set si cancellano e restano solo quelle generate',
+  'generate.update': 'Aggiorna le carte',
+  'generate.updateHint':
+    "Scrive le colonne generate nelle carte già presenti, nell'ordine del foglio, senza toccare le altre colonne",
+  'generate.updateNote':
+    'Si scrive {columns} nelle prime {n} delle {rows} carte del set; le altre colonne e le copie restano come sono.',
+  'generate.updateExtra': 'Le {n} carte generate in più si aggiungono in fondo.',
+  'generate.updateButton': 'Aggiorna {n} carte',
   'newProject.title': 'Nuovo progetto',
   'newProject.location': 'Posizione',
   'newProject.folder': 'Il progetto sarà creato in {folder}',

@@ -16,7 +16,9 @@ import {
 } from '../editor/fields'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
-import { AssetsContext, StylesContext } from '../render/assets'
+import { AssetsContext, StylesContext, VariablesContext } from '../render/assets'
+import AssetPicker from './AssetPicker'
+import { ImageIcon } from './icons'
 import MarkupText from '../render/MarkupText'
 
 // Editor visuale degli attributi del markup: formatta una porzione di testo oppure modifica uno
@@ -58,6 +60,11 @@ export default function FormatDialog({
   const [raw, setRaw] = useState<string | null>(null)
   const [name, setName] = useState(styleName ?? '')
   const [saving, setSaving] = useState<string | null>(null)
+  const [pickingBg, setPickingBg] = useState(false)
+  const variables = useContext(VariablesContext)
+  const imageVars = Object.keys(variables ?? {})
+    .filter((n) => variables[n].type === 'image')
+    .sort()
   const set = (patch: Partial<Attrs>): void => {
     setRaw(null)
     setA((x) => {
@@ -261,16 +268,42 @@ export default function FormatDialog({
               set({ pad: v.trim() ? [p[0], p[1] ?? p[0]] : undefined })
             }}
           />
-          <SelectField<string>
+          <TextField
             label={t('format.bg')}
+            hint={t('format.bgHint')}
             value={a.bg ?? ''}
-            options={[
-              ['', t('format.none')],
-              ...BUILTIN_SHAPES.map((s): [string, string] => [s, t(`format.shape.${s}`)]),
-              ...images.map((n): [string, string] => [n, n])
-            ]}
-            onChange={(v) => set({ bg: v || undefined })}
+            list="format-bg-list"
+            placeholder={t('format.none')}
+            onChange={(v) => set({ bg: opt(v) })}
+            action={
+              <button
+                className="pick-btn"
+                title={t('format.bgPick')}
+                onClick={() => setPickingBg(true)}
+              >
+                <ImageIcon />
+              </button>
+            }
           />
+          <datalist id="format-bg-list">
+            {BUILTIN_SHAPES.map((s) => (
+              <option key={s} value={s} label={t(`format.shape.${s}`)} />
+            ))}
+            {imageVars.map((n) => (
+              <option key={`v:${n}`} value={n} label={t('format.imageVariable')} />
+            ))}
+            {images.map((n) => (
+              <option key={`f:${n}`} value={n} />
+            ))}
+          </datalist>
+          {pickingBg && (
+            <AssetPicker
+              extras
+              value={a.bg ?? ''}
+              onPick={(name) => set({ bg: name })}
+              onClose={() => setPickingBg(false)}
+            />
+          )}
           {a.bg && (
             <>
               <ColorField

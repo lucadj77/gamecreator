@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { BoundCard } from '../../../shared/model/bind'
 import type { Side } from '../../../shared/model/template'
 import CardSvg from '../render/CardSvg'
@@ -34,8 +34,13 @@ function CardGrid({
     setDrop(null)
   }
   const shown = order ?? cards.map((_, i) => i)
+  const gridRef = useRef<HTMLDivElement>(null)
+  // la carta scelta resta visibile anche quando cambia da tastiera (PagSu, PagGiù)
+  useEffect(() => {
+    gridRef.current?.querySelector('.card-cell.selected')?.scrollIntoView({ block: 'nearest' })
+  }, [selected])
   return (
-    <div className="card-grid">
+    <div className="card-grid" ref={gridRef}>
       {shown.map((i) => {
         const c = cards[i]
         if (!c) return null

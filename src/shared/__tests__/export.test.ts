@@ -7,6 +7,7 @@ import {
   effectivePattern,
   expandCopies,
   fileName,
+  gridOverflows,
   mirrorsX,
   pdfGrid,
   planPdfPages,
@@ -75,10 +76,22 @@ describe('impaginazione PDF', () => {
     expect(g.x0).toBeCloseTo((210 - 189) / 2)
   })
   it("con l'abbondanza le carte si toccano e la spaziatura non conta", () => {
-    const g = pdfGrid(pdf({ bleed: true, spacing: 5, margin: 5 }), tpl)
+    const g = pdfGrid(pdf({ bleed: true, spacing: 5, margin: 5, autoRotate: false }), tpl)
     expect(g.gap).toBe(0)
     expect(g.cellW).toBe(69)
     expect([g.cols, g.rows]).toEqual([2, 3])
+  })
+  it('ruota le carte quando ne entrano di più', () => {
+    // 69 × 94 con l'abbondanza: dritte 2 × 3, ruotate 2 × 4
+    const g = pdfGrid(pdf({ bleed: true, margin: 5 }), tpl)
+    expect(g.rotated).toBe(true)
+    expect([g.cellW, g.cellH, g.cols, g.rows]).toEqual([94, 69, 2, 4])
+  })
+  it('ruota una carta che dritta non entra nella pagina', () => {
+    const big = normalizeTemplate({ name: 'p', width: 280, height: 200, front: [], back: [] })
+    const g = pdfGrid(pdf({ margin: 5 }), big)
+    expect(g.rotated).toBe(true)
+    expect(gridOverflows(g)).toBe(false)
   })
   it('alterna fronti e retri e specchia i retri sul lato lungo', () => {
     const o = pdf({ duplex: 'long' })

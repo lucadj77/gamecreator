@@ -278,7 +278,11 @@ export default function ExportDialog({
     perPage =
       g.x0 < 0 || g.y0 < 0
         ? t('export.gridTooBig')
-        : t('export.perPage', { cols: g.cols, rows: g.rows, n: g.cols * g.rows })
+        : t(g.rotated ? 'export.perPageRotated' : 'export.perPage', {
+            cols: g.cols,
+            rows: g.rows,
+            n: g.cols * g.rows
+          })
   }
 
   return (
@@ -499,6 +503,11 @@ export default function ExportDialog({
                 </>,
                 perPage ?? undefined
               )}
+              {pdf.layout === 'auto' &&
+                field(
+                  'export.rotate',
+                  check(pdf.autoRotate, (autoRotate) => patch({ autoRotate }), 'export.autoRotate')
+                )}
               {field(
                 'export.marks',
                 <>

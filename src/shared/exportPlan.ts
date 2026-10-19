@@ -10,6 +10,7 @@ import {
   expandCopies,
   fileName,
   gridOverflows,
+  mirrorsX,
   pageSize,
   pdfGrid,
   planPdfPages,
@@ -109,7 +110,13 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
           y: c.y,
           template: c.instance.card.template,
           side: c.side,
-          mode: o.bleed ? ('bleed' as const) : o.rounded ? ('trim' as const) : ('cut' as const)
+          mode: o.bleed ? ('bleed' as const) : o.rounded ? ('trim' as const) : ('cut' as const),
+          // girando il foglio sul lato verticale la carta si capovolge: il retro ruota al contrario
+          rotate: !grid.rotated
+            ? (0 as const)
+            : c.side === 'back' && o.duplex !== 'none' && mirrorsX(o)
+              ? (270 as const)
+              : (90 as const)
         })),
         lines: cropMarks(o, grid, plan.cards)
       }

@@ -62,6 +62,8 @@ export interface PdfOptions extends CommonOptions {
   offsetY: number
   /** Un file in tutto, uno per set o uno per lato (fronti e retri separati) */
   split: 'single' | 'set' | 'side'
+  /** Carte ruotate di 90° quando altrimenti non entrano nella pagina o ne entrano di più */
+  autoRotate: boolean
 }
 
 export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
@@ -122,7 +124,8 @@ export const DEFAULT_PDF: PdfOptions = {
   duplex: 'none',
   offsetX: 0,
   offsetY: 0,
-  split: 'single'
+  split: 'single',
+  autoRotate: true
 }
 
 export const DEFAULT_TTS: TtsOptions = {
@@ -196,6 +199,8 @@ export interface SceneItem {
   side: Side
   /** 'trim': angoli arrotondati; 'cut': rettangolo di taglio; 'bleed': con l'abbondanza */
   mode: CardMode
+  /** Rotazione in senso orario: la posizione è l'angolo in alto a sinistra della carta ruotata */
+  rotate?: 0 | 90 | 270
 }
 
 export interface SceneLine {
@@ -325,6 +330,8 @@ export interface Grid {
   x0: number
   y0: number
   bleed: number
+  /** Carte ruotate di 90°: la cella ha larghezza e altezza scambiate */
+  rotated: boolean
 }
 
 /**
@@ -335,10 +342,25 @@ export function pdfGrid(
   o: PdfOptions,
   card: { width: number; height: number; bleed: number }
 ): Grid {
+  const upright = gridFor(o, card, false)
+  if (!o.autoRotate || o.layout === 'fixed') return upright
+  const turned = gridFor(o, card, true)
+  // si ruota quando la carta dritta non entra e ruotata sì, o quando ruotata ne entrano di più
+  if (gridOverflows(upright) && !gridOverflows(turned)) return turned
+  if (gridOverflows(turned)) return upright
+  return turned.cols * turned.rows > upright.cols * upright.rows ? turned : upright
+}
+
+function gridFor(
+  o: PdfOptions,
+  card: { width: number; height: number; bleed: number },
+  rotated: boolean
+): Grid {
   const page = pageSize(o)
   const bleed = o.bleed ? card.bleed : 0
-  const cellW = card.width + 2 * bleed
-  const cellH = card.height + 2 * bleed
+  const w = card.width + 2 * bleed
+  const h = card.height + 2 * bleed
+  const [cellW, cellH] = rotated ? [h, w] : [w, h]
   const gap = o.bleed ? 0 : Math.max(0, o.spacing)
   const availW = page.width - 2 * o.margin
   const availH = page.height - 2 * o.margin
@@ -356,7 +378,8 @@ export function pdfGrid(
     gap,
     x0: (page.width - gridW) / 2,
     y0: (page.height - gridH) / 2,
-    bleed
+    bleed,
+    rotated
   }
 }
 

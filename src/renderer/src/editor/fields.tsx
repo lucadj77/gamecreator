@@ -3,6 +3,7 @@ import { useContext, useId, useMemo, useState } from 'react'
 import { smoothCss } from '../render/smoothGradient'
 import { palette, resolveColor, resolveFont } from '../../../shared/model/variables'
 import { VariablesContext } from '../render/assets'
+import { ColorFieldsContext } from './colorFields'
 import type { Fade, Shadow, Stroke } from '../../../shared/model/template'
 import {
   isGradient,
@@ -395,6 +396,7 @@ function ColorInput({
   const variables = useContext(VariablesContext)
   const pal = useMemo(() => palette(variables), [variables])
   const listId = useId()
+  const fields = useContext(ColorFieldsContext)
   return (
     <>
       <input
@@ -413,6 +415,9 @@ function ColorInput({
       <datalist id={listId}>
         {Object.keys(pal).map((n) => (
           <option key={n} value={n} />
+        ))}
+        {fields.map((n) => (
+          <option key={`{${n}}`} value={`{${n}}`} />
         ))}
       </datalist>
     </>

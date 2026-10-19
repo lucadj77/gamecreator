@@ -439,6 +439,7 @@ function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): Rea
 
 const PRESERVE: Record<ImageLayer['fit'], string> = {
   cover: 'xMidYMid slice',
+  overflow: 'xMidYMid slice',
   contain: 'xMidYMid meet',
   stretch: 'none',
   original: 'xMidYMid meet',
@@ -483,7 +484,7 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
   // "riempi" ruotato: l'immagine deve contenere il riquadro, cioè coprire l'ingombro del
   // riquadro ruotato all'indietro; "adatta" usa invece l'ingombro dell'immagine ruotata
   const fitted =
-    turned && size && angle && l.fit === 'cover'
+    turned && size && angle && (l.fit === 'cover' || l.fit === 'overflow')
       ? fitRect(
           l,
           {
@@ -546,7 +547,8 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
           </pattern>
         )}
       </defs>
-      <g clipPath={`url(#${id}-clip)`}>
+      {/* "lascia uscire": la parte fuori dal riquadro resta visibile (la carta ritaglia comunque) */}
+      <g clipPath={l.fit === 'overflow' ? undefined : `url(#${id}-clip)`}>
         {tile ? (
           <rect
             x={l.x}

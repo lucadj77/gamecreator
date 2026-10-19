@@ -146,7 +146,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
           problems.push(msg('bind.invalidValue', { column: `${layer.name}.repeat`, value: repeat }))
         out = { ...out, repeat, children: apply(out.children) }
       }
-      return paintLayer(out, pal)
+      return paintLayer(out, pal, fields)
     })
 
   return {
@@ -331,28 +331,47 @@ export function substituteFields(
   )
 }
 
-/** Colori del livello con i nomi della tavolozza del progetto sostituiti dal loro valore */
-function paintLayer(l: Layer, pal: Record<string, string>): Layer {
-  if (!Object.keys(pal).length) return l
-  const stroke = (s: Stroke | null): Stroke | null =>
-    s && { ...s, color: resolveColor(s.color, pal) }
-  const shadow = l.shadow && { ...l.shadow, color: resolveColor(l.shadow.color, pal) }
+/**
+ * Colore di una proprietà: {campo} prende il valore del campo della carta (per esempio un
+ * livello valore calcolato), poi i nomi della tavolozza diventano il loro valore. Come nei
+ * testi, un campo vince su una variabile con lo stesso nome; un campo vuoto non colora.
+ */
+export function paintColor(
+  color: string,
+  pal: Record<string, string>,
+  fields: Record<string, string> = {}
+): string {
+  const m = /^\{([^{}]+)\}$/.exec(color.trim())
+  const name = m?.[1].trim()
+  if (name !== undefined && Object.prototype.hasOwnProperty.call(fields, name)) {
+    const v = fields[name].trim()
+    return v ? resolveColor(v, pal) : 'transparent'
+  }
+  return resolveColor(color, pal)
+}
+
+/** Colori del livello con campi e nomi della tavolozza del progetto sostituiti dal loro valore */
+function paintLayer(
+  l: Layer,
+  pal: Record<string, string>,
+  fields: Record<string, string> = {}
+): Layer {
+  if (!Object.keys(pal).length && !Object.keys(fields).length) return l
+  const paint = (c: string): string => paintColor(c, pal, fields)
+  const stroke = (s: Stroke | null): Stroke | null => s && { ...s, color: paint(s.color) }
+  const shadow = l.shadow && { ...l.shadow, color: paint(l.shadow.color) }
   switch (l.type) {
     case 'text':
-      return { ...l, shadow, color: resolveColor(l.color, pal), stroke: stroke(l.stroke) }
+      return { ...l, shadow, color: paint(l.color), stroke: stroke(l.stroke) }
     case 'shape':
       return {
         ...l,
         shadow,
-        fill:
-          l.fill &&
-          (isGradient(l.fill)
-            ? mapGradientColors(l.fill, (c) => resolveColor(c, pal))
-            : resolveColor(l.fill, pal)),
+        fill: l.fill && (isGradient(l.fill) ? mapGradientColors(l.fill, paint) : paint(l.fill)),
         stroke: stroke(l.stroke)
       }
     case 'image':
-      return { ...l, shadow, tint: l.tint && resolveColor(l.tint, pal), stroke: stroke(l.stroke) }
+      return { ...l, shadow, tint: l.tint && paint(l.tint), stroke: stroke(l.stroke) }
     default:
       return { ...l, shadow }
   }

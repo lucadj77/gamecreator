@@ -135,7 +135,7 @@ In cima a ogni livello ci sono il **nome**, che è anche il nome della colonna d
 Le proprietà principali per tipo di livello:
 
 - **Testo**: contenuto, stile, font, peso, dimensione, colore, allineamento orizzontale e verticale, interlinea, adattamento (riduci per stare nel riquadro, taglia al bordo, lascia uscire). In Avanzate spaziature, rientro, margini interni, maiuscole, sottolineato, barrato, a capo automatico e contorno delle lettere.
-- **Immagine**: nome del file o della variabile, adattamento (riempi ritagliando, adatta dentro, allunga, dimensione originale, ripeti), allineamento, zoom, rotazione dell'immagine dentro il riquadro, spostamento e colorazione. In Avanzate riflessioni, regolazioni (scala di grigi, luminosità, contrasto, saturazione), raggio, contorno e cosa fare se l'immagine manca.
+- **Immagine**: nome del file o della variabile, adattamento (riempi ritagliando, riempi lasciando uscire la parte fuori dal riquadro, adatta dentro, allunga, dimensione originale, ripeti), allineamento, zoom, rotazione dell'immagine dentro il riquadro, spostamento e colorazione. In Avanzate riflessioni, regolazioni (scala di grigi, luminosità, contrasto, saturazione), raggio, contorno e cosa fare se l'immagine manca.
 - **Forma**: tipo, riempimento (nessuno, colore o sfumatura lineare o radiale), contorno (continuo, tratteggiato, a punti) e raggio degli angoli. Poligoni e stelle hanno il numero di lati o punte; la linea va da un punto A a un punto B; la forma "da un'immagine" prende la sagoma di una PNG con trasparenza o di una SVG.
 - **Gruppo**: può disporre i figli in riga, in colonna o in griglia, ripeterli un numero di volte fisso o preso da un campo (per esempio `{forza}` icone) e usare il livello più in basso come maschera.
 
@@ -347,6 +347,8 @@ Nell'esempio il livello `rango` mostra "Eroe" o "Gregario" secondo la forza. Sot
 Il livello **Valore** (strumento #) non si disegna: contiene un valore della carta da usare nelle formule e nei testi degli altri livelli come `{nome}`. Nell'esempio, il livello `punti` delle carte mercato conta le risorse con `COUNTIN` e il livello `punti_testo` lo mostra.
 
 ![Un livello valore con una formula](img/livello-valore.png)
+
+Un livello valore può dare anche un colore: nei campi colore (riempimento, colore del testo, contorno, ombra, tinta) si scrive `{nome}` del livello, che il menu del campo propone. Il valore calcolato può essere un codice come `#A33A2A`, un nome di colore o una variabile colore, per esempio `=IF({forza}>3; "rosso"; "blu")`. Se il valore è vuoto il colore è trasparente.
 
 Un campo vale, in ordine di precedenza: il livello valore calcolato, la cella non vuota della riga, il valore scritto nel template. Gli errori delle formule compaiono sotto la carta e nel pannello delle proprietà.
 

@@ -220,3 +220,29 @@ describe('campi immagine nel testo', () => {
     expect(text({ risorsa: '{legno}', testo: '{risorsa*2}' })).toBe('{legno*2}')
   })
 })
+
+describe('colori da un campo', () => {
+  const tpl = normalizeTemplate({
+    name: 't',
+    front: [
+      {
+        type: 'value',
+        name: 'tinta',
+        value: '',
+        source: { kind: 'formula', expr: '=IF({forza}>3; "rosso"; "#2F5DA8")' }
+      },
+      { type: 'shape', name: 'fondo', fill: '{tinta}', stroke: { color: '{tinta}', width: 1 } },
+      { type: 'text', name: 'titolo', text: 'x', color: '{vuoto}' }
+    ]
+  })
+  const variables = { rosso: { type: 'color' as const, color: '#A33A2A' } }
+  it('{campo} in una proprietà colore prende il valore calcolato, poi la tavolozza', () => {
+    const forte = bindCard(tpl, rowToCard(['forza', 'vuoto'], ['5', '']), { variables })
+    const [, fondo, titolo] = forte.template.front
+    expect((fondo as ShapeLayer).fill).toBe('#A33A2A')
+    expect((fondo as ShapeLayer).stroke?.color).toBe('#A33A2A')
+    expect((titolo as TextLayer).color).toBe('transparent')
+    const debole = bindCard(tpl, rowToCard(['forza'], ['1']), { variables })
+    expect((debole.template.front[1] as ShapeLayer).fill).toBe('#2F5DA8')
+  })
+})

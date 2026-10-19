@@ -75,7 +75,7 @@ Older projects have `gamecreator.json` instead of `naibi.json`; the format is th
 
 - `sets[].sheet` is optional (default: the set's name). A set's template is `templates/<template>.json`.
 - `styles`: name → markup attributes. `heading1`, `heading2` and `note` always exist and can be redefined.
-- `variables`: `image` (`src` file name; optional `tint`, `scale` (height relative to the line, 1 = normal), `raise` (% of the line), `rotate` (degrees), `flip` (`h`, `v`, `hv`), `opacity` 0-1), `text` (markup that replaces `{name}`), `color` (usable by name in every colour property; redefining a CSS colour name such as `red` changes it everywhere), `value` (constant text or number, also usable in formulas).
+- `variables`: `image` (`src` file name; optional `tint`, `scale` (height relative to the line, 1 = normal), `raise` (% of the line), `rotate` (degrees), `flip` (`h`, `v`, `hv`), `opacity` 0-1), `text` (markup that replaces `{name}`), `color` (usable by name in every colour property, which also accepts `{field}` to take a card field such as a value layer; redefining a CSS colour name such as `red` changes it everywhere), `value` (constant text or number, also usable in formulas).
 - `export` holds export options and named profiles (`export.named`), written by the app. `order` holds the sidebar order. Leave both alone unless asked.
 
 ## Data sheets
@@ -161,7 +161,7 @@ Layer names are unique in a template and are also column names: use short names 
 
 ### image
 
-`src` (file name or image variable; may contain fields: `"{name}"`), `fit` (`cover`, `contain`, `stretch`, `original`, `tile`), `align` (anchor inside the frame, `center`), `zoom` (1), `imageRotation` (0, rotates the picture inside the frame), `offsetX`, `offsetY` (0 mm), `flipH`, `flipV` (false), `tint` (null or a colour; recolours monochrome icons), `grayscale` (false), `brightness`, `contrast`, `saturation` (1), `radius` (0 mm), `stroke` (null or `{ "color", "width", "dash"? }`), `missing` (`placeholder` or `hide`).
+`src` (file name or image variable; may contain fields: `"{name}"`), `fit` (`cover`, `overflow` = like cover but the part outside the frame stays visible, `contain`, `stretch`, `original`, `tile`), `align` (anchor inside the frame, `center`), `zoom` (1), `imageRotation` (0, rotates the picture inside the frame), `offsetX`, `offsetY` (0 mm), `flipH`, `flipV` (false), `tint` (null or a colour; recolours monochrome icons), `grayscale` (false), `brightness`, `contrast`, `saturation` (1), `radius` (0 mm), `stroke` (null or `{ "color", "width", "dash"? }`), `missing` (`placeholder` or `hide`).
 
 Image names: file name without path or extension is enough (`sword` finds `assets/icons/sword.svg`). Extensions tried: .svg, .png, .webp, .jpg, .jpeg. If two files match (`sword.png` and `sword.svg`, or the same name in two folders) the name is ambiguous: add the extension or part of the path (`icons/sword`). An image variable with the same name wins over a file.
 

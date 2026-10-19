@@ -583,7 +583,7 @@ export const it: Record<MessageKey, string> = {
   'error.generic': '{text}',
   'load.noProjectFile': 'La cartella non contiene {file}',
   'load.unreadableProjectFile': '{file} non è leggibile: {error}',
-  'load.unsupportedDataFile': 'Formato del file dati non supportato: {ext} (usa .xlsx o .csv)',
+  'load.unsupportedDataFile': 'Formato del file dati non supportato: {ext} (usa .xlsx, .ods o .csv)',
   'load.newerFormat':
     "Il progetto usa il formato {version}, più recente di questa versione dell'app",
   'load.missingSheet': 'Il set "{set}" non trova il foglio "{sheet}"',
@@ -967,5 +967,8 @@ export const it: Record<MessageKey, string> = {
   'newProject.folder': 'Il progetto sarà creato in {folder}',
   'newProject.hint': 'Scrivi un nome: il progetto avrà una cartella con lo stesso nome.',
   'newProject.invalidName': 'Scrivi un nome e scegli dove creare il progetto.',
+  'newProject.dataFile': 'File dei dati',
+  'newProject.xlsx': 'Excel (.xlsx), consigliato',
+  'newProject.ods': 'OpenDocument (.ods)',
   'newProject.notEmpty': 'La cartella {folder} esiste già e non è vuota.'
 }

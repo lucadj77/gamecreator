@@ -575,7 +575,7 @@ export const en = {
   'error.generic': '{text}',
   'load.noProjectFile': 'The folder does not contain {file}',
   'load.unreadableProjectFile': '{file} cannot be read: {error}',
-  'load.unsupportedDataFile': 'Unsupported data file format: {ext} (use .xlsx or .csv)',
+  'load.unsupportedDataFile': 'Unsupported data file format: {ext} (use .xlsx, .ods or .csv)',
   'load.newerFormat': 'The project uses format {version}, newer than this version of the app',
   'load.missingSheet': 'Set "{set}" cannot find sheet "{sheet}"',
   'load.missingTemplate': 'Set "{set}" uses template "{template}", which does not exist',
@@ -951,6 +951,9 @@ export const en = {
   'newProject.folder': 'The project will be created in {folder}',
   'newProject.hint': 'Type a name: the project gets a folder with the same name.',
   'newProject.invalidName': 'Write a name and choose where to create the project.',
+  'newProject.dataFile': 'Data file',
+  'newProject.xlsx': 'Excel (.xlsx), recommended',
+  'newProject.ods': 'OpenDocument (.ods)',
   'newProject.notEmpty': 'The folder {folder} already exists and is not empty.'
 }
 

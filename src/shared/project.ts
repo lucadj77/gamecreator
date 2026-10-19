@@ -22,7 +22,7 @@ export interface SetDefinition {
 export interface ProjectFile {
   formatVersion: number
   name: string
-  /** Percorso relativo del file dati (.xlsx o .csv) */
+  /** Percorso relativo del file dati (.xlsx, .ods o .csv) */
   dataFile: string
   sets: SetDefinition[]
   /**

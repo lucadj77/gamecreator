@@ -130,6 +130,7 @@ function NewProjectDialog({
   const [parent, setParent] = useState(() => localStorage.getItem(PARENT_KEY) ?? '')
   const [error, setError] = useState<Message | null>(null)
   const [busy, setBusy] = useState(false)
+  const [data, setData] = useState<'xlsx' | 'ods'>('xlsx')
 
   useEffect(() => {
     if (parent) return
@@ -144,7 +145,7 @@ function NewProjectDialog({
     setBusy(true)
     setError(null)
     try {
-      const folder = await window.api.createProject(name, parent.trim())
+      const folder = await window.api.createProject(name, parent.trim(), data)
       localStorage.setItem(PARENT_KEY, parent.trim())
       onCreate(folder)
     } catch (e) {
@@ -181,6 +182,13 @@ function NewProjectDialog({
               {t('export.choose')}
             </button>
           </span>
+        </label>
+        <label>
+          {t('newProject.dataFile')}
+          <select value={data} onChange={(e) => setData(e.target.value as 'xlsx' | 'ods')}>
+            <option value="xlsx">{t('newProject.xlsx')}</option>
+            <option value="ods">{t('newProject.ods')}</option>
+          </select>
         </label>
         <p className="field-note">
           {target ? t('newProject.folder', { folder: target }) : t('newProject.hint')}

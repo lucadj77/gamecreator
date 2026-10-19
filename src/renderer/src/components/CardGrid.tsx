@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { BoundCard } from '../../../shared/model/bind'
 import type { Side } from '../../../shared/model/template'
 import CardSvg from '../render/CardSvg'
@@ -8,7 +8,9 @@ interface Props {
   cards: BoundCard[]
   side: Side
   selected: number
-  onSelect(index: number): void
+  /** Tutte le carte selezionate, se più di una */
+  selection?: number[]
+  onSelect(index: number, e: React.MouseEvent): void
   /** Trascinando una carta: `to` è la posizione che avrà dopo lo spostamento */
   onMove?(from: number, to: number): void
   /** Pixel per millimetro */
@@ -21,6 +23,7 @@ function CardGrid({
   cards,
   side,
   selected,
+  selection,
   onSelect,
   onMove,
   scale,
@@ -34,8 +37,13 @@ function CardGrid({
     setDrop(null)
   }
   const shown = order ?? cards.map((_, i) => i)
+  const gridRef = useRef<HTMLDivElement>(null)
+  // la carta scelta resta visibile anche quando cambia da tastiera (PagSu, PagGiù)
+  useEffect(() => {
+    gridRef.current?.querySelector('.card-cell.selected')?.scrollIntoView({ block: 'nearest' })
+  }, [selected])
   return (
-    <div className="card-grid">
+    <div className="card-grid" ref={gridRef}>
       {shown.map((i) => {
         const c = cards[i]
         if (!c) return null
@@ -45,12 +53,13 @@ function CardGrid({
             className={[
               'card-cell',
               i === selected && 'selected',
+              i !== selected && selection?.includes(i) && 'selected-also',
               dragging === i && 'dragging',
               drop?.index === i && dragging !== i && (drop.after ? 'drop-after' : 'drop-before')
             ]
               .filter(Boolean)
               .join(' ')}
-            onClick={() => onSelect(i)}
+            onClick={(e) => onSelect(i, e)}
             draggable={!!onMove}
             onDragStart={(e) => {
               e.dataTransfer.effectAllowed = 'move'

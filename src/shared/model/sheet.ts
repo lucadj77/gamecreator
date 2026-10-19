@@ -17,6 +17,11 @@ export function setCell(s: Sheet, row: number, col: number, value: string): Shee
   return { ...s, rows }
 }
 
+/** Lo stesso valore nella colonna di più righe: la modifica in blocco delle carte selezionate */
+export function setCells(s: Sheet, rows: number[], col: number, value: string): Sheet {
+  return rows.reduce((acc, r) => setCell(acc, r, col, value), s)
+}
+
 /** Riga vuota inserita alla posizione indicata (in fondo se assente) */
 export function insertRow(s: Sheet, at = s.rows.length, values?: string[]): Sheet {
   const row = s.headers.map((_, i) => values?.[i] ?? '')

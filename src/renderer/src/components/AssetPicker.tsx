@@ -3,7 +3,9 @@ import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/
 import { fuzzyFilter } from '../../../shared/model/fuzzy'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
-import { AssetsContext, assetUrl } from '../render/assets'
+import { BUILTIN_SHAPES } from '../../../shared/model/markup'
+import { AssetsContext, assetUrl, VariablesContext } from '../render/assets'
+import MarkupText from '../render/MarkupText'
 import IconBrowser from './IconBrowser'
 
 const SIZE_KEY = 'assetPickerSize'
@@ -19,20 +21,24 @@ function loadSize(): number {
 
 /**
  * Finestra con le miniature delle immagini di assets/: un clic sceglie l'immagine e restituisce
- * il nome con cui richiamarla (nome breve, o con la cartella se è ambiguo).
+ * il nome con cui richiamarla (nome breve, o con la cartella se è ambiguo). Con `extras` propone
+ * prima le forme predefinite e le variabili immagine, come serve per bg= nel markup.
  */
 export default function AssetPicker({
   value,
   onPick,
-  onClose
+  onClose,
+  extras = false
 }: {
   /** Nome scritto ora nel campo: la sua immagine appare selezionata */
   value: string
   onPick(name: string): void
   onClose(): void
+  extras?: boolean
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
+  const variables = useContext(VariablesContext)
   const [query, setQuery] = useState('')
   const [folder, setFolder] = useState<string | null>(null)
   const [size, setSizeState] = useState(loadSize)
@@ -64,6 +70,53 @@ export default function AssetPicker({
       ),
     [images, folder, query]
   )
+
+  // forme e variabili non stanno in una cartella: si vedono solo con "Tutte"
+  const shapes = useMemo(
+    () => (extras && !folder ? fuzzyFilter([...BUILTIN_SHAPES], query, (x) => x) : []),
+    [extras, folder, query]
+  )
+  const imageVars = useMemo(
+    () =>
+      extras && !folder
+        ? fuzzyFilter(
+            Object.keys(variables ?? {})
+              .filter((n) => variables[n].type === 'image')
+              .sort(),
+            query,
+            (x) => x
+          )
+        : [],
+    [extras, folder, query, variables]
+  )
+  const tile = (
+    key: string,
+    name: string,
+    on: boolean,
+    thumb: React.ReactNode
+  ): React.ReactNode => (
+    <button
+      key={key}
+      className={on ? 'asset-tile on' : 'asset-tile'}
+      title={name}
+      onClick={() => {
+        onPick(name)
+        onClose()
+      }}
+    >
+      <span className="asset-thumb" style={{ height: size }}>
+        {thumb}
+      </span>
+      <span className="asset-name">{name}</span>
+    </button>
+  )
+  /** Forma o variabile disegnata come nel testo, alta quanto la miniatura */
+  const markupThumb = (text: string): React.ReactNode => (
+    <span className="asset-markup" style={{ fontSize: size * 0.45 }}>
+      <MarkupText text={text} unit={4} ratio={1} paragraphSpacing={0} />
+    </span>
+  )
+  const extraCount = shapes.length + imageVars.length
 
   const pick = (path: string): void => {
     onPick(assetRefName(path, assets))
@@ -105,15 +158,26 @@ export default function AssetPicker({
             ))}
           </div>
         )}
-        {images.length === 0 ? (
+        {images.length === 0 && !extraCount ? (
           <p className="muted">{t('assetPicker.empty')}</p>
-        ) : shown.length === 0 ? (
+        ) : shown.length === 0 && !extraCount ? (
           <p className="muted">{t('assetPicker.noMatch')}</p>
         ) : (
           <div
             className="asset-grid"
             style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${size}px, 1fr))` }}
           >
+            {shapes.length > 0 && <h3 className="asset-grid-title">{t('assetPicker.shapes')}</h3>}
+            {shapes.map((x) =>
+              tile(`shape:${x}`, x, value === x, markupThumb(`[\u2007]{bg=${x} bg-color=#8A8A8A}`))
+            )}
+            {imageVars.length > 0 && (
+              <h3 className="asset-grid-title">{t('assetPicker.variables')}</h3>
+            )}
+            {imageVars.map((n) => tile(`var:${n}`, n, value === n, markupThumb(`{${n}}`)))}
+            {extraCount > 0 && shown.length > 0 && (
+              <h3 className="asset-grid-title">{t('assetPicker.files')}</h3>
+            )}
             {shown.map((a) => {
               const name = a.slice(a.lastIndexOf('/') + 1).replace(/\.[^.]+$/, '')
               return (

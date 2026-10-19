@@ -392,8 +392,13 @@ tbody tr.selected td {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
 }
 
-.card-cell.selected {
+.card-cell.selected,
+.card-cell.selected-also {
   background: var(--accent-soft);
+}
+
+.card-cell.selected {
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .card-caption {
@@ -853,6 +858,21 @@ textarea.invalid {
 
 .field-control input[type='checkbox'] {
   margin: 0 2px 0 0;
+}
+
+.field-label.scrub {
+  cursor: ew-resize;
+  user-select: none;
+}
+
+.field-label.scrub:hover {
+  color: var(--text);
+}
+
+.field-control > input.num-slider {
+  flex: 1 1 60px;
+  min-width: 60px;
+  width: 60px;
 }
 
 .field-control > input.num.narrow {
@@ -1918,6 +1938,23 @@ label.check {
   padding: 2px;
 }
 
+.asset-grid .asset-grid-title {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  padding: 0;
+  border: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.asset-markup {
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+}
+
 .asset-tile {
   display: flex;
   flex-direction: column;
@@ -2798,4 +2835,73 @@ details.advanced > button.link {
   font-family: ui-monospace, Menlo, Consolas, monospace;
   font-size: 11.5px;
   resize: vertical;
+}
+
+.sidebar-preview {
+  position: fixed;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 480px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.sidebar-preview-title {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.sidebar-preview-note {
+  max-width: 320px;
+  overflow-wrap: anywhere;
+}
+
+.sidebar-preview-cards {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.sidebar-preview-text {
+  max-width: 320px;
+  color: var(--text);
+}
+
+.sidebar-preview-icon p,
+.asset-markup p {
+  margin: 0;
+}
+
+.sidebar-preview-icon {
+  font-size: 44px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  min-width: 64px;
+  min-height: 64px;
+  color: var(--text);
+}
+
+.sidebar-preview-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-preview-color span {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.sidebar-preview-value {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
 }

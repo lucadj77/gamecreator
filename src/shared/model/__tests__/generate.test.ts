@@ -120,6 +120,36 @@ describe('generatore di carte', () => {
     expect(addGenerated(sheet, g, 'replace').rows).toHaveLength(2)
   })
 
+  it('aggiorna solo le colonne generate delle carte presenti e accoda quelle in più', () => {
+    const sheet = {
+      name: 's',
+      headers: ['seme', 'numero', 'amount'],
+      rows: [
+        ['{a}', '1', '2'],
+        ['{b}', '2', '1']
+      ]
+    }
+    const g = generateCards({
+      columns: [col('ritratto', ['mago', 'ladra', 'guerriero'], { icons: false })],
+      filter: '',
+      copies: 1
+    })
+    expect(addGenerated(sheet, g, 'update')).toEqual({
+      name: 's',
+      headers: ['seme', 'numero', 'amount', 'ritratto'],
+      rows: [
+        ['{a}', '1', '2', 'mago'],
+        ['{b}', '2', '1', 'ladra'],
+        ['', '', '1', 'guerriero']
+      ]
+    })
+    const two = generateCards({ columns: [col('numero', ['9'])], filter: '', copies: 1 })
+    expect(addGenerated(sheet, two, 'update').rows).toEqual([
+      ['{a}', '9', '2'],
+      ['{b}', '2', '1']
+    ])
+  })
+
   it('COUNTIN conta le occorrenze', () => {
     expect(evaluateFormula('=COUNTIN("{oro}{oro}{legno}"; "{oro}")', {}).value).toBe('2')
   })

@@ -74,7 +74,7 @@ A new project is empty: the app suggests creating a template first, then a set t
 7. **Preview** of the selected card, front or back. **Edit template** opens the set's template.
 8. **Fields of the selected card**, editable like the table cells.
 
-Sidebar items are reordered by dragging them; the + next to each heading creates a new item. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
+Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
 
 Changes stay in memory until you save. The **Save** button reads **Saved** when there is nothing to write.
 
@@ -99,7 +99,7 @@ The + next to **Templates** opens the new template window: name, format (poker, 
 
 On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
 
-In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ selects several layers; ⌘G groups them.
+In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ selects several layers; ⌘G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
 ### 4.3 Template properties
 
@@ -110,6 +110,8 @@ When you change the size of a template that already has layers, the app asks whe
 ### 4.4 Layer properties
 
 The properties panel is split into sections. Each section shows the most used items and keeps the others under **Advanced**. Hovering an item shows an arrow that moves it to Advanced or back out; the layout applies to all projects.
+
+In number fields you can drag the label right or left to change the value like a slider (Shift for bigger steps, Alt for finer ones); rotation and opacity also have a slider next to the box.
 
 <table>
 <tr>
@@ -161,7 +163,7 @@ The + next to **Sets** asks for the name, the template and the sheet: a new shee
 
 ### 5.2 Table and grid
 
-The **table** works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a card. **+ Card**, **Duplicate** and **Delete** act on the selected rows (Shift or ⌘ to select more than one).
+The **table** works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a card. **+ Card**, **Duplicate** and **Delete** act on the selected rows (Shift or ⌘ to select more than one, in the grid too). With several cards selected the form on the right edits them in bulk: what you type in a field goes into all of them, while fields with different values stay empty and do not change until you touch them.
 
 The `amount` column says how many copies of each card to print; empty means 1.
 
@@ -169,7 +171,7 @@ The **grid** shows the cards as they will be printed. The slider at the top chan
 
 ![The card grid](img/griglia.png)
 
-In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field.
+In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
 
 ### 5.3 Sorting and filtering
 
@@ -257,7 +259,7 @@ Markup is colored as you type. Errors, such as a variable that does not exist, a
 
 ### 6.5 Formatting without writing markup
 
-The **Aa Format…** button under a text field opens the visual editor: select part of the text, choose the attributes, and the app writes `[text]{...}`. The resulting markup is shown at the bottom. **Save as style…** turns the formatting into a project style; **Remove formatting** removes the brackets.
+The **Aa Format…** button under a text field opens the visual editor: select part of the text, choose the attributes, and the app writes `[text]{...}`. The resulting markup is shown at the bottom. **Save as style…** turns the formatting into a project style; **Remove formatting** removes the brackets. Next to **Background** a button opens the thumbnails: built-in shapes, image variables and project images.
 
 ![The formatting editor](img/formatta.png)
 
@@ -357,7 +359,7 @@ A field's value is, in order of precedence: the calculated value layer, the non-
 - **As icon** writes each value as `{value}`, so the text shows the icon with that name.
 - **Filter** keeps only the cards for which an expression is true, for example `COUNTIN({cost}; "gold") <= 1`.
 
-The preview shows how many cards will be created and the first rows. **Add at the end** appends the cards, **Replace the cards** takes the place of the existing ones. ⌘Z undoes.
+The preview shows how many cards will be created and the first rows. **Add at the end** appends the cards, **Replace the cards** takes the place of the existing ones. **Update the cards** writes only the generated columns into the existing cards, one per row, leaving the other columns as they are: for example, first generate 30 cards from 6 suits and the numbers 1-5, then use **From a folder…** to assign 30 portraits to the portrait column. If more cards are generated, the extra ones are added at the end. ⌘Z undoes.
 
 ![The generator: three resources, two per card, with repetition](img/genera.png)
 

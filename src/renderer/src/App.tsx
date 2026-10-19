@@ -82,6 +82,8 @@ import ImportTtcDialog from './components/ImportTtcDialog'
 import StartScreen from './components/StartScreen'
 import { thumbnailTemplate } from '../../shared/model/thumbnail'
 import Tooltip from './components/Tooltip'
+import SidebarPreview from './components/SidebarPreview'
+import { useSidebarPreview } from './components/useSidebarPreview'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
@@ -178,6 +180,7 @@ function App(): React.JSX.Element {
   const [sidebarSide, toggleSidebarSide] = usePanelSide('sidebar', 'left')
   const [sidebarCompact, setSidebarCompact] = usePanelCompact('sidebar')
   const [closedSections, setSectionClosed] = useClosedSections('sidebar')
+  const sidebarPreview = useSidebarPreview()
 
   const load = useCallback(async (folder: string) => {
     setLoading(true)
@@ -766,7 +769,7 @@ function App(): React.JSX.Element {
                   <button
                     className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
                     onClick={() => setSelected({ kind: 'set', index: i })}
-                    title={t('tip.openSet')}
+                    {...sidebarPreview.bind({ kind: 'set', index: i })}
                   >
                     <span>
                       {s.name}
@@ -824,7 +827,7 @@ function App(): React.JSX.Element {
                       selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''
                     }
                     onClick={() => setSelected({ kind: 'template', name: tpl.name })}
-                    title={t('tip.openTemplate')}
+                    {...sidebarPreview.bind({ kind: 'template', name: tpl.name })}
                   >
                     <span>
                       {tpl.name}
@@ -876,7 +879,10 @@ function App(): React.JSX.Element {
             <ul>
               {styleList.map((name, i) => (
                 <li key={name} {...dragStyles.itemProps(i)}>
-                  <button onClick={() => setEditingStyle(name)} title={allStyles[name]}>
+                  <button
+                    onClick={() => setEditingStyle(name)}
+                    {...sidebarPreview.bind({ kind: 'style', name })}
+                  >
                     <span>.{name}</span>
                     {!(name in (project.file.styles ?? {})) && (
                       <span className="muted small">{t('sidebar.builtinStyle')}</span>
@@ -913,7 +919,7 @@ function App(): React.JSX.Element {
                 <li key={name} {...dragVariables.itemProps(i)}>
                   <button
                     onClick={() => setEditingVariable(name)}
-                    title={t(`variable.type.${v.type}`)}
+                    {...sidebarPreview.bind({ kind: 'variable', name })}
                   >
                     <span>{`{${name}}`}</span>
                     <VariableSwatch v={v} variables={variables} />
@@ -974,6 +980,14 @@ function App(): React.JSX.Element {
           <SaveStyleContext.Provider value={project ? saveStyle : null}>
             <div className="app">
               <Tooltip />
+              {project && !sidebarCompact && (
+                <SidebarPreview
+                  hover={sidebarPreview.hover}
+                  project={project}
+                  styles={allStyles}
+                  side={sidebarSide}
+                />
+              )}
               {project && (
                 <header className="toolbar">
                   <span className="project-name">{project.file.name}</span>
@@ -1292,6 +1306,30 @@ function SetView({
 
   const order = useMemo(() => (set.data ? viewRows(set.data, rowView) : []), [set.data, rowView])
 
+  // PagSu e PagGiù passano alla carta precedente o successiva, nell'ordine della vista, anche
+  // mentre si scrive nei campi della carta (il campo resta lo stesso)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'PageDown' && e.key !== 'PageUp') return
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || !order.length) return
+      const target = e.target instanceof HTMLElement ? e.target : null
+      if (target?.closest('[role="dialog"], select, .table-wrap textarea, .table-wrap input'))
+        return
+      e.preventDefault()
+      const at = order.indexOf(selection[0] ?? -1)
+      const next =
+        at < 0
+          ? order[e.key === 'PageDown' ? 0 : order.length - 1]
+          : order[Math.max(0, Math.min(order.length - 1, at + (e.key === 'PageDown' ? 1 : -1)))]
+      if (next === selection[0] && selection.length === 1) return
+      const column = target?.closest('.card-form') ? target.dataset.column : undefined
+      if (column) setFocus({ column, seq: Date.now() })
+      setSelection([next])
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
   if (!set.data) {
     return (
       <section className="content">
@@ -1393,9 +1431,10 @@ function SetView({
       )}
       {!none && (
         <CardForm
-          key={current}
+          key={selection.join(',')}
           sheet={sheet}
           row={current}
+          rows={selection}
           template={template}
           focus={focus}
           onChange={onChange}
@@ -1568,7 +1607,24 @@ function SetView({
             cards={cards}
             side={side}
             selected={current}
-            onSelect={(i) => setSelection([i])}
+            selection={selection}
+            onSelect={(i, e) => {
+              // come nella tabella: Maiuscolo seleziona un intervallo, ⌘ aggiunge o toglie
+              if (e.shiftKey && selection.length) {
+                const pa = order.indexOf(current)
+                const pb = order.indexOf(i)
+                const [a, b] = pa < pb ? [pa, pb] : [pb, pa]
+                setSelection([
+                  current,
+                  ...order.slice(Math.max(0, a), b + 1).filter((r) => r !== current)
+                ])
+              } else if (e.metaKey || e.ctrlKey) {
+                const next = selection.includes(i)
+                  ? selection.filter((r) => r !== i)
+                  : [...selection, i]
+                setSelection(next.length ? next : [i])
+              } else setSelection([i])
+            }}
             onMove={
               viewActive
                 ? undefined

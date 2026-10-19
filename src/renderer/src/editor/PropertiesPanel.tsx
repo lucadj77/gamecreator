@@ -2,7 +2,7 @@ import { useContext, useMemo, useState } from 'react'
 import AssetPicker from '../components/AssetPicker'
 import { ImageIcon } from '../components/icons'
 import { P, Section } from './advanced'
-import { findLayer, isNameTaken, patchLayer } from '../../../shared/model/edit'
+import { findLayer, isNameTaken, patchLayers } from '../../../shared/model/edit'
 import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/assets'
 import type {
   Anchor,
@@ -74,6 +74,9 @@ export default function PropertiesPanel({
   const { t } = useI18n()
   const { template: tpl, side, selection } = state
   const layer = selection.length === 1 ? findLayer(tpl[side], selection[0]) : null
+  // con più livelli il pannello mostra i valori del primo e ogni modifica vale per tutti
+  const many = selection.length > 1 ? selection.map((id) => findLayer(tpl[side], id)) : []
+  const first = many.length && many.every(Boolean) ? many[0] : null
 
   return (
     <aside className="properties" data-side={panelSide} style={{ width }}>
@@ -94,6 +97,19 @@ export default function PropertiesPanel({
               {t('layers.delete')}
             </button>
           </div>
+          {first && (
+            <>
+              <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
+              <LayerProperties
+                key={selection.join(',')}
+                layer={first}
+                targets={selection}
+                state={state}
+                dispatch={dispatch}
+                sheets={sheets}
+              />
+            </>
+          )}
         </>
       ) : layer ? (
         <>
@@ -227,20 +243,28 @@ function labelChoices(tpl: Template, sheets: Props['sheets']): string[] {
 
 function LayerProperties({
   layer: l,
+  targets,
   state,
   dispatch,
   sheets
 }: {
   layer: Layer
+  /** Livelli selezionati quando sono più di uno: le modifiche valgono per tutti */
+  targets?: string[]
   state: EditorState
   dispatch: React.Dispatch<EditorAction>
   sheets: Props['sheets']
 }): React.JSX.Element {
   const { t } = useI18n()
   const { template: tpl, side } = state
+  const ids = targets && targets.length > 1 ? targets : [l.id]
+  const multi = ids.length > 1
+  const layers = ids.flatMap((id) => findLayer(tpl[side], id) ?? [])
+  // le proprietà di un tipo compaiono solo se i livelli sono tutti di quel tipo
+  const same = layers.every((x) => x.type === l.type)
   const set = (patch: Partial<Layer>): void => {
-    const key = `${l.id}.${Object.keys(patch).join(',')}`
-    dispatch({ type: 'change', template: patchLayer(tpl, side, l.id, patch), key })
+    const key = `${ids.join('+')}.${Object.keys(patch).join(',')}`
+    dispatch({ type: 'change', template: patchLayers(tpl, side, ids, l, patch), key })
   }
   /** Colonna del foglio che sovrascrive la proprietà */
   const col = (prop?: string): string =>
@@ -258,20 +282,24 @@ function LayerProperties({
 
   return (
     <>
-      <h2>
-        {t(`layerType.${l.type}` as MessageKey)}
-        {l.type === 'shape' && ` · ${t(`shape.${l.shape}` as MessageKey)}`}
-      </h2>
-      <TextField
-        label={t('prop.name')}
-        hint={t('editor.nameHint')}
-        value={l.name}
-        validate={validateName}
-        onChange={(name) => set({ name })}
-      />
-      <ValueSource layer={l} template={tpl} sheets={sheets} set={set} />
+      {!multi && (
+        <>
+          <h2>
+            {t(`layerType.${l.type}` as MessageKey)}
+            {l.type === 'shape' && ` · ${t(`shape.${l.shape}` as MessageKey)}`}
+          </h2>
+          <TextField
+            label={t('prop.name')}
+            hint={t('editor.nameHint')}
+            value={l.name}
+            validate={validateName}
+            onChange={(name) => set({ name })}
+          />
+          <ValueSource layer={l} template={tpl} sheets={sheets} set={set} />
+        </>
+      )}
 
-      {l.type === 'text' && (
+      {same && l.type === 'text' && (
         <TextProperties
           l={l}
           set={set}
@@ -280,12 +308,20 @@ function LayerProperties({
           fields={labelChoices(tpl, sheets)}
         />
       )}
-      {l.type === 'image' && <ImageProperties l={l} set={set} col={col} computed={computed} />}
-      {l.type === 'shape' && <ShapeProperties l={l} set={set} col={col} computed={computed} />}
-      {l.type === 'value' && <ValueProperties l={l} set={set} col={col} computed={computed} />}
-      {l.type === 'group' && <GroupProperties l={l as GroupLayer} set={set} col={col} />}
+      {same && l.type === 'image' && (
+        <ImageProperties l={l} set={set} col={col} computed={computed} />
+      )}
+      {same && l.type === 'shape' && (
+        <ShapeProperties l={l} set={set} col={col} computed={computed} />
+      )}
+      {same && !multi && l.type === 'value' && (
+        <ValueProperties l={l} set={set} col={col} computed={computed} />
+      )}
+      {same && l.type === 'group' && <GroupProperties l={l as GroupLayer} set={set} col={col} />}
 
-      {l.type !== 'value' && <DrawnProperties l={l} set={set} col={col} />}
+      {layers.every((x) => x.type !== 'value') && (
+        <DrawnProperties l={l} set={set} col={col} multi={multi} />
+      )}
     </>
   )
 }
@@ -476,7 +512,15 @@ function GroupProperties({
 const ALIGNS = ['start', 'center', 'end'] as const
 
 /** Geometria e aspetto: i livelli valore non li hanno */
-function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): React.JSX.Element {
+function DrawnProperties({
+  l,
+  set,
+  col,
+  multi = false
+}: Omit<TypeProps<Layer>, 'computed'> & {
+  /** Più livelli: posizione e dimensioni restano di ciascuno (per quelle c'è Allinea) */
+  multi?: boolean
+}): React.JSX.Element {
   const { t } = useI18n()
   const [locked, setLocked] = useRatioLock(l.type as LockKind)
   const line = l.type === 'shape' && l.shape === 'line'
@@ -486,7 +530,7 @@ function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): R
   return (
     <>
       <Section scope="geometry" title={t('editor.geometry')}>
-        {line ? (
+        {multi ? null : line ? (
           <div className="field-grid">
             <NumberField
               label="Ax"
@@ -550,7 +594,7 @@ function DrawnProperties({ l, set, col }: Omit<TypeProps<Layer>, 'computed'>): R
             />
           </div>
         )}
-        {line && <p className="muted small">{t('editor.lineHint')}</p>}
+        {line && !multi && <p className="muted small">{t('editor.lineHint')}</p>}
         <P id="rotation">
           <NumberField
             label={t('prop.rotation')}

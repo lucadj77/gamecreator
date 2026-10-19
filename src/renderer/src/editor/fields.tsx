@@ -29,12 +29,19 @@ function Row({
   label,
   hint,
   disabled,
+  labelProps,
   children
-}: Base & { children: React.ReactNode }): React.JSX.Element {
+}: Base & {
+  children: React.ReactNode
+  /** Per esempio il trascinamento dell'etichetta nei campi numerici */
+  labelProps?: React.HTMLAttributes<HTMLSpanElement>
+}): React.JSX.Element {
   return (
     // un div e non un label: con più controlli il clic sull'etichetta attiverebbe il primo
     <div className={disabled ? 'field disabled' : 'field'} title={hint}>
-      <span className="field-label">{label}</span>
+      <span className="field-label" {...labelProps}>
+        {label}
+      </span>
       <span className="field-control">{children}</span>
     </div>
   )
@@ -124,15 +131,68 @@ export function NumberField({
   }
   const live = useLive(
     String(round(value * factor)),
-    (t) => {
-      const v = clamp(parseNumber(t)!)
+    (text) => {
+      const v = clamp(parseNumber(text)!)
       if (v !== value) onChange(v)
     },
-    (t) => parseNumber(t) !== null,
+    (text) => parseNumber(text) !== null,
     deferred
   )
+  const { t } = useI18n()
+  /** Valore mostrato (moltiplicato per factor) applicato al modello */
+  const applyShown = (shown: number): void => {
+    const v = clamp(round(shown))
+    if (v !== value) onChange(v)
+  }
+  // trascinando l'etichetta a destra o a sinistra il valore cresce o cala come con un cursore:
+  // un passo ogni 4 pixel, Maiusc per passi da 10, Alt per decimi di passo
+  const scrub = (e: React.PointerEvent<HTMLSpanElement>): void => {
+    if (disabled || deferred || e.button !== 0) return
+    e.preventDefault()
+    const el = e.currentTarget
+    el.setPointerCapture(e.pointerId)
+    const startX = e.clientX
+    const start = value * factor
+    // il passo si arrotonda al suo ordine di grandezza, così i valori restano puliti
+    const move = (ev: PointerEvent): void => {
+      const k = ev.shiftKey ? 10 : ev.altKey ? 0.1 : 1
+      const steps = Math.round((ev.clientX - startX) / 4)
+      const s = step * k
+      applyShown(Math.round((start + steps * s) / s) * s)
+    }
+    const up = (): void => {
+      el.removeEventListener('pointermove', move)
+      el.removeEventListener('pointerup', up)
+      el.removeEventListener('pointercancel', up)
+    }
+    el.addEventListener('pointermove', move)
+    el.addEventListener('pointerup', up)
+    el.addEventListener('pointercancel', up)
+  }
+  const bounded = min !== undefined && max !== undefined && !deferred
   return (
-    <Row label={label} hint={hint} disabled={disabled}>
+    <Row
+      label={label}
+      hint={hint}
+      disabled={disabled}
+      labelProps={
+        disabled || deferred
+          ? undefined
+          : { className: 'field-label scrub', onPointerDown: scrub, title: t('field.scrubHint') }
+      }
+    >
+      {bounded && (
+        <input
+          type="range"
+          className="num-slider"
+          disabled={disabled}
+          min={min * factor}
+          max={max * factor}
+          step={step}
+          value={round(value * factor)}
+          onChange={(e) => applyShown(Number(e.target.value))}
+        />
+      )}
       <input
         className="num"
         disabled={disabled}

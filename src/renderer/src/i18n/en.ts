@@ -37,6 +37,10 @@ export const en = {
     'Double-click or type in a cell to edit; Alt+Enter for a new line. Drag the row number to reorder.',
   'preview.clickHint': 'Click a layer to edit its field',
   'cardForm.title': 'Card {n}',
+  'cardForm.multiTitle': '{n} cards selected',
+  'cardForm.multiHint':
+    'What you type in a field goes into all the selected cards. Empty fields have different values across the cards and stay as they are until you edit them.',
+  'cardForm.mixed': 'different values',
   'cardForm.pickColor': 'Pick a color',
   'cardForm.amount': 'Copies (amount)',
   'table.expand': 'Show the property columns of this layer',
@@ -89,6 +93,10 @@ export const en = {
 
   'sidebar.sets': 'Sets',
   'sidebar.templates': 'Templates',
+  'sidebarPreview.set': 'Template {template} · {n} rows',
+  'sidebarPreview.noCards': 'No cards to show',
+  'sidebarPreview.template': '{w} × {h} mm · front and back',
+  'sidebarPreview.sample': 'Sample text 123',
   'sidebar.unusedSheets': 'Sheets not linked to a set: {names}',
 
   'set.templateLabel': 'template',
@@ -223,6 +231,9 @@ export const en = {
     'There are no images in assets/. Copy SVG, PNG, WebP or JPG files there and reload the project.',
   'assetPicker.noMatch': 'No image matches the search.',
   'assetPicker.count': '{n} of {total}',
+  'assetPicker.shapes': 'Shapes',
+  'assetPicker.variables': 'Image variables',
+  'assetPicker.files': 'Images in assets/',
   'assetPicker.open': 'Choose from the images in assets/',
   'editor.srcMissing': 'No image with this name in assets/',
   'editor.srcAmbiguous': 'Several images match: {files}. Add the folder or the extension.',
@@ -307,6 +318,7 @@ export const en = {
   'arrange.arrange': 'Arrange',
   'arrange.arrangeHint':
     'Places the layers in reading order on a grid of cells as large as the largest layer, each centred in its cell',
+  'field.scrubHint': 'Drag right or left to change the value (Shift: bigger steps, Alt: finer)',
   'field.enabled': 'Enabled',
   'field.none': 'none',
   'field.strokeWidth': 'Width in mm',
@@ -314,6 +326,8 @@ export const en = {
   'layers.hint':
     'Drag a layer to reorder it, or onto the middle of a group to move it inside. Shift- or ⌘-click to select several, then group them.',
   'editor.multiSelectionTitle': '{n} layers selected',
+  'editor.multiEdit':
+    'The properties below show the values of {name}; every change applies to all the selected layers. Position and size are changed with Align or on the card.',
   'editor.multiSelection':
     'Move them together on the card, or group them to treat them as one layer.',
   'source.properties': 'Other columns for this layer: {columns}',
@@ -722,6 +736,9 @@ export const en = {
   'format.pad': 'Padding',
   'format.padHint': 'mm, vertical/horizontal',
   'format.bg': 'Background',
+  'format.bgHint': 'A shape, an image variable or the name of a file in assets/',
+  'format.bgPick': 'Choose among shapes, image variables and images in assets/',
+  'format.imageVariable': 'image variable',
   'format.bgColor': 'Background color',
   'format.bgSize': 'Background size',
   'format.bgSizeHint': '% of the line or mm',
@@ -1073,6 +1090,15 @@ export const en = {
   'generate.replaceConfirm':
     'The {n} cards of the set will be replaced. You can always undo with ⌘Z. Continue?',
   'generate.create': 'Generate {n} cards',
+  'generate.appendHint': 'The generated cards are added after those of the set',
+  'generate.replaceHint': 'The cards of the set are deleted and only the generated ones remain',
+  'generate.update': 'Update the cards',
+  'generate.updateHint':
+    'Writes the generated columns into the existing cards, in sheet order, without touching the other columns',
+  'generate.updateNote':
+    '{columns} is written into the first {n} of the {rows} cards of the set; the other columns and the copies stay as they are.',
+  'generate.updateExtra': 'The {n} extra generated cards are added at the end.',
+  'generate.updateButton': 'Update {n} cards',
   'newProject.title': 'New project',
   'newProject.location': 'Location',
   'newProject.folder': 'The project will be created in {folder}',

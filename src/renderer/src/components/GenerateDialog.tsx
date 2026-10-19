@@ -8,6 +8,7 @@ import {
   generateCards,
   MAX_GENERATED,
   parseValues,
+  type GenerateMode,
   type GeneratorColumn
 } from '../../../shared/model/generate'
 import { walkLayers } from '../../../shared/model/normalize'
@@ -84,7 +85,7 @@ export default function GenerateDialog({
   const [list, setList] = useState<Draft[]>(() => [draft(columns[0] ?? '')])
   const [filter, setFilter] = useState('')
   const [copies, setCopies] = useState(1)
-  const [mode, setMode] = useState<'append' | 'replace'>(sheet.rows.length ? 'append' : 'replace')
+  const [mode, setMode] = useState<GenerateMode>(sheet.rows.length ? 'append' : 'replace')
 
   const update = (i: number, patch: Partial<Draft>): void =>
     setList((l) =>
@@ -115,6 +116,9 @@ export default function GenerateDialog({
   /** Una colonna dell'anteprima mostra le icone se uno degli insiemi che la riempiono le usa */
   const iconColumn = (h: string): boolean => active.some((c) => c.column.trim() === h && c.icons)
   const shown = result.rows.slice(0, PREVIEW_ROWS)
+  // aggiornando, le carte generate vanno nelle righe presenti; quelle in più si accodano
+  const updated = mode === 'update' ? Math.min(sheet.rows.length, result.rows.length) : 0
+  const added = result.rows.length - updated
   const cols = result.headers.length - 1
 
   return (
@@ -358,14 +362,33 @@ export default function GenerateDialog({
             </p>
           )}
         </div>
+        {mode === 'update' && result.rows.length > 0 && (
+          <p className="field-note">
+            {t('generate.updateNote', {
+              columns: result.headers.slice(0, cols).join(', '),
+              n: updated,
+              rows: sheet.rows.length
+            })}
+            {added > 0 && ' ' + t('generate.updateExtra', { n: added })}
+          </p>
+        )}
         <div className="dialog-buttons">
-          <Segmented
+          <Segmented<GenerateMode>
             value={mode}
             options={[
-              ['append', t('generate.append')],
-              ['replace', t('generate.replace')]
+              ['append', t('generate.append'), t('generate.appendHint')],
+              ...(sheet.rows.length
+                ? [
+                    ['update', t('generate.update'), t('generate.updateHint')] as [
+                      GenerateMode,
+                      string,
+                      string
+                    ]
+                  ]
+                : []),
+              ['replace', t('generate.replace'), t('generate.replaceHint')]
             ]}
-            onChange={(v) => setMode(v as 'append' | 'replace')}
+            onChange={setMode}
           />
           <span className="spacer" />
           <button onClick={onClose}>{t('dialog.cancel')}</button>
@@ -382,7 +405,9 @@ export default function GenerateDialog({
               onApply(addGenerated(sheet, result, mode))
             }}
           >
-            {t('generate.create', { n: result.rows.length })}
+            {mode === 'update'
+              ? t('generate.updateButton', { n: updated })
+              : t('generate.create', { n: result.rows.length })}
           </button>
         </div>
       </div>

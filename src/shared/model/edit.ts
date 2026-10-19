@@ -69,6 +69,45 @@ export function patchLayer(t: Template, side: Side, id: string, patch: Partial<L
   })
 }
 
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v)
+
+/**
+ * Stessa modifica a più livelli selezionati. Il pannello mostra i valori di `from` e costruisce
+ * le modifiche a partire da lì: nelle proprietà composte (contorno, ombra, vincoli...) agli altri
+ * livelli arrivano solo le voci cambiate rispetto a `from`, il resto resta il loro.
+ */
+export function patchLayers(
+  t: Template,
+  side: Side,
+  ids: string[],
+  from: Layer,
+  patch: Partial<Layer>
+): Template {
+  let next = t
+  for (const id of ids) {
+    const own = findLayer(t[side], id)
+    if (!own) continue
+    if (id === from.id) {
+      next = patchLayer(next, side, id, patch)
+      continue
+    }
+    const mine: Record<string, unknown> = {}
+    const base = from as unknown as Record<string, unknown>
+    const target = own as unknown as Record<string, unknown>
+    for (const [k, v] of Object.entries(patch)) {
+      if (isRecord(v) && isRecord(base[k]) && isRecord(target[k])) {
+        const changed = Object.entries(v).filter(
+          ([kk, vv]) => vv !== (base[k] as Record<string, unknown>)[kk]
+        )
+        mine[k] = { ...target[k], ...Object.fromEntries(changed) }
+      } else mine[k] = v
+    }
+    next = patchLayer(next, side, id, mine as Partial<Layer>)
+  }
+  return next
+}
+
 /** Ingombro di un insieme di livelli, senza tener conto della rotazione */
 export function boundsOf(all: Layer[]): Bounds {
   const layers = all.filter(isDrawn)

@@ -28,6 +28,7 @@ import { cardFields, rowToCard, substituteFields, switchSource } from '../../../
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext, assetUrl } from '../render/assets'
 import { traceImage } from '../render/traceImage'
+import { ColorFieldsContext } from './colorFields'
 import {
   CheckField,
   ColorField,
@@ -78,65 +79,72 @@ export default function PropertiesPanel({
   const many = selection.length > 1 ? selection.map((id) => findLayer(tpl[side], id)) : []
   const first = many.length && many.every(Boolean) ? many[0] : null
 
+  // nei colori si può richiamare un livello valore con {nome}
+  const valueLayers = walkLayers([...tpl.front, ...tpl.back])
+    .filter((x) => x.type === 'value')
+    .map((x) => x.name)
+
   return (
-    <aside className="properties" data-side={panelSide} style={{ width }}>
-      <PanelSideButton side={panelSide} onToggle={onToggleSide} className="corner" />
-      {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
-      {selection.length > 1 ? (
-        <>
-          <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
-          <p className="muted small">{t('editor.multiSelection')}</p>
-          <div className="selection-actions">
-            <button disabled={!cmd.canGroup} onClick={cmd.group} title={t('tip.group')}>
-              {t('layers.group')}
-            </button>
-            <button onClick={cmd.duplicate} title={t('tip.duplicate')}>
-              {t('layers.duplicate')}
-            </button>
-            <button onClick={cmd.remove} title={t('tip.delete')}>
-              {t('layers.delete')}
-            </button>
-          </div>
-          {first && (
-            <>
-              <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
-              <LayerProperties
-                key={selection.join(',')}
-                layer={first}
-                targets={selection}
-                state={state}
-                dispatch={dispatch}
-                sheets={sheets}
-              />
-            </>
-          )}
-        </>
-      ) : layer ? (
-        <>
-          <LayerProperties
-            key={layer.id}
-            layer={layer}
-            state={state}
-            dispatch={dispatch}
-            sheets={sheets}
-          />
-          {layer.type === 'group' && (
+    <ColorFieldsContext.Provider value={valueLayers}>
+      <aside className="properties" data-side={panelSide} style={{ width }}>
+        <PanelSideButton side={panelSide} onToggle={onToggleSide} className="corner" />
+        {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
+        {selection.length > 1 ? (
+          <>
+            <h2>{t('editor.multiSelectionTitle', { n: selection.length })}</h2>
+            <p className="muted small">{t('editor.multiSelection')}</p>
             <div className="selection-actions">
-              <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
-                {t('layers.ungroup')}
+              <button disabled={!cmd.canGroup} onClick={cmd.group} title={t('tip.group')}>
+                {t('layers.group')}
+              </button>
+              <button onClick={cmd.duplicate} title={t('tip.duplicate')}>
+                {t('layers.duplicate')}
+              </button>
+              <button onClick={cmd.remove} title={t('tip.delete')}>
+                {t('layers.delete')}
               </button>
             </div>
-          )}
-        </>
-      ) : (
-        <TemplateProperties
-          template={tpl}
-          dispatch={dispatch}
-          sheets={sheets}
-          onResize={onResize}
-        />
-      )}
-    </aside>
+            {first && (
+              <>
+                <p className="muted small">{t('editor.multiEdit', { name: first.name })}</p>
+                <LayerProperties
+                  key={selection.join(',')}
+                  layer={first}
+                  targets={selection}
+                  state={state}
+                  dispatch={dispatch}
+                  sheets={sheets}
+                />
+              </>
+            )}
+          </>
+        ) : layer ? (
+          <>
+            <LayerProperties
+              key={layer.id}
+              layer={layer}
+              state={state}
+              dispatch={dispatch}
+              sheets={sheets}
+            />
+            {layer.type === 'group' && (
+              <div className="selection-actions">
+                <button onClick={cmd.ungroup} title={t('tip.ungroup')}>
+                  {t('layers.ungroup')}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <TemplateProperties
+            template={tpl}
+            dispatch={dispatch}
+            sheets={sheets}
+            onResize={onResize}
+          />
+        )}
+      </aside>
+    </ColorFieldsContext.Provider>
   )
 }
 

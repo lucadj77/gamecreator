@@ -348,6 +348,8 @@ The **Value** layer (# tool) is not drawn: it holds a card value to use in formu
 
 ![A value layer with a formula](img/livello-valore.png)
 
+A value layer can also provide a colour: in colour fields (fill, text colour, stroke, shadow, tint) write the layer's `{name}`, which the field's menu suggests. The calculated value can be a code such as `#A33A2A`, a colour name or a colour variable, for example `=IF({strength}>3; "red"; "blue")`. An empty value gives a transparent colour.
+
 A field's value is, in order of precedence: the calculated value layer, the non-empty cell of the row, the value written in the template. Formula errors are shown under the card and in the properties panel.
 
 ## 10. Generating cards

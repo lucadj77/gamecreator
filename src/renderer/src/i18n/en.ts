@@ -593,6 +593,7 @@ export const en = {
   'textFit.shrink': 'Shrink to fit',
   'textFit.truncate': 'Cut off at the box',
   'imageFit.cover': 'Fill (crop)',
+  'imageFit.overflow': 'Fill (overflow)',
   'imageFit.contain': 'Fit inside',
   'imageFit.stretch': 'Stretch',
   'imageFit.original': 'Original size',

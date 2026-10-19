@@ -1038,6 +1038,7 @@ function ImageProperties({
             value={l.fit}
             options={options(t, 'imageFit', [
               'cover',
+              'overflow',
               'contain',
               'stretch',
               'original',

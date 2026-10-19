@@ -66,14 +66,14 @@ export function useImageSize(url: string | null): ImageSize | null {
 export function fitRect(
   box: { x: number; y: number; w: number; h: number },
   size: ImageSize,
-  fit: 'cover' | 'contain' | 'stretch' | 'original' | 'tile',
+  fit: 'cover' | 'overflow' | 'contain' | 'stretch' | 'original' | 'tile',
   align: Anchor = 'center'
 ): { x: number; y: number; w: number; h: number } {
   if (fit === 'stretch') return box
   const s =
     fit === 'original' || fit === 'tile'
       ? size.mmPerUnit
-      : fit === 'cover'
+      : fit === 'cover' || fit === 'overflow'
         ? Math.max(box.w / size.w, box.h / size.h)
         : Math.min(box.w / size.w, box.h / size.h)
   const w = size.w * s

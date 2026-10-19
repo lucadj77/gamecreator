@@ -181,7 +181,7 @@ Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livell
 | Proprietà                 | Valori                                                                                                                              |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | sorgente ◆                | file in `assets/`, variabile immagine, oppure colonna o formula che restituisce un nome di file (risoluzione dei nomi: sezione 3.1) |
-| adattamento               | riempi (ritaglia), adatta (bande vuote), allunga, dimensione originale, ripeti                                                      |
+| adattamento               | riempi (ritaglia), riempi (lascia uscire), adatta (bande vuote), allunga, dimensione originale, ripeti                              |
 | allineamento interno      | 9 posizioni                                                                                                                         |
 | zoom, spostamento x e y ◆ | %, mm                                                                                                                               |
 | rotazione dell'immagine ◆ | gradi; ruota l'immagine dentro il riquadro, che resta fermo                                                                         |
@@ -192,7 +192,7 @@ Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livell
 | contorno                  | colore, spessore                                                                                                                    |
 | immagine mancante         | mostra segnaposto, nascondi livello                                                                                                 |
 
-Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per le immagini raster), a partire dalla posizione data dall'allineamento interno; lo zoom cambia la dimensione delle piastrelle. La rotazione dell'immagine gira intorno al centro dell'immagine; l'adattamento tiene conto della rotazione: con **riempi** l'immagine ruotata copre sempre tutto il riquadro, con **adatta** ci sta tutta dentro. Un'immagine orizzontale ruotata di 90° riempie così un riquadro verticale senza bande. Con **ripeti** ruota tutta la trama. Le regolazioni si applicano prima della tinta. Il contorno può essere continuo, tratteggiato o a punti, come quello delle forme.
+Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per le immagini raster), a partire dalla posizione data dall'allineamento interno; lo zoom cambia la dimensione delle piastrelle. La rotazione dell'immagine gira intorno al centro dell'immagine; l'adattamento tiene conto della rotazione: con **riempi** l'immagine ruotata copre sempre tutto il riquadro (vale anche per **riempi (lascia uscire)**, che ha la stessa misura ma non ritaglia: la parte che esce dal riquadro resta visibile, fino al bordo della carta; utile con zoom oltre il 100% o per un'immagine che sborda di proposito), con **adatta** ci sta tutta dentro. Un'immagine orizzontale ruotata di 90° riempie così un riquadro verticale senza bande. Con **ripeti** ruota tutta la trama. Le regolazioni si applicano prima della tinta. Il contorno può essere continuo, tratteggiato o a punti, come quello delle forme.
 
 ### 3.1 Risoluzione dei nomi di file
 

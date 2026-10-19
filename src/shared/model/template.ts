@@ -118,7 +118,8 @@ export interface TextLayer extends LayerBase {
 export interface ImageLayer extends LayerBase {
   type: 'image'
   src: string
-  fit: 'cover' | 'contain' | 'stretch' | 'original' | 'tile'
+  /** overflow: come cover, ma la parte che esce dal riquadro resta visibile */
+  fit: 'cover' | 'overflow' | 'contain' | 'stretch' | 'original' | 'tile'
   /** Dove sta l'immagine nel riquadro quando non lo riempie o lo eccede */
   align: Anchor
   /** Scala dell'immagine rispetto all'adattamento, intorno al centro: 1 = 100% */

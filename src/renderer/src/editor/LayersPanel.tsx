@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { findParent, isNameTaken, moveLayerTo, patchLayer } from '../../../shared/model/edit'
 import { switchSource } from '../../../shared/model/bind'
 import type { Layer, ValueSource } from '../../../shared/model/template'
@@ -86,13 +86,31 @@ export default function LayersPanel({
       })
   }
 
+  /** Ultimo livello scelto senza Maiuscolo: un estremo dell'intervallo */
+  const anchor = useRef<string | null>(null)
+  // ⌘ (Ctrl) aggiunge o toglie un livello; Maiuscolo seleziona l'intervallo tra l'ultimo
+  // livello scelto e quello cliccato, nello stesso gruppo
   const select = (l: Layer, e: React.MouseEvent): void => {
-    const parent = findParent(layers, l.id)?.id ?? null
-    const additive = e.shiftKey || e.metaKey || e.ctrlKey
+    const parentLayer = findParent(layers, l.id)
+    const parent = parentLayer?.id ?? null
+    const siblings = parentLayer ? parentLayer.children : layers
     const sameParent = selection.every((id) => (findParent(layers, id)?.id ?? null) === parent)
     let ids = [l.id]
-    if (additive && sameParent)
-      ids = selection.includes(l.id) ? selection.filter((id) => id !== l.id) : [...selection, l.id]
+    // l'estremo vale finché è selezionato (la selezione può cambiare anche dalla carta)
+    const start =
+      anchor.current && selection.includes(anchor.current) ? anchor.current : selection[0]
+    const from = siblings.findIndex((x) => x.id === start)
+    if (e.shiftKey && sameParent && from >= 0) {
+      const to = siblings.findIndex((x) => x.id === l.id)
+      const [a, b] = from < to ? [from, to] : [to, from]
+      ids = siblings.slice(a, b + 1).map((x) => x.id)
+    } else {
+      if ((e.metaKey || e.ctrlKey) && sameParent)
+        ids = selection.includes(l.id)
+          ? selection.filter((id) => id !== l.id)
+          : [...selection, l.id]
+      anchor.current = l.id
+    }
     dispatch({ type: 'select', ids, scope: parent })
   }
 

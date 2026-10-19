@@ -602,6 +602,7 @@ export const it: Record<MessageKey, string> = {
   'textFit.shrink': 'Riduci per stare nel riquadro',
   'textFit.truncate': 'Taglia al bordo del riquadro',
   'imageFit.cover': 'Riempi (ritaglia)',
+  'imageFit.overflow': 'Riempi (lascia uscire)',
   'imageFit.contain': 'Adatta dentro',
   'imageFit.stretch': 'Deforma',
   'imageFit.original': 'Dimensione originale',

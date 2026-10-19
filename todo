@@ -1,0 +1,7 @@
+# cose da migliorare
+
+- quando si generano nuove carte con la funzione automatica sarebbe utile poter chiedere di aggiornare solo un livello senza sovrapporre gli altri in eventuali carte già presenti. per esempio, potrei prima generare 30 carte che derivano dall'incrocio di sei semi e i numeri 1-5. Poi potrei avere in una cartella 30 personaggi e associarli a un altro campo delle 30 carte già presenti, senza sostituirle del tutto.
+- quando soffermo il mouse du un elemento della barra a sinistra mi piacerebbe vedere un'anteprima del contenuto in un tooltip
+- nei campi numerici sarebbe utile avere anche la modalità slider, che mi consente di aumentare o diminuire i valori in modo più agevole
+- se nella visualizzazione del set premo PgUp o PgDown navigo tra le carte
+- quando seleziono un bg= devo poter indicare anche una variabile immagine. il selettore nella finestra di formattazione mi dovrebbe aprire la classica finestra di selezione delle immagini

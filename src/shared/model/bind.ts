@@ -72,6 +72,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
   }
 
   const fields = cardFields(template, card, ctx.variables)
+  const images = imageFields(template, fields)
   const pal = palette(ctx.variables)
   const apply = (layers: Layer[]): Layer[] =>
     layers.map((layer) => {
@@ -107,7 +108,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         // il font può essere una variabile o un campo: {titoli}
         out = {
           ...out,
-          text: substituteFields(out.text, fields),
+          text: substituteFields(out.text, fields, images),
           font: substituteFields(out.font, fields).trim()
         }
         if (out.visible) {
@@ -248,12 +249,54 @@ export function cardFields(
   return fields
 }
 
+/** {spada} o {spada tint=red} come valore di un campo: il riferimento senza le graffe */
+function unbrace(value: string): string {
+  const v = value.trim()
+  const m = /^\{([^{}*]+)\}$/.exec(v)
+  return m ? m[1].trim() : v
+}
+
+/**
+ * Campi che danno un'immagine: il nome di ogni livello immagine (e la colonna da cui prende il
+ * valore) con l'immagine che mostra sulla carta. Nel testo {campo} di questi campi disegna
+ * l'immagine invece di scriverne il nome.
+ */
+export function imageFields(
+  template: Template,
+  fields: Record<string, string>
+): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const l of walkLayers([...template.front, ...template.back])) {
+    if (l.type !== 'image') continue
+    const src = l.source
+    const column = src.kind === 'column' && src.column ? src.column : l.name
+    const raw =
+      src.kind === 'formula'
+        ? evaluateFormula(src.expr, fields).value
+        : src.kind === 'fixed'
+          ? l.src
+          : (fields[column] ?? l.src)
+    const value = unbrace(substituteFields(raw, fields))
+    if (!value || /[{}]/.test(value)) continue
+    out[l.name] = value
+    if (src.kind === 'column') out[column] ??= value
+  }
+  return out
+}
+
 /**
  * Sostituisce {campo} con il valore della riga e, in {icona*campo}, il campo con il suo valore;
- * le altre graffe restano per le variabili e le immagini.
+ * le altre graffe restano per le variabili e le immagini. Con `images` (vedi imageFields) i
+ * campi immagine diventano l'immagine: {img} e {img*3} disegnano l'immagine del campo img.
  */
-export function substituteFields(text: string, fields: Record<string, string>): string {
+export function substituteFields(
+  text: string,
+  fields: Record<string, string>,
+  images: Record<string, string> = {}
+): string {
   const has = (name: string): boolean => Object.prototype.hasOwnProperty.call(fields, name.trim())
+  const image = (name: string): string | undefined =>
+    Object.prototype.hasOwnProperty.call(images, name.trim()) ? images[name.trim()] : undefined
   return (
     text
       // font={titoli}: nel markup gli spazi del nome diventano _ (font=Open_Sans)
@@ -261,19 +304,29 @@ export function substituteFields(text: string, fields: Record<string, string>): 
         has(name) ? `font=${fields[name.trim()].trim().replace(/\s+/g, '_')}` : m
       )
       .replace(/(?<!\\)\{([^{}*]+)\}/g, (m, inner: string) => {
+        const img = image(inner)
+        if (img !== undefined) return `{${img}}`
         if (has(inner)) return fields[inner.trim()]
         // {icona tint=red}: il campo dà il nome dell'immagine, gli attributi restano
         const at = inner.trim().search(/\s/)
         const name = at > 0 ? inner.trim().slice(0, at) : ''
-        return name && has(name) && parseImageAttrs(inner.trim().slice(at))
-          ? `{${fields[name].trim()}${inner.trim().slice(at)}}`
+        return name && (image(name) ?? has(name)) && parseImageAttrs(inner.trim().slice(at))
+          ? `{${image(name) ?? unbrace(fields[name])}${inner.trim().slice(at)}}`
           : m
       })
       // {spada*{quanti}} è già diventato {spada*quanti} se quanti è un campo
       .replace(
         /(?<!\\)\{([^{}*]+)\*([^{}*\s]+)(\s[^{}]*)?\}/g,
-        (m, name: string, count: string, rest?: string) =>
-          has(count) ? `{${name}*${fields[count.trim()].trim()}${rest ?? ''}}` : m
+        (m, name: string, count: string, rest?: string) => {
+          const n = has(count) ? fields[count.trim()].trim() : count
+          // {img*3}: il nome può essere un campo che dà un'immagine; i suoi attributi
+          // ({spada tint=red}) vanno dopo il numero
+          const ref = image(name) ?? (has(name) ? unbrace(fields[name.trim()]) : name)
+          const at = ref.search(/\s/)
+          const [base, attrs] = at > 0 ? [ref.slice(0, at), ref.slice(at)] : [ref, '']
+          const out = `{${base}*${n}${attrs}${rest ?? ''}}`
+          return /[{}]/.test(base) || !base ? m : out
+        }
       )
   )
 }

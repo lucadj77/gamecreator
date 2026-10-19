@@ -122,14 +122,15 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 
 #### Variabili e campi
 
-| Scrivi                        | Ottieni                                                          |
-| ----------------------------- | ---------------------------------------------------------------- |
-| `{spada}`                     | variabile del progetto (icona, testo formattato, colore, valore) |
-| `{forza}`                     | valore di un campo della carta, anche calcolato                  |
-| `{spada*3}` · `{spada*forza}` | icona ripetuta tre volte o tante volte quanto vale il campo      |
-| `\{`, `\*`, `\[`              | carattere letterale                                              |
+| Scrivi                        | Ottieni                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| `{spada}`                     | variabile del progetto (icona, testo formattato, colore, valore)                 |
+| `{forza}`                     | valore di un campo della carta, anche calcolato                                  |
+| `{spada*3}` · `{spada*forza}` | icona ripetuta tre volte o tante volte quanto vale il campo                      |
+| `{img}` · `{img*3}`           | l'immagine che il livello immagine `img` mostra su quella carta, una o tre volte |
+| `\{`, `\*`, `\[`              | carattere letterale                                                              |
 
-Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala.
+Se una variabile e un campo hanno lo stesso nome vince il campo, e l'app lo segnala. Il nome di un livello immagine (o della colonna da cui prende il valore) richiama l'immagine che quel livello mostra sulla carta, non il nome del file: con `img` = `spada`, `Ottieni {img}` disegna la spada. Nelle ripetizioni anche un campo di testo dà il nome dell'immagine: con `risorsa` = `legno` o `{legno}`, `{risorsa*2}` vale `{legno*2}`.
 
 `{nome}` che non è né un campo né una variabile si cerca tra le immagini di `assets/` (sezione 3.1) e si disegna come icona alta quanto la riga. Se non si trova, il testo resta com'è, sottolineato in rosso, e il problema compare sotto la carta.
 

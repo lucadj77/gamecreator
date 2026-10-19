@@ -3,23 +3,10 @@ import { dirname, join, resolve } from 'path'
 import { pathToFileURL } from 'url'
 import type { NativeImage } from 'electron'
 import {
-  cropMarks,
   defaultTtsFolder,
-  effectivePattern,
-  expandCopies,
-  fileName,
-  gridOverflows,
   pageSize,
-  pdfGrid,
-  planPdfPages,
   safeName,
-  sidesOf,
-  ttsAutoGrid,
   ttsSavedObject,
-  ttsScale,
-  uniqueNames,
-  TTS_MAX_COLS,
-  TTS_MAX_ROWS,
   type ExportCard,
   type ExportContext,
   type ExportJob,
@@ -29,11 +16,19 @@ import {
   type ImageOptions,
   type PdfOptions,
   type Scene,
-  type ScenePage,
   type TtsDeckCard,
   type TtsOptions,
   type TtsSheet
 } from '../../shared/export'
+import {
+  cardPage,
+  imageExtension,
+  planImages,
+  planPdf,
+  planTts,
+  sheetPage,
+  type TtsChunk
+} from '../../shared/exportPlan'
 import { plainText } from '../../shared/model/markup'
 import { msg } from '../../shared/messages'
 import type { Side, Template } from '../../shared/model/template'
@@ -108,13 +103,7 @@ async function renderCard(
   scale: number,
   opts: { bleed: boolean; mode: 'trim' | 'cut'; background: string | null }
 ): Promise<NativeImage> {
-  const b = opts.bleed ? t.bleed : 0
-  const page: ScenePage = {
-    width: t.width + 2 * b,
-    height: t.height + 2 * b,
-    items: [{ x: 0, y: 0, template: t, side, mode: opts.bleed ? 'bleed' : opts.mode }],
-    lines: []
-  }
+  const page = cardPage(t, side, opts.bleed, opts.mode)
   const w = Math.round(page.width * scale)
   const h = Math.round(page.height * scale)
   // pixel interi: la scala si corregge di poco perché la carta riempia tutta l'immagine
@@ -134,42 +123,23 @@ async function renderCard(
 
 async function exportImages(ctx: Ctx, o: ImageOptions, sets: ExportSet[]): Promise<void> {
   const folder = outputFolder(ctx, o.folder)
-  const pattern = effectivePattern(o)
-  const sides = sidesOf(o.sides)
-  const ext = o.format === 'jpg' ? 'jpg' : 'png'
-  ctx.progress.total = sets.reduce((n, s) => n + s.cards.length * sides.length, 0)
+  const ext = imageExtension(o)
+  const files = planImages(o, sets)
+  ctx.progress.total = files.length
   const scale = o.dpi / 25.4
   const transparent = o.transparent && o.format === 'png'
-  for (const set of sets) {
-    const digits = String(set.cards.length).length
-    const jobs: { card: ExportCard; side: Side; names: string[] }[] = []
-    const all: string[] = []
-    for (const card of set.cards)
-      for (const side of sides) {
-        const copies = expandCopies([card], o.copies).map((x) => x.copy)
-        const names = copies.map((copy) =>
-          fileName(pattern, { set: set.name, n: card.n, digits, copy, side, fields: card.fields })
-        )
-        jobs.push({ card, side, names })
-        all.push(...names)
-      }
-    // nomi ripetuti (per esempio {nome} uguale su due carte): si numerano
-    const unique = uniqueNames(all)
-    let k = 0
-    for (const j of jobs) {
-      const names = j.names.map(() => unique[k++])
-      if (names.length) {
-        const img = await renderCard(ctx, j.card.template, j.side, scale, {
-          bleed: o.bleed,
-          mode: 'trim',
-          background: transparent ? null : '#FFFFFF'
-        })
-        const data = ext === 'jpg' ? img.toJPEG(clampQuality(o.quality)) : img.toPNG()
-        // le copie sono la stessa immagine: si disegna una volta sola
-        for (const name of names) await write(ctx, join(folder, `${name}.${ext}`), data)
-      }
-      step(ctx)
+  for (const f of files) {
+    if (f.names.length) {
+      const img = await renderCard(ctx, f.card.template, f.side, scale, {
+        bleed: o.bleed,
+        mode: 'trim',
+        background: transparent ? null : '#FFFFFF'
+      })
+      const data = ext === 'jpg' ? img.toJPEG(clampQuality(o.quality)) : img.toPNG()
+      // le copie sono la stessa immagine: si disegna una volta sola
+      for (const name of f.names) await write(ctx, join(folder, `${name}.${ext}`), data)
     }
+    step(ctx)
   }
 }
 
@@ -179,11 +149,6 @@ function clampQuality(q: number): number {
 
 // ——— PDF ———
 
-interface PdfDoc {
-  name: string
-  pages: ScenePage[]
-}
-
 async function exportPdf(
   ctx: Ctx,
   o: PdfOptions,
@@ -192,45 +157,10 @@ async function exportPdf(
 ): Promise<void> {
   const folder = outputFolder(ctx, o.folder)
   const page = pageSize(o)
-  const bySet = sets.map((set) => {
-    const t = set.cards[0].template
-    const grid = pdfGrid(o, t)
-    if (gridOverflows(grid)) ctx.result.warnings.push(msg('export.gridOverflow', { set: set.name }))
-    const plans = planPdfPages(o, grid, expandCopies(set.cards, o.copies))
-    const pages = plans.map((plan) => ({
-      side: plan.side,
-      page: {
-        width: page.width,
-        height: page.height,
-        items: plan.cards.map((c) => ({
-          x: c.x,
-          y: c.y,
-          template: c.instance.card.template,
-          side: c.side,
-          mode: o.bleed ? ('bleed' as const) : o.rounded ? ('trim' as const) : ('cut' as const)
-        })),
-        lines: cropMarks(o, grid, plan.cards)
-      }
-    }))
-    return { set, pages }
-  })
-  const docs: PdfDoc[] = []
-  const base = safeName(project || 'cards')
-  if (o.split === 'set') {
-    for (const s of bySet)
-      docs.push({ name: safeName(s.set.name), pages: s.pages.map((p) => p.page) })
-  } else if (o.split === 'side') {
-    for (const side of ['front', 'back'] as const) {
-      const pages = bySet.flatMap((s) => s.pages.filter((p) => p.side === side).map((p) => p.page))
-      if (pages.length) docs.push({ name: `${base}_${side}`, pages })
-    }
-  } else docs.push({ name: base, pages: bySet.flatMap((s) => s.pages.map((p) => p.page)) })
-
+  const { docs, overflow } = planPdf(o, sets, project)
+  for (const set of overflow) ctx.result.warnings.push(msg('export.gridOverflow', { set }))
   ctx.progress.total = docs.length
-  const names = uniqueNames(docs.map((d) => d.name))
-  for (let i = 0; i < docs.length; i++) {
-    const doc = docs[i]
-    if (!doc.pages.length) continue
+  for (const doc of docs) {
     const scene: Scene = {
       pages: doc.pages,
       scale: PDF_SCALE,
@@ -240,7 +170,7 @@ async function exportPdf(
       linesOver: o.marksOver
     }
     await ctx.win.show(scene, page.width * PDF_SCALE, page.height * PDF_SCALE)
-    await write(ctx, join(folder, `${names[i]}.pdf`), await ctx.win.printToPdf())
+    await write(ctx, join(folder, `${doc.name}.pdf`), await ctx.win.printToPdf())
     step(ctx)
   }
 }
@@ -270,38 +200,23 @@ async function exportTts(
   }
   for (const t of targets) if (!ctx.result.folders.includes(t)) ctx.result.folders.push(t)
 
-  const fixed = o.grid === 'fixed'
-  const cols = Math.min(TTS_MAX_COLS, Math.max(2, o.cols))
-  const rows = Math.min(TTS_MAX_ROWS, Math.max(2, o.rows))
-  const perSheet = fixed ? cols * rows - 1 : TTS_MAX_COLS * TTS_MAX_ROWS - 1
-  const plans = sets.map((set) => {
-    // senza copie ogni riga è una carta; con le copie le righe a 0 non entrano nel mazzo
-    const cards = set.cards.filter((c) => !o.copies || c.amount > 0)
-    const chunks: ExportCard[][] = []
-    for (let i = 0; i < cards.length; i += perSheet) chunks.push(cards.slice(i, i + perSheet))
-    return { set, chunks }
-  })
+  const plans = planTts(o, sets)
   ctx.progress.total = plans.reduce((n, p) => n + p.chunks.length * 2 + 1, 0)
 
-  for (const { set, chunks } of plans) {
+  for (const { set, chunks, uniqueBack: unique } of plans) {
     if (!chunks.length) continue
-    const t0 = chunks[0][0].template
-    const backs = chunks.flat().map((c) => JSON.stringify(c.template.back))
-    const sameBacks = backs.every((b) => b === backs[0])
-    const unique = o.back === 'sheet' || (o.back === 'auto' && !sameBacks)
+    const t0 = chunks[0].cards[0].template
 
     const sheets: RenderedSheet[] = []
     let singleBack: Buffer | null = null
     for (const chunk of chunks) {
-      const g = fixed ? { cols, rows } : ttsAutoGrid(chunk.length, t0.width, t0.height)
-      const scale = ttsScale(g.cols, g.rows, t0.width, t0.height, o.maxSize)
-      const face = await renderSheet(ctx, chunk, 'front', g.cols, g.rows, scale)
+      const face = await renderSheet(ctx, chunk, 'front')
       step(ctx)
       let back: Buffer
-      if (unique) back = await renderSheet(ctx, chunk, 'back', g.cols, g.rows, scale)
+      if (unique) back = await renderSheet(ctx, chunk, 'back')
       else {
         singleBack ??= (
-          await renderCard(ctx, t0, 'back', scale, {
+          await renderCard(ctx, t0, 'back', chunk.scale, {
             bleed: false,
             mode: 'cut',
             background: '#FFFFFF'
@@ -310,7 +225,7 @@ async function exportTts(
         back = singleBack
       }
       step(ctx)
-      sheets.push({ face, back, ...g, uniqueBack: unique })
+      sheets.push({ face, back, cols: chunk.cols, rows: chunk.rows, uniqueBack: unique })
     }
     const thumb = (
       await renderCard(ctx, t0, 'front', 256 / t0.width, {
@@ -323,7 +238,7 @@ async function exportTts(
 
     const deck: TtsDeckCard[] = []
     chunks.forEach((chunk, sheet) =>
-      chunk.forEach((card, slot) => {
+      chunk.cards.forEach((card, slot) => {
         const n = o.copies ? card.amount : 1
         for (let i = 0; i < n; i++)
           deck.push({
@@ -371,43 +286,19 @@ function fieldText(card: ExportCard, field: string): string {
   return plainText(card.fields[field] ?? '').trim()
 }
 
-/** Foglio di carte a griglia; l'ultima posizione mostra il retro, come carta nascosta */
-async function renderSheet(
-  ctx: Ctx,
-  cards: ExportCard[],
-  side: Side,
-  cols: number,
-  rows: number,
-  scale: number
-): Promise<Buffer> {
-  const t0 = cards[0].template
-  const items = cards.map((c, i) => ({
-    x: (i % cols) * t0.width,
-    y: Math.floor(i / cols) * t0.height,
-    template: c.template,
-    side,
-    mode: 'cut' as const
-  }))
-  const last = cols * rows - 1
-  items.push({
-    x: (last % cols) * t0.width,
-    y: Math.floor(last / cols) * t0.height,
-    template: t0,
-    side: 'back',
-    mode: 'cut'
-  })
-  const width = cols * t0.width
-  const height = rows * t0.height
+/** Foglio di carte a griglia, in pixel interi */
+async function renderSheet(ctx: Ctx, chunk: TtsChunk, side: Side): Promise<Buffer> {
+  const page = sheetPage(chunk, side)
   const scene: Scene = {
-    pages: [{ width, height, items, lines: [] }],
-    scale,
+    pages: [page],
+    scale: chunk.scale,
     background: '#FFFFFF',
     lineColor: '#000',
     lineWidth: 0,
     linesOver: false
   }
-  const w = Math.round(width * scale)
-  const h = Math.round(height * scale)
+  const w = Math.round(page.width * chunk.scale)
+  const h = Math.round(page.height * chunk.scale)
   await ctx.win.show(scene, w, h)
   return (await ctx.win.capture(w, h)).toPNG()
 }

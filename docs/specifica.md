@@ -309,6 +309,8 @@ Le esportazioni si salvano come profili nel progetto, così si possono rilanciar
 
 Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `gamecreator.json` sotto la chiave `export`, una per tipo; i profili con nome restano da fare. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
 
+**Anteprima…**, accanto a **Esporta**, mostra uno alla volta i file che l'esportazione scriverà con le opzioni attuali, senza scrivere nulla: le immagini delle carte con il nome del file, le pagine del PDF con i segni di taglio, i fogli di Tabletop Simulator con la carta nascosta. Si scorrono con ‹ › o con le frecce, e da lì si può esportare. L'anteprima e l'esportazione usano lo stesso piano (`src/shared/exportPlan.ts`), quindi impaginazione e nomi coincidono.
+
 ### 9.1 Immagini
 
 | Opzione       | Valori                                                                                                  |

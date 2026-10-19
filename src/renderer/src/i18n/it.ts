@@ -668,6 +668,17 @@ export const it: Record<MessageKey, string> = {
   'export.description': 'Description',
   'export.noField': 'Vuoto',
   'export.run': 'Esporta',
+  'export.preview': 'Anteprima…',
+  'export.previewHint': 'Mostra le pagine e le immagini che verranno scritte, senza scrivere nulla',
+  'export.previewTitle': "Anteprima dell'esportazione",
+  'export.previewSummary': 'File da scrivere: {files}. Usa ‹ › o le frecce per scorrerli.',
+  'export.previewSummaryPdf':
+    'File PDF: {files}, pagine: {pages}. Usa ‹ › o le frecce per scorrerle.',
+  'export.previewSummaryTts':
+    'Immagini dei fogli: {files}, più il mazzo e la miniatura di ogni set. Usa ‹ › o le frecce per scorrerle.',
+  'export.previewPage': 'pagina {n} di {total}',
+  'export.previewCopies': '{n} copie uguali',
+  'export.previewEmpty': 'Nessuna carta da esportare con queste opzioni.',
   'export.close': 'Chiudi',
   'export.cancel': 'Interrompi',
   'export.preparing': 'Preparazione…',

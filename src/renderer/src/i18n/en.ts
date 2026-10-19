@@ -659,6 +659,17 @@ export const en = {
   'export.description': 'Description',
   'export.noField': 'Empty',
   'export.run': 'Export',
+  'export.preview': 'Preview…',
+  'export.previewHint': 'Show the pages and images that will be written, without writing anything',
+  'export.previewTitle': 'Export preview',
+  'export.previewSummary': 'Files to write: {files}. Use ‹ › or the arrow keys to browse them.',
+  'export.previewSummaryPdf':
+    'PDF files: {files}, pages: {pages}. Use ‹ › or the arrow keys to browse them.',
+  'export.previewSummaryTts':
+    'Sheet images: {files}, plus the deck and thumbnail of each set. Use ‹ › or the arrow keys to browse them.',
+  'export.previewPage': 'page {n} of {total}',
+  'export.previewCopies': '{n} identical copies',
+  'export.previewEmpty': 'No cards to export with these options.',
   'export.close': 'Close',
   'export.cancel': 'Stop',
   'export.preparing': 'Preparing…',

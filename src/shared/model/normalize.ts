@@ -62,6 +62,7 @@ const IMAGE_DEFAULTS: Omit<ImageLayer, keyof LayerBase | 'type'> = {
   fit: 'cover',
   align: 'center',
   zoom: 1,
+  imageRotation: 0,
   offsetX: 0,
   offsetY: 0,
   flipH: false,

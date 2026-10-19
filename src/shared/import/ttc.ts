@@ -390,7 +390,7 @@ function convertPanel(p: Panel, name: string, ctx: Context, tn: TemplateNotes): 
       }
       if (str(d.img_fit_mode) === 'fitwidth' || str(d.img_fit_mode) === 'fitheight')
         note(tn, 'ttc.unsupported.fitSide', name)
-      if (num(d.img_rotation)) note(tn, 'ttc.unsupported.imageRotation', name)
+      if (num(d.img_rotation)) layer.imageRotation = num(d.img_rotation)
       if (str(d.img_mask_value)) note(tn, 'ttc.unsupported.mask', name)
       if (num(d.img_sliced_scale) !== undefined || d.img_sliced_border_top !== undefined)
         note(tn, 'ttc.unsupported.sliced', name)
@@ -585,6 +585,8 @@ function cellFor(
           ]
         : null
     }
+    case 'img_rotation':
+      return [['imageRotation', s]]
     case 'img_flip_h':
       return [['flipH', bool(v) ? 'true' : 'false']]
     case 'img_flip_v':

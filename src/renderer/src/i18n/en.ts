@@ -503,6 +503,9 @@ export const en = {
   'prop.fit': 'Fit',
   'prop.minSize': 'Minimum size',
   'prop.src': 'Image',
+  'prop.imageRotation': 'Rotate image',
+  'editor.imageRotationHint':
+    'Rotates the image inside its frame, which stays still; fitting takes the rotation into account.',
   'prop.flipH': 'Flip horizontally',
   'prop.flipV': 'Flip vertically',
   'prop.tint': 'Tint',

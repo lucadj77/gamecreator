@@ -916,6 +916,16 @@ function ImageProperties({
         onChange={(zoom) => set({ zoom })}
       />
       <NumberField
+        label={t('prop.imageRotation')}
+        hint={`${t('editor.imageRotationHint')} ${col('imageRotation')}`}
+        value={l.imageRotation}
+        step={90}
+        min={-360}
+        max={360}
+        unit="°"
+        onChange={(imageRotation) => set({ imageRotation })}
+      />
+      <NumberField
         label={t('prop.offsetX')}
         hint={col('offsetX')}
         value={l.offsetX}

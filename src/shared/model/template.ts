@@ -123,6 +123,8 @@ export interface ImageLayer extends LayerBase {
   align: Anchor
   /** Scala dell'immagine rispetto all'adattamento, intorno al centro: 1 = 100% */
   zoom: number
+  /** Rotazione dell'immagine dentro il riquadro, in gradi; il riquadro non ruota */
+  imageRotation: number
   /** Spostamento dell'immagine nel riquadro, in mm */
   offsetX: number
   offsetY: number

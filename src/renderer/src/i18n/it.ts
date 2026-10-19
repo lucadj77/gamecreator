@@ -511,6 +511,9 @@ export const it: Record<MessageKey, string> = {
   'prop.fit': 'Adattamento',
   'prop.minSize': 'Dimensione minima',
   'prop.src': 'Immagine',
+  'prop.imageRotation': 'Ruota immagine',
+  'editor.imageRotationHint':
+    "Ruota l'immagine dentro il riquadro, che resta fermo; l'adattamento tiene conto della rotazione.",
   'prop.flipH': 'Rifletti in orizzontale',
   'prop.flipV': 'Rifletti in verticale',
   'prop.tint': 'Colorazione',

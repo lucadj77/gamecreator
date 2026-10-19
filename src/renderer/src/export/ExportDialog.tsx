@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
 import type { Side } from '../../../shared/model/template'
-import { bindCard, cardFields, rowToCard } from '../../../shared/model/bind'
 import { walkLayers } from '../../../shared/model/normalize'
 import { resolveAsset } from '../../../shared/model/assets'
 import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
@@ -30,39 +29,12 @@ import ProfileBar from './ProfileBar'
 import { EXPORT_PRESETS } from '../../../shared/exportPresets'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
+import { buildSets } from '../../../shared/exportJob'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 
 const KIND_KEY = 'exportKind'
 const DPIS = [150, 300, 600]
-
-/** Le carte dei set scelti, con i valori della riga applicati al template */
-function buildSets(project: LoadedProject, names: string[]): ExportSet[] {
-  const ctx = {
-    assets: project.assets,
-    styles: project.file.styles,
-    variables: project.file.variables
-  }
-  return project.sets
-    .filter((s) => !names.length || names.includes(s.name))
-    .flatMap((s) => {
-      const tpl = project.templates.find((x) => x.name === s.template)
-      if (!tpl || !s.data) return []
-      const { headers, rows } = s.data
-      const cards = rows.map((row, i) => {
-        const card = rowToCard(headers, row)
-        const bound = bindCard(tpl, card, ctx)
-        return {
-          n: i + 1,
-          amount: card.amount,
-          label: bound.label,
-          fields: cardFields(tpl, card, ctx.variables),
-          template: bound.template
-        }
-      })
-      return [{ name: s.name, cards }]
-    })
-}
 
 export default function ExportDialog({
   project,

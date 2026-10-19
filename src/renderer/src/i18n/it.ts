@@ -1011,6 +1011,24 @@ export const it: Record<MessageKey, string> = {
   'about.p5':
     "Naibi è un'app per creare carte e componenti di gioco: ci è sembrato giusto chiamarla con il primo nome che le carte hanno avuto da noi.",
   'about.close': 'Chiudi',
+  'app.aiTools': 'Strumenti IA…',
+  'tip.aiTools': 'Fai lavorare un agente IA (Claude Code, Codex…) sui progetti Naibi',
+  'ai.title': 'Strumenti per gli agenti IA',
+  'ai.intro':
+    'Un agente IA che può eseguire comandi su questo computer (per esempio Claude Code, Codex o Cursor) può lavorare sui progetti Naibi: leggere e modificare carte, modelli e stili, cercare i problemi e disegnare le carte per guardarle. Gli serve la skill di Naibi qui sotto.',
+  'ai.step1': 'Copia la skill.',
+  'ai.step2':
+    'Incollala nel tuo agente e chiedigli di installarla come skill (o come istruzioni del progetto, se non gestisce le skill).',
+  'ai.step3':
+    'Poi chiedigli quello che ti serve, indicando la cartella del progetto. Quando ha finito, premi Ricarica in Naibi per vedere le modifiche.',
+  'ai.saveHint':
+    'Puoi anche salvarla come file: Claude Code legge le skill dalla cartella .claude/skills della tua cartella utente o di un progetto. La skill è in inglese, la lingua che gli agenti seguono meglio.',
+  'ai.notBuilt':
+    "Il comando naibi usato dalla skill funziona solo dopo aver compilato l'app una volta: esegui `npm run build` nella cartella del codice di Naibi.",
+  'ai.copy': 'Copia la skill',
+  'ai.save': 'Salva come file…',
+  'ai.copied': 'Skill copiata. Incollala nel tuo agente.',
+  'ai.saved': 'Skill salvata in {file}',
   'app.backup': 'Backup…',
   'tip.backup': 'Copie di sicurezza del progetto, da ripristinare se qualcosa va storto',
   'dialog.close': 'Chiudi',

@@ -41,6 +41,9 @@ const api: Api = {
   restoreBackup: (file) => ipcRenderer.invoke('backup:restore', file),
   defaultTtcTarget: (source) => ipcRenderer.invoke('ttc:default-target', source),
   importTtc: (options) => ipcRenderer.invoke('ttc:import', options),
+  naibiCommand: () => ipcRenderer.invoke('ai:command'),
+  saveSkill: (folder, text) => ipcRenderer.invoke('ai:save-skill', folder, text),
+  skillsFolder: () => ipcRenderer.invoke('ai:skills-folder'),
   exportPage: {
     onContext: (cb) => ipcRenderer.on('export:context', (_, c) => cb(c)),
     onScene: (cb) => ipcRenderer.on('export:scene', (_, id, scene) => cb(id, scene)),

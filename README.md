@@ -23,7 +23,7 @@ npm run dev     # avvia l'app
 npm test        # test
 ```
 
-Per provare, apri la cartella `examples/demo`. Il formato è descritto in [docs/formato.md](docs/formato.md).
+Per provare, apri la cartella `examples/demo`. Il comando `naibi` e la skill per gli agenti IA sono descritti in [docs/cli.md](docs/cli.md). Il formato è descritto in [docs/formato.md](docs/formato.md).
 
 ## Build
 

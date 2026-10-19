@@ -1,4 +1,5 @@
 import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
+import { existsSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -24,6 +25,7 @@ import { fontCatalog, iconCatalog } from './library/catalogs'
 import { importIcons } from './library/icons'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
+import { runCli } from './cli'
 import {
   autoBackup,
   backupDirName,
@@ -43,8 +45,24 @@ import {
   type ExportProfiles
 } from '../shared/export'
 
+/** Argomenti del comando naibi: tutto ciò che segue --cli (vedi cli.ts) */
+const cliIndex = process.argv.indexOf('--cli')
+const cliArgs = cliIndex >= 0 ? process.argv.slice(cliIndex + 1) : null
+
 adoptLegacyData()
 registerAssetScheme()
+
+if (cliArgs) {
+  // senza finestre e senza icona nel Dock: si disegna nella finestra nascosta dell'esportazione
+  app.dock?.hide()
+  // solo gli errori gravi di Chromium: l'output è per chi ha lanciato il comando
+  app.commandLine.appendSwitch('log-level', '3')
+  app.whenReady().then(async () => {
+    handleAssetProtocol()
+    const code = await runCli(cliArgs)
+    app.exit(code)
+  })
+}
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -121,9 +139,11 @@ function registerIpc(): void {
     projectName = project.file.name || folder
     // il backup automatico non ritarda l'apertura, e un errore non la impedisce
     readBackupSettings(backupSettingsFile())
-      .then(async (settings) =>
-        autoBackup(folder, projectName, await backupDir(settings), settings)
-      )
+      .then(async (settings) => {
+        const dir = await backupDir(settings)
+        const name = projectName
+        return queued(() => autoBackup(folder, name, dir, settings))
+      })
       .catch((e) => console.error(e))
     // l'elenco dei recenti non è essenziale: un errore non impedisce di aprire il progetto
     await addRecent(folder, project.file.name).catch((e) => console.error(e))
@@ -249,6 +269,27 @@ function registerIpc(): void {
     return result.canceled ? null : result.filePaths[0]
   })
 
+  // Strumenti per gli agenti IA: il comando naibi di questa installazione e la skill da salvare.
+  // Vedi docs/cli.md.
+  ipcMain.handle('ai:command', () => {
+    if (app.isPackaged) return { command: `"${process.execPath}" --cli`, ready: true }
+    const root = app.getAppPath()
+    return {
+      command: `node "${join(root, 'bin', 'naibi.mjs')}"`,
+      ready: existsSync(join(root, 'out', 'renderer', 'index.html'))
+    }
+  })
+  ipcMain.handle('ai:save-skill', async (_, folder: string, text: string) => {
+    const file = join(folder, 'naibi', 'SKILL.md')
+    await mkdir(dirname(file), { recursive: true })
+    await writeFile(file, text)
+    return file
+  })
+  ipcMain.handle('ai:skills-folder', () => {
+    const folder = join(app.getPath('home'), '.claude', 'skills')
+    return existsSync(folder) ? folder : app.getPath('documents')
+  })
+
   ipcMain.handle('backup:list', () => backupState())
   ipcMain.handle('backup:create', async () => {
     const folder = getProjectFolder()
@@ -279,26 +320,28 @@ function registerIpc(): void {
   })
 }
 
-app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.naibi.app')
-  // nell'app pacchettizzata l'icona del Dock viene dal pacchetto; con npm run dev si imposta qui
-  if (process.platform === 'darwin' && is.dev) app.dock?.setIcon(icon)
+if (!cliArgs)
+  app.whenReady().then(() => {
+    electronApp.setAppUserModelId('com.naibi.app')
+    // nell'app pacchettizzata l'icona del Dock viene dal pacchetto; con npm run dev si imposta qui
+    if (process.platform === 'darwin' && is.dev) app.dock?.setIcon(icon)
 
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
+    app.on('browser-window-created', (_, window) => {
+      optimizer.watchWindowShortcuts(window)
+    })
+
+    handleAssetProtocol()
+    registerIpc()
+    createWindow()
+
+    app.on('activate', function () {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
   })
-
-  handleAssetProtocol()
-  registerIpc()
-  createWindow()
-
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
-})
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  // il comando naibi esce da solo quando ha finito
+  if (process.platform !== 'darwin' && !cliArgs) {
     app.quit()
   }
 })

@@ -994,6 +994,24 @@ export const en = {
   'about.p5':
     'Naibi is an app for making cards and game components, so we named it after the first name cards had in Italy.',
   'about.close': 'Close',
+  'app.aiTools': 'AI tools…',
+  'tip.aiTools': 'Let an AI agent (Claude Code, Codex…) work on Naibi projects',
+  'ai.title': 'Tools for AI agents',
+  'ai.intro':
+    'An AI agent that can run commands on this computer (for example Claude Code, Codex or Cursor) can work on Naibi projects: read and change cards, templates and styles, check for problems and draw the cards to look at them. It needs the Naibi skill below.',
+  'ai.step1': 'Copy the skill.',
+  'ai.step2':
+    'Paste it into your agent and ask it to install it as a skill (or as project instructions, if it has no skills).',
+  'ai.step3':
+    'Then ask it what you need, naming the project folder. When it has finished, press Reload in Naibi to see the changes.',
+  'ai.saveHint':
+    'You can also save it as a file: Claude Code reads skills from the .claude/skills folder of your home folder or of a project. The skill is in English, which agents follow best.',
+  'ai.notBuilt':
+    'The naibi command used by the skill works only after building the app once: run `npm run build` in the Naibi code folder.',
+  'ai.copy': 'Copy the skill',
+  'ai.save': 'Save as file…',
+  'ai.copied': 'Skill copied. Paste it into your agent.',
+  'ai.saved': 'Skill saved in {file}',
   'app.backup': 'Backup…',
   'tip.backup': 'Safety copies of the project, to restore if something goes wrong',
   'dialog.close': 'Close',

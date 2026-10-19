@@ -461,11 +461,12 @@ All'avvio l'app mostra la schermata di ingresso, non l'ultimo progetto aperto. C
 - **Apri progetto…**: sceglie una cartella che contiene `naibi.json` (o `gamecreator.json`, nei progetti creati prima del cambio di nome).
 - **Cosa vuol dire Naibi?**: link discreto in basso a destra, apre una finestra che racconta l'origine del nome.
 - **Importa da Tabletop Creator…**: converte un progetto Tabletop Creator in un progetto nuovo, senza modificare l'originale.
+- **Strumenti IA…**: mostra la skill per gli agenti IA, da copiare o salvare come file; c'è anche nella barra del progetto. Vedi [cli.md](cli.md).
 - **Progetti recenti**: fino a 24, dal più recente, con miniatura, nome, data dell'ultima apertura e cartella. Un progetto spostato o cancellato resta nell'elenco come "cartella non trovata"; la × toglie un progetto dall'elenco senza toccare la cartella.
 
 La miniatura è la prima carta del primo set che ha carte (altrimenti il primo template), disegnata come nell'esportazione. Si crea alla prima apertura e si aggiorna a ogni salvataggio. Elenco e miniature stanno nei dati dell'app (`recent-projects.json` e `thumbnails/` nella cartella dati utente di Electron), non nel progetto: aprire un progetto non scrive nulla nella sua cartella.
 
-Nel progetto, la barra in alto ha nome e cartella del progetto, **Esporta…** e, vicini, **Salva**, **Ricarica** e **Chiudi**; **Chiudi** torna alla schermata di ingresso e chiede conferma se ci sono modifiche non salvate.
+Nel progetto, la barra in alto ha nome e cartella del progetto, **Esporta…**, **Backup…**, **Strumenti IA…** e, vicini, **Salva**, **Ricarica** e **Chiudi**; **Chiudi** torna alla schermata di ingresso e chiede conferma se ci sono modifiche non salvate.
 
 ## 12. Backup
 

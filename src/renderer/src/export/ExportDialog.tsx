@@ -15,6 +15,7 @@ import {
   type ExportKind,
   type ExportProfiles,
   type ExportProgress,
+  type NamedProfile,
   type ExportResult,
   type ExportSet,
   type ImageOptions,
@@ -25,6 +26,8 @@ import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
 import ExportPreview from './ExportPreview'
+import ProfileBar from './ProfileBar'
+import { EXPORT_PRESETS } from '../../../shared/exportPresets'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { useI18n } from '../i18n/context'
@@ -95,6 +98,12 @@ export default function ExportDialog({
   const { has: hasFont } = useProjectFonts()
   const [credits, setCredits] = useState(false)
   const [preview, setPreview] = useState<ExportJob | null>(null)
+  const [named, setNamed] = useState<NamedProfile[]>(saved.named ?? [])
+  const [activeProfile, setActiveProfile] = useState('')
+  const presets = useMemo(
+    () => EXPORT_PRESETS.map((p) => ({ ...p.profile, name: t(p.label) }) as NamedProfile),
+    [t]
+  )
   const running = progress !== null
 
   useEffect(() => {
@@ -145,11 +154,50 @@ export default function ExportDialog({
         : { ...base, kind, options: tts }
   }
 
+  /** Profilo scelto: tipo e opzioni nella finestra. Un preset non cambia set e cartella */
+  const pickProfile = (p: NamedProfile | null): void => {
+    setActiveProfile(p?.name ?? '')
+    if (!p) return
+    const preset = presets.some((x) => x.name === p.name)
+    const keep = <T extends { sets: string[] }>(o: T): Partial<T> =>
+      preset ? ({ sets: o.sets, ...('folder' in o ? { folder: o.folder } : {}) } as Partial<T>) : {}
+    if (p.kind === 'images') setImg((o) => ({ ...DEFAULT_IMAGE, ...p.options, ...keep(o) }))
+    else if (p.kind === 'pdf') setPdf((o) => ({ ...DEFAULT_PDF, ...p.options, ...keep(o) }))
+    else
+      setTts((o) => ({
+        ...DEFAULT_TTS,
+        nickname: defaultNickname(project),
+        ...p.options,
+        ...keep(o)
+      }))
+    setKind(p.kind)
+  }
+  const currentProfile = (): NamedProfile =>
+    kind === 'images'
+      ? { name: '', kind, options: img }
+      : kind === 'pdf'
+        ? { name: '', kind, options: pdf }
+        : { name: '', kind, options: tts }
+  /** I profili si scrivono subito in gamecreator.json, come le ultime opzioni */
+  const saveNamed = (list: NamedProfile[], active: string): void => {
+    setNamed(list)
+    setActiveProfile(active)
+    const profiles: ExportProfiles = { ...saved, named: list.length ? list : undefined }
+    window.api.saveExportProfiles(profiles).catch(() => undefined)
+    onProfiles(profiles)
+  }
+
   const run = async (): Promise<void> => {
     setError(null)
     setResult(null)
     setProgress({ done: 0, total: 0 })
-    const profiles: ExportProfiles = { ...saved, images: img, pdf, tts }
+    const profiles: ExportProfiles = {
+      ...saved,
+      images: img,
+      pdf,
+      tts,
+      named: named.length ? named : undefined
+    }
     try {
       window.api.saveExportProfiles(profiles).catch(() => undefined)
       onProfiles(profiles)
@@ -295,7 +343,18 @@ export default function ExportDialog({
             ['pdf', t('export.pdf')],
             ['tts', t('export.tts')]
           ]}
-          onChange={setKind}
+          onChange={(k) => {
+            setKind(k)
+            setActiveProfile('')
+          }}
+        />
+        <ProfileBar
+          profiles={named}
+          presets={presets}
+          active={activeProfile}
+          current={currentProfile}
+          onPick={pickProfile}
+          onChange={saveNamed}
         />
         <div className="export-fields">
           {field(

@@ -81,10 +81,18 @@ export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
   description: string
 }
 
+/** Opzioni salvate con un nome, per rilanciare un'esportazione o partire da un servizio di stampa */
+export type NamedProfile =
+  | { name: string; kind: 'images'; options: Partial<ImageOptions> }
+  | { name: string; kind: 'pdf'; options: Partial<PdfOptions> }
+  | { name: string; kind: 'tts'; options: Partial<TtsOptions> }
+
 export interface ExportProfiles {
   images?: Partial<ImageOptions>
   pdf?: Partial<PdfOptions>
   tts?: Partial<TtsOptions>
+  /** Profili con nome, nell'ordine in cui sono stati creati */
+  named?: NamedProfile[]
 }
 
 export const DEFAULT_IMAGE: ImageOptions = {

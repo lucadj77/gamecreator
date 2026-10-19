@@ -312,7 +312,7 @@ Le voci della barra laterale (set, template, stili, variabili) si riordinano tra
 
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.
 
-Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `gamecreator.json` sotto la chiave `export`, una per tipo; i profili con nome restano da fare. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
+Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `gamecreator.json` sotto la chiave `export`, una per tipo. In cima alla finestra, **Profilo** sceglie un profilo con nome, il cui tipo e le cui opzioni (set e cartella compresi) passano nella finestra; **Salva** aggiorna il profilo scelto con le opzioni attuali, **Salva come…** ne crea uno nuovo e × lo elimina. I profili si scrivono subito nel progetto, sotto `export.named`. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
 
 **Anteprima…**, accanto a **Esporta**, mostra uno alla volta i file che l'esportazione scriverà con le opzioni attuali, senza scrivere nulla: le immagini delle carte con il nome del file, le pagine del PDF con i segni di taglio, i fogli di Tabletop Simulator con la carta nascosta. Si scorrono con ‹ › o con le frecce, e da lì si può esportare. L'anteprima e l'esportazione usano lo stesso piano (`src/shared/exportPlan.ts`), quindi impaginazione e nomi coincidono.
 
@@ -364,7 +364,15 @@ La griglia automatica sceglie, tra 2 × 2 e 10 × 7, quella con meno posizioni v
 
 ### 9.4 Preset per tipografie
 
-Profili precompilati per i servizi di stampa più comuni (una immagine per carta a 300 DPI con abbondanza, nomi file richiesti dal servizio). I parametri esatti vanno verificati sul sito di ciascun servizio prima di definirli.
+Nello stesso menu dei profili, un gruppo di preset per i servizi di stampa e per la stampa in casa. Un preset cambia tipo e opzioni ma lascia i set e la cartella scelti; non si modifica, ma si può salvare come profilo del progetto e cambiare da lì.
+
+| Preset                                  | Opzioni                                                                                                          |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| MakePlayingCards, un'immagine per carta | PNG a 300 DPI con abbondanza, fronte e retro, senza copie, fronti e retri in cartelle separate (`%set/%side/%n`) |
+| The Game Crafter, un'immagine per carta | PNG a 300 DPI con abbondanza, fronte e retro, senza copie (`%set/%n_%side`)                                      |
+| Stampa in casa, A4 o Letter             | PDF fronte-retro (lato lungo), senza abbondanza, segni di taglio agli angoli, con le copie                       |
+
+La dimensione in pixel dipende dal template. MakePlayingCards chiede per le carte poker almeno 822 × 1122 px a 300 DPI, cioè 36 px (3,05 mm) di abbondanza per lato; The Game Crafter stampa a 300 DPI con 1/8" (3,2 mm) di abbondanza e altrettanto di area sicura. I 3 mm predefiniti dei template vanno bene per entrambi: una carta 63 × 88 con 3 mm esce a 815 × 1110 px. Prima di ordinare conviene controllare le specifiche sul sito del servizio, che possono cambiare.
 
 ## 10. Icone, font e crediti
 

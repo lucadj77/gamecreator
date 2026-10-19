@@ -69,13 +69,13 @@
     --accent-soft: #2a3550;
     --warning-bg: #4a3d14;
     --error-bg: #4d2120;
-  --mk-punct: #8f8f96;
-  --mk-ref: #5fc790;
-  --mk-style: #c690e6;
-  --mk-attr: #7aa7f5;
-  --mk-value: #e9a06a;
-  --mk-md: #f0965a;
-  --mk-error: #ff6b6b;
+    --mk-punct: #8f8f96;
+    --mk-ref: #5fc790;
+    --mk-style: #c690e6;
+    --mk-attr: #7aa7f5;
+    --mk-value: #e9a06a;
+    --mk-md: #f0965a;
+    --mk-error: #ff6b6b;
   }
 }
 
@@ -1566,13 +1566,37 @@ button.danger {
   gap: 12px;
 }
 
+.profile-bar,
+.profile-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 4px;
+  flex-wrap: wrap;
+}
+
+.profile-bar select {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  flex: 1;
+}
+
+.profile-name input {
+  flex: 1;
+  min-width: 0;
+}
+
 .export-fields {
   max-height: 60vh;
   overflow-y: auto;
   padding-right: 4px;
 }
 
-.export-fields .field-label {
+.export-fields .field-label,
+.profile-bar > .field-label {
   width: 130px;
 }
 

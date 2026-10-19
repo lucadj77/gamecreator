@@ -72,6 +72,28 @@ export class ExportWindow {
     return img
   }
 
+  /**
+   * WebP da un PNG: Electron non lo scrive da sé, lo codifica Chromium nella finestra nascosta.
+   * La qualità va da 1 a 100.
+   */
+  async toWebp(png: Buffer, quality: number): Promise<Buffer> {
+    const b64: string = await this.win.webContents.executeJavaScript(`(async () => {
+      const bin = atob(${JSON.stringify(png.toString('base64'))})
+      const bytes = new Uint8Array(bin.length)
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+      const bmp = await createImageBitmap(new Blob([bytes], { type: 'image/png' }))
+      const canvas = new OffscreenCanvas(bmp.width, bmp.height)
+      canvas.getContext('2d').drawImage(bmp, 0, 0)
+      const blob = await canvas.convertToBlob({ type: 'image/webp', quality: ${quality / 100} })
+      if (blob.type !== 'image/webp') throw new Error('WebP encoding not available')
+      const out = new Uint8Array(await blob.arrayBuffer())
+      let s = ''
+      for (let i = 0; i < out.length; i += 0x8000) s += String.fromCharCode(...out.subarray(i, i + 0x8000))
+      return btoa(s)
+    })()`)
+    return Buffer.from(b64, 'base64')
+  }
+
   /** PDF delle pagine della scena, con il formato dato da @page */
   printToPdf(): Promise<Buffer> {
     return this.win.webContents.printToPDF({

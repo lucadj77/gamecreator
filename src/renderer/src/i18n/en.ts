@@ -761,6 +761,17 @@ export const en = {
   'export.perPageRotated': '{cols} × {rows} = {n} cards per page, rotated 90°',
   'export.rotate': 'Rotation',
   'export.poster': 'Poster',
+  'export.fold': 'Fold',
+  'export.foldPairs': 'Front and back side by side, to fold',
+  'export.foldHint':
+    'Each card takes a double cell: front on the left, back on the right, fold along the dashed marks. Duplex, sides, rotation and poster do not apply.',
+  'export.extras': 'Also',
+  'export.proof': 'Proof sheet: every card small, in a separate PDF',
+  'export.cmyk': 'Convert to CMYK',
+  'export.cmykHint':
+    'Needs Ghostscript installed on the computer (for example with Homebrew: brew install ghostscript). Without it the PDF stays RGB and a warning says so.',
+  'export.cmykUnavailable':
+    'The PDF stayed in RGB: Ghostscript is not installed, or the CMYK conversion failed.',
   'export.posterSplit': 'Split cards larger than the page over several pages',
   'export.posterOverlap': 'overlap',
   'export.posterHint':

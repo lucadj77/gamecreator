@@ -19,13 +19,13 @@ export interface CommonOptions {
 }
 
 export interface ImageOptions extends CommonOptions {
-  format: 'png' | 'jpg'
-  /** Qualità JPG, 1-100 */
+  format: 'png' | 'jpg' | 'webp'
+  /** Qualità JPG e WebP, 1-100 */
   quality: number
   dpi: number
   bleed: boolean
   sides: SidesChoice
-  /** Fuori dagli angoli arrotondati: trasparente (solo PNG) o bianco */
+  /** Fuori dagli angoli arrotondati: trasparente (PNG e WebP) o bianco */
   transparent: boolean
   /** Nome dei file: %set, %n, %copy, %side, {campo}; / crea sottocartelle */
   pattern: string
@@ -68,6 +68,12 @@ export interface PdfOptions extends CommonOptions {
   poster: boolean
   /** Sovrapposizione tra le parti del poster, in mm */
   posterOverlap: number
+  /** Fronte e retro affiancati sulla stessa pagina, da piegare lungo la linea in mezzo */
+  fold: boolean
+  /** Un PDF in più con tutte le carte in piccolo, per controllarle */
+  proof: boolean
+  /** Conversione in CMYK con Ghostscript, se installato */
+  cmyk: boolean
 }
 
 export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
@@ -139,7 +145,10 @@ export const DEFAULT_PDF: PdfOptions = {
   split: 'single',
   autoRotate: true,
   poster: true,
-  posterOverlap: 10
+  posterOverlap: 10,
+  fold: false,
+  proof: false,
+  cmyk: false
 }
 
 export const DEFAULT_TTS: TtsOptions = {
@@ -215,6 +224,10 @@ export interface SceneItem {
   mode: CardMode
   /** Rotazione in senso orario: la posizione è l'angolo in alto a sinistra della carta ruotata */
   rotate?: 0 | 90 | 270
+  /** Parte della carta da non disegnare a sinistra e a destra, in mm (nei fogli da piegare) */
+  crop?: { l: number; r: number }
+  /** Ingrandimento della carta: minore di 1 nei fogli di prova */
+  zoom?: number
 }
 
 export interface SceneLine {
@@ -222,6 +235,8 @@ export interface SceneLine {
   y1: number
   x2: number
   y2: number
+  /** Tratteggiata: la linea di piegatura */
+  dash?: boolean
 }
 
 export interface SceneLabel {
@@ -368,8 +383,9 @@ export function pdfGrid(
   o: PdfOptions,
   card: { width: number; height: number; bleed: number }
 ): Grid {
-  const upright = gridFor(o, card, false)
-  if (!o.autoRotate || o.layout === 'fixed') return upright
+  // nella piegatura la cella è la coppia fronte e retro, che non si ruota
+  const upright = gridFor(o, o.fold ? { ...card, width: 2 * card.width } : card, false)
+  if (!o.autoRotate || o.layout === 'fixed' || o.fold) return upright
   const turned = gridFor(o, card, true)
   // si ruota quando la carta dritta non entra e ruotata sì, o quando ruotata ne entrano di più
   if (gridOverflows(upright) && !gridOverflows(turned)) return turned

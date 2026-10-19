@@ -775,6 +775,17 @@ export const it: Record<MessageKey, string> = {
   'export.perPageRotated': '{cols} × {rows} = {n} carte per pagina, ruotate di 90°',
   'export.rotate': 'Rotazione',
   'export.poster': 'Poster',
+  'export.fold': 'Piegatura',
+  'export.foldPairs': 'Fronte e retro affiancati, da piegare',
+  'export.foldHint':
+    'Ogni carta occupa una cella doppia: fronte a sinistra, retro a destra, da piegare lungo i trattini. Fronte-retro, lati, rotazione e poster non si applicano.',
+  'export.extras': 'Inoltre',
+  'export.proof': 'Foglio di prova: tutte le carte in piccolo, in un PDF a parte',
+  'export.cmyk': 'Converti in CMYK',
+  'export.cmykHint':
+    'Serve Ghostscript installato sul computer (per esempio con Homebrew: brew install ghostscript). Senza, il PDF resta in RGB e un avviso lo segnala.',
+  'export.cmykUnavailable':
+    'Il PDF è rimasto in RGB: Ghostscript non è installato, o la conversione in CMYK non è riuscita.',
   'export.posterSplit': 'Dividi su più pagine le carte più grandi della pagina',
   'export.posterOverlap': 'sovrapposizione',
   'export.posterHint':

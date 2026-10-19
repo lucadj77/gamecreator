@@ -1,5 +1,8 @@
-import { mkdir, writeFile } from 'fs/promises'
+import { execFile } from 'child_process'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises'
+import { tmpdir } from 'os'
 import { dirname, join, resolve } from 'path'
+import { promisify } from 'util'
 import { pathToFileURL } from 'url'
 import type { NativeImage } from 'electron'
 import {
@@ -35,6 +38,8 @@ import type { Side, Template } from '../../shared/model/template'
 import { ExportWindow } from './window'
 
 // Esegue un'esportazione: prepara le scene, le fa disegnare alla finestra nascosta e scrive i file.
+
+const execFileAsync = promisify(execFile)
 
 /** 96 pixel CSS per pollice: le pagine del PDF si misurano così */
 const PDF_SCALE = 96 / 25.4
@@ -127,7 +132,7 @@ async function exportImages(ctx: Ctx, o: ImageOptions, sets: ExportSet[]): Promi
   const files = planImages(o, sets)
   ctx.progress.total = files.length
   const scale = o.dpi / 25.4
-  const transparent = o.transparent && o.format === 'png'
+  const transparent = o.transparent && o.format !== 'jpg'
   for (const f of files) {
     if (f.names.length) {
       const img = await renderCard(ctx, f.card.template, f.side, scale, {
@@ -135,7 +140,12 @@ async function exportImages(ctx: Ctx, o: ImageOptions, sets: ExportSet[]): Promi
         mode: 'trim',
         background: transparent ? null : '#FFFFFF'
       })
-      const data = ext === 'jpg' ? img.toJPEG(clampQuality(o.quality)) : img.toPNG()
+      const data =
+        ext === 'jpg'
+          ? img.toJPEG(clampQuality(o.quality))
+          : ext === 'webp'
+            ? await ctx.win.toWebp(img.toPNG(), clampQuality(o.quality))
+            : img.toPNG()
       // le copie sono la stessa immagine: si disegna una volta sola
       for (const name of f.names) await write(ctx, join(folder, `${name}.${ext}`), data)
     }
@@ -158,6 +168,7 @@ async function exportPdf(
   const folder = outputFolder(ctx, o.folder)
   const page = pageSize(o)
   const { docs, overflow } = planPdf(o, sets, project)
+  let cmykWarned = false
   for (const set of overflow) ctx.result.warnings.push(msg('export.gridOverflow', { set }))
   ctx.progress.total = docs.length
   for (const doc of docs) {
@@ -170,8 +181,60 @@ async function exportPdf(
       linesOver: o.marksOver
     }
     await ctx.win.show(scene, page.width * PDF_SCALE, page.height * PDF_SCALE)
-    await write(ctx, join(folder, `${doc.name}.pdf`), await ctx.win.printToPdf())
+    let pdf = await ctx.win.printToPdf()
+    if (o.cmyk) {
+      const converted = await toCmyk(pdf)
+      if (converted) pdf = converted
+      else if (!cmykWarned) {
+        ctx.result.warnings.push(msg('export.cmykUnavailable'))
+        cmykWarned = true
+      }
+    }
+    await write(ctx, join(folder, `${doc.name}.pdf`), pdf)
     step(ctx)
+  }
+}
+
+/** Ghostscript, se installato: dalle app aperte dal Finder il PATH non comprende Homebrew */
+async function findGhostscript(): Promise<string | null> {
+  const names = process.platform === 'win32' ? ['gswin64c', 'gswin32c', 'gs'] : ['gs']
+  const dirs = ['', '/opt/homebrew/bin/', '/usr/local/bin/', '/usr/bin/']
+  for (const dir of dirs)
+    for (const name of names)
+      try {
+        await execFileAsync(dir + name, ['--version'])
+        return dir + name
+      } catch {
+        // si prova il prossimo
+      }
+  return null
+}
+
+/** Il PDF convertito in CMYK, o null se Ghostscript non c'è o la conversione non riesce */
+async function toCmyk(pdf: Buffer): Promise<Buffer | null> {
+  const gs = await findGhostscript()
+  if (!gs) return null
+  const dir = await mkdtemp(join(tmpdir(), 'gamecreator-cmyk-'))
+  try {
+    const input = join(dir, 'rgb.pdf')
+    const output = join(dir, 'cmyk.pdf')
+    await writeFile(input, pdf)
+    await execFileAsync(gs, [
+      '-q',
+      '-dNOPAUSE',
+      '-dBATCH',
+      '-dSAFER',
+      '-sDEVICE=pdfwrite',
+      '-sColorConversionStrategy=CMYK',
+      '-sProcessColorModel=DeviceCMYK',
+      `-sOutputFile=${output}`,
+      input
+    ])
+    return await readFile(output)
+  } catch {
+    return null
+  } finally {
+    await rm(dir, { recursive: true, force: true })
   }
 }
 

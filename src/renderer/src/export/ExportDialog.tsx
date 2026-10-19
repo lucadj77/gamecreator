@@ -386,11 +386,12 @@ export default function ExportDialog({
                     img.format,
                     [
                       ['png', 'PNG'],
-                      ['jpg', 'JPG']
+                      ['jpg', 'JPG'],
+                      ['webp', 'WebP']
                     ],
                     (format) => patch({ format })
                   )}
-                  {img.format === 'jpg' && (
+                  {img.format !== 'png' && (
                     <>
                       <span className="unit">{t('export.quality')}</span>
                       <input
@@ -455,7 +456,7 @@ export default function ExportDialog({
                 'export.sides',
                 select(img.sides, sides, (s) => patch({ sides: s }))
               )}
-              {img.format === 'png' &&
+              {img.format !== 'jpg' &&
                 !img.bleed &&
                 field(
                   'export.background',
@@ -562,12 +563,19 @@ export default function ExportDialog({
                 </>,
                 perPage ?? undefined
               )}
+              {field(
+                'export.fold',
+                check(pdf.fold, (fold) => patch({ fold }), 'export.foldPairs'),
+                pdf.fold ? t('export.foldHint') : undefined
+              )}
               {pdf.layout === 'auto' &&
+                !pdf.fold &&
                 field(
                   'export.rotate',
                   check(pdf.autoRotate, (autoRotate) => patch({ autoRotate }), 'export.autoRotate')
                 )}
               {pdf.layout === 'auto' &&
+                !pdf.fold &&
                 field(
                   'export.poster',
                   <>
@@ -632,33 +640,36 @@ export default function ExportDialog({
                   )}
                 </>
               )}
-              {field(
-                'export.duplex',
-                select(
-                  pdf.duplex,
-                  [
-                    ['none', t('export.duplexNone')],
-                    ['long', t('export.duplexLong')],
-                    ['short', t('export.duplexShort')]
-                  ],
-                  (duplex) => patch({ duplex })
-                )
-              )}
-              {pdf.duplex === 'none'
-                ? field(
-                    'export.sides',
-                    select(pdf.sides, sides, (s) => patch({ sides: s }))
+              {!pdf.fold &&
+                field(
+                  'export.duplex',
+                  select(
+                    pdf.duplex,
+                    [
+                      ['none', t('export.duplexNone')],
+                      ['long', t('export.duplexLong')],
+                      ['short', t('export.duplexShort')]
+                    ],
+                    (duplex) => patch({ duplex })
                   )
-                : field(
-                    'export.offset',
-                    <>
-                      <span className="unit">x</span>
-                      {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
-                      <span className="unit">y</span>
-                      {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
-                    </>,
-                    t('export.offsetHint')
-                  )}
+                )}
+              {pdf.fold
+                ? null
+                : pdf.duplex === 'none'
+                  ? field(
+                      'export.sides',
+                      select(pdf.sides, sides, (s) => patch({ sides: s }))
+                    )
+                  : field(
+                      'export.offset',
+                      <>
+                        <span className="unit">x</span>
+                        {mm(pdf.offsetX, (offsetX) => patch({ offsetX }))}
+                        <span className="unit">y</span>
+                        {mm(pdf.offsetY, (offsetY) => patch({ offsetY }))}
+                      </>,
+                      t('export.offsetHint')
+                    )}
               {field(
                 'export.files',
                 select(
@@ -670,6 +681,14 @@ export default function ExportDialog({
                   ],
                   (split) => patch({ split })
                 )
+              )}
+              {field(
+                'export.extras',
+                <>
+                  {check(pdf.proof, (proof) => patch({ proof }), 'export.proof')}
+                  {check(pdf.cmyk, (cmyk) => patch({ cmyk }), 'export.cmyk')}
+                </>,
+                pdf.cmyk ? t('export.cmykHint') : undefined
               )}
               {field('export.folder', folderField(pdf.folder, defaults.export, 'folder'))}
             </>

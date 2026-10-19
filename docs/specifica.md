@@ -336,11 +336,11 @@ Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una fin
 
 | Opzione       | Valori                                                                                                  |
 | ------------- | ------------------------------------------------------------------------------------------------------- |
-| formato       | PNG, JPG (qualità); WebP non ancora                                                                     |
+| formato       | PNG, JPG, WebP (qualità per JPG e WebP)                                                                 |
 | risoluzione   | 150, 300, 600 DPI o personalizzata                                                                      |
 | abbondanza    | inclusa, esclusa                                                                                        |
 | lati          | fronte, retro, entrambi                                                                                 |
-| sfondo        | fuori dagli angoli arrotondati: bianco o trasparente (PNG, senza abbondanza)                            |
+| sfondo        | fuori dagli angoli arrotondati: bianco o trasparente (PNG e WebP, senza abbondanza)                     |
 | nome dei file | modello con `%set`, `%n` (posizione nel set), `%copy`, `%side`, `{campo}`; per esempio `%set/%n_{nome}` |
 
 Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al nome (`_front`, `_back`); con le copie succede lo stesso per `%copy`. I nomi ripetuti ricevono `_2`, `_3`.
@@ -359,11 +359,15 @@ Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al no
 | poster               | le carte più grandi della pagina si dividono su più pagine che si sovrappongono (mm), con il nome di ogni parte (A1, B1…) |
 | piegatura            | fronte e retro affiancati sulla stessa pagina, con linea di piegatura                                                     |
 | file                 | unico, uno per set, uno per lato                                                                                          |
-| fogli di prova       | pagina riepilogo a bassa risoluzione con tutte le carte                                                                   |
+| fogli di prova       | PDF a parte con tutte le carte in piccolo, con set e numero                                                               |
 
-Piegatura e fogli di prova non sono ancora disponibili. Il poster vale con la disposizione automatica: una carta che non entra nella pagina, nemmeno ruotata, si divide in parti uguali che si sovrappongono almeno quanto indicato (di base 10 mm), scegliendo l'orientamento con meno pagine. Ogni pagina porta i segni di taglio della carta dove cadono, dei trattini corti nei margini dove comincia la parte accanto e, sotto, il nome della parte con set e numero della carta. I retri seguono come pagine a parte, senza fronte-retro. Le carte ruotate girano in senso orario; nel fronte-retro i retri ruotano in modo da combaciare con i fronti quando si gira il foglio. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
+Il poster vale con la disposizione automatica: una carta che non entra nella pagina, nemmeno ruotata, si divide in parti uguali che si sovrappongono almeno quanto indicato (di base 10 mm), scegliendo l'orientamento con meno pagine. Ogni pagina porta i segni di taglio della carta dove cadono, dei trattini corti nei margini dove comincia la parte accanto e, sotto, il nome della parte con set e numero della carta. I retri seguono come pagine a parte, senza fronte-retro. Le carte ruotate girano in senso orario; nel fronte-retro i retri ruotano in modo da combaciare con i fronti quando si gira il foglio. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
 
-Il PDF è vettoriale, con i font incorporati e in RGB. Il CMYK richiesto da alcune tipografie richiede una conversione successiva: da valutare con Ghostscript in un secondo momento.
+Con la piegatura ogni carta occupa una cella larga il doppio, con il fronte a sinistra e il retro a destra, entrambi dritti: piegando lungo i trattini (sopra e sotto la coppia) il retro finisce dietro il fronte. Con l'abbondanza la coppia la ha solo all'esterno; senza, le carte sono rettangoli di taglio. Fronte-retro, scelta dei lati, rotazione e poster non valgono.
+
+Il foglio di prova è un PDF in più (`nome_proof.pdf`) con tutte le carte del set in piccolo, una per riga del foglio senza copie, con set e numero sotto; i retri compaiono se si esportano.
+
+Il PDF è vettoriale, con i font incorporati e in RGB. **Converti in CMYK** passa il PDF a Ghostscript (`-sColorConversionStrategy=CMYK`), se è installato sul computer (cercato nel PATH e nelle cartelle di Homebrew). Senza Ghostscript, o se la conversione non riesce, il PDF resta RGB e la finestra lo segnala. La conversione usa il profilo predefinito di Ghostscript: per un profilo colore preciso della tipografia serve ancora un programma di prestampa.
 
 ### 9.3 Tabletop Simulator
 

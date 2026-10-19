@@ -74,3 +74,36 @@ describe("piano dell'esportazione", () => {
     })
   })
 })
+
+describe('piegatura e fogli di prova', () => {
+  it('piegatura: fronte e retro affiancati, abbondanza solo all esterno', () => {
+    const cards = Array.from({ length: 5 }, (_, i) => card(i + 1))
+    const o = { ...DEFAULT_PDF, fold: true, bleed: true, landscape: true, duplex: 'long' as const }
+    const plan = planPdf(o, [{ name: 'a', cards }], 'gioco')
+    const page = plan.docs[0].pages[0]
+    // A4 orizzontale, 297 - 20 di margine: coppie larghe 2 × 63 + 6 → 2 per riga, 2 righe
+    expect(plan.docs[0].pages).toHaveLength(2)
+    const [front, back] = page.items
+    expect([front.side, back.side]).toEqual(['front', 'back'])
+    expect(back.x - front.x).toBe(63)
+    expect(front.crop).toEqual({ l: 0, r: 3 })
+    expect(back.crop).toEqual({ l: 3, r: 0 })
+    // la piegatura è tratteggiata, sulla linea tra i due lati
+    const fold = page.lines.filter((l) => l.dash)
+    expect(fold[0].x1).toBeCloseTo(front.x + 3 + 63)
+  })
+
+  it('fogli di prova: un PDF in più con tutte le carte rimpicciolite', () => {
+    const cards = Array.from({ length: 3 }, (_, i) => card(i + 1))
+    const plan = planPdf(
+      { ...DEFAULT_PDF, proof: true, sides: 'both' },
+      [{ name: 'a', cards }],
+      'gioco'
+    )
+    expect(plan.docs.map((d) => d.name)).toEqual(['gioco', 'gioco_proof'])
+    const proof = plan.docs[1].pages[0]
+    expect(proof.items).toHaveLength(6)
+    expect(proof.items[0].zoom).toBeLessThan(1)
+    expect(proof.labels?.map((l) => l.text).slice(0, 2)).toEqual(['a 1', 'a 1 · back'])
+  })
+})

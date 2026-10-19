@@ -21,7 +21,17 @@ export default function ScenePageView({
       style={{ position: 'absolute', left: 0, top: 0 }}
     >
       {p.lines.map((l, i) => (
-        <line key={i} {...l} stroke={s.lineColor} strokeWidth={s.lineWidth} strokeLinecap="butt" />
+        <line
+          key={i}
+          x1={l.x1}
+          y1={l.y1}
+          x2={l.x2}
+          y2={l.y2}
+          stroke={s.lineColor}
+          strokeWidth={s.lineWidth}
+          strokeLinecap="butt"
+          strokeDasharray={l.dash ? '1 0.8' : undefined}
+        />
       ))}
       {p.labels?.map((l, i) => (
         <text
@@ -62,25 +72,50 @@ export default function ScenePageView({
           height: c.h * s.scale
         }}
       >
-        {p.items.map((it, i) => (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              left: (it.x - c.x) * s.scale,
-              top: (it.y - c.y) * s.scale,
-              ...turn(it, s.scale)
-            }}
-          >
+        {p.items.map((it, i) => {
+          const card = (
             <CardSvg
               template={it.template}
               side={it.side}
-              scale={s.scale}
+              scale={s.scale * (it.zoom ?? 1)}
               mode={it.mode}
               guides={false}
             />
-          </div>
-        ))}
+          )
+          const crop = it.crop
+          if (crop && (crop.l || crop.r)) {
+            // solo la parte tra i due tagli: nei fogli da piegare l'abbondanza in mezzo non c'è
+            const b = it.mode === 'bleed' ? it.template.bleed : 0
+            return (
+              <div
+                key={i}
+                style={{
+                  position: 'absolute',
+                  overflow: 'hidden',
+                  left: (it.x + crop.l - c.x) * s.scale,
+                  top: (it.y - c.y) * s.scale,
+                  width: (it.template.width + 2 * b - crop.l - crop.r) * s.scale,
+                  height: (it.template.height + 2 * b) * s.scale
+                }}
+              >
+                <div style={{ position: 'absolute', left: -crop.l * s.scale, top: 0 }}>{card}</div>
+              </div>
+            )
+          }
+          return (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                left: (it.x - c.x) * s.scale,
+                top: (it.y - c.y) * s.scale,
+                ...turn(it, s.scale)
+              }}
+            >
+              {card}
+            </div>
+          )
+        })}
       </div>
       {s.linesOver && lines}
     </div>

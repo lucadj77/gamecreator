@@ -1,5 +1,5 @@
-appId: com.gamecreator.app
-productName: GameCreator
+appId: com.naibi.app
+productName: Naibi
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: gamecreator
+  executableName: naibi
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

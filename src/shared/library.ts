@@ -80,6 +80,17 @@ export interface IconImport {
   name: string
 }
 
+/** Famiglia di font installata sul computer */
+export interface SystemFontFamily {
+  family: string
+  /** Numero di stili (pesi e corsivi) */
+  styles: number
+  /** Si può copiare in assets/fonts/ */
+  copyable: boolean
+  /** Perché non si copia: è solo in una raccolta (ttc) o il produttore vieta l'incorporamento */
+  reason?: 'collection' | 'restricted'
+}
+
 export interface FontVariant {
   weight: number
   italic: boolean

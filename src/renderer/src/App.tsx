@@ -159,7 +159,7 @@ function App(): React.JSX.Element {
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
   const [dirtySheets, setDirtySheets] = useState<Set<string>>(new Set())
-  /** gamecreator.json da riscrivere (set nuovi) */
+  /** file di progetto da riscrivere (set nuovi) */
   const [fileDirty, setFileDirty] = useState(false)
   const [history, setHistory] = useState<{
     past: DataSnapshot[]

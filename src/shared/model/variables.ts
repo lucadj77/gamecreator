@@ -125,6 +125,17 @@ export function resolveColor(
   return Object.prototype.hasOwnProperty.call(pal, name) ? pal[name] : color
 }
 
+/**
+ * Font effettivo: "{titoli}" dà il testo della variabile titoli (anche se richiama altre
+ * variabili); ogni altro valore è già il nome di una famiglia.
+ */
+export function resolveFont(font: string, vars: Variables | undefined): string {
+  const m = font.trim().match(/^\{([^{}]+)\}$/)
+  if (!m) return font
+  const value = variableFields(vars)[m[1].trim()]
+  return value === undefined ? font : value.trim()
+}
+
 /** Variabile immagine con questo nome, se c'è */
 export function imageVariable(
   name: string,

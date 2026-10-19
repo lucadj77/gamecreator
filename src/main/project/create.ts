@@ -5,7 +5,7 @@ import { projectFolderName } from '../../shared/model/projectName'
 import { MessageError, msg } from '../../shared/messages'
 
 /**
- * Crea un progetto vuoto in <parent>/<nome>: gamecreator.json e le cartelle. Il file dati si
+ * Crea un progetto vuoto in <parent>/<nome>: naibi.json e le cartelle. Il file dati si
  * scrive al primo salvataggio di un set. La cartella deve essere nuova o vuota.
  */
 export async function createProject(

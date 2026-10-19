@@ -166,7 +166,7 @@ L'interfaccia è in inglese, con la traduzione italiana come prima lingua aggiun
 
 ### 2.3 Font
 
-Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livello o nel markup (`font=Open_Sans`).
+Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livello o nel markup (`font=Open_Sans`). Al posto del nome si può scrivere una variabile di testo tra graffe, `{titoli}`, nel campo del font, negli stili e nel markup (`font={titoli}`): cambiando il testo della variabile cambia il font di tutti i livelli che la usano, come per le variabili colore. Il campo del font propone le variabili di testo e mostra il font che ne risulta.
 
 - I file di font del progetto stanno in `assets/fonts/` (`.ttf`, `.otf`, `.woff`, `.woff2`), anche in sottocartelle. All'apertura del progetto l'app legge da ogni file famiglia, peso e stile, compresi i font variabili, e li usa in anteprima e nell'esportazione; dopo aver copiato un font serve **Ricarica**. Se un file non si legge, la famiglia è il nome della sottocartella (`fonts/Open Sans/...`) o la parte del nome del file prima di `-`.
 - Nunito, il font predefinito, è incluso nell'app e funziona senza rete.
@@ -240,7 +240,7 @@ Definite a livello di progetto, si richiamano con `{nome}` in qualunque testo e 
 
 Ogni variabile ha un'anteprima nell'elenco. Rinominare una variabile aggiorna i riferimenti in template e fogli.
 
-Stato attuale: le variabili sono nella sezione "Variabili" della barra laterale, con un editor che mostra l'anteprima in una frase di prova, e si salvano in `gamecreator.json` (docs/formato.md). Le variabili immagine hanno file, tinta, dimensione rispetto alla riga e spostamento verticale; quelle di testo possono contenere markup e richiamare altre variabili; quelle valore entrano nelle formule come i campi; quelle colore valgono in ogni proprietà colore dei livelli e negli attributi del markup (`color=`, `bg-color=`, `fill=`, `border=`, `highlight=`), scritte come `rosso` o `{rosso}`, e compaiono tra i suggerimenti. Rinominare una variabile aggiorna i richiami nei template, nelle celle dei fogli, nelle altre variabili e negli stili (`{nome}`, `{nome*3}`, `color=nome`, e il nome senza graffe nelle proprietà colore e immagine); dove un campo ha lo stesso nome, `{nome}` è il campo e resta com'è. ⌘Z annulla la rinomina. Una variabile immagine con tinta "colore del testo" (`currentColor`) prende il colore del testo in cui è inserita.
+Stato attuale: le variabili sono nella sezione "Variabili" della barra laterale, con un editor che mostra l'anteprima in una frase di prova, e si salvano in `naibi.json` (docs/formato.md). Le variabili immagine hanno file, tinta, dimensione rispetto alla riga e spostamento verticale; quelle di testo possono contenere markup e richiamare altre variabili; quelle valore entrano nelle formule come i campi; quelle colore valgono in ogni proprietà colore dei livelli e negli attributi del markup (`color=`, `bg-color=`, `fill=`, `border=`, `highlight=`), scritte come `rosso` o `{rosso}`, e compaiono tra i suggerimenti. Rinominare una variabile aggiorna i richiami nei template, nelle celle dei fogli, nelle altre variabili e negli stili (`{nome}`, `{nome*3}`, `color=nome`, e il nome senza graffe nelle proprietà colore e immagine); dove un campo ha lo stesso nome, `{nome}` è il campo e resta com'è. ⌘Z annulla la rinomina. Una variabile immagine con tinta "colore del testo" (`currentColor`) prende il colore del testo in cui è inserita.
 
 Le immagini nel testo, variabili o file di `assets/`, accettano attributi dopo il nome, che per quel solo uso prevalgono su quelli della variabile: `{spada tint=red size=150% rotate=90 flip=h opacity=50%}`, anche con le ripetizioni (`{spada*3 tint=red}`).
 
@@ -328,7 +328,7 @@ Le voci della barra laterale (set, template, stili, variabili) si riordinano tra
 
 Le esportazioni si salvano come profili nel progetto, così si possono rilanciare. Ogni profilo indica i set da includere e se rispettare le copie.
 
-Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `gamecreator.json` sotto la chiave `export`, una per tipo. In cima alla finestra, **Profilo** sceglie un profilo con nome, il cui tipo e le cui opzioni (set e cartella compresi) passano nella finestra; **Salva** aggiorna il profilo scelto con le opzioni attuali, **Salva come…** ne crea uno nuovo e × lo elimina. I profili si scrivono subito nel progetto, sotto `export.named`. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
+Stato (ottobre 2026): il comando **Esporta…** nella barra in alto apre una finestra con tre schede (immagini, PDF, Tabletop Simulator). Le opzioni usate per ultime si salvano in `naibi.json` sotto la chiave `export`, una per tipo. In cima alla finestra, **Profilo** sceglie un profilo con nome, il cui tipo e le cui opzioni (set e cartella compresi) passano nella finestra; **Salva** aggiorna il profilo scelto con le opzioni attuali, **Salva come…** ne crea uno nuovo e × lo elimina. I profili si scrivono subito nel progetto, sotto `export.named`. Le carte si disegnano in una finestra nascosta con lo stesso codice dell'anteprima, quindi l'esportazione coincide con ciò che si vede, comprese le modifiche non ancora salvate. Le immagini mancanti in `assets/` escono come segnaposto e la finestra elenca le carte coinvolte.
 
 **Anteprima…**, accanto a **Esporta**, mostra uno alla volta i file che l'esportazione scriverà con le opzioni attuali, senza scrivere nulla: le immagini delle carte con il nome del file, le pagine del PDF con i segni di taglio, i fogli di Tabletop Simulator con la carta nascosta. Si scorrono con ‹ › o con le frecce, e da lì si può esportare. L'anteprima e l'esportazione usano lo stesso piano (`src/shared/exportPlan.ts`), quindi impaginazione e nomi coincidono.
 
@@ -423,12 +423,13 @@ Licenza: CC0, non serve citare l'autore. La voce in `assets/sources.json` resta 
 
 ### 10.2 Font di Google Fonts
 
-Il pulsante **Aa** accanto al campo del font apre una finestra con due schede:
+Il pulsante **Aa** accanto al campo del font apre una finestra con tre schede:
 
 - **Progetto**: i font in `assets/fonts/` più quelli dell'app, con l'anteprima del testo di prova; un clic sceglie la famiglia.
 - **Google Fonts**: il catalogo (circa 1900 famiglie) con filtro per categoria e ricerca approssimata. L'anteprima si scarica da Google mentre si scorre, quindi richiede la rete. Aprendo una famiglia si scelgono pesi e corsivi (di base normale e grassetto, più il corsivo se c'è) e **Scarica** salva i file in `assets/fonts/<Famiglia>/` insieme al testo della licenza, aggiunge le voci a `assets/sources.json` e assegna la famiglia al livello.
+- **Sul computer**: i font installati, letti dalle cartelle dei font del sistema (macOS, Windows, Linux) alla prima apertura della scheda. Un clic usa la famiglia così com'è installata; **Copia nel progetto** copia i file in `assets/fonts/<Famiglia>/` e li registra in `assets/sources.json` (fonte "computer", con l'autore e, se il file la dichiara, la licenza OFL, Apache o UFL; altrimenti "da verificare"). Non si copiano i font che stanno solo in una raccolta (`.ttc`, frequenti su macOS) né quelli il cui produttore vieta l'incorporamento (OS/2 fsType); restano usabili, ma solo su quel computer.
 
-Si scaricano file TTF statici, uno per peso: nel PDF si incorporano come TrueType, mentre i font variabili diventerebbero Type 3. I font installati sul computer non compaiono nell'elenco: si possono scrivere a mano nel campo, ma per esportare su un altro computer conviene copiarli in `assets/fonts/`. Le licenze di Google Fonts (OFL, Apache, UFL) permettono l'uso nei giochi stampati; per circa 160 famiglie il catalogo non indica la licenza, che si ricava al momento del download.
+Si scaricano file TTF statici, uno per peso: nel PDF si incorporano come TrueType, mentre i font variabili diventerebbero Type 3. Un progetto che usa un font del computer senza copiarlo si vede uguale solo dove quel font è installato. Le licenze di Google Fonts (OFL, Apache, UFL) permettono l'uso nei giochi stampati; per circa 160 famiglie il catalogo non indica la licenza, che si ricava al momento del download.
 
 ### 10.3 Crediti
 
@@ -438,8 +439,9 @@ Nella finestra di esportazione, **Crediti…** compone il testo da mettere nel r
 
 All'avvio l'app mostra la schermata di ingresso, non l'ultimo progetto aperto. Contiene:
 
-- **Nuovo progetto…**: chiede nome e posizione (predefinita `Documenti/GameCreator`, poi l'ultima usata) e crea la cartella `<posizione>/<nome>` con `gamecreator.json` e le cartelle `data/`, `templates/` e `assets/`. Il file dati `data/cards.xlsx` si scrive al primo salvataggio di un set. Dal nome della cartella si tolgono i caratteri non validi nei nomi di file; la cartella deve essere nuova o vuota.
-- **Apri progetto…**: sceglie una cartella che contiene `gamecreator.json`.
+- **Nuovo progetto…**: chiede nome e posizione (predefinita `Documenti/Naibi`, poi l'ultima usata) e crea la cartella `<posizione>/<nome>` con `naibi.json` e le cartelle `data/`, `templates/` e `assets/`. Il file dati `data/cards.xlsx` si scrive al primo salvataggio di un set. Dal nome della cartella si tolgono i caratteri non validi nei nomi di file; la cartella deve essere nuova o vuota.
+- **Apri progetto…**: sceglie una cartella che contiene `naibi.json` (o `gamecreator.json`, nei progetti creati prima del cambio di nome).
+- **Cosa vuol dire Naibi?**: link discreto in basso a destra, apre una finestra che racconta l'origine del nome.
 - **Importa da Tabletop Creator…**: converte un progetto Tabletop Creator in un progetto nuovo, senza modificare l'originale.
 - **Progetti recenti**: fino a 24, dal più recente, con miniatura, nome, data dell'ultima apertura e cartella. Un progetto spostato o cancellato resta nell'elenco come "cartella non trovata"; la × toglie un progetto dall'elenco senza toccare la cartella.
 

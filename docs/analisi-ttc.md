@@ -40,35 +40,35 @@ Un set usa un blueprint ed è una lista di carte. Ogni carta ha `amount` (copie)
 
 `{codice}` dentro un testo viene sostituito da un'icona, eventualmente ricolorata (`force_tint`, `color`). Le icone possono essere file del progetto (`assets/icons`) o della libreria interna di TTC (`Star/round-star`, `Board-Kenney/...`).
 
-## Conseguenze per GameCreator
+## Conseguenze per Naibi
 
 1. **I set sono già tabelle.** Righe = carte, colonne = `amount` più un campo per ogni pannello sostituibile (`punteggio`, `costo.color`, ...). Il foglio di calcolo può quindi essere la sorgente dati nativa, e l'import TTC si riduce a convertire ogni set in un foglio.
 2. **L'import TTC è fattibile senza reverse engineering**: tutto è JSON. Le parti non replicabili sono le icone della libreria interna di TTC (vanno sostituite con set liberi, per esempio Kenney che è CC0, già presente nella cartella giochi) e i font, che vanno recuperati da Google Fonts o dal sistema.
 3. **Unità in mm ovunque**, così anteprima e PDF restano coerenti; i pixel si calcolano solo in esportazione dal DPI scelto.
 
-## Proposta di formato GameCreator (prima bozza)
+## Proposta di formato Naibi (prima bozza)
 
 ```
 progetto/
-  gamecreator.json      # versione, nome, impostazioni di export, variabili
+  naibi.json      # versione, nome, impostazioni di export, variabili
   templates/<nome>.json # come i blueprint TTC, con numeri veri e chiavi in inglese
   data/<nome>.xlsx      # un foglio per set; oppure .csv/.ods
   assets/
 ```
 
-- Il collegamento tra set e template sta in `gamecreator.json`: `{ "set": "obiettivi", "template": "obiettivo", "source": "data/obiettivi.xlsx", "sheet": "Foglio1" }`.
+- Il collegamento tra set e template sta in `naibi.json`: `{ "set": "obiettivi", "template": "obiettivo", "source": "data/obiettivi.xlsx", "sheet": "Foglio1" }`.
 - Intestazioni di colonna: nome del pannello per il valore, `pannello.proprietà` per le altre proprietà (`costo.color`), `amount` per le copie.
 - Le celle vuote lasciano il valore del template.
 
 Punti da decidere: se tenere un file xlsx per set o un unico xlsx con un foglio per set; se supportare anche la scrittura nel formato TTC (export inverso) o solo l'import.
 
-## Importazione in GameCreator
+## Importazione in Naibi
 
 Il comando "Importa…" della barra in alto converte un progetto Tabletop Creator in una cartella nuova; la cartella di origine si legge soltanto. Codice: `src/shared/import/ttc.ts` (conversione dei dati), `src/shared/import/richText.ts` (testo formattato), `src/main/import/ttc.ts` (lettura e scrittura dei file).
 
 ### Cosa si converte
 
-| Tabletop Creator                         | GameCreator                                                                                                    |
+| Tabletop Creator                         | Naibi                                                                                                          |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | blueprint                                | template, con dimensioni, abbondanza, raggio degli angoli e campo che dà il nome alle carte                    |
 | gruppo di pannelli                       | livello gruppo                                                                                                 |

@@ -1,4 +1,5 @@
 import { BLOCK_STYLE, parseMarkup, resolveStyles, type Attrs, type Inline } from './markup'
+import { resolveFont, type Variables } from './variables'
 
 // Font richiamati dai testi: quello del livello e quelli del markup (font= e stili)
 
@@ -21,11 +22,16 @@ export function isGenericFont(family: string): boolean {
 }
 
 /** Famiglie scritte nel markup di un testo, direttamente o attraverso gli stili */
-export function markupFonts(src: string, styles: Record<string, string> = {}): string[] {
+export function markupFonts(
+  src: string,
+  styles: Record<string, string> = {},
+  variables?: Variables
+): string[] {
   const out = new Set<string>()
   const add = (a: Attrs): void => {
     const font = resolveStyles(a, styles).font
-    if (font) out.add(font)
+    // negli stili il font può essere una variabile: font={titoli}
+    if (font) out.add(resolveFont(font, variables))
   }
   const walk = (list: Inline[]): void =>
     list.forEach((n) => {

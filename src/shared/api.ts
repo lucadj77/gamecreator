@@ -12,6 +12,7 @@ import type {
 import type {
   AssetsUpdate,
   FontCatalog,
+  SystemFontFamily,
   FontVariant,
   IconCatalog,
   IconCollection,
@@ -25,7 +26,7 @@ export interface RecentProject {
   name: string
   /** Ultima apertura, in millisecondi */
   openedAt: number
-  /** La cartella non c'è più o non contiene gamecreator.json */
+  /** La cartella non c'è più o non contiene il file di progetto */
   missing: boolean
   /** Immagine della prima carta come data URL */
   thumbnail?: string
@@ -52,7 +53,7 @@ export interface Api {
   saveTemplate(template: Template): Promise<void>
   /** Sposta il file del template nel cestino del sistema */
   deleteTemplate(file: string): Promise<void>
-  /** Salva i fogli modificati e, se cambiati i set, gamecreator.json */
+  /** Salva i fogli modificati e, se cambiati i set, il file di progetto */
   saveData(changes: { file?: ProjectFile; sheets: Sheet[] }): Promise<void>
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */
   setUiZoom(factor: number): void
@@ -63,7 +64,7 @@ export interface Api {
   cancelExport(): void
   onExportProgress(cb: (p: ExportProgress) => void): () => void
   chooseExportFolder(current: string): Promise<string | null>
-  /** Ricorda le opzioni di esportazione in gamecreator.json */
+  /** Ricorda le opzioni di esportazione nel file di progetto */
   saveExportProfiles(profiles: ExportProfiles): Promise<void>
   /** Cartelle predefinite: export/ del progetto e Saved Objects di Tabletop Simulator */
   defaultExportFolders(): Promise<{ export: string; tts: string }>
@@ -76,6 +77,10 @@ export interface Api {
   fontCatalog(): Promise<FontCatalog>
   /** Scarica le varianti di un font Google in assets/fonts/<famiglia>/ */
   downloadFont(family: string, variants: FontVariant[]): Promise<AssetsUpdate>
+  /** Font installati sul computer, per famiglia */
+  systemFonts(): Promise<SystemFontFamily[]>
+  /** Copia i file di un font installato in assets/fonts/<famiglia>/ */
+  copySystemFont(family: string): Promise<AssetsUpdate>
   /** Scrive i crediti in export/credits.txt e restituisce il percorso */
   saveCredits(text: string): Promise<string>
   /** Sceglie una cartella qualsiasi, partendo da current */
@@ -100,7 +105,7 @@ export interface ExportPageApi {
 export interface TtcImportOptions {
   /** Cartella del progetto Tabletop Creator */
   source: string
-  /** Cartella nuova (o vuota) del progetto GameCreator */
+  /** Cartella nuova (o vuota) del progetto Naibi */
   target: string
   /** Cartella in cui cercare le icone della libreria che non sono nei cataloghi dell'app */
   iconFolder?: string

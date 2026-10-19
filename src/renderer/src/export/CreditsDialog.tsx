@@ -27,13 +27,17 @@ function usedByCards(project: LoadedProject): { assets: Set<string>; fonts: Set<
     const tpl = project.templates.find((x) => x.name === set.template)
     if (!tpl || !set.data) continue
     for (const row of set.data.rows) {
-      const bound = bindCard(tpl, rowToCard(set.data.headers, row), { assets: project.assets })
+      const bound = bindCard(tpl, rowToCard(set.data.headers, row), {
+        assets: project.assets,
+        variables: project.file.variables
+      })
       for (const l of walkLayers([...bound.template.front, ...bound.template.back])) {
         if (!l.visible) continue
         if (l.type === 'image') add(l.src)
         if (l.type === 'text') {
           markupRefs(l.text).forEach(add)
-          for (const f of [l.font, ...markupFonts(l.text, styles)]) fonts.add(f.toLowerCase())
+          for (const f of [l.font, ...markupFonts(l.text, styles, project.file.variables)])
+            fonts.add(f.toLowerCase())
         }
       }
     }

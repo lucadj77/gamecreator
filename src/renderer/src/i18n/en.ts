@@ -129,6 +129,7 @@ export const en = {
   'editor.clipHint':
     'Put a shape (e.g. a circle) at the bottom of the group: the layers above it show only inside that shape, and the shape itself is not drawn.',
   'editor.srcPlaceholder': 'image name, or {field}',
+  'editor.fontFromVariable': 'From the variable: {font}',
   'editor.fontMissing':
     'This font is not in assets/fonts nor installed on this computer: the text uses a default font. Copy the font file into assets/fonts and reload the project.',
   'credits.open': 'Credits…',
@@ -154,6 +155,17 @@ export const en = {
   'fonts.sampleLabel': 'Preview text',
   'fonts.fallbackFamily': 'monospace',
   'fonts.tabProject': 'In the project',
+  'fonts.tabSystem': 'On this computer',
+  'fonts.scanning': 'Looking for installed fonts…',
+  'fonts.reason.collection': 'in a collection, cannot be copied',
+  'fonts.reason.restricted': 'the maker does not allow copying it',
+  'fonts.copy': 'Copy to project',
+  'fonts.copyHint':
+    'Copies the font files to assets/fonts, so the project looks the same on another computer. Check first that the license allows it.',
+  'fonts.systemNote':
+    'A font from this computer only shows where it is installed: to export elsewhere, copy it to the project if the license allows it.',
+  'fonts.cannotCopy': 'The files of {family} cannot be copied to the project',
+  'license.unknown': 'to be checked',
   'fonts.search': 'Search fonts',
   'fonts.inProject': 'in the project',
   'fonts.inApp': 'included in the app',
@@ -227,7 +239,7 @@ export const en = {
   'editor.showSafe': 'Safe area',
   'editor.zoomHint': 'Zoom with ⌘/Ctrl + mouse wheel or by pinching the trackpad',
   'editor.zoomFit': 'Fit',
-  'tip.openProject': 'Open a folder that contains a GameCreator project',
+  'tip.openProject': 'Open a folder that contains a Naibi project',
   'tip.reload': 'Read the project again from disk; unsaved changes are lost',
   'tip.export': 'Export the cards as images, PDF or Tabletop Simulator decks',
   'tip.openSet': 'Show and edit the cards of this set. Drag to reorder',
@@ -902,7 +914,7 @@ export const en = {
   'variable.delete': 'Delete variable',
   'variable.save': 'Save variable',
   'tip.importTtc':
-    'Import from Tabletop Creator: convert a project into a new GameCreator project; the original is not changed',
+    'Import from Tabletop Creator: convert a project into a new Naibi project; the original is not changed',
   'ttc.title': 'Import from Tabletop Creator',
   'ttc.intro':
     'The project is converted into a new folder: templates, sets, variables and images. The Tabletop Creator folder is only read.',
@@ -962,6 +974,19 @@ export const en = {
     'No recent projects yet. Create a new one, open a project folder or import one from Tabletop Creator.',
   'start.missing': 'Folder not found',
   'start.remove': 'Remove from the list (the folder is not deleted)',
+  'about.link': 'What does Naibi mean?',
+  'about.title': 'What does Naibi mean?',
+  'about.p1':
+    '*Naibi* (pronounced **NYE-bee**, /ˈnaɪ.bi/) is the name playing cards had when they reached Italy in the 14th century.',
+  'about.p2':
+    'The word comes from the Arabic *nā\'ib*, "deputy". In the decks of the Mamluks, who ruled Egypt and Syria, the court cards were the king (*malik*), his deputy (*nā\'ib malik*) and a second deputy. Europeans took the name of one card and used it for the whole game.',
+  'about.p3':
+    'On 23 March 1377 Florence banned "a game called *naibbe*" that had just arrived in the city. A few years later a chronicle from Viterbo says that the game of cards "came from the land of the Saracens, and among them it is called naib".',
+  'about.p4':
+    'Italian later replaced the word with "carte", but Spanish still uses it: cards are *naipes*. The suits survived too. Cups, coins and swords come from the Mamluk decks, and batons were originally polo sticks, a game unknown in Europe at the time.',
+  'about.p5':
+    'Naibi is an app for making cards and game components, so we named it after the first name cards had in Italy.',
+  'about.close': 'Close',
   'newProject.title': 'New project',
   'newProject.location': 'Location',
   'newProject.folder': 'The project will be created in {folder}',

@@ -2119,6 +2119,21 @@ div.font-row {
   border-color: var(--accent);
 }
 
+.system-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.system-row .font-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.font-copy {
+  margin-right: 10px;
+  white-space: nowrap;
+}
+
 .font-row-head {
   display: flex;
   gap: 8px;
@@ -2290,10 +2305,45 @@ div.font-row {
   background: var(--panel);
 }
 
+.start-logo {
+  width: 28px;
+  height: 28px;
+}
+
 .start-header h1 {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
+}
+
+.start-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 16px 8px;
+}
+
+.start-footer .about-link {
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.start-footer .about-link:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.about-text {
+  max-height: 60vh;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+
+.about-text p {
+  margin: 0 0 10px;
 }
 
 .start-body {

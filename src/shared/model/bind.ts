@@ -104,11 +104,19 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         out = { ...layer, ...patch } as Layer
       }
       if (out.type === 'text') {
-        out = { ...out, text: substituteFields(out.text, fields) }
+        // il font può essere una variabile o un campo: {titoli}
+        out = {
+          ...out,
+          text: substituteFields(out.text, fields),
+          font: substituteFields(out.font, fields).trim()
+        }
         if (out.visible) {
           problems.push(...textProblems(out.name, out.text, ctx))
           if (ctx.hasFont)
-            for (const font of new Set([out.font, ...markupFonts(out.text, ctx.styles)]))
+            for (const font of new Set([
+              out.font,
+              ...markupFonts(out.text, ctx.styles, ctx.variables)
+            ]))
               if (font.trim() && !isGenericFont(font) && !ctx.hasFont(font))
                 problems.push(msg('bind.missingFont', { layer: out.name, font }))
         }
@@ -248,6 +256,10 @@ export function substituteFields(text: string, fields: Record<string, string>): 
   const has = (name: string): boolean => Object.prototype.hasOwnProperty.call(fields, name.trim())
   return (
     text
+      // font={titoli}: nel markup gli spazi del nome diventano _ (font=Open_Sans)
+      .replace(/\bfont=\{([^{}*\s]+)\}/g, (m, name: string) =>
+        has(name) ? `font=${fields[name.trim()].trim().replace(/\s+/g, '_')}` : m
+      )
       .replace(/(?<!\\)\{([^{}*]+)\}/g, (m, inner: string) => {
         if (has(inner)) return fields[inner.trim()]
         // {icona tint=red}: il campo dà il nome dell'immagine, gli attributi restano

@@ -31,7 +31,11 @@ export type FontInfo = Omit<ProjectFont, 'path'>
 /** Legge un file ttf, otf, woff o woff2; null se il formato non è riconosciuto */
 export function fontInfo(buf: Buffer): FontInfo | null {
   const tables = readTables(buf)
-  if (!tables) return null
+  return tables ? infoFromTables(tables) : null
+}
+
+/** Famiglia, peso e stile dalle tabelle name, OS/2 e fvar */
+export function infoFromTables(tables: Record<string, Buffer>): FontInfo | null {
   const names = tables.name ? readNames(tables.name) : new Map<number, string>()
   let family = names.get(16) ?? names.get(21) ?? names.get(1)
   if (!family) return null
@@ -56,7 +60,7 @@ export function fontInfo(buf: Buffer): FontInfo | null {
   return { family, weight, style: italic ? 'italic' : 'normal' }
 }
 
-const WANTED = ['name', 'OS/2', 'fvar']
+export const WANTED = ['name', 'OS/2', 'fvar']
 
 function readTables(buf: Buffer): Record<string, Buffer> | null {
   if (buf.length < 12) return null
@@ -146,7 +150,7 @@ function readWoff2(buf: Buffer): Record<string, Buffer> | null {
 }
 
 /** Nomi della tabella name per numero, preferendo l'inglese di Windows */
-function readNames(t: Buffer): Map<number, string> {
+export function readNames(t: Buffer): Map<number, string> {
   const count = t.readUInt16BE(2)
   const strings = t.readUInt16BE(4)
   const out = new Map<number, { text: string; rank: number }>()

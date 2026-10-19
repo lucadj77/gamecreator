@@ -92,4 +92,20 @@ describe('rinomina nei template e nei fogli', () => {
     )
     expect(v.variables.spada).toEqual({ type: 'image', src: 'spada' })
   })
+
+  it('i font scritti come variabile, nei livelli, nel markup e negli stili', () => {
+    const d = renameInDefinitions(
+      {},
+      { titolo: 'font={titoli} size=150%', altro: 'font=titoli' },
+      'variable',
+      'titoli',
+      'intestazioni'
+    )
+    expect(d.styles.titolo).toBe('font={intestazioni} size=150%')
+    // senza graffe è il nome di una famiglia
+    expect(d.styles.altro).toBe('font=titoli')
+    expect(renameInText('[x]{font={titoli}}', 'variable', 'titoli', 'intestazioni')).toBe(
+      '[x]{font={intestazioni}}'
+    )
+  })
 })

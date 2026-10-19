@@ -81,6 +81,7 @@ import ExportDialog from './export/ExportDialog'
 import ImportTtcDialog from './components/ImportTtcDialog'
 import StartScreen from './components/StartScreen'
 import { thumbnailTemplate } from '../../shared/model/thumbnail'
+import UpdateNotice from './components/UpdateNotice'
 import Tooltip from './components/Tooltip'
 import SidebarPreview from './components/SidebarPreview'
 import { useSidebarPreview } from './components/useSidebarPreview'
@@ -980,6 +981,7 @@ function App(): React.JSX.Element {
           <SaveStyleContext.Provider value={project ? saveStyle : null}>
             <div className="app">
               <Tooltip />
+              <UpdateNotice />
               {project && !sidebarCompact && (
                 <SidebarPreview
                   hover={sidebarPreview.hover}

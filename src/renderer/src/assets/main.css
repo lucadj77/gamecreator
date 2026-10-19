@@ -152,6 +152,43 @@ button {
   background: var(--error-bg);
 }
 
+.banner.info {
+  background: var(--accent-soft);
+}
+
+.update-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-notice button.link {
+  border: none;
+  background: none;
+  padding: 4px 6px;
+  color: var(--accent);
+}
+
+.release-notes {
+  max-width: 520px;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.release-notes h3 {
+  margin: 12px 0 4px;
+  font-size: 1em;
+}
+
+.release-notes ul {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+.release-notes li {
+  margin-bottom: 4px;
+}
+
 .workspace {
   flex: 1;
   display: flex;

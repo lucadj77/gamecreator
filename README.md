@@ -41,7 +41,7 @@ I pacchetti si scaricano dalla pagina [Releases](https://github.com/lucadj77/nai
 npm run build:mac    # oppure build:win, build:linux; i pacchetti vanno in dist/
 ```
 
-Ogni sistema costruisce bene solo i propri pacchetti (il .dmg richiede un Mac, l'installer Windows richiede Windows o Wine). Per averli tutti insieme c'è l'azione **Build** di GitHub: si avvia a mano da Actions, oppure si crea un tag (`git tag v1.0.0 && git push origin v1.0.0`) e i pacchetti finiscono in una release pubblica, scaricabile da chiunque anche senza account GitHub. La versione è quella di `package.json`.
+Ogni sistema costruisce bene solo i propri pacchetti (il .dmg richiede un Mac, l'installer Windows richiede Windows o Wine). Per averli tutti insieme c'è l'azione **Build** di GitHub: si avvia a mano da Actions, oppure si crea un tag (`git tag v1.0.0 && git push origin v1.0.0`) e i pacchetti finiscono in una release pubblica, scaricabile da chiunque anche senza account GitHub. La versione è quella di `package.json` e le novità sono in [CHANGELOG.md](CHANGELOG.md): la procedura completa è in [docs/rilascio.md](docs/rilascio.md).
 
 ## Stack
 

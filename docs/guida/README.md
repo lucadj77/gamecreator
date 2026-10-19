@@ -55,6 +55,8 @@ All'avvio Naibi mostra la schermata di ingresso.
 
 In alto a destra si scelgono la dimensione dell'interfaccia, il tema (chiaro, scuro o quello del sistema) e la lingua (inglese o italiano).
 
+Quando esce una versione nuova, all'avvio compare una striscia in cima alla finestra: **Novità** mostra cosa cambia, **Scarica** apre la pagina da cui scaricarla. **Salta questa versione** non la segnala più, **Ricordamelo più tardi** la nasconde fino al prossimo avvio.
+
 Per creare un progetto si scrivono il nome e la posizione. Di base la posizione è `Documenti/Naibi`; il file dei dati può essere Excel (`.xlsx`, consigliato) o OpenDocument (`.ods`).
 
 ![La finestra per creare un nuovo progetto](img/nuovo-progetto.png)

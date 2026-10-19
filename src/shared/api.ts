@@ -1,3 +1,4 @@
+import type { UpdateInfo } from './update'
 import type { LoadedProject, ProjectFile, Sheet } from './project'
 import type { Template } from './model/template'
 import type { Message } from './messages'
@@ -128,6 +129,8 @@ export interface Api {
   importTtc(options: TtcImportOptions): Promise<TtcImportResult>
   /** Come lanciare il comando naibi su questo computer; ready è falso se va prima compilato */
   naibiCommand(): Promise<{ command: string; ready: boolean }>
+  /** L'ultima versione pubblicata, se è più recente di questa; null anche senza rete */
+  checkForUpdate(): Promise<UpdateInfo | null>
   /** Scrive la skill in <cartella>/naibi/SKILL.md e ne restituisce il percorso */
   saveSkill(folder: string, text: string): Promise<string>
   /** Cartella proposta per salvare la skill: quella delle skill di Claude Code, se c'è */

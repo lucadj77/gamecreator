@@ -1127,5 +1127,12 @@ export const it: Record<MessageKey, string> = {
   'newProject.dataFile': 'File dei dati',
   'newProject.xlsx': 'Excel (.xlsx), consigliato',
   'newProject.ods': 'OpenDocument (.ods)',
-  'newProject.notEmpty': 'La cartella {folder} esiste già e non è vuota.'
+  'newProject.notEmpty': 'La cartella {folder} esiste già e non è vuota.',
+  'update.available': 'È disponibile Naibi {version}.',
+  'update.whatsNew': 'Novità',
+  'update.download': 'Scarica',
+  'update.skip': 'Salta questa versione',
+  'update.later': 'Ricordamelo più tardi',
+  'update.title': 'Novità di Naibi {version}',
+  'update.noNotes': 'Questa versione non ha note.'
 }

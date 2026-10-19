@@ -55,6 +55,8 @@ When it starts, Naibi shows the start screen.
 
 At the top right you choose the interface size, the theme (light, dark or the system's) and the language (English or Italian).
 
+When a new version is out, a strip appears at the top of the window at startup: **What's new** shows what changes, **Download** opens the page to download it. **Skip this version** stops showing it, **Remind me later** hides it until the next start.
+
 To create a project you write its name and location. The default location is `Documents/Naibi`; the data file can be Excel (`.xlsx`, recommended) or OpenDocument (`.ods`).
 
 ![The window to create a new project](img/nuovo-progetto.png)

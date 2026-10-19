@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
+import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme, net } from 'electron'
 import { existsSync } from 'fs'
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
@@ -26,6 +26,7 @@ import { importIcons } from './library/icons'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
 import { runCli } from './cli'
+import { RELEASES_API, updateFromRelease } from '../shared/update'
 import {
   autoBackup,
   backupDirName,
@@ -277,6 +278,21 @@ function registerIpc(): void {
     return {
       command: `node "${join(root, 'bin', 'naibi.mjs')}"`,
       ready: existsSync(join(root, 'out', 'renderer', 'index.html'))
+    }
+  })
+  // l'ultima release su GitHub, se è più recente di questa versione; senza rete non dice nulla
+  ipcMain.handle('update:check', async () => {
+    try {
+      const res = await net.fetch(RELEASES_API, {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          'User-Agent': `Naibi/${app.getVersion()}`
+        }
+      })
+      if (!res.ok) return null
+      return updateFromRelease(await res.json(), app.getVersion())
+    } catch {
+      return null
     }
   })
   ipcMain.handle('ai:save-skill', async (_, folder: string, text: string) => {

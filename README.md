@@ -27,11 +27,21 @@ npm test        # test
 
 Per provare, apri la cartella `examples/demo`. Il comando `naibi` e la skill per gli agenti IA sono descritti in [docs/cli.md](docs/cli.md). Il formato è descritto in [docs/formato.md](docs/formato.md).
 
+## Installazione
+
+I pacchetti si scaricano dalla pagina [Releases](https://github.com/lucadj77/naibi/releases) o, per una build non ancora rilasciata, dagli artefatti dell'azione **Build** in [Actions](https://github.com/lucadj77/naibi/actions/workflows/build.yml).
+
+- **Mac**: `Naibi-<versione>-mac-arm64.dmg` per i Mac con chip Apple (M1 e successivi), `-mac-x64.dmg` per quelli con processore Intel. Si apre il .dmg e si trascina Naibi in Applicazioni. L'app non è firmata con un certificato Apple, quindi alla prima apertura macOS dice che non può verificarla: si chiude l'avviso, si apre **Impostazioni di Sistema → Privacy e sicurezza** e in fondo si preme **Apri comunque**. In alternativa, da Terminale: `xattr -dr com.apple.quarantine /Applications/Naibi.app`. Serve solo la prima volta.
+- **Windows**: `Naibi-<versione>-windows-setup.exe`. Senza firma, Windows SmartScreen mostra "Windows ha protetto il PC": si preme **Ulteriori informazioni** e poi **Esegui comunque**.
+- **Linux**: `Naibi-<versione>-linux-x86_64.AppImage`, da rendere eseguibile (`chmod +x`) e avviare, oppure `Naibi-<versione>-linux-amd64.deb` per Debian e Ubuntu (per esempio `sudo apt install ./Naibi-1.0.0-linux-amd64.deb`). L'AppImage richiede libfuse2 (su Ubuntu `sudo apt install libfuse2t64`).
+
 ## Build
 
 ```bash
-npm run build:mac    # oppure build:win, build:linux
+npm run build:mac    # oppure build:win, build:linux; i pacchetti vanno in dist/
 ```
+
+Ogni sistema costruisce bene solo i propri pacchetti (il .dmg richiede un Mac, l'installer Windows richiede Windows o Wine). Per averli tutti insieme c'è l'azione **Build** di GitHub: si avvia a mano da Actions, oppure si crea un tag (`git tag v1.0.0 && git push origin v1.0.0`) e i pacchetti finiscono in una release in bozza, da controllare e pubblicare. La versione è quella di `package.json`.
 
 ## Stack
 

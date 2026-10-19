@@ -1,10 +1,13 @@
 appId: com.naibi.app
 productName: Naibi
+copyright: Copyright © 2026 Luca
 directories:
   buildResources: build
+  output: dist
 files:
   - '!**/.vscode/*'
   - '!src/*'
+  - '!{docs,examples,todo,scripts,skill,bin}/**'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
@@ -13,31 +16,44 @@ asarUnpack:
   - resources/**
 win:
   executableName: naibi
+  target:
+    - target: nsis
+      arch: x64
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: ${productName}-${version}-windows-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  oneClick: false
+  allowToChangeInstallationDirectory: true
 mac:
+  category: public.app-category.graphics-design
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  # senza certificato Apple: firma ad hoc, necessaria perché l'app si avvii sui Mac con chip Apple
+  identity: '-'
+  hardenedRuntime: false
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+    - NSDocumentsFolderUsageDescription: Naibi opens and saves projects in your Documents folder.
+    - NSDownloadsFolderUsageDescription: Naibi opens and saves projects in your Downloads folder.
   notarize: false
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
 linux:
+  executableName: naibi
   target:
-    - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
-  category: Utility
+    - target: AppImage
+      arch: x64
+    - target: deb
+      arch: x64
+  maintainer: Luca
+  category: Graphics
+  synopsis: Create cards and other game components
 appImage:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}
+deb:
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
+publish: null

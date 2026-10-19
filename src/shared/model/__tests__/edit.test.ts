@@ -8,6 +8,7 @@ import {
   moveLayerTo,
   newLayer,
   patchLayer,
+  patchLayers,
   removeLayers,
   resizeTemplate,
   ungroupLayer,
@@ -173,5 +174,49 @@ describe('modifiche', () => {
     expect(mezzo.x).toBe(31.5)
     expect(banda.w).toBe(73)
     expect(banda.y).toBeCloseTo((30 * 98) / 88)
+  })
+})
+
+describe('modifiche a più livelli', () => {
+  const tpl = normalizeTemplate({
+    name: 't',
+    width: 63,
+    height: 88,
+    front: [
+      {
+        type: 'shape',
+        name: 'a',
+        x: 0,
+        y: 0,
+        w: 10,
+        h: 10,
+        fill: '#FF0000',
+        stroke: { color: '#000000', width: 1 }
+      },
+      {
+        type: 'shape',
+        name: 'b',
+        x: 20,
+        y: 0,
+        w: 10,
+        h: 10,
+        fill: '#00FF00',
+        stroke: { color: '#FFFFFF', width: 2 }
+      }
+    ]
+  })
+  const [a, b] = tpl.front
+  it('applica la stessa modifica a tutti', () => {
+    const out = patchLayers(tpl, 'front', [a.id, b.id], a, { opacity: 0.5 })
+    expect(out.front.map((l) => l.opacity)).toEqual([0.5, 0.5])
+    expect(out.front.map((l) => l.x)).toEqual([0, 20])
+  })
+  it('nelle proprietà composte cambia solo la voce modificata', () => {
+    const sa = (a as { stroke: { color: string; width: number } }).stroke
+    const out = patchLayers(tpl, 'front', [a.id, b.id], a, { stroke: { ...sa, width: 3 } } as never)
+    expect(out.front.map((l) => (l as unknown as { stroke: unknown }).stroke)).toEqual([
+      { color: '#000000', width: 3 },
+      { color: '#FFFFFF', width: 3 }
+    ])
   })
 })

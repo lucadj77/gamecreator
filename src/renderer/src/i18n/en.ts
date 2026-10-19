@@ -37,6 +37,10 @@ export const en = {
     'Double-click or type in a cell to edit; Alt+Enter for a new line. Drag the row number to reorder.',
   'preview.clickHint': 'Click a layer to edit its field',
   'cardForm.title': 'Card {n}',
+  'cardForm.multiTitle': '{n} cards selected',
+  'cardForm.multiHint':
+    'What you type in a field goes into all the selected cards. Empty fields have different values across the cards and stay as they are until you edit them.',
+  'cardForm.mixed': 'different values',
   'cardForm.pickColor': 'Pick a color',
   'cardForm.amount': 'Copies (amount)',
   'table.expand': 'Show the property columns of this layer',
@@ -322,6 +326,8 @@ export const en = {
   'layers.hint':
     'Drag a layer to reorder it, or onto the middle of a group to move it inside. Shift- or ⌘-click to select several, then group them.',
   'editor.multiSelectionTitle': '{n} layers selected',
+  'editor.multiEdit':
+    'The properties below show the values of {name}; every change applies to all the selected layers. Position and size are changed with Align or on the card.',
   'editor.multiSelection':
     'Move them together on the card, or group them to treat them as one layer.',
   'source.properties': 'Other columns for this layer: {columns}',

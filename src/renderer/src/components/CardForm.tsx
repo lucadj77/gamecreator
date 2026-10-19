@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
-import { colorColumns, setCell } from '../../../shared/model/sheet'
+import { colorColumns, setCells } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
 import type { Template } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
@@ -11,6 +11,8 @@ import { ImageIcon } from './icons'
 interface Props {
   sheet: Sheet
   row: number
+  /** Carte selezionate quando sono più di una: ogni campo scrive in tutte */
+  rows?: number[]
   template: Template | null
   /** Colonna da mettere a fuoco, per esempio dopo un clic su un livello della carta */
   focus: { column: string; seq: number } | null
@@ -21,7 +23,7 @@ interface Props {
  * Campi della carta selezionata: è la sua riga del foglio, modificabile accanto all'anteprima.
  * Le colonne dei livelli di testo hanno un campo su più righe.
  */
-function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.Element {
+function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React.JSX.Element {
   const { t } = useI18n()
   const boxRef = useRef<HTMLDivElement>(null)
   const columnsOf = (type: 'text' | 'image'): Set<string> =>
@@ -58,16 +60,30 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
         : [])
     ])
   ]
-  const values = sheet.rows[row] ?? []
+  const targets = rows && rows.length > 1 ? rows : [row]
+  const multi = targets.length > 1
+  // con più carte un campo mostra il valore solo se è uguale in tutte; vuoto vuol dire "diversi"
+  const values = sheet.headers.map((_, i) => {
+    const vs = new Set(targets.map((r) => sheet.rows[r]?.[i] ?? ''))
+    return vs.size === 1 ? [...vs][0] : null
+  })
+  const write = (i: number, v: string): void =>
+    onChange(setCells(sheet, targets, i, v), `cell:${targets.join(',')}:${i}`)
   return (
     <div className="card-form" ref={boxRef}>
-      <h3>{t('cardForm.title', { n: row + 1 })}</h3>
+      <h3>
+        {multi
+          ? t('cardForm.multiTitle', { n: targets.length })
+          : t('cardForm.title', { n: row + 1 })}
+      </h3>
+      {multi && <p className="muted small">{t('cardForm.multiHint')}</p>}
       {sheet.headers.map((h, i) => {
         const common = {
           'data-column': h,
           value: values[i] ?? '',
+          ...(values[i] === null ? { placeholder: t('cardForm.mixed') } : {}),
           onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-            onChange(setCell(sheet, row, i, e.target.value), `cell:${row}:${i}`)
+            write(i, e.target.value)
         }
         return (
           <label key={h} className={h.includes('.') ? 'field prop-field' : 'field'}>
@@ -81,18 +97,13 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
                 />
               ) : colors.has(h) ? (
                 <span className="color-cell">
-                  <input {...common} placeholder={colors.get(h) ?? ''} />
+                  <input {...common} placeholder={common.placeholder ?? colors.get(h) ?? ''} />
                   <input
                     type="color"
                     title={t('cardForm.pickColor')}
                     // senza valore nella cella il selettore parte dal colore del template
                     value={toHex6(common.value.trim() || colors.get(h) || '')}
-                    onChange={(e) =>
-                      onChange(
-                        setCell(sheet, row, i, e.target.value.toUpperCase()),
-                        `cell:${row}:${i}`
-                      )
-                    }
+                    onChange={(e) => write(i, e.target.value.toUpperCase())}
                   />
                 </span>
               ) : imageColumns.has(h) ? (
@@ -120,7 +131,7 @@ function CardForm({ sheet, row, template, focus, onChange }: Props): React.JSX.E
       {picking !== null && (
         <AssetPicker
           value={values[picking] ?? ''}
-          onPick={(name) => onChange(setCell(sheet, row, picking, name), `cell:${row}:${picking}`)}
+          onPick={(name) => write(picking, name)}
           onClose={() => setPicking(null)}
         />
       )}

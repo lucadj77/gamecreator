@@ -40,6 +40,10 @@ export const it: Record<MessageKey, string> = {
     'Doppio clic o scrivi in una cella per modificarla; Alt+Invio per andare a capo. Trascina il numero di riga per spostarla.',
   'preview.clickHint': 'Fai clic su un livello per modificarne il campo',
   'cardForm.title': 'Carta {n}',
+  'cardForm.multiTitle': '{n} carte selezionate',
+  'cardForm.multiHint':
+    'Ciò che scrivi in un campo va in tutte le carte selezionate. I campi vuoti hanno valori diversi tra le carte e restano come sono finché non li modifichi.',
+  'cardForm.mixed': 'valori diversi',
   'cardForm.pickColor': 'Scegli un colore',
   'cardForm.amount': 'Copie (amount)',
   'table.expand': 'Mostra le colonne delle proprietà di questo livello',
@@ -329,6 +333,8 @@ export const it: Record<MessageKey, string> = {
   'layers.hint':
     'Trascina un livello per riordinarlo, o sul centro di un gruppo per metterlo dentro. Maiuscolo- o ⌘-clic per selezionarne più di uno, poi raggruppali.',
   'editor.multiSelectionTitle': '{n} livelli selezionati',
+  'editor.multiEdit':
+    'Le proprietà qui sotto mostrano i valori di {name}; ogni modifica vale per tutti i livelli selezionati. Posizione e dimensioni si cambiano con Allinea o sulla carta.',
   'editor.multiSelection':
     'Spostali insieme sulla carta, o raggruppali per trattarli come un solo livello.',
   'source.properties': 'Altre colonne di questo livello: {columns}',

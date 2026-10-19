@@ -8,7 +8,9 @@ interface Props {
   cards: BoundCard[]
   side: Side
   selected: number
-  onSelect(index: number): void
+  /** Tutte le carte selezionate, se più di una */
+  selection?: number[]
+  onSelect(index: number, e: React.MouseEvent): void
   /** Trascinando una carta: `to` è la posizione che avrà dopo lo spostamento */
   onMove?(from: number, to: number): void
   /** Pixel per millimetro */
@@ -21,6 +23,7 @@ function CardGrid({
   cards,
   side,
   selected,
+  selection,
   onSelect,
   onMove,
   scale,
@@ -50,12 +53,13 @@ function CardGrid({
             className={[
               'card-cell',
               i === selected && 'selected',
+              i !== selected && selection?.includes(i) && 'selected-also',
               dragging === i && 'dragging',
               drop?.index === i && dragging !== i && (drop.after ? 'drop-after' : 'drop-before')
             ]
               .filter(Boolean)
               .join(' ')}
-            onClick={() => onSelect(i)}
+            onClick={(e) => onSelect(i, e)}
             draggable={!!onMove}
             onDragStart={(e) => {
               e.dataTransfer.effectAllowed = 'move'

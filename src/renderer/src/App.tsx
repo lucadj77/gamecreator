@@ -1431,9 +1431,10 @@ function SetView({
       )}
       {!none && (
         <CardForm
-          key={current}
+          key={selection.join(',')}
           sheet={sheet}
           row={current}
+          rows={selection}
           template={template}
           focus={focus}
           onChange={onChange}
@@ -1606,7 +1607,24 @@ function SetView({
             cards={cards}
             side={side}
             selected={current}
-            onSelect={(i) => setSelection([i])}
+            selection={selection}
+            onSelect={(i, e) => {
+              // come nella tabella: Maiuscolo seleziona un intervallo, ⌘ aggiunge o toglie
+              if (e.shiftKey && selection.length) {
+                const pa = order.indexOf(current)
+                const pb = order.indexOf(i)
+                const [a, b] = pa < pb ? [pa, pb] : [pb, pa]
+                setSelection([
+                  current,
+                  ...order.slice(Math.max(0, a), b + 1).filter((r) => r !== current)
+                ])
+              } else if (e.metaKey || e.ctrlKey) {
+                const next = selection.includes(i)
+                  ? selection.filter((r) => r !== i)
+                  : [...selection, i]
+                setSelection(next.length ? next : [i])
+              } else setSelection([i])
+            }}
             onMove={
               viewActive
                 ? undefined

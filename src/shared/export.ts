@@ -19,7 +19,7 @@ export interface CommonOptions {
 }
 
 export interface ImageOptions extends CommonOptions {
-  format: 'png' | 'jpg' | 'webp'
+  format: 'png' | 'jpg' | 'webp' | 'svg'
   /** Qualità JPG e WebP, 1-100 */
   quality: number
   dpi: number

@@ -55,7 +55,7 @@ export interface ImageFile {
   names: string[]
 }
 
-export const imageExtension = (o: ImageOptions): 'jpg' | 'png' | 'webp' => o.format
+export const imageExtension = (o: ImageOptions): ImageOptions['format'] => o.format
 
 /** Le immagini da scrivere, carta per carta e lato per lato, con i nomi dei file */
 export function planImages(o: ImageOptions, sets: ExportSet[]): ImageFile[] {

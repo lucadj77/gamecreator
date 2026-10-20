@@ -1,12 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
-import { colorColumns, setCells } from '../../../shared/model/sheet'
+import {
+  boolText,
+  colorColumns,
+  parseBool,
+  propertyColumns,
+  writeCells,
+  type ColumnInfo
+} from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
-import type { Template } from '../../../shared/model/template'
+import { PRIMARY_PROPERTY, type Layer, type Template } from '../../../shared/model/template'
+import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
-import { ImageIcon } from './icons'
+import { EyeIcon, EyeOffIcon, ImageIcon, SlidersIcon } from './icons'
+import { propControl, propLabel } from './cardProps'
 
 interface Props {
   sheet: Sheet
@@ -14,8 +23,21 @@ interface Props {
   /** Carte selezionate quando sono più di una: ogni campo scrive in tutte */
   rows?: number[]
   template: Template | null
+  /** Template che una carta può usare al posto di quello del set (colonna template) */
+  templateChoices?: string[]
+  /** Template del set: vale per le carte con la colonna template vuota */
+  setTemplate?: string
+  /** Colonne da mostrare, già senza quelle nascoste (vedi setColumns) */
+  columns: ColumnInfo[]
+  /** Colonne vero/falso, con il valore del template per le celle vuote */
+  booleans: Map<string, boolean | null>
+  /** Valori dei livelli fissi e con formula di una riga */
+  computed(row: number): Record<string, string>
   /** Colonna da mettere a fuoco, per esempio dopo un clic su un livello della carta */
   focus: { column: string; seq: number } | null
+  /** Campi con i dettagli del livello aperti */
+  details: Set<string>
+  onToggleDetails(column: string): void
   onChange(sheet: Sheet, key?: string): void
 }
 
@@ -23,7 +45,21 @@ interface Props {
  * Campi della carta selezionata: è la sua riga del foglio, modificabile accanto all'anteprima.
  * Le colonne dei livelli di testo hanno un campo su più righe.
  */
-function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React.JSX.Element {
+function CardForm({
+  sheet,
+  row,
+  rows,
+  template,
+  templateChoices = [],
+  setTemplate,
+  columns,
+  booleans,
+  computed,
+  focus,
+  details,
+  onToggleDetails,
+  onChange
+}: Props): React.JSX.Element {
   const { t } = useI18n()
   const boxRef = useRef<HTMLDivElement>(null)
   const columnsOf = (type: 'text' | 'image'): Set<string> =>
@@ -37,7 +73,7 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
   const textColumns = columnsOf('text')
   const imageColumns = columnsOf('image')
   /** Colonna di cui si sta scegliendo l'immagine */
-  const [picking, setPicking] = useState<number | null>(null)
+  const [picking, setPicking] = useState<string | null>(null)
 
   const colors = template ? colorColumns(template) : new Map<string, string | null>()
 
@@ -63,12 +99,275 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
   const targets = rows && rows.length > 1 ? rows : [row]
   const multi = targets.length > 1
   // con più carte un campo mostra il valore solo se è uguale in tutte; vuoto vuol dire "diversi"
-  const values = sheet.headers.map((_, i) => {
-    const vs = new Set(targets.map((r) => sheet.rows[r]?.[i] ?? ''))
-    return vs.size === 1 ? [...vs][0] : null
-  })
-  const write = (i: number, v: string): void =>
-    onChange(setCells(sheet, targets, i, v), `cell:${targets.join(',')}:${i}`)
+  const same = (vs: string[]): string | null => (new Set(vs).size === 1 ? vs[0] : null)
+  const valueOf = (h: string, calc = false): string | null => {
+    const index = sheet.headers.indexOf(h)
+    return same(
+      targets.map((r) =>
+        calc ? (computed(r)[h] ?? '') : index < 0 ? '' : (sheet.rows[r]?.[index] ?? '')
+      )
+    )
+  }
+  const write = (h: string, v: string): void =>
+    onChange(writeCells(sheet, targets, h, v), `cell:${targets.join(',')}:${h}`)
+
+  // livello di ogni campo: le sue proprietà si aprono con l'icona accanto al campo
+  const layerOf = new Map<string, Layer>()
+  for (const l of template ? walkLayers([...template.front, ...template.back]) : []) {
+    if (l.type === 'group') continue
+    const column = l.source.kind === 'column' && l.source.column ? l.source.column : l.name
+    if (!layerOf.has(column)) layerOf.set(column, l)
+  }
+  const shown = new Set(columns.map((c) => c.header))
+  const baseOf = (h: string): string => h.slice(0, h.indexOf('.'))
+  // le colonne delle proprietà stanno nei dettagli del loro campo, se il campo è mostrato
+  const inDetails = (h: string): boolean =>
+    h.includes('.') && shown.has(baseOf(h)) && layerOf.has(baseOf(h))
+
+  /** Proprietà del livello modificabili carta per carta, prima quelle già usate */
+  const propertiesOf = (column: string): string[] => {
+    const l = layerOf.get(column)
+    if (!l || !template) return []
+    // il valore principale è già il campo stesso
+    const keys = propertyColumns(template, l.name)
+      .map((c) => c.slice(c.indexOf('.') + 1))
+      .filter((k) => k !== PRIMARY_PROPERTY[l.type] && k !== 'visible')
+    const own = keys.filter((k) => !COMMON_KEYS.includes(k))
+    const common = COMMON_KEYS.filter((k) => keys.includes(k))
+    const all = [...own, ...common].map((k) => `${column}.${k}`)
+    const used = all.filter((h) => valueOf(h)?.trim())
+    return [...used, ...all.filter((h) => !used.includes(h))]
+  }
+  const usedProperties = (column: string): number =>
+    sheet.headers.filter((h) => h.startsWith(column + '.') && valueOf(h)?.trim()).length
+
+  const field = (
+    h: string,
+    opts: { index: number; calc: boolean; prop?: boolean }
+  ): React.JSX.Element => {
+    const { index, calc } = opts
+    const value = valueOf(h, calc)
+    const dot = h.indexOf('.')
+    const layer = dot > 0 ? layerOf.get(h.slice(0, dot)) : undefined
+    // valore del template per le proprietà: suggerimento nel campo vuoto
+    const fallback =
+      layer && dot > 0 ? (layer as unknown as Record<string, unknown>)[h.slice(dot + 1)] : undefined
+    const hint =
+      fallback === undefined || fallback === null || typeof fallback === 'object'
+        ? ''
+        : String(fallback)
+    const common = {
+      'data-column': h,
+      value: value ?? '',
+      placeholder: value === null ? t('cardForm.mixed') : hint,
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        write(h, e.target.value)
+    }
+    const className = ['field', h.includes('.') && 'prop-field', calc && 'calc-field']
+      .filter(Boolean)
+      .join(' ')
+    const propKey = h.slice(dot + 1)
+    const labelKey = opts.prop && layer ? propLabel(layer, propKey) : null
+    const label =
+      h === 'amount' ? t('cardForm.amount') : opts.prop ? (labelKey ? t(labelKey) : propKey) : h
+    // visibilità del livello su questa carta: la colonna livello.visible
+    const visibleColumn = `${h}.visible`
+    const ownVisible = layerOf.has(h) ? parseBool(valueOf(visibleColumn) ?? '') : null
+    const isVisible = ownVisible ?? layerOf.get(h)?.visible ?? true
+    const tools = !opts.prop && (
+      <span className="field-tools">
+        {layerOf.has(h) && !calc && (
+          <button
+            className={'icon-btn' + (details.has(h) ? ' on' : '')}
+            aria-expanded={details.has(h)}
+            title={t('cardForm.details')}
+            onClick={(e) => {
+              // i pulsanti sono dentro l'etichetta: senza questo il clic va al campo
+              e.preventDefault()
+              onToggleDetails(h)
+            }}
+          >
+            <SlidersIcon />
+            {usedProperties(h) > 0 && <span className="field-count">{usedProperties(h)}</span>}
+          </button>
+        )}
+        {layerOf.has(h) && !calc && (
+          <button
+            className={'icon-btn' + (isVisible ? '' : ' off')}
+            aria-pressed={!isVisible}
+            title={t('cardForm.toggleVisible')}
+            onClick={(e) => {
+              e.preventDefault()
+              // tornando come nel template la cella si svuota
+              write(
+                visibleColumn,
+                !isVisible === (layerOf.get(h)?.visible ?? true)
+                  ? ''
+                  : boolText(sheet, visibleColumn, !isVisible)
+              )
+            }}
+          >
+            {isVisible ? <EyeIcon /> : <EyeOffIcon />}
+          </button>
+        )}
+      </span>
+    )
+    if (h === TEMPLATE_COLUMN && templateChoices.length) {
+      // il template della carta si sceglie tra quelli con le misure del set
+      const own = value?.trim() ?? ''
+      return (
+        <label key={h} className={className} title={t('cardForm.templateHint')}>
+          <span className="field-label">{t('cardForm.template')}</span>
+          <span className="field-control">
+            <select
+              data-column={h}
+              className={own ? undefined : 'from-template'}
+              value={own}
+              onChange={(e) => write(h, e.target.value)}
+            >
+              <option value="">{t('cardForm.setTemplate', { name: setTemplate ?? '' })}</option>
+              {templateChoices
+                .filter((n) => n !== setTemplate)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              {own && !templateChoices.includes(own) && <option value={own}>{own}</option>}
+            </select>
+          </span>
+        </label>
+      )
+    }
+    if (calc)
+      return (
+        <label key={h} className={className} title={t('table.computedHint')}>
+          <span className="field-label">ƒ {label}</span>
+          <span className="field-control">
+            <input {...common} placeholder="" readOnly onChange={undefined} />
+          </span>
+          {tools}
+        </label>
+      )
+    const control = opts.prop && layer ? propControl(layer, propKey) : null
+    if (control?.kind === 'select' || control?.kind === 'number' || control?.kind === 'text') {
+      const optionLabel = (v: string): string => {
+        const found = control.kind === 'select' && control.options.find(([o]) => o === v)
+        return found && found[1] ? t(found[1]) : v
+      }
+      return (
+        <label key={h} className={className}>
+          <span className="field-label">{label}</span>
+          <span className="field-control">
+            {control.kind === 'select' ? (
+              <select
+                data-column={h}
+                className={value?.trim() ? undefined : 'from-template'}
+                value={value ?? ''}
+                onChange={(e) => write(h, e.target.value)}
+              >
+                {/* vuoto: vale il template */}
+                <option value="">
+                  {t('cardProps.fromTemplate', { value: optionLabel(hint) })}
+                </option>
+                {control.options.map(([v, key]) => (
+                  <option key={v} value={v}>
+                    {key ? t(key) : v}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                {...common}
+                type={control.kind === 'number' ? 'number' : undefined}
+                className={control.kind === 'number' ? 'num' : undefined}
+                step={control.kind === 'number' ? control.step : undefined}
+                title={control.kind === 'text' && control.hint ? t(control.hint) : undefined}
+                placeholder={
+                  value === null
+                    ? t('cardForm.mixed')
+                    : hint || (control.kind === 'text' && control.hint ? t(control.hint) : '')
+                }
+              />
+            )}
+          </span>
+        </label>
+      )
+    }
+    const boolDefault = booleans.has(h)
+      ? booleans.get(h)
+      : typeof fallback === 'boolean'
+        ? fallback
+        : undefined
+    if (boolDefault !== undefined) {
+      const own = value === null ? null : parseBool(value)
+      return (
+        <label key={h} className={className}>
+          <span className="field-label">{label}</span>
+          <span className="field-control">
+            <input
+              type="checkbox"
+              data-column={h}
+              className={value?.trim() ? undefined : 'bool-default'}
+              title={value?.trim() ? value : t('table.boolDefault')}
+              checked={own ?? (value === null ? false : (boolDefault ?? false))}
+              ref={(el) => {
+                if (el) el.indeterminate = value === null
+              }}
+              onChange={(e) => write(h, boolText(sheet, h, e.target.checked))}
+            />
+          </span>
+          {tools}
+        </label>
+      )
+    }
+    return (
+      <label key={h} className={index < 0 && !opts.prop ? className + ' new-field' : className}>
+        <span className="field-label">{label}</span>
+        <span className="field-control">
+          {textColumns.has(h) ? (
+            <MarkupTextarea
+              {...common}
+              fields={fields}
+              rows={Math.min(8, Math.max(2, common.value.split('\n').length))}
+            />
+          ) : colors.has(h) ? (
+            <span className="color-cell">
+              <input
+                {...common}
+                placeholder={value === null ? common.placeholder : (colors.get(h) ?? '')}
+              />
+              <input
+                type="color"
+                title={t('cardForm.pickColor')}
+                // senza valore nella cella il selettore parte dal colore del template
+                value={toHex6(common.value.trim() || colors.get(h) || '')}
+                onChange={(e) => write(h, e.target.value.toUpperCase())}
+              />
+            </span>
+          ) : imageColumns.has(h) ? (
+            <>
+              <input {...common} />
+              <button
+                className="pick-btn"
+                title={t('assetPicker.open')}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setPicking(h)
+                }}
+              >
+                <ImageIcon />
+              </button>
+            </>
+          ) : (
+            <input {...common} />
+          )}
+        </span>
+        {tools}
+      </label>
+    )
+  }
+
   return (
     <div className="card-form" ref={boxRef}>
       <h3>
@@ -77,60 +376,30 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
           : t('cardForm.title', { n: row + 1 })}
       </h3>
       {multi && <p className="muted small">{t('cardForm.multiHint')}</p>}
-      {sheet.headers.map((h, i) => {
-        const common = {
-          'data-column': h,
-          value: values[i] ?? '',
-          ...(values[i] === null ? { placeholder: t('cardForm.mixed') } : {}),
-          onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-            write(i, e.target.value)
-        }
-        return (
-          <label key={h} className={h.includes('.') ? 'field prop-field' : 'field'}>
-            <span className="field-label">{h === 'amount' ? t('cardForm.amount') : h}</span>
-            <span className="field-control">
-              {textColumns.has(h) ? (
-                <MarkupTextarea
-                  {...common}
-                  fields={fields}
-                  rows={Math.min(8, Math.max(2, common.value.split('\n').length))}
-                />
-              ) : colors.has(h) ? (
-                <span className="color-cell">
-                  <input {...common} placeholder={common.placeholder ?? colors.get(h) ?? ''} />
-                  <input
-                    type="color"
-                    title={t('cardForm.pickColor')}
-                    // senza valore nella cella il selettore parte dal colore del template
-                    value={toHex6(common.value.trim() || colors.get(h) || '')}
-                    onChange={(e) => write(i, e.target.value.toUpperCase())}
-                  />
-                </span>
-              ) : imageColumns.has(h) ? (
-                <>
-                  <input {...common} />
-                  <button
-                    className="pick-btn"
-                    title={t('assetPicker.open')}
-                    onClick={(e) => {
-                      // il pulsante è dentro l'etichetta: senza questo il clic va al campo
-                      e.preventDefault()
-                      setPicking(i)
-                    }}
-                  >
-                    <ImageIcon />
-                  </button>
-                </>
-              ) : (
-                <input {...common} />
-              )}
-            </span>
-          </label>
+      {/* il template della carta è sempre a portata di mano, anche senza la colonna nel foglio */}
+      {templateChoices.some((n) => n !== setTemplate) &&
+        field(TEMPLATE_COLUMN, { index: sheet.headers.indexOf(TEMPLATE_COLUMN), calc: false })}
+      {columns
+        .filter(
+          (c) =>
+            !inDetails(c.header) &&
+            !(c.header === TEMPLATE_COLUMN && templateChoices.some((n) => n !== setTemplate))
         )
-      })}
+        .map(({ header: h, index, computed: calc }) => (
+          <Fragment key={h}>
+            {field(h, { index, calc })}
+            {details.has(h) && layerOf.has(h) && (
+              <div className="field-details">
+                {propertiesOf(h).map((p) =>
+                  field(p, { index: sheet.headers.indexOf(p), calc: false, prop: true })
+                )}
+              </div>
+            )}
+          </Fragment>
+        ))}
       {picking !== null && (
         <AssetPicker
-          value={values[picking] ?? ''}
+          value={valueOf(picking) ?? ''}
           onPick={(name) => write(picking, name)}
           onClose={() => setPicking(null)}
         />
@@ -138,6 +407,9 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
     </div>
   )
 }
+
+/** Proprietà comuni a tutti i livelli: nei dettagli vengono dopo quelle del tipo */
+const COMMON_KEYS = ['opacity', 'x', 'y', 'w', 'h', 'rotation', 'anchor', 'blend', 'shadow']
 
 let probe: CanvasRenderingContext2D | null = null
 

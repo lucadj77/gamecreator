@@ -7,6 +7,8 @@ import {
   useSyncExternalStore
 } from 'react'
 import { useI18n } from '../i18n/context'
+import { Inherit, InheritMark } from './inheritance'
+import { propKeys } from './inheritContext'
 
 // Proprietà avanzate del pannello: ogni sezione mostra sempre le voci principali e raccoglie le
 // altre in "Avanzate", chiusa. Ogni voce si sposta da una parte all'altra con il pulsante che
@@ -72,12 +74,13 @@ export function P({
   const ctx = useContext(SectionContext)
   const p = usePrefs()
   const { t } = useI18n()
-  if (!ctx) return <>{children}</>
+  if (!ctx) return <Inherit keys={propKeys(id)}>{children}</Inherit>
   const advanced = isAdvanced(p, ctx.scope, id, adv)
   if (advanced !== (ctx.mode === 'advanced')) return null
   return (
     <div className="prop-item">
       {children}
+      <InheritMark keys={propKeys(id)} />
       <button
         className="prop-move"
         title={advanced ? t('editor.showAlways') : t('editor.moveToAdvanced')}

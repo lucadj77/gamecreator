@@ -12,7 +12,7 @@ import {
   parseRowsFile,
   type Parsed
 } from './cliParse'
-import { bindCard, rowToCard } from '../shared/model/bind'
+import { bindRow, rowToCard } from '../shared/model/bind'
 import { isGenericFont } from '../shared/model/fonts'
 import { resolveAsset } from '../shared/model/assets'
 import { walkLayers } from '../shared/model/normalize'
@@ -108,6 +108,10 @@ function templateOutline(t: Template): string[] {
   const out = [
     `${t.name}: ${t.width}×${t.height} mm, bleed ${t.bleed} mm, corner radius ${t.cornerRadius} mm${t.shape ? `, shape ${t.shape}` : ''}`
   ]
+  if (t.extends)
+    out.push(
+      `extends ${t.extends}; changes: ${JSON.stringify({ ...t.changes, added: t.changes?.added?.map((a) => a.layer.name) })}`
+    )
   const walk = (layers: Layer[], depth: number): void => {
     for (const l of layers) {
       out.push(`${'  '.repeat(depth)}- ${layerSummary(l)}`)
@@ -139,6 +143,7 @@ async function info(p: Parsed): Promise<number> {
     })),
     templates: project.templates.map((t) => ({
       name: t.name,
+      ...(t.extends ? { extends: t.extends } : {}),
       width: t.width,
       height: t.height,
       front: walkLayers(t.front).map((l) => `${l.name}:${l.type}`),
@@ -166,7 +171,7 @@ async function info(p: Parsed): Promise<number> {
   print('Templates:')
   for (const t of data.templates)
     print(
-      `  ${t.name}: ${t.width}×${t.height} mm; front: ${t.front.join(', ') || '(empty)'}; back: ${t.back.join(', ') || '(empty)'}`
+      `  ${t.name}${t.extends ? ` (extends ${t.extends})` : ''}: ${t.width}×${t.height} mm; front: ${t.front.join(', ') || '(empty)'}; back: ${t.back.join(', ') || '(empty)'}`
     )
   print('Variables:')
   for (const v of data.variables) {
@@ -212,7 +217,7 @@ async function check(p: Parsed): Promise<number> {
     const tpl = project.templates.find((t) => t.name === s.template)
     if (!tpl || !s.data) continue
     s.data.rows.forEach((row, i) => {
-      const bound = bindCard(tpl, rowToCard(s.data!.headers, row), ctx)
+      const bound = bindRow(s.data!.headers, row, tpl, project.templates, ctx)
       const problems = bound.problems.map(messageText)
       // le immagini dei livelli: l'app le segnala solo all'esportazione
       for (const side of ['front', 'back'] as const)

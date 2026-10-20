@@ -1,6 +1,7 @@
 import type { ExportSet } from './export'
 import type { LoadedProject } from './project'
 import { bindCard, cardFields, rowToCard } from './model/bind'
+import { cardTemplate } from './model/inherit'
 
 // Carte da esportare: le usano la finestra di esportazione e il comando naibi.
 
@@ -19,12 +20,13 @@ export function buildSets(project: LoadedProject, names: string[]): ExportSet[] 
       const { headers, rows } = s.data
       const cards = rows.map((row, i) => {
         const card = rowToCard(headers, row)
-        const bound = bindCard(tpl, card, ctx)
+        const own = cardTemplate(headers, row, tpl, project.templates).template
+        const bound = bindCard(own, card, ctx)
         return {
           n: i + 1,
           amount: card.amount,
           label: bound.label,
-          fields: cardFields(tpl, card, ctx.variables),
+          fields: cardFields(own, card, ctx.variables),
           template: bound.template
         }
       })

@@ -1,5 +1,5 @@
 import type { LoadedProject } from '../../../shared/project'
-import { bindCard, rowToCard } from '../../../shared/model/bind'
+import { bindRow } from '../../../shared/model/bind'
 import type { Template } from '../../../shared/model/template'
 import { palette, resolveColor, type Variables } from '../../../shared/model/variables'
 import { useI18n } from '../i18n/context'
@@ -36,7 +36,9 @@ export default function SidebarPreview({
   const variables = project.file.variables ?? {}
 
   const cards = (tpl: Template, rows: string[][], headers: string[]): Template[] =>
-    (rows.length ? rows : [[]]).map((r) => bindCard(tpl, rowToCard(headers, r), ctx).template)
+    (rows.length ? rows : [[]]).map(
+      (r) => bindRow(headers, r, tpl, project.templates, ctx).template
+    )
   const scaleOf = (tpl: Template): number => Math.min(CARD_HEIGHT / tpl.height, 140 / tpl.width)
 
   let title: string

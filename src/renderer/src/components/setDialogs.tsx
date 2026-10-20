@@ -208,9 +208,12 @@ export function DuplicateDialog({
   initial,
   validate,
   onDuplicate,
-  onClose
+  onClose,
+  okLabel
 }: {
   title: string
+  /** Testo del pulsante di conferma; di base "Duplica" */
+  okLabel?: string
   initial: string
   /** Messaggio di errore, oppure null se il nome va bene */
   validate(name: string): string | null
@@ -239,7 +242,7 @@ export function DuplicateDialog({
             {t('dialog.cancel')}
           </button>
           <button type="submit" className="primary" disabled={!!error}>
-            {t('duplicate.ok')}
+            {okLabel ?? t('duplicate.ok')}
           </button>
         </div>
       </form>

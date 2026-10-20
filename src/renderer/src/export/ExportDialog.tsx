@@ -359,11 +359,12 @@ export default function ExportDialog({
                     [
                       ['png', 'PNG'],
                       ['jpg', 'JPG'],
-                      ['webp', 'WebP']
+                      ['webp', 'WebP'],
+                      ['svg', 'SVG']
                     ],
                     (format) => patch({ format })
                   )}
-                  {img.format !== 'png' && (
+                  {(img.format === 'jpg' || img.format === 'webp') && (
                     <>
                       <span className="unit">{t('export.quality')}</span>
                       <input
@@ -378,48 +379,51 @@ export default function ExportDialog({
                   )}
                 </>
               )}
-              {field(
-                'export.resolution',
-                <>
-                  {select<number>(
-                    DPIS.includes(img.dpi) ? img.dpi : 0,
-                    [
-                      ...DPIS.map((d): [number, string] => [d, `${d} DPI`]),
-                      [0, t('export.custom')]
-                    ],
-                    (dpi) => patch({ dpi: dpi || img.dpi + 1 })
-                  )}
-                  {!DPIS.includes(img.dpi) && (
-                    <>
-                      <input
-                        className="num"
-                        type="number"
-                        min={30}
-                        max={1200}
-                        value={img.dpi}
-                        onChange={(e) =>
-                          patch({ dpi: Math.max(30, Math.min(1200, num(e.target.value, img.dpi))) })
-                        }
-                      />
-                      <span className="unit">DPI</span>
-                    </>
-                  )}
-                </>,
-                firstTemplate
-                  ? t('export.pixels', {
-                      w: Math.round(
-                        ((firstTemplate.width + (img.bleed ? 2 * firstTemplate.bleed : 0)) *
-                          img.dpi) /
-                          25.4
-                      ),
-                      h: Math.round(
-                        ((firstTemplate.height + (img.bleed ? 2 * firstTemplate.bleed : 0)) *
-                          img.dpi) /
-                          25.4
-                      )
-                    })
-                  : undefined
-              )}
+              {img.format !== 'svg' &&
+                field(
+                  'export.resolution',
+                  <>
+                    {select<number>(
+                      DPIS.includes(img.dpi) ? img.dpi : 0,
+                      [
+                        ...DPIS.map((d): [number, string] => [d, `${d} DPI`]),
+                        [0, t('export.custom')]
+                      ],
+                      (dpi) => patch({ dpi: dpi || img.dpi + 1 })
+                    )}
+                    {!DPIS.includes(img.dpi) && (
+                      <>
+                        <input
+                          className="num"
+                          type="number"
+                          min={30}
+                          max={1200}
+                          value={img.dpi}
+                          onChange={(e) =>
+                            patch({
+                              dpi: Math.max(30, Math.min(1200, num(e.target.value, img.dpi)))
+                            })
+                          }
+                        />
+                        <span className="unit">DPI</span>
+                      </>
+                    )}
+                  </>,
+                  firstTemplate
+                    ? t('export.pixels', {
+                        w: Math.round(
+                          ((firstTemplate.width + (img.bleed ? 2 * firstTemplate.bleed : 0)) *
+                            img.dpi) /
+                            25.4
+                        ),
+                        h: Math.round(
+                          ((firstTemplate.height + (img.bleed ? 2 * firstTemplate.bleed : 0)) *
+                            img.dpi) /
+                            25.4
+                        )
+                      })
+                    : undefined
+                )}
               {field(
                 'export.bleed',
                 check(img.bleed, (bleed) => patch({ bleed }), 'export.bleedInclude')

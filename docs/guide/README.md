@@ -67,16 +67,16 @@ A new project is empty: the app suggests creating a template first, then a set t
 
 ![The project window, with numbered parts](img/progetto.png)
 
-1. **Top bar.** Project name and folder, **Export…**, **Backup…**, **AI tools…**, **Save** (⌘S), **Reload** (reads the project from disk again, losing unsaved changes) and **Close**.
+1. **Top bar.** Project name and folder, undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), **Export…**, **Backup…**, **AI tools…**, **Save** (⌘S), **Reload** (reads the project from disk again, losing unsaved changes) and **Close**.
 2. **Sets.** A click opens the cards of the set; the number is the total of cards, copies included.
 3. **Templates.** A click opens the template in the editor; next to it is the format in millimeters.
 4. Project text **styles** ([chapter 7](#7-variables-and-styles)).
 5. Project **variables**, with a preview.
 6. **Cards of the set**, in a table or a grid.
-7. **Preview** of the selected card, front or back. **Edit template** opens the set's template.
+7. **Preview** of the selected card, front or back. **Edit template** opens the card's template, that is the set's or the one chosen for the card; **Enlarge** opens the card large with the form next to it.
 8. **Fields of the selected card**, editable like the table cells.
 
-Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
+Next to the name of the open set or template are the buttons to duplicate it, delete it and, for a template, create a derived one. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
 
 Changes stay in memory until you save. The **Save** button reads **Saved** when there is nothing to write.
 
@@ -99,7 +99,7 @@ The + next to **Templates** opens the new template window: name, format (poker, 
 5. **Canvas bar**: shows or hides bleed, safe area and grid, chooses what to snap to (grid, objects) and sets the zoom.
 6. **Data**: draws the canvas with the values of a card from a set, instead of the template values.
 
-On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
+On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
 
 In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ selects several layers; ⌘G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
@@ -157,6 +157,21 @@ With two or more layers selected, the buttons at the top of the panel align them
 
 ![The backs of the cards in the grid](img/griglia-retro.png)
 
+### 4.7 Derived templates
+
+A derived template starts from another one, its base, and changes only some parts of it: for example `card-fire` is based on `card` and changes the background and the color of the band. Everything the derived template does not change follows the base, even when the base changes later.
+
+The ↳ button next to a template, in the sidebar, creates a derived template, which opens in the editor identical to the base. The editor header shows which template it is based on, with a link to open it.
+
+You work as on a normal template, with a few differences:
+
+- In the properties panel, next to each value, the chain means it comes from the base; the arrow means the derived template changed it, and clicking the arrow goes back to the base value.
+- In the layers panel, the chain marks the base layers, the arrow the ones with changes (a click reverts them to the base), the + the ones that exist only in the derived template.
+- Base layers cannot be deleted (Delete hides them), moved in the list or renamed: their name is also the sheet column, the same as in the base. Added layers work as usual.
+- The card size is the base's.
+
+**Make independent**, in the header, turns the derived template into a normal one with the values it has at that moment. A template that is the base of another cannot be deleted until its derived templates are made independent or deleted.
+
 ## 5. Entering and editing cards
 
 ### 5.1 Creating a set
@@ -167,15 +182,21 @@ The + next to **Sets** asks for the name, the template and the sheet: a new shee
 
 ### 5.2 Table and grid
 
+A set opens in the **grid**, with the cards drawn; **Table** shows it as a spreadsheet.
+
 The **table** works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a card. **+ Card**, **Duplicate** and **Delete** act on the selected rows (Shift or ⌘ to select more than one, in the grid too). With several cards selected the form on the right edits them in bulk: what you type in a field goes into all of them, while fields with different values stay empty and do not change until you touch them.
 
 The `amount` column says how many copies of each card to print; empty means 1.
+
+The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Columns** button chooses which ones to hide. In the card form the eye next to a layer's field shows or hides that layer on the card. The sliders icon opens the layer's properties for the card (color, italic, shape, position...), with menus for fixed sets of values, number fields and a color picker: a value typed there applies to that card only and creates the `layer.property` column, while an empty field shows the template value in grey. The number on the icon tells how many properties the card changes. Columns of fixed or formula layers do not reach the card and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each card.
+
+True/false columns (properties such as `crest.visible` or `name.italic`, and columns where every cell is `true` or `false`) have a checkbox: a click, or the space bar on the cell, ticks or clears it. A faded checkbox means an empty cell: the template value applies.
 
 The **grid** shows the cards as they will be printed. The slider at the top changes the thumbnail size (also with ⌘ and the mouse wheel); dragging a card moves it.
 
 ![The card grid](img/griglia.png)
 
-In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
+In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field; Alt+click on the same spot moves to the layer underneath, useful when a layer covers another. Double-clicking edits the layer right on the card: a box over the layer for text, the thumbnails for an image, the color picker for a shape. Esc cancels the edit, clicking outside or Ctrl+Enter closes it. Double-clicking a fixed or formula layer tells where its value comes from, with a button to open the template. The ⤢ button at the top of the preview opens the card large in a window, with the card form next to it, the same clicks and arrows to move from card to card. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
 
 ### 5.3 Sorting and filtering
 
@@ -192,6 +213,8 @@ Besides the main value, every property of a layer can change card by card with a
 ![The window to add a column](img/aggiungi-colonna.png)
 
 In cells, colors are written as names (`red`, or the name of a color variable) or in hex (`#A33A2A`); a stroke as `color/width/dash`, for example `red/0.3/dashed`.
+
+The **Template** field, at the top of the card form, picks the template of a single card among those with the set's size: empty means the set's, and the choice goes into the sheet's `template` column. It is useful, for example, to give a few cards of a set a derived template. In the card form the field becomes a menu with the templates that have the same size as the set's.
 
 ### 5.5 Editing the file in Excel
 
@@ -375,7 +398,9 @@ The preview shows how many cards will be created and the first rows. **Add at th
 
 ### 11.1 Images
 
-PNG, JPG or WebP format, resolution (150, 300, 600 DPI or custom), bleed included or not, front, back or both, transparent background outside rounded corners. File names follow a pattern with `%set`, `%n` (card number), `%copy`, `%side` and `{field}`; a `/` creates subfolders.
+PNG, JPG, WebP or SVG format, resolution (150, 300, 600 DPI or custom), bleed included or not, front, back or both, transparent background outside rounded corners. File names follow a pattern with `%set`, `%n` (card number), `%copy`, `%side` and `{field}`; a `/` creates subfolders.
+
+SVG is vector and has no resolution: it scales without losing quality and opens in graphics programs (Inkscape, Illustrator, Affinity). Project images and fonts are inside the file; fonts installed on the computer are not, and whoever opens the file needs them. Texts become SVG text, one element per line, so they can be edited but no longer wrap by themselves.
 
 ![Exporting images](img/esporta-immagini.png)
 

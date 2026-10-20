@@ -216,6 +216,42 @@ export interface Template {
   labelField?: string | null
   front: Layer[]
   back: Layer[]
+  /**
+   * Template derivato: nome del template base. front e back sono allora il risultato della
+   * risoluzione (base più `changes`), e nel file si scrivono solo le differenze.
+   */
+  extends?: string
+  changes?: TemplateChanges
+}
+
+/** Proprietà del template che un derivato può cambiare; le misure della carta no */
+export const INHERITABLE_TEMPLATE_KEYS = [
+  'bleed',
+  'safeMargin',
+  'cornerRadius',
+  'shape',
+  'shapePath',
+  'guides',
+  'labelField'
+] as const
+export type InheritableTemplateKey = (typeof INHERITABLE_TEMPLATE_KEYS)[number]
+
+/** Livello che esiste solo nel derivato, con il posto in cui si inserisce tra quelli del base */
+export interface AddedLayer {
+  side: Side
+  /** Gruppo ereditato che lo contiene; assente: al primo livello del lato */
+  parent?: string
+  /** Livello dopo il quale viene nella lista (cioè subito sotto); assente: in cima */
+  after?: string
+  layer: Layer
+}
+
+/** Differenze di un template derivato dal suo base */
+export interface TemplateChanges {
+  template?: Partial<Pick<Template, InheritableTemplateKey>>
+  /** Nome del livello del base → proprietà cambiate, ognuna sostituita per intero */
+  layers?: Record<string, Record<string, unknown>>
+  added?: AddedLayer[]
 }
 
 /** Valore principale di ogni tipo di livello: è la colonna che porta il nome del livello */

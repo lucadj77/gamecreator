@@ -3,6 +3,7 @@ import type { ExportContext, Scene } from '../../../shared/export'
 import ScenePageView from '../render/SceneView'
 import { AssetsContext, StylesContext, VariablesContext } from '../render/assets'
 import { useRegisterFonts } from '../render/fonts'
+import { cardToSvg } from './toSvg'
 
 // Pagina della finestra nascosta di esportazione: disegna le scene che arrivano dal processo
 // principale e avvisa quando sono complete, così si possono catturare o stampare.
@@ -15,6 +16,12 @@ export default function ExportPage(): React.JSX.Element {
   const [job, setJob] = useState<{ id: number; scene: Scene } | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   useRegisterFonts(context.fonts)
+
+  // il processo principale chiede l'SVG della carta disegnata (esportazione in SVG)
+  useEffect(() => {
+    const w = window as unknown as { naibiCardSvg?: (bg: string | null) => Promise<string> }
+    w.naibiCardSvg = (bg) => cardToSvg(rootRef.current!, context.fonts, bg)
+  }, [context.fonts])
 
   useEffect(() => {
     const api = window.api.exportPage

@@ -151,3 +151,103 @@ export function TrashIcon(): React.JSX.Element {
     </Outline>
   )
 }
+
+/** Occhio: mostra o nasconde un campo */
+export function EyeIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      aria-hidden="true"
+    >
+      <path d="M1.5 8c1.6-3 3.8-4.5 6.5-4.5s4.9 1.5 6.5 4.5c-1.6 3-3.8 4.5-6.5 4.5S3.1 11 1.5 8z" />
+      <circle cx="8" cy="8" r="2" />
+    </svg>
+  )
+}
+
+/** Cursori: le proprietà di un livello */
+export function SlidersIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M2 4h12M2 8h12M2 12h12" />
+      <circle cx="5" cy="4" r="1.5" fill="var(--panel)" />
+      <circle cx="10.5" cy="8" r="1.5" fill="var(--panel)" />
+      <circle cx="7" cy="12" r="1.5" fill="var(--panel)" />
+    </svg>
+  )
+}
+
+/** Occhio barrato: livello nascosto su questa carta */
+export function EyeOffIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M1.5 8c1.6-3 3.8-4.5 6.5-4.5s4.9 1.5 6.5 4.5c-1.6 3-3.8 4.5-6.5 4.5S3.1 11 1.5 8z" />
+      <path d="M2.5 13.5l11-11" />
+    </svg>
+  )
+}
+
+/** Valore ereditato dal template base: due anelli di catena */
+export function LinkIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+      style={{ verticalAlign: '-0.125em' }}
+    >
+      <path d="M6.5 9.5 L9.5 6.5" />
+      <path d="M7 4.5 L8.5 3a2.5 2.5 0 0 1 3.5 3.5 L10.5 8" />
+      <path d="M9 11.5 L7.5 13a2.5 2.5 0 0 1 -3.5 -3.5 L5.5 8" />
+    </svg>
+  )
+}
+
+/** Valore cambiato rispetto al base: freccia che torna indietro */
+export function RevertIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ verticalAlign: '-0.125em' }}
+    >
+      <path d="M3.5 6.5 A5 5 0 1 1 3.8 10" />
+      <path d="M3 3 L3.5 6.5 L7 6" />
+    </svg>
+  )
+}

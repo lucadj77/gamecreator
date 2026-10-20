@@ -1,4 +1,4 @@
-import { useReducer } from 'react'
+import { useCallback, useReducer } from 'react'
 import { findLayer } from '../../../shared/model/edit'
 import type { Side, Template } from '../../../shared/model/template'
 
@@ -115,8 +115,22 @@ function reducer(s: EditorState, a: EditorAction): EditorState {
   }
 }
 
-export function useEditor(initial: Template): [EditorState, React.Dispatch<EditorAction>] {
-  return useReducer(reducer, initial, (template) => ({
+/**
+ * `normalize` passa ogni modifica per le regole del template, per esempio quelle di un derivato
+ * (vedi rebase): l'editor mostra e annulla sempre il template come si salverà.
+ */
+export function useEditor(
+  initial: Template,
+  normalize?: (t: Template) => Template
+): [EditorState, React.Dispatch<EditorAction>] {
+  const run = useCallback(
+    (s: EditorState, a: EditorAction): EditorState =>
+      normalize && (a.type === 'change' || a.type === 'gestureUpdate')
+        ? reducer(s, { ...a, template: normalize(a.template) })
+        : reducer(s, a),
+    [normalize]
+  )
+  return useReducer(run, initial, (template) => ({
     template,
     side: 'front' as Side,
     selection: [],

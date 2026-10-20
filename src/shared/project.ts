@@ -19,6 +19,10 @@ export interface SetDefinition {
   template: string
   /** Foglio del file dati che contiene le carte; se assente, uguale a name */
   sheet?: string
+  /** Colonne nascoste nella tabella e nei campi della carta */
+  hiddenColumns?: string[]
+  /** Mostra anche i livelli fissi e con formula, in sola lettura */
+  showComputed?: boolean
 }
 
 export interface ProjectFile {

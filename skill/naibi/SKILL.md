@@ -73,7 +73,7 @@ Older projects have `gamecreator.json` instead of `naibi.json`; the format is th
 }
 ```
 
-- `sets[].sheet` is optional (default: the set's name). A set's template is `templates/<template>.json`.
+- `sets[].sheet` is optional (default: the set's name). `sets[].hiddenColumns` (columns hidden in the app's table) and `sets[].showComputed` (also show fixed and formula layers, read only) are view preferences only; they never change the cards. A set's template is `templates/<template>.json`.
 - `styles`: name → markup attributes. `heading1`, `heading2` and `note` always exist and can be redefined.
 - `variables`: `image` (`src` file name; optional `tint`, `scale` (height relative to the line, 1 = normal), `raise` (% of the line), `rotate` (degrees), `flip` (`h`, `v`, `hv`), `opacity` 0-1), `text` (markup that replaces `{name}`), `color` (usable by name in every colour property, which also accepts `{field}` to take a card field such as a value layer; redefining a CSS colour name such as `red` changes it everywhere), `value` (constant text or number, also usable in formulas).
 - `export` holds export options and named profiles (`export.named`), written by the app. `order` holds the sidebar order. Leave both alone unless asked.
@@ -142,6 +142,30 @@ Units: millimetres for positions and sizes, points for text size, degrees for ro
 Template keys: `name`, `width`, `height`, `bleed` (default 3), `safeMargin`, `cornerRadius`, optional `shape` (`rect`, `ellipse`, `hexagon`, `path` with `shapePath`, an SVG path in 0-1 card coordinates), `labelField` (field that names the cards in the app), `guides` (`{ "x": [...], "y": [...] }`).
 
 Layer names are unique in a template and are also column names: use short names without dots, braces or brackets.
+
+### Derived templates
+
+A template can be based on another one and store only its differences. The app and `naibi template` show the resolved layers; the file looks like this:
+
+```json
+{
+  "extends": "character",
+  "changes": {
+    "template": { "cornerRadius": 5 },
+    "layers": { "band": { "fill": "#B3261E" }, "badge": { "visible": false } },
+    "added": [
+      { "side": "front", "after": "name", "layer": { "type": "image", "name": "flame", "x": 4, "y": 4, "w": 8, "h": 8 } }
+    ]
+  }
+}
+```
+
+- `changes.template` may change `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`; the card size always comes from the base.
+- `changes.layers` maps a base layer name to the properties that differ; compound values (stroke, shadow, source) are written whole.
+- `changes.added` lists layers that exist only in the derived template: `side`, optional `parent` (an inherited group) and `after` (the layer just above it in the list; missing means on top).
+- Inherited layers cannot be deleted or reordered: hide them with `"visible": false`. Do not write `front`/`back` in a derived template.
+- When you rename a layer of a base template by hand, rename it in the `changes` of its derived templates too (the app does this itself).
+- A sheet column `template` picks the template of a single card (empty: the set's template). It must have the same size as the set's template.
 
 ### Properties of every layer (defaults)
 

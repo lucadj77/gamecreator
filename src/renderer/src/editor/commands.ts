@@ -36,9 +36,19 @@ export interface Commands {
   /** Tutti i selezionati stanno nello stesso contenitore */
   canGroup: boolean
   canUngroup: boolean
+  /** I selezionati si possono spostare nella lista: in un derivato solo i livelli aggiunti */
+  canMove: boolean
 }
 
-export function commands(state: EditorState, dispatch: React.Dispatch<EditorAction>): Commands {
+/**
+ * `inherited` dice se un livello viene dal template base: in un derivato quei livelli non si
+ * eliminano (si nascondono), non si spostano nella lista e non si raggruppano.
+ */
+export function commands(
+  state: EditorState,
+  dispatch: React.Dispatch<EditorAction>,
+  inherited: (id: string) => boolean = () => false
+): Commands {
   const { template: tpl, side, selection } = state
   const layers = tpl[side]
   const selected = selection.map((id) => findLayer(layers, id)).filter((l): l is Layer => !!l)
@@ -48,9 +58,11 @@ export function commands(state: EditorState, dispatch: React.Dispatch<EditorActi
   const change = (template: typeof tpl, sel?: string[], key?: string): void =>
     dispatch({ type: 'change', template, selection: sel, key })
 
+  const fixed = selection.some(inherited)
   return {
-    canGroup: siblings,
-    canUngroup: selected.some((l) => l.type === 'group'),
+    canGroup: siblings && !fixed,
+    canUngroup: selected.some((l) => l.type === 'group' && !inherited(l.id)),
+    canMove: selection.length > 0 && !fixed,
 
     add(type, shape) {
       const layer = newLayer(tpl, type, shape)
@@ -63,7 +75,11 @@ export function commands(state: EditorState, dispatch: React.Dispatch<EditorActi
 
     remove() {
       if (!selection.length) return
-      change(removeLayers(tpl, side, selection), [])
+      const own = selection.filter((id) => !inherited(id))
+      const hide = selection.filter(inherited)
+      let t = removeLayers(tpl, side, own)
+      for (const id of hide) t = patchLayer(t, side, id, { visible: false })
+      change(t, hide)
     },
 
     duplicate() {
@@ -95,7 +111,7 @@ export function commands(state: EditorState, dispatch: React.Dispatch<EditorActi
     },
 
     group() {
-      if (!siblings) return
+      if (!siblings || fixed) return
       // l'ordine del gruppo segue quello dei livelli, non quello della selezione
       const { template, groupId } = groupLayers(tpl, side, selection)
       if (groupId) change(template, [groupId])
@@ -105,7 +121,7 @@ export function commands(state: EditorState, dispatch: React.Dispatch<EditorActi
       let t = tpl
       const ids: string[] = []
       for (const l of selected) {
-        if (l.type !== 'group') {
+        if (l.type !== 'group' || inherited(l.id)) {
           ids.push(l.id)
           continue
         }
@@ -117,6 +133,7 @@ export function commands(state: EditorState, dispatch: React.Dispatch<EditorActi
     },
 
     move(direction) {
+      if (fixed) return
       let t = tpl
       // spostando verso l'alto si parte dal primo, verso il basso dall'ultimo
       const order = direction === 'up' ? selection : [...selection].reverse()

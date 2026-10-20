@@ -3032,3 +3032,50 @@ input[type='checkbox'].bool-default {
 .card-form .field-control input[type='checkbox'] {
   width: auto;
 }
+
+/* icone accanto ai campi della carta: dettagli del livello e nascondi */
+
+.field-tools {
+  display: inline-flex;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.field-tools .icon-btn {
+  position: relative;
+  color: var(--muted);
+  opacity: 0.55;
+}
+
+.card-form .field:hover .field-tools .icon-btn,
+.field-tools .icon-btn.on {
+  opacity: 1;
+}
+
+.field-tools .icon-btn.on {
+  color: var(--accent);
+}
+
+.field-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 12px;
+  padding: 0 2px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+}
+
+.field-details {
+  margin: -2px 0 8px 12px;
+  padding: 6px 0 2px 10px;
+  border-left: 2px solid var(--accent-soft);
+}
+
+.field-details .field-label {
+  width: 76px;
+}

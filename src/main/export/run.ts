@@ -134,7 +134,23 @@ async function exportImages(ctx: Ctx, o: ImageOptions, sets: ExportSet[]): Promi
   const scale = o.dpi / 25.4
   const transparent = o.transparent && o.format !== 'jpg'
   for (const f of files) {
-    if (f.names.length) {
+    if (f.names.length && ext === 'svg') {
+      const page = cardPage(f.card.template, f.side, o.bleed, 'trim')
+      await ctx.win.show(
+        {
+          pages: [page],
+          scale,
+          background: null,
+          lineColor: '#000',
+          lineWidth: 0,
+          linesOver: false
+        },
+        page.width * scale,
+        page.height * scale
+      )
+      const data = await ctx.win.toSvg(o.transparent ? null : '#FFFFFF')
+      for (const name of f.names) await write(ctx, join(folder, `${name}.svg`), data)
+    } else if (f.names.length) {
       const img = await renderCard(ctx, f.card.template, f.side, scale, {
         bleed: o.bleed,
         mode: 'trim',

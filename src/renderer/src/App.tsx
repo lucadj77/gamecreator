@@ -1308,6 +1308,8 @@ function SetView({
   const [addingColumn, setAddingColumn] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
+  /** Campi del modulo con i dettagli del livello aperti: restano aperti passando di carta in carta */
+  const [details, setDetails] = useState<Set<string>>(new Set())
   /** Ultimo clic sull'anteprima, per passare al livello sotto con un altro clic */
   const lastPick = useRef<{ x: number; y: number; row: number; column: string } | null>(null)
   const [rowView, setRowView] = useState<RowView>(NO_VIEW)
@@ -1525,6 +1527,16 @@ function SetView({
           booleans={booleans}
           computed={computed}
           focus={focus}
+          details={details}
+          onToggleDetails={(h) =>
+            setDetails((d) => {
+              const next = new Set(d)
+              if (next.has(h)) next.delete(h)
+              else next.add(h)
+              return next
+            })
+          }
+          onHide={(h) => onChangeColumns({ hiddenColumns: [...hidden, h] })}
           onChange={onChange}
         />
       )}

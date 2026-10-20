@@ -94,6 +94,14 @@ export class ExportWindow {
     return Buffer.from(b64, 'base64')
   }
 
+  /** SVG autonomo della carta mostrata, con immagini e font del progetto dentro il file */
+  async toSvg(background: string | null): Promise<Buffer> {
+    const svg: string = await this.win.webContents.executeJavaScript(
+      `window.naibiCardSvg(${JSON.stringify(background)})`
+    )
+    return Buffer.from(svg, 'utf8')
+  }
+
   /** PDF delle pagine della scena, con il formato dato da @page */
   printToPdf(): Promise<Buffer> {
     return this.win.webContents.printToPDF({

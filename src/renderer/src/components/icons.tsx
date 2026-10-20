@@ -151,3 +151,42 @@ export function TrashIcon(): React.JSX.Element {
     </Outline>
   )
 }
+
+/** Occhio: mostra o nasconde un campo */
+export function EyeIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      aria-hidden="true"
+    >
+      <path d="M1.5 8c1.6-3 3.8-4.5 6.5-4.5s4.9 1.5 6.5 4.5c-1.6 3-3.8 4.5-6.5 4.5S3.1 11 1.5 8z" />
+      <circle cx="8" cy="8" r="2" />
+    </svg>
+  )
+}
+
+/** Cursori: le proprietà di un livello */
+export function SlidersIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M2 4h12M2 8h12M2 12h12" />
+      <circle cx="5" cy="4" r="1.5" fill="var(--panel)" />
+      <circle cx="10.5" cy="8" r="1.5" fill="var(--panel)" />
+      <circle cx="7" cy="12" r="1.5" fill="var(--panel)" />
+    </svg>
+  )
+}

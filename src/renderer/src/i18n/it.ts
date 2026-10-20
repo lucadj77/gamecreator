@@ -45,6 +45,8 @@ export const it: Record<MessageKey, string> = {
   'cardForm.multiHint':
     'Ciò che scrivi in un campo va in tutte le carte selezionate. I campi vuoti hanno valori diversi tra le carte e restano come sono finché non li modifichi.',
   'cardForm.mixed': 'valori diversi',
+  'cardForm.details': 'Proprietà del livello per questa carta',
+  'cardForm.hide': 'Nascondi il campo (si rimette con Colonne)',
   'cardForm.pickColor': 'Scegli un colore',
   'cardForm.amount': 'Copie (amount)',
   'table.computedHint':

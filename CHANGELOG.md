@@ -10,6 +10,8 @@ dell'interfaccia quando segnala un aggiornamento. Come si prepara una versione �
 
 - The table and the card form show every column you can edit, including the ones the template reads but the sheet does not have yet: typing a value creates the column. The **Columns** button hides the ones you do not need and can also show fixed and formula layers, read only.
 - True/false columns, such as `crest.visible`, show a checkbox.
+- In the card form, the eye next to a field hides it, and the sliders icon opens the layer's properties for that card (color, italic, visibility, position...) without adding fields to the form.
+- Cards can be exported as SVG, with project images and fonts inside the file and texts as editable SVG text.
 - Clicking again on the same spot of the card preview moves to the field of the layer underneath; in the editor Alt+click selects the layer underneath. Thin lines and the children of arranged or repeated groups are easier to click.
 - A click on the canvas scrollbars no longer clears the selection (Windows).
 - The window title shows the installed version of Naibi.
@@ -18,6 +20,8 @@ dell'interfaccia quando segnala un aggiornamento. Come si prepara una versione �
 
 - La tabella e il modulo della carta mostrano tutte le colonne modificabili, anche quelle che il template legge ma il foglio non ha ancora: scrivendo un valore la colonna si crea. Il pulsante **Colonne** nasconde quelle che non servono e può mostrare anche i livelli fissi e con formula, in sola lettura.
 - Le colonne vero/falso, come `stemma.visible`, hanno una casella da spuntare.
+- Nel modulo della carta l'occhio accanto a un campo lo nasconde, e l'icona con i cursori apre le proprietà del livello per quella carta (colore, corsivo, visibilità, posizione...) senza aggiungere campi al modulo.
+- Le carte si esportano anche in SVG, con immagini e font del progetto dentro il file e i testi come testo SVG modificabile.
 - Un altro clic nello stesso punto dell'anteprima della carta passa al campo del livello sotto; nell'editor Alt+clic seleziona il livello sotto. Le linee sottili e i figli dei gruppi disposti o ripetuti si prendono più facilmente.
 - Un clic sulle barre di scorrimento della tela non toglie più la selezione (Windows).
 - Il titolo della finestra mostra la versione di Naibi installata.

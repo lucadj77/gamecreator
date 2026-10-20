@@ -42,6 +42,8 @@ export const en = {
   'cardForm.multiHint':
     'What you type in a field goes into all the selected cards. Empty fields have different values across the cards and stay as they are until you edit them.',
   'cardForm.mixed': 'different values',
+  'cardForm.details': 'Properties of this layer for this card',
+  'cardForm.hide': 'Hide this field (Columns brings it back)',
   'cardForm.pickColor': 'Pick a color',
   'cardForm.amount': 'Copies (amount)',
   'table.computedHint':

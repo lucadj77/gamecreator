@@ -171,7 +171,7 @@ La **tabella** funziona come un foglio di calcolo: doppio clic o digitazione per
 
 La colonna `amount` indica quante copie stampare di ogni carta; vuota vale 1.
 
-Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Colonne** sceglie quali nascondere. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
+Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Colonne** sceglie quali nascondere; nel modulo della carta lo fa anche l'occhio accanto a ogni campo. L'icona con i cursori, accanto al campo di un livello, apre le sue proprietà per la carta (colore, corsivo, visibilità, posizione...): un valore scritto lì vale solo per quella carta e crea la colonna `livello.proprietà`, mentre un campo vuoto mostra in grigio il valore del template. Il numero sull'icona dice quante proprietà la carta cambia. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
 
 Le colonne vero/falso (le proprietà come `stemma.visible` o `nome.italic`, e le colonne in cui ogni cella vale `true` o `false`) hanno una casella: un clic, o la barra spaziatrice sulla cella, la spunta o la toglie. Una casella chiara vuol dire cella vuota: vale il valore del template.
 
@@ -379,7 +379,9 @@ L'anteprima mostra quante carte nasceranno e le prime righe. **Aggiungi in fondo
 
 ### 11.1 Immagini
 
-Formato PNG, JPG o WebP, risoluzione (150, 300, 600 DPI o personalizzata), abbondanza inclusa o no, fronte, retro o entrambi, sfondo trasparente fuori dagli angoli arrotondati. I nomi dei file seguono un modello con `%set`, `%n` (numero della carta), `%copy`, `%side` e `{campo}`; una `/` crea sottocartelle.
+Formato PNG, JPG, WebP o SVG, risoluzione (150, 300, 600 DPI o personalizzata), abbondanza inclusa o no, fronte, retro o entrambi, sfondo trasparente fuori dagli angoli arrotondati. I nomi dei file seguono un modello con `%set`, `%n` (numero della carta), `%copy`, `%side` e `{campo}`; una `/` crea sottocartelle.
+
+L'SVG è vettoriale e non ha una risoluzione: si ingrandisce senza perdere qualità e si apre nei programmi di grafica (Inkscape, Illustrator, Affinity). Immagini e font del progetto sono dentro il file; i font installati sul computer no, e chi apre il file deve averli. I testi diventano testi SVG, una riga per elemento, quindi si modificano ma non vanno più a capo da soli.
 
 ![Esportazione come immagini](img/esporta-immagini.png)
 

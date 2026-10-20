@@ -1012,6 +1012,9 @@ export const it: Record<MessageKey, string> = {
   'export.gridAuto': 'Automatica per ogni set',
   'export.gridHint':
     "Fino a 10 × 7; l'ultima posizione è per la carta nascosta. I set più grandi usano più fogli.",
+  'export.copiesIn': 'Copie nel foglio',
+  'export.copiesInDeck': 'Una volta: il mazzo (file JSON) le moltiplica',
+  'export.copiesInSheet': 'Ripetute nel foglio, per caricarlo a mano',
   'export.maxSize': 'Dimensione massima',
   'export.ttsBack': 'Retro',
   'export.backAuto': "Automatico: un'immagine se i retri sono tutti uguali",
@@ -1220,7 +1223,7 @@ export const it: Record<MessageKey, string> = {
   'system.set.cards': 'Quante carte ha il set, copie comprese (somma di amount)',
   'system.card.copies': 'Copie della carta (il suo amount)',
   'system.card.copy':
-    'Copia che si sta disegnando, da 1: esportando PDF e immagini con le copie ogni copia ha il suo numero; altrove vale 1',
+    'Copia che si sta disegnando, da 1: esportando PDF, immagini e fogli TTS con le copie ripetute ogni copia ha il suo numero; altrove vale 1',
   'system.card.side': 'front o back, secondo il lato che si disegna',
   'system.date': 'Data di oggi, AAAA-MM-GG',
   'help.formulasIntro':

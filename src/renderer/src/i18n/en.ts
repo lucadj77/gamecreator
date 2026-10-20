@@ -996,6 +996,9 @@ export const en = {
   'export.gridAuto': 'Automatic for each set',
   'export.gridHint':
     'Up to 10 × 7; the last slot is kept for the hidden card. Larger sets use more sheets.',
+  'export.copiesIn': 'Copies on the sheet',
+  'export.copiesInDeck': 'Once: the deck (JSON file) multiplies them',
+  'export.copiesInSheet': 'Repeated on the sheet, to load it by hand',
   'export.maxSize': 'Max sheet size',
   'export.ttsBack': 'Back',
   'export.backAuto': 'Automatic: one image if all backs are equal',
@@ -1202,7 +1205,7 @@ export const en = {
   'system.set.cards': 'How many cards the set has, copies included (sum of amount)',
   'system.card.copies': 'Copies of the card (its amount)',
   'system.card.copy':
-    'Copy being drawn, from 1: with copies in PDF and image exports each copy has its own number; elsewhere it is 1',
+    'Copy being drawn, from 1: with copies in PDF, image and TTS exports with copies repeated on the sheet each copy has its own number; elsewhere it is 1',
   'system.card.side': 'front or back, depending on the side being drawn',
   'system.date': "Today's date, YYYY-MM-DD",
   'help.formulasIntro':

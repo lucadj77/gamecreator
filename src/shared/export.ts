@@ -81,6 +81,11 @@ export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
   cols: number
   rows: number
   maxSize: 4096 | 8192
+  /**
+   * Con le copie: ogni carta una volta nel foglio e le copie nel mazzo del JSON (deck), oppure
+   * ripetuta nel foglio quante volte dice amount (sheet), utile per caricare i fogli a mano
+   */
+  copiesIn: 'deck' | 'sheet'
   /** Retro unico, foglio dei retri o scelta automatica (unico se tutti i retri sono uguali) */
   back: 'auto' | 'single' | 'sheet'
   destination: 'project' | 'tts' | 'both'
@@ -158,6 +163,7 @@ export const DEFAULT_TTS: TtsOptions = {
   cols: 10,
   rows: 7,
   maxSize: 4096,
+  copiesIn: 'deck',
   back: 'auto',
   destination: 'project',
   ttsFolder: '',

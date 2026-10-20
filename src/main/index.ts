@@ -58,7 +58,11 @@ import {
 const cliIndex = process.argv.indexOf('--cli')
 const cliArgs = cliIndex >= 0 ? process.argv.slice(cliIndex + 1) : null
 
-adoptLegacyData()
+// versione portable per Windows: i dati dell'app (recenti, preferenze, cataloghi) stanno accanto
+// al file .exe, così la cartella si porta su un'altra macchina o una chiavetta
+if (process.env.PORTABLE_EXECUTABLE_DIR)
+  app.setPath('userData', join(process.env.PORTABLE_EXECUTABLE_DIR, 'Naibi data'))
+else adoptLegacyData()
 registerAssetScheme()
 
 if (cliArgs) {

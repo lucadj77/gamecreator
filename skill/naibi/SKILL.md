@@ -18,6 +18,7 @@ Run it as:
 followed by a command. `<project>` is the project folder (the one with `naibi.json`).
 
 On Windows, in PowerShell, put `&` before a quoted command: `& "C:\...\naibi-cli.cmd" info "D:\Games\My game"`. Wait for the command to finish and check its exit code before going on.
+If your sandbox cannot read Naibi's folder, do not change permissions yourself: ask the user to run the command outside the sandbox, or to grant read and execute once from a normal PowerShell, as explained in Naibi's docs/cli.md (`icacls "<Naibi folder>" /grant "*S-1-15-2-1:(OI)(CI)(RX)" /T`).
 
 | Command                                                                                             | What it does                                                                                                                               |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |

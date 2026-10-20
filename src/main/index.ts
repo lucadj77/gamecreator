@@ -328,7 +328,14 @@ function registerIpc(): void {
   // Strumenti per gli agenti IA: il comando naibi di questa installazione e la skill da salvare.
   // Vedi docs/cli.md.
   ipcMain.handle('ai:command', () => {
-    if (app.isPackaged) return { command: `"${process.execPath}" --cli`, ready: true }
+    if (app.isPackaged) {
+      // su Windows naibi.exe è un programma a finestre: il terminale non ne aspetterebbe la fine
+      // né il codice di uscita. naibi-cli.cmd, installato accanto, lo avvia nel modo giusto
+      const cmd = join(dirname(process.execPath), 'naibi-cli.cmd')
+      if (process.platform === 'win32' && existsSync(cmd))
+        return { command: `"${cmd}"`, ready: true }
+      return { command: `"${process.execPath}" --cli`, ready: true }
+    }
     const root = app.getAppPath()
     return {
       command: `node "${join(root, 'bin', 'naibi.mjs')}"`,

@@ -16,6 +16,10 @@ asarUnpack:
   - resources/**
 win:
   executableName: naibi
+  # comando naibi da terminale e per gli agenti IA, accanto a naibi.exe (vedi docs/cli.md)
+  extraFiles:
+    - from: build/win/naibi-cli.cmd
+      to: naibi-cli.cmd
   target:
     - target: nsis
       arch: x64

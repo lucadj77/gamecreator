@@ -17,6 +17,8 @@ Run it as:
 
 followed by a command. `<project>` is the project folder (the one with `naibi.json`).
 
+On Windows, in PowerShell, put `&` before a quoted command: `& "C:\...\naibi-cli.cmd" info "D:\Games\My game"`. Wait for the command to finish and check its exit code before going on.
+
 | Command                                                                                             | What it does                                                                                                                               |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `info <project>`                                                                                    | Sets (template, rows, cards, columns), templates and their layers, variables, styles, assets, export profiles                              |

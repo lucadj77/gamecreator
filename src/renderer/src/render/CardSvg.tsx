@@ -673,7 +673,7 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
   const empty = showEmpty && !l.text.trim()
   const boxRef = useRef<HTMLDivElement>(null)
   const [fitted, setFitted] = useState<{ key: string; size: number } | null>(null)
-  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.lineHeight}|${l.fit}|${l.padding}|${l.paddingSides}|${l.indent}|${l.wrap}`
+  const fitKey = `${l.text}|${l.size}|${l.w}|${l.h}|${l.font}|${l.weight}|${l.italic}|${l.lineHeight}|${l.fit}|${l.padding}|${l.paddingSides}|${l.indent}|${l.wrap}|${l.letterSpacing}|${l.transform}|${l.align}|${l.stroke?.width ?? ''}`
   const size = fitted && fitted.key === fitKey ? fitted.size : l.size
 
   // "riduci per stare nel riquadro": si scende di mezzo punto finché il testo non sta

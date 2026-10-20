@@ -1,5 +1,6 @@
 import { createHash } from 'crypto'
-import { access, mkdir, readFile, rename, rm, writeFile } from 'fs/promises'
+import { mkdir, readFile, rename, rm, writeFile } from 'fs/promises'
+import { exists } from '../fs'
 import { join } from 'path'
 import { app } from 'electron'
 import { projectFilePath } from './projectFile'
@@ -25,15 +26,6 @@ const dataDir = (): string => app.getPath('userData')
 const listFile = (): string => join(dataDir(), 'recent-projects.json')
 const thumbFile = (folder: string): string =>
   join(dataDir(), 'thumbnails', createHash('sha1').update(folder).digest('hex') + '.png')
-
-async function exists(path: string): Promise<boolean> {
-  try {
-    await access(path)
-    return true
-  } catch {
-    return false
-  }
-}
 
 async function readEntries(): Promise<Entry[]> {
   try {

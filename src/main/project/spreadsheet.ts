@@ -1,5 +1,6 @@
-import { access, readFile, rename, writeFile } from 'fs/promises'
-import { extname } from 'path'
+import { readFile, rename, writeFile } from 'fs/promises'
+import { exists } from '../fs'
+import { basename, extname } from 'path'
 import ExcelJS from 'exceljs'
 import Papa from 'papaparse'
 import type { Sheet } from '../../shared/project'
@@ -58,11 +59,7 @@ function isoDate(d: Date): string {
 async function readCsv(path: string): Promise<Sheet> {
   const text = await readFile(path, 'utf8')
   const parsed = Papa.parse<string[]>(text.replace(/^\uFEFF/, ''), { skipEmptyLines: true })
-  const name = path
-    .split(/[\\/]/)
-    .pop()!
-    .replace(/\.csv$/i, '')
-  return toSheet(name, parsed.data)
+  return toSheet(csvSheetName(path), parsed.data)
 }
 
 /** La prima riga contiene le intestazioni; colonne senza intestazione e righe vuote sono scartate */
@@ -202,24 +199,16 @@ async function writeOdsFile(path: string, sheets: Sheet[], removed: string[]): P
   await rename(tmp, path)
 }
 
+/** Un file .csv ha un solo foglio, con il nome del file */
+function csvSheetName(path: string): string {
+  return basename(path).replace(/\.csv$/i, '')
+}
+
 async function writeCsv(path: string, sheets: Sheet[]): Promise<void> {
-  const name = path
-    .split(/[\\/]/)
-    .pop()!
-    .replace(/\.csv$/i, '')
-  if (sheets.length !== 1 || sheets[0].name !== name)
+  if (sheets.length !== 1 || sheets[0].name !== csvSheetName(path))
     throw new MessageError(msg('save.csvOneSheet'))
   const s = sheets[0]
   const tmp = path + '.tmp'
   await writeFile(tmp, Papa.unparse([s.headers, ...s.rows]) + '\n', 'utf8')
   await rename(tmp, path)
-}
-
-async function exists(path: string): Promise<boolean> {
-  try {
-    await access(path)
-    return true
-  } catch {
-    return false
-  }
 }

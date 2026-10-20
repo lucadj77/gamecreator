@@ -1,4 +1,5 @@
 import { copyFile, mkdir, readFile, readdir, stat, writeFile } from 'fs/promises'
+import { exists } from '../fs'
 import { basename, dirname, extname, join } from 'path'
 import { MessageError, msg, type Message } from '../../shared/messages'
 import { normalizeTemplate, type RawLayer, type RawTemplate } from '../../shared/model/normalize'
@@ -20,15 +21,6 @@ import { writeSpreadsheet } from '../project/spreadsheet'
 
 // Importazione di un progetto Tabletop Creator in una cartella nuova: la cartella di origine si
 // legge soltanto. La conversione dei dati è in src/shared/import/ttc.ts.
-
-async function exists(path: string): Promise<boolean> {
-  try {
-    await stat(path)
-    return true
-  } catch {
-    return false
-  }
-}
 
 async function readJson(path: string): Promise<unknown> {
   return parseTtcJson(await readFile(path, 'utf8'))

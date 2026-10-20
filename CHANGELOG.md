@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.5
+
+### English
+
+- Tabletop Simulator export: the copies of a card (`amount` greater than 1) now all come out in the deck. Each card gets its own GUID; without it, Tabletop Simulator kept only one copy.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator: le copie di una carta (`amount` maggiore di 1) ora escono tutte nel mazzo. Ogni carta ha il suo GUID; senza, Tabletop Simulator ne teneva una sola.
+
 ## 1.2.0-beta.4
 
 ### English

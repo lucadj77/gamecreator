@@ -176,6 +176,11 @@ describe('Tabletop Simulator', () => {
     const obj = deck.ObjectStates[0]
     expect(obj.Name).toBe('Deck')
     expect(obj.DeckIDs).toEqual([100, 100, 101])
+    // le copie hanno GUID diversi, altrimenti Tabletop Simulator ne tiene una sola
+    const guids = (obj.ContainedObjects as { GUID: string }[]).map((c) => c.GUID)
+    expect(new Set([obj.GUID, ...guids]).size).toBe(4)
+    for (const g of guids) expect(g).toMatch(/^[0-9a-f]{6}$/)
+    expect(obj.ContainedObjects).toHaveLength(3)
     const one = ttsSavedObject(
       'Eroi',
       [sheet],

@@ -598,6 +598,14 @@ export interface TtsDeckCard {
   description: string
 }
 
+/** GUID di Tabletop Simulator: 6 cifre esadecimali, uguali a ogni esportazione dello stesso mazzo */
+export function ttsGuid(key: string): string {
+  // FNV-1a a 32 bit
+  let h = 0x811c9dc5
+  for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 0x01000193)
+  return (h >>> 0).toString(16).padStart(8, '0').slice(-6)
+}
+
 function transform(y = 1): Record<string, number> {
   return {
     posX: 0,
@@ -630,8 +638,11 @@ export function ttsSavedObject(
     }
   })
   const cardId = (c: TtsDeckCard): number => (c.sheet + 1) * 100 + c.slot
-  const cardObject = (c: TtsDeckCard): Record<string, unknown> => ({
+  // ogni oggetto ha il suo GUID: senza, Tabletop Simulator dà a tutte le carte lo stesso GUID
+  // vuoto e le copie di una carta si perdono
+  const cardObject = (c: TtsDeckCard, i: number): Record<string, unknown> => ({
     Name: 'Card',
+    GUID: ttsGuid(`${name}/${i + 1}`),
     Transform: transform(),
     Nickname: c.nickname,
     Description: c.description,
@@ -645,9 +656,10 @@ export function ttsSavedObject(
   })
   const object =
     cards.length === 1
-      ? { ...cardObject(cards[0]), Nickname: cards[0].nickname || name }
+      ? { ...cardObject(cards[0], 0), Nickname: cards[0].nickname || name }
       : {
           Name: 'Deck',
+          GUID: ttsGuid(name),
           Transform: transform(),
           Nickname: name,
           Description: '',

@@ -2,22 +2,37 @@ import { BrowserWindow, ipcMain, type NativeImage } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import type { ExportContext, Scene } from '../../shared/export'
+import { Watchdog } from '../../shared/exportWait'
 
 // Finestra nascosta che disegna le carte con lo stesso codice dell'anteprima: da qui si
 // catturano le immagini e si stampa il PDF.
 
 let nextId = 1
-/** Oltre questo tempo la pagina non risponderà più: è andata in errore */
-const SHOW_TIMEOUT = 60 * 1000
-const waiting = new Map<number, { resolve(): void; reject(e: Error): void }>()
+/**
+ * Mentre disegna, la pagina dà segni di vita ogni pochi secondi: se tace così a lungo è bloccata
+ * o chiusa. Un foglio grande può impiegare di più in tutto, purché la pagina resti viva.
+ */
+const SILENCE_TIMEOUT = 60 * 1000
+interface Waiting {
+  resolve(): void
+  reject(e: Error): void
+  watchdog: Watchdog
+}
+const waiting = new Map<number, Waiting>()
 
-ipcMain.on('export:shown', (_, id: number, error?: string) => {
+function settle(id: number, error?: Error): void {
   const w = waiting.get(id)
   if (!w) return
   waiting.delete(id)
-  if (error) w.reject(new Error(error))
+  w.watchdog.stop()
+  if (error) w.reject(error)
   else w.resolve()
-})
+}
+
+ipcMain.on('export:shown', (_, id: number, error?: string) =>
+  settle(id, error ? new Error(error) : undefined)
+)
+ipcMain.on('export:alive', (_, id: number) => waiting.get(id)?.watchdog.alive())
 
 export class ExportWindow {
   private constructor(private win: BrowserWindow) {}
@@ -41,6 +56,11 @@ export class ExportWindow {
       }
     })
     win.webContents.setFrameRate(60)
+    // una pagina che si chiude da sola non risponderà più: lo si dice subito, con il motivo
+    win.webContents.on('render-process-gone', (_, details) => {
+      for (const id of [...waiting.keys()])
+        settle(id, new Error(`the export page stopped (${details.reason})`))
+    })
     // solo la pagina di questa finestra: una miniatura e un'esportazione possono aprirne due insieme
     const ready = new Promise<void>((resolve) => {
       const onReady = (event: Electron.IpcMainEvent): void => {
@@ -65,20 +85,15 @@ export class ExportWindow {
   async show(scene: Scene, width: number, height: number): Promise<void> {
     this.win.setContentSize(Math.max(1, Math.ceil(width)), Math.max(1, Math.ceil(height)))
     const id = nextId++
-    const done = new Promise<void>((resolve, reject) => waiting.set(id, { resolve, reject }))
-    // se la pagina va in errore prima di rispondere, l'esportazione non resta appesa
-    const timer = setTimeout(() => {
-      const w = waiting.get(id)
-      if (!w) return
-      waiting.delete(id)
-      w.reject(new Error('the export page did not answer within 60 s'))
-    }, SHOW_TIMEOUT)
+    // se la pagina si blocca prima di rispondere, l'esportazione non resta appesa
+    const done = new Promise<void>((resolve, reject) => {
+      const watchdog = new Watchdog(SILENCE_TIMEOUT, () =>
+        settle(id, new Error('the export page stopped responding for 60 s'))
+      )
+      waiting.set(id, { resolve, reject, watchdog })
+    })
     this.win.webContents.send('export:scene', id, scene)
-    try {
-      await done
-    } finally {
-      clearTimeout(timer)
-    }
+    await done
   }
 
   /** Immagine dell'angolo in alto a sinistra, nelle dimensioni chieste in pixel */

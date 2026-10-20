@@ -63,7 +63,8 @@ const api: Api = {
     onContext: (cb) => ipcRenderer.on('export:context', (_, c) => cb(c)),
     onScene: (cb) => ipcRenderer.on('export:scene', (_, id, scene) => cb(id, scene)),
     ready: () => ipcRenderer.send('export:page-ready'),
-    shown: (id, error) => ipcRenderer.send('export:shown', id, error)
+    shown: (id, error) => ipcRenderer.send('export:shown', id, error),
+    alive: (id) => ipcRenderer.send('export:alive', id)
   }
 }
 

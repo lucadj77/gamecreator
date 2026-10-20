@@ -176,6 +176,8 @@ export interface ExportPageApi {
   ready(): void
   /** Scena disegnata, o errore */
   shown(id: number, error?: string): void
+  /** La pagina sta ancora lavorando alla scena */
+  alive(id: number): void
 }
 
 export interface TtcImportOptions {

@@ -130,4 +130,23 @@ describe('casi limite', () => {
     const grid = planPdf({ ...DEFAULT_PDF, margin: 200, sides: 'front' }, sets, 'p')
     expect(grid.overflow).toEqual(['eroi'])
   })
+  it('TTS: copie nel mazzo o ripetute nel foglio', () => {
+    const sets = [{ name: 's', cards: [card(1, 3), card(2, 0), card(3, 1)] }]
+    const [deck] = planTts(DEFAULT_TTS, sets)
+    expect(deck.chunks[0].cards.map((c) => c.n)).toEqual([1, 3])
+    expect(deck.chunks[0].counts).toEqual([3, 1])
+    const [sheet] = planTts({ ...DEFAULT_TTS, copiesIn: 'sheet' }, sets)
+    expect(sheet.chunks[0].cards.map((c) => c.n)).toEqual([1, 1, 1, 3])
+    expect(sheet.chunks[0].counts).toEqual([1, 1, 1, 1])
+    // senza copie la scelta non conta: una carta per riga
+    const [none] = planTts({ ...DEFAULT_TTS, copies: false, copiesIn: 'sheet' }, sets)
+    expect(none.chunks[0].cards.map((c) => c.n)).toEqual([1, 2, 3])
+    expect(none.chunks[0].counts).toEqual([1, 1, 1])
+  })
+  it('TTS: le copie ripetute nel foglio usano il template di ogni copia', () => {
+    const t2 = normalizeTemplate({ name: 't2', width: 63, height: 88, front: [], back: [] })
+    const c = { ...card(1, 2), perCopy: [tpl, t2] }
+    const [plan] = planTts({ ...DEFAULT_TTS, copiesIn: 'sheet' }, [{ name: 's', cards: [c] }])
+    expect(plan.chunks[0].cards.map((x) => x.template.name)).toEqual(['t', 't2'])
+  })
 })

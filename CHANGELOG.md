@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.9
+
+### English
+
+- Tabletop Simulator export: new **Copies on the sheet** option, shown when Copies is on. "Once" works as before: each card appears once on the sheet and the deck file multiplies it. "Repeated on the sheet" draws each copy in its own slot, as many times as `amount` says, so the sheets can be loaded into Tabletop Simulator by hand without the deck file. With this choice `{card.copy}` numbers the copies on the sheet too.
+- `naibi` command on Windows: the installed app now has `naibi-cli.cmd` next to `naibi.exe`, and **AI tools…** gives that command. Launched directly, `naibi.exe` returned to the prompt before finishing, without its exit code, and inside the sandbox of some AI agents (Codex) it closed at once. The `.cmd` waits for the end, returns the exit code and starts without Chromium's sandbox. The installer also lets sandboxed agents (Codex) read and run Naibi's folder, read-only, so no permission needs changing by hand. Copy the skill again into your agent to update it.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator: nuova opzione **Copie nel foglio**, visibile quando Copie è attivo. "Una volta" funziona come prima: ogni carta compare una volta nel foglio e il file del mazzo la moltiplica. "Ripetute nel foglio" disegna ogni copia in una sua posizione, quante volte dice `amount`, così i fogli si possono caricare a mano in Tabletop Simulator senza il file del mazzo. Con questa scelta anche `{card.copy}` numera le copie nel foglio.
+- Comando `naibi` su Windows: l'app installata ha ora `naibi-cli.cmd` accanto a `naibi.exe`, e **Strumenti IA…** indica questo comando. Lanciato direttamente, `naibi.exe` tornava al prompt prima di finire, senza codice di uscita, e dentro la sandbox di alcuni agenti IA (Codex) si chiudeva subito. Il `.cmd` aspetta la fine, restituisce il codice di uscita e parte senza la sandbox di Chromium. L'installer inoltre permette agli agenti in sandbox (Codex) di leggere ed eseguire la cartella di Naibi, senza poterla modificare, così non serve cambiare permessi a mano. Copia di nuovo la skill nel tuo agente per aggiornarla.
+
 ## 1.2.0-beta.8
 
 ### English

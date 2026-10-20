@@ -17,6 +17,9 @@ Run it as:
 
 followed by a command. `<project>` is the project folder (the one with `naibi.json`).
 
+On Windows, in PowerShell, put `&` before a quoted command: `& "C:\...\naibi-cli.cmd" info "D:\Games\My game"`. Wait for the command to finish and check its exit code before going on.
+The Windows installer (1.2.0-beta.9 and later) already lets sandboxed agents read Naibi's folder. If your sandbox still cannot read it, do not change permissions yourself: ask the user to run the command outside the sandbox, or to grant read and execute once from a normal PowerShell, as explained in Naibi's docs/cli.md (`icacls "<Naibi folder>" /grant "*S-1-15-2-1:(OI)(CI)(RX)" /T`).
+
 | Command                                                                                             | What it does                                                                                                                               |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `info <project>`                                                                                    | Sets (template, rows, cards, columns), templates and their layers, variables, styles, assets, export profiles                              |
@@ -240,7 +243,7 @@ Colours: hex (`#A33A2A`), the 148 CSS colour names, colour variables (`red` or `
 
 ### System variables
 
-Naibi fills these by itself; write them like fields, in text and in formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}` (row in the set, from 1), `{set.rows}`, `{set.cards}` (cards with copies, sum of `amount`), `{card.copies}` (the card's `amount`), `{card.copy}` (copy being drawn, from 1; different per copy only in PDF and image exports with copies), `{card.side}` (`front` or `back`), `{date}` (today, `YYYY-MM-DD`). A field or project variable with the same name wins. Example footer: `{set.name} {card.number}/{set.rows}`.
+Naibi fills these by itself; write them like fields, in text and in formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}` (row in the set, from 1), `{set.rows}`, `{set.cards}` (cards with copies, sum of `amount`), `{card.copies}` (the card's `amount`), `{card.copy}` (copy being drawn, from 1; different per copy only in PDF and image exports with copies, and in TTS exports with `copiesIn: "sheet"`), `{card.side}` (`front` or `back`), `{date}` (today, `YYYY-MM-DD`). A field or project variable with the same name wins. Example footer: `{set.name} {card.number}/{set.rows}`.
 
 ## Formulas
 

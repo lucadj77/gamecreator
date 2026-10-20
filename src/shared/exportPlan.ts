@@ -424,6 +424,8 @@ function posterPages(o: PdfOptions, set: ExportSet): { side: Side; page: ScenePa
 
 export interface TtsChunk {
   cards: ExportCard[]
+  /** Quante carte del mazzo usano ogni posizione del foglio */
+  counts: number[]
   cols: number
   rows: number
   /** Pixel per mm del foglio */
@@ -445,7 +447,11 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
   const perSheet = fixed ? cols * rows - 1 : TTS_MAX_COLS * TTS_MAX_ROWS - 1
   return sets.map((set) => {
     // senza copie ogni riga è una carta; con le copie le righe a 0 non entrano nel mazzo
-    const cards = set.cards.filter((c) => !o.copies || c.amount > 0)
+    const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
+    // copie nel foglio: ogni copia ha la sua posizione e nel mazzo compare una volta
+    const inSheet = o.copies && o.copiesIn === 'sheet'
+    const cards = inSheet ? expandCopies(kept, true).map((i) => i.card) : kept
+    const counts = cards.map((c) => (o.copies && !inSheet ? c.amount : 1))
     const chunks: TtsChunk[] = []
     for (let i = 0; i < cards.length; i += perSheet) {
       const chunk = cards.slice(i, i + perSheet)
@@ -453,6 +459,7 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
       const g = fixed ? { cols, rows } : ttsAutoGrid(chunk.length, t0.width, t0.height)
       chunks.push({
         cards: chunk,
+        counts: counts.slice(i, i + perSheet),
         ...g,
         scale: ttsScale(g.cols, g.rows, t0.width, t0.height, o.maxSize)
       })

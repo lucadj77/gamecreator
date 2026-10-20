@@ -678,6 +678,18 @@ export default function ExportDialog({
 
           {kind === 'tts' && (
             <>
+              {tts.copies &&
+                field(
+                  'export.copiesIn',
+                  select(
+                    tts.copiesIn,
+                    [
+                      ['deck', t('export.copiesInDeck')],
+                      ['sheet', t('export.copiesInSheet')]
+                    ],
+                    (copiesIn) => patch({ copiesIn })
+                  )
+                )}
               {field(
                 'export.grid',
                 <>

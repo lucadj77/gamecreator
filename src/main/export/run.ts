@@ -322,8 +322,7 @@ async function exportTts(
     const deck: TtsDeckCard[] = []
     chunks.forEach((chunk, sheet) =>
       chunk.cards.forEach((card, slot) => {
-        const n = o.copies ? card.amount : 1
-        for (let i = 0; i < n; i++)
+        for (let i = 0; i < chunk.counts[slot]; i++)
           deck.push({
             sheet,
             slot,

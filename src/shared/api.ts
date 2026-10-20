@@ -131,6 +131,8 @@ export interface Api {
   naibiCommand(): Promise<{ command: string; ready: boolean }>
   /** L'ultima versione pubblicata, se è più recente di questa; null anche senza rete */
   checkForUpdate(): Promise<UpdateInfo | null>
+  /** Versione dell'app, per esempio 1.2.0-beta.1 */
+  appVersion(): Promise<string>
   /** Scrive la skill in <cartella>/naibi/SKILL.md e ne restituisce il percorso */
   saveSkill(folder: string, text: string): Promise<string>
   /** Cartella proposta per salvare la skill: quella delle skill di Claude Code, se c'è */

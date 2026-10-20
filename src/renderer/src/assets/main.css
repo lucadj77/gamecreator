@@ -2418,6 +2418,25 @@ div.font-row {
   font-weight: 700;
 }
 
+.start-version {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.beta-badge {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--warning-bg);
+  color: var(--text);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+}
+
 .start-footer {
   display: flex;
   justify-content: flex-end;

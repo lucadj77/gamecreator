@@ -43,6 +43,7 @@ const api: Api = {
   importTtc: (options) => ipcRenderer.invoke('ttc:import', options),
   naibiCommand: () => ipcRenderer.invoke('ai:command'),
   checkForUpdate: () => ipcRenderer.invoke('update:check'),
+  appVersion: () => ipcRenderer.invoke('app:version'),
   saveSkill: (folder, text) => ipcRenderer.invoke('ai:save-skill', folder, text),
   skillsFolder: () => ipcRenderer.invoke('ai:skills-folder'),
   exportPage: {

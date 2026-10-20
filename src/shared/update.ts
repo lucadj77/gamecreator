@@ -1,8 +1,9 @@
 // Controllo degli aggiornamenti: l'app confronta la propria versione con l'ultima release
 // pubblicata su GitHub e ne mostra le novità. Le note arrivano da CHANGELOG.md, con una parte in
-// italiano e una in inglese (vedi docs/rilascio.md).
+// inglese e una in italiano (vedi docs/rilascio.md). Le versioni con un suffisso (1.2.0-beta.1)
+// sono beta: le segnala solo a chi ha già una beta.
 
-export const RELEASES_API = 'https://api.github.com/repos/lucadj77/naibi/releases/latest'
+export const RELEASES_API = 'https://api.github.com/repos/lucadj77/naibi/releases?per_page=30'
 
 export interface UpdateInfo {
   /** Versione senza la v iniziale, per esempio 1.1.0 */
@@ -13,36 +14,65 @@ export interface UpdateInfo {
   url: string
 }
 
-/** Le parti numeriche di una versione: v1.2.0 → [1, 2, 0] */
-function parts(version: string): number[] {
-  return version
-    .replace(/^v/, '')
-    .split(/[.-]/)
-    .slice(0, 3)
-    .map((p) => parseInt(p, 10) || 0)
+/** Le parti di una versione: v1.2.0-beta.1 → [1, 2, 0] e il suffisso beta.1 */
+function parse(version: string): { nums: number[]; pre: string[] } {
+  const [main, ...rest] = version.trim().replace(/^v/, '').split('-')
+  const nums = main.split('.').map((p) => parseInt(p, 10) || 0)
+  return { nums, pre: rest.length ? rest.join('-').split('.') : [] }
 }
 
-/** Positivo se a è più recente di b, negativo se è più vecchia, 0 se sono uguali */
+/** Una beta: la versione ha un suffisso dopo il trattino */
+export function isPrerelease(version: string): boolean {
+  return parse(version).pre.length > 0
+}
+
+/**
+ * Positivo se a è più recente di b, negativo se è più vecchia, 0 se sono uguali. Come in semver,
+ * una beta viene prima della versione ufficiale con lo stesso numero: 1.2.0-beta.2 < 1.2.0.
+ */
 export function compareVersions(a: string, b: string): number {
-  const pa = parts(a)
-  const pb = parts(b)
+  const pa = parse(a)
+  const pb = parse(b)
   for (let i = 0; i < 3; i++) {
-    const d = (pa[i] ?? 0) - (pb[i] ?? 0)
+    const d = (pa.nums[i] ?? 0) - (pb.nums[i] ?? 0)
     if (d) return d
+  }
+  if (!pa.pre.length || !pb.pre.length) return pb.pre.length - pa.pre.length
+  for (let i = 0; i < Math.max(pa.pre.length, pb.pre.length); i++) {
+    const x = pa.pre[i]
+    const y = pb.pre[i]
+    if (x === undefined || y === undefined) return x === undefined ? -1 : 1
+    const nx = /^\d+$/.test(x) ? Number(x) : null
+    const ny = /^\d+$/.test(y) ? Number(y) : null
+    if (nx !== null && ny !== null) {
+      if (nx !== ny) return nx - ny
+    } else if (x !== y) return nx !== null ? -1 : ny !== null ? 1 : x < y ? -1 : 1
   }
   return 0
 }
 
-/** L'aggiornamento descritto dalla risposta di GitHub, se è più recente della versione corrente */
-export function updateFromRelease(release: unknown, current: string): UpdateInfo | null {
-  if (!release || typeof release !== 'object') return null
-  const r = release as Record<string, unknown>
-  if (typeof r.tag_name !== 'string' || r.draft || r.prerelease) return null
-  if (compareVersions(r.tag_name, current) <= 0) return null
+/**
+ * L'aggiornamento da proporre tra le release di GitHub: la più recente tra quelle pubblicate,
+ * se lo è più della versione corrente. Le beta valgono solo per chi ha già una beta.
+ */
+export function updateFromReleases(releases: unknown, current: string): UpdateInfo | null {
+  if (!Array.isArray(releases)) return null
+  const beta = isPrerelease(current)
+  let best: Record<string, unknown> | null = null
+  for (const r of releases) {
+    if (!r || typeof r !== 'object') continue
+    const tag = (r as Record<string, unknown>).tag_name
+    if (typeof tag !== 'string' || (r as Record<string, unknown>).draft) continue
+    if (!beta && (isPrerelease(tag) || (r as Record<string, unknown>).prerelease)) continue
+    if (compareVersions(tag, current) <= 0) continue
+    if (!best || compareVersions(tag, best.tag_name as string) > 0)
+      best = r as Record<string, unknown>
+  }
+  if (!best) return null
   return {
-    version: r.tag_name.replace(/^v/, ''),
-    notes: typeof r.body === 'string' ? r.body : '',
-    url: typeof r.html_url === 'string' ? r.html_url : ''
+    version: (best.tag_name as string).replace(/^v/, ''),
+    notes: typeof best.body === 'string' ? best.body : '',
+    url: typeof best.html_url === 'string' ? best.html_url : ''
   }
 }
 

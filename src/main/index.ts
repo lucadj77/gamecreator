@@ -26,7 +26,7 @@ import { importIcons } from './library/icons'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
 import { runCli } from './cli'
-import { RELEASES_API, updateFromRelease } from '../shared/update'
+import { RELEASES_API, updateFromReleases } from '../shared/update'
 import {
   autoBackup,
   backupDirName,
@@ -280,6 +280,7 @@ function registerIpc(): void {
       ready: existsSync(join(root, 'out', 'renderer', 'index.html'))
     }
   })
+  ipcMain.handle('app:version', () => app.getVersion())
   // l'ultima release su GitHub, se è più recente di questa versione; senza rete non dice nulla
   ipcMain.handle('update:check', async () => {
     try {
@@ -290,7 +291,7 @@ function registerIpc(): void {
         }
       })
       if (!res.ok) return null
-      return updateFromRelease(await res.json(), app.getVersion())
+      return updateFromReleases(await res.json(), app.getVersion())
     } catch {
       return null
     }

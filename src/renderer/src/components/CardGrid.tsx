@@ -69,6 +69,20 @@ function CardGrid({
     }
     return shown.filter((i) => hits.has(i))
   }
+  /**
+   * Posto tra le carte più vicino a un punto fuori dalle carte: davanti alla prima carta che
+   * nell'ordine di lettura viene dopo il punto, altrimenti dopo l'ultima
+   */
+  const gapAt = (x: number, y: number): { index: number; after: boolean } | null => {
+    const els = [...(gridRef.current?.querySelectorAll<HTMLElement>('.card-cell') ?? [])]
+    if (!els.length) return null
+    for (const el of els) {
+      const c = el.getBoundingClientRect()
+      if (c.top > y || (c.bottom >= y && c.left + c.width / 2 > x))
+        return { index: Number(el.dataset.index), after: false }
+    }
+    return { index: Number(els[els.length - 1].dataset.index), after: true }
+  }
   const gridRef = useRef<HTMLDivElement>(null)
   // la carta scelta resta visibile anche quando cambia da tastiera (PagSu, PagGiù)
   useEffect(() => {
@@ -102,6 +116,21 @@ function CardGrid({
       }}
       onPointerUp={() => setArea(null)}
       onPointerCancel={() => setArea(null)}
+      // sullo spazio vuoto, per esempio dopo l'ultima carta, la carta va al posto più vicino
+      onDragOver={(e) => {
+        if (dragging === null || (e.target as Element).closest('.card-cell')) return
+        e.preventDefault()
+        const next = gapAt(e.clientX, e.clientY)
+        if (next && (drop?.index !== next.index || drop.after !== next.after)) setDrop(next)
+      }}
+      onDrop={(e) => {
+        if ((e.target as Element).closest('.card-cell')) return
+        e.preventDefault()
+        const at = gapAt(e.clientX, e.clientY)
+        if (dragging !== null && at && onMove)
+          onMove(moving(dragging), at.index + (at.after ? 1 : 0))
+        reset()
+      }}
     >
       {area && (
         <div

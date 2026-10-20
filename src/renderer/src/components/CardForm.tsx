@@ -10,6 +10,7 @@ import {
 } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
 import { PRIMARY_PROPERTY, type Layer, type Template } from '../../../shared/model/template'
+import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
@@ -22,6 +23,10 @@ interface Props {
   /** Carte selezionate quando sono più di una: ogni campo scrive in tutte */
   rows?: number[]
   template: Template | null
+  /** Template che una carta può usare al posto di quello del set (colonna template) */
+  templateChoices?: string[]
+  /** Template del set: vale per le carte con la colonna template vuota */
+  setTemplate?: string
   /** Colonne da mostrare, già senza quelle nascoste (vedi setColumns) */
   columns: ColumnInfo[]
   /** Colonne vero/falso, con il valore del template per le celle vuote */
@@ -45,6 +50,8 @@ function CardForm({
   row,
   rows,
   template,
+  templateChoices = [],
+  setTemplate,
   columns,
   booleans,
   computed,
@@ -205,6 +212,33 @@ function CardForm({
         )}
       </span>
     )
+    if (h === TEMPLATE_COLUMN && templateChoices.length) {
+      // il template della carta si sceglie tra quelli con le misure del set
+      const own = value?.trim() ?? ''
+      return (
+        <label key={h} className={className} title={t('cardForm.templateHint')}>
+          <span className="field-label">{t('cardForm.template')}</span>
+          <span className="field-control">
+            <select
+              data-column={h}
+              className={own ? undefined : 'from-template'}
+              value={own}
+              onChange={(e) => write(h, e.target.value)}
+            >
+              <option value="">{t('cardForm.setTemplate', { name: setTemplate ?? '' })}</option>
+              {templateChoices
+                .filter((n) => n !== setTemplate)
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              {own && !templateChoices.includes(own) && <option value={own}>{own}</option>}
+            </select>
+          </span>
+        </label>
+      )
+    }
     if (calc)
       return (
         <label key={h} className={className} title={t('table.computedHint')}>

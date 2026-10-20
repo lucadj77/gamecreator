@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { LoadedProject } from '../../../shared/project'
 import { resolveAsset } from '../../../shared/model/assets'
-import { bindCard, rowToCard } from '../../../shared/model/bind'
+import { bindRow } from '../../../shared/model/bind'
 import { creditsText } from '../../../shared/model/credits'
 import { markupFonts } from '../../../shared/model/fonts'
 import { markupRefs } from '../../../shared/model/markup'
@@ -27,7 +27,7 @@ function usedByCards(project: LoadedProject): { assets: Set<string>; fonts: Set<
     const tpl = project.templates.find((x) => x.name === set.template)
     if (!tpl || !set.data) continue
     for (const row of set.data.rows) {
-      const bound = bindCard(tpl, rowToCard(set.data.headers, row), {
+      const bound = bindRow(set.data.headers, row, tpl, project.templates, {
         assets: project.assets,
         variables: project.file.variables
       })

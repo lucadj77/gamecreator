@@ -10,7 +10,17 @@ import type {
   Sheet
 } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
-import { bindCard, computedValues, rowToCard, type BoundCard } from '../../shared/model/bind'
+import { bindRow, computedValues, rowToCard, type BoundCard } from '../../shared/model/bind'
+import {
+  baseOf,
+  cardTemplate,
+  derivedOf,
+  detach,
+  newDerived,
+  rediffDerived,
+  resolveTemplates,
+  syncDerived
+} from '../../shared/model/inherit'
 import type { GroupLayer, Layer, Side, Template } from '../../shared/model/template'
 import type { Bounds } from '../../shared/model/edit'
 import {
@@ -71,11 +81,12 @@ import {
   VariablesIcon
 } from './components/icons'
 import TemplateEditor from './editor/TemplateEditor'
-import { NewTemplateDialog } from './editor/dialogs'
+import { Dialog, NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
 import InlineEditor, { type InlineEdit } from './components/InlineEditor'
+import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import CardSvg from './render/CardSvg'
 import {
@@ -182,6 +193,8 @@ function App(): React.JSX.Element {
   const [aiTools, setAiTools] = useState(false)
   const [importing, setImporting] = useState(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
+  /** Template da cui si sta creando un derivato */
+  const [deriving, setDeriving] = useState<string | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
   const [dirtySheets, setDirtySheets] = useState<Set<string>>(new Set())
   /** file di progetto da riscrivere (set nuovi) */
@@ -242,11 +255,40 @@ function App(): React.JSX.Element {
   }
 
   const updateTemplate = useCallback((tpl: Template) => {
-    setProject(
-      (p) => p && { ...p, templates: p.templates.map((x) => (x.name === tpl.name ? tpl : x)) }
-    )
+    setProject((p) => {
+      if (!p) return p
+      // i derivati seguono subito il base; quelli che cambiano per una rinomina vanno salvati
+      const synced = syncDerived(
+        p.templates,
+        p.templates.map((x) => (x.name === tpl.name ? tpl : x))
+      )
+      if (synced.changed.length) setDirty((d) => new Set([...d, ...synced.changed]))
+      return { ...p, templates: synced.templates }
+    })
     setDirty((d) => (d.has(tpl.name) ? d : new Set(d).add(tpl.name)))
   }, [])
+
+  /** Nuovo template derivato: uguale al base finché non lo si modifica */
+  const deriveTemplate = (from: string, name: string): void => {
+    const base = project?.templates.find((x) => x.name === from)
+    if (!base) return
+    const tpl = newDerived(base, name)
+    setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
+    setDirty((d) => new Set(d).add(name))
+    setSelected({ kind: 'template', name })
+  }
+
+  /** Il derivato diventa un template normale, con i valori che ha ora */
+  const detachTemplate = (name: string): void => {
+    const tpl = project?.templates.find((x) => x.name === name)
+    if (!tpl?.extends) return
+    if (!window.confirm(t('inherit.detachConfirm', { name, base: tpl.extends }))) return
+    setProject(
+      (p) => p && { ...p, templates: p.templates.map((x) => (x.name === name ? detach(x) : x)) }
+    )
+    setDirty((d) => new Set(d).add(name))
+    setEditorRev((r) => r + 1)
+  }
 
   /** Modifica del foglio di un set; le modifiche ravvicinate con la stessa chiave si annullano insieme */
   const updateSheet = (index: number, sheet: Sheet, key?: string): void => {
@@ -595,6 +637,11 @@ function App(): React.JSX.Element {
       window.alert(t('sidebar.templateInUse', { name, sets: users.join(', ') }))
       return
     }
+    const derived = derivedOf(project.templates, name).map((x) => x.name)
+    if (derived.length) {
+      window.alert(t('inherit.hasDerived', { name, list: derived.join(', ') }))
+      return
+    }
     const tpl = project.templates.find((x) => x.name === name)
     if (!tpl || !window.confirm(t('sidebar.deleteTemplateConfirm', { name }))) return
     try {
@@ -618,7 +665,8 @@ function App(): React.JSX.Element {
     if (!src) return
     // i livelli ricevono id nuovi rileggendo il template come da file
     const copy = normalizeTemplate({ ...denormalizeTemplate(src), name })
-    setProject((p) => p && { ...p, templates: [...p.templates, copy] })
+    // la copia di un derivato deriva dallo stesso base: si risolve come al caricamento
+    setProject((p) => p && { ...p, templates: resolveTemplates([...p.templates, copy]).templates })
     setDirty((d) => new Set(d).add(name))
     setSelected({ kind: 'template', name })
   }
@@ -873,9 +921,19 @@ function App(): React.JSX.Element {
                         <span className="dirty-dot" title={t('app.unsaved')} />
                       )}
                     </span>
-                    <span className="muted">
-                      {tpl.width}×{tpl.height}
+                    <span
+                      className={tpl.extends ? 'muted derived-base' : 'muted'}
+                      title={tpl.extends ? `${t('inherit.derivedFrom')} ${tpl.extends}` : undefined}
+                    >
+                      {tpl.extends ? `↳ ${tpl.extends}` : `${tpl.width}×${tpl.height}`}
                     </span>
+                  </button>
+                  <button
+                    className="icon-btn item-dup"
+                    title={t('inherit.derive')}
+                    onClick={() => setDeriving(tpl.name)}
+                  >
+                    ↳
                   </button>
                   <button
                     className="icon-btn item-dup"
@@ -1093,6 +1151,9 @@ function App(): React.JSX.Element {
                       template={editing}
                       sets={project.sets.filter((s) => s.template === editing.name)}
                       onChange={updateTemplate}
+                      base={baseOf(project.templates, editing)}
+                      onOpen={(name) => setSelected({ kind: 'template', name })}
+                      onDetach={() => detachTemplate(editing.name)}
                     />
                   ) : current ? (
                     <SetView
@@ -1193,6 +1254,25 @@ function App(): React.JSX.Element {
                     setDuplicating(null)
                   }}
                   onClose={() => setDuplicating(null)}
+                />
+              )}
+              {deriving && project && (
+                <DuplicateDialog
+                  title={t('inherit.deriveTitle')}
+                  okLabel={t('inherit.deriveOk')}
+                  initial={copyName(deriving, templateNames())}
+                  validate={(name) =>
+                    !isValidTemplateName(name)
+                      ? t('newTemplate.invalidName')
+                      : templateNames().includes(name)
+                        ? t('newTemplate.exists')
+                        : null
+                  }
+                  onDuplicate={(name) => {
+                    deriveTemplate(deriving, name)
+                    setDeriving(null)
+                  }}
+                  onClose={() => setDeriving(null)}
                 />
               )}
               {creatingSet && project && (
@@ -1314,6 +1394,10 @@ function SetView({
   const [details, setDetails] = useState<Set<string>>(new Set())
   /** Livello in modifica direttamente sulla carta in anteprima */
   const [inline, setInline] = useState<InlineEdit | null>(null)
+  /** Livello fisso o con formula su cui si è fatto doppio clic */
+  const [info, setInfo] = useState<{ layer: Layer; box: Bounds; row: number } | null>(null)
+  /** Anteprima grande in una finestra */
+  const [big, setBig] = useState(false)
   /** Ultimo clic sull'anteprima, per passare al livello sotto con un altro clic */
   const lastPick = useRef<{ x: number; y: number; row: number; column: string } | null>(null)
   const [rowView, setRowView] = useState<RowView>(NO_VIEW)
@@ -1347,16 +1431,24 @@ function SetView({
   const cards = useMemo<BoundCard[]>(() => {
     if (!template || !set.data) return []
     const { headers, rows } = set.data
-    return rows.map((row) => bindCard(template, rowToCard(headers, row), bindCtx))
-  }, [template, set.data, bindCtx])
+    return rows.map((row) => bindRow(headers, row, template, templates, bindCtx))
+  }, [template, templates, set.data, bindCtx])
+  /** Template di ogni carta: quello del set o quello della colonna template */
+  const rowTemplates = useMemo(
+    () =>
+      template && set.data
+        ? set.data.rows.map((r) => cardTemplate(set.data!.headers, r, template, templates).template)
+        : [],
+    [template, templates, set.data]
+  )
 
   const order = useMemo(() => (set.data ? viewRows(set.data, rowView) : []), [set.data, rowView])
 
   // colonne mostrate: tutte quelle modificabili, tranne le nascoste; i livelli fissi e con
   // formula solo a richiesta
   const allColumns = useMemo(
-    () => (set.data ? setColumns(set.data, template) : []),
-    [set.data, template]
+    () => (set.data ? setColumns(set.data, template, [...new Set(rowTemplates)]) : []),
+    [set.data, template, rowTemplates]
   )
   const hidden = new Set(set.hiddenColumns ?? [])
   const columns = allColumns.filter(
@@ -1371,11 +1463,15 @@ function SetView({
   const computedRows = useMemo(
     () =>
       template && set.data && showsComputed
-        ? set.data.rows.map((r) =>
-            computedValues(template, rowToCard(set.data!.headers, r), bindCtx.variables)
+        ? set.data.rows.map((r, i) =>
+            computedValues(
+              rowTemplates[i] ?? template,
+              rowToCard(set.data!.headers, r),
+              bindCtx.variables
+            )
           )
         : [],
-    [template, set.data, bindCtx, showsComputed]
+    [template, rowTemplates, set.data, bindCtx, showsComputed]
   )
   const computed = useCallback(
     (row: number): Record<string, string> => computedRows[row] ?? {},
@@ -1449,19 +1545,28 @@ function SetView({
     e: React.MouseEvent<HTMLDivElement>,
     allowed: Set<string>
   ): { column: string; layer: Layer; box: Bounds; p: { x: number; y: number } }[] => {
-    if (!card) return []
-    const svg = e.currentTarget.querySelector('svg')
-    if (!svg) return []
-    const r = svg.getBoundingClientRect()
-    const p = { x: (e.clientX - r.left) / PREVIEW_SCALE, y: (e.clientY - r.top) / PREVIEW_SCALE }
-    const layers = side === 'front' ? card.template.front : card.template.back
+    const hits = layersAt(e)
     const out: { column: string; layer: Layer; box: Bounds; p: { x: number; y: number } }[] = []
-    for (const { layer: l, chain } of hitsAt(layers, p)) {
+    for (const { layer: l, chain, p } of hits) {
       const column = l.source.kind === 'column' ? (l.source.column ?? l.name) : null
       if (column && allowed.has(column) && !out.some((f) => f.column === column))
         out.push({ column, layer: l, box: worldBounds(l, chain), p })
     }
     return out
+  }
+
+  /** Livelli della carta sotto il puntatore, dal più in alto; la scala è quella della carta cliccata */
+  const layersAt = (
+    e: React.MouseEvent<HTMLDivElement>
+  ): { layer: Layer; chain: GroupLayer[]; p: { x: number; y: number } }[] => {
+    if (!card) return []
+    const svg = e.currentTarget.querySelector('svg')
+    if (!svg) return []
+    const scale = Number(e.currentTarget.dataset.scale) || PREVIEW_SCALE
+    const r = svg.getBoundingClientRect()
+    const p = { x: (e.clientX - r.left) / scale, y: (e.clientY - r.top) / scale }
+    const layers = side === 'front' ? card.template.front : card.template.back
+    return hitsAt(layers, p).map((h) => ({ ...h, p }))
   }
 
   /**
@@ -1486,6 +1591,14 @@ function SetView({
   /** Doppio clic sulla carta: si modifica il livello lì, sopra l'anteprima */
   const editOnCard = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (none) return
+    // un livello fisso o con formula in cima non si modifica qui: si dice da dove viene il valore
+    const top = layersAt(e).find((h) => h.layer.type !== 'group')
+    if (top && top.layer.source.kind !== 'column') {
+      setInline(null)
+      setInfo({ layer: top.layer, box: worldBounds(top.layer, top.chain), row: current })
+      return
+    }
+    setInfo(null)
     const found = fieldsAt(
       e,
       new Set(allColumns.filter((c) => !c.computed).map((c) => c.header))
@@ -1498,6 +1611,47 @@ function SetView({
     const original = index < 0 ? '' : (sheet.rows[current]?.[index] ?? '')
     setInline({ column: hit.column, type: hit.layer.type, box: hit.box, original, row: current })
   }
+
+  /** La carta selezionata, con clic, doppio clic e modifica sulla carta, alla scala data */
+  const cardStage = (scale: number): React.JSX.Element | null =>
+    card ? (
+      <div
+        className="preview-card"
+        data-scale={scale}
+        title={inline || info ? undefined : t('preview.clickHint')}
+        onClick={pickField}
+        onDoubleClick={editOnCard}
+      >
+        <div className="preview-card-inner">
+          <CardSvg template={card.template} side={side} scale={scale} />
+          {inline && inline.row === current && (
+            <InlineEditor
+              key={`${inline.row}:${inline.column}`}
+              edit={inline}
+              scale={scale}
+              value={sheet.rows[current]?.[sheet.headers.indexOf(inline.column)] ?? ''}
+              fields={sheet.headers.filter((h) => h !== 'amount' && !h.includes('.'))}
+              onChange={(v) =>
+                onChange(
+                  writeCells(sheet, [inline.row], inline.column, v),
+                  `cell:${inline.row}:${inline.column}`
+                )
+              }
+              onClose={() => setInline(null)}
+            />
+          )}
+          {info && info.row === current && (
+            <ValueInfo
+              layer={info.layer}
+              box={info.box}
+              scale={scale}
+              onEditTemplate={onEditTemplate}
+              onClose={() => setInfo(null)}
+            />
+          )}
+        </div>
+      </div>
+    ) : null
 
   const preview = (
     <aside className="preview" data-side={previewSide} style={{ width: previewWidth }}>
@@ -1514,37 +1668,26 @@ function SetView({
           ]}
           onChange={setSide}
         />
+        <button
+          className="icon-btn"
+          title={t('preview.openBig')}
+          disabled={!card}
+          onClick={() => setBig(true)}
+        >
+          ⤢
+        </button>
       </div>
       {!template ? (
         <p className="muted">{t('preview.noTemplate', { name: set.template })}</p>
       ) : card ? (
         <>
-          <div
-            className="preview-card"
-            title={inline ? undefined : t('preview.clickHint')}
-            onClick={pickField}
-            onDoubleClick={editOnCard}
-          >
-            <div className="preview-card-inner">
-              <CardSvg template={card.template} side={side} scale={PREVIEW_SCALE} />
-              {inline && inline.row === current && (
-                <InlineEditor
-                  key={`${inline.row}:${inline.column}`}
-                  edit={inline}
-                  scale={PREVIEW_SCALE}
-                  value={sheet.rows[current]?.[sheet.headers.indexOf(inline.column)] ?? ''}
-                  fields={sheet.headers.filter((h) => h !== 'amount' && !h.includes('.'))}
-                  onChange={(v) =>
-                    onChange(
-                      writeCells(sheet, [inline.row], inline.column, v),
-                      `cell:${inline.row}:${inline.column}`
-                    )
-                  }
-                  onClose={() => setInline(null)}
-                />
-              )}
+          {big ? (
+            <div className="preview-card preview-card-away">
+              <button onClick={() => setBig(false)}>{t('preview.closeBig')}</button>
             </div>
-          </div>
+          ) : (
+            cardStage(PREVIEW_SCALE)
+          )}
           <button
             className="preview-edit"
             title={t('tip.editTemplate', { name: set.template })}
@@ -1572,7 +1715,15 @@ function SetView({
           sheet={sheet}
           row={current}
           rows={selection}
-          template={template}
+          template={rowTemplates[current] ?? template}
+          setTemplate={set.template}
+          templateChoices={
+            template
+              ? templates
+                  .filter((x) => x.width === template.width && x.height === template.height)
+                  .map((x) => x.name)
+              : []
+          }
           columns={columns}
           booleans={booleans}
           computed={computed}
@@ -1808,6 +1959,43 @@ function SetView({
           {preview}
         </>
       )}
+      {big && card && (
+        <Dialog title={t('preview.bigTitle', { n: current + 1 })} onClose={() => setBig(false)}>
+          <div className="big-preview">
+            <div className="big-preview-bar">
+              <button
+                disabled={order.indexOf(current) <= 0}
+                title={t('preview.prevCard')}
+                onClick={() => setSelection([order[order.indexOf(current) - 1]])}
+              >
+                ←
+              </button>
+              <Segmented<Side>
+                value={side}
+                options={[
+                  ['front', t('preview.front'), t('tip.front')],
+                  ['back', t('preview.back'), t('tip.back')]
+                ]}
+                onChange={setSide}
+              />
+              <button
+                disabled={order.indexOf(current) >= order.length - 1}
+                title={t('preview.nextCard')}
+                onClick={() => setSelection([order[order.indexOf(current) + 1]])}
+              >
+                →
+              </button>
+            </div>
+            {cardStage(
+              Math.min(
+                (window.innerHeight - 200) / card.template.height,
+                (window.innerWidth - 120) / card.template.width
+              )
+            )}
+            <p className="muted small">{t('preview.clickHint')}</p>
+          </div>
+        </Dialog>
+      )}
       {generating && (
         <GenerateDialog
           sheet={sheet}
@@ -1843,7 +2031,11 @@ function renameReferences(
   from: string,
   to: string
 ): LoadedProject {
-  const templates = p.templates.map((t) => renameInTemplate(t, kind, from, to))
+  const renamed = p.templates.map((t) => renameInTemplate(t, kind, from, to))
+  // i derivati ricalcolano le differenze; quelli che la rinomina non tocca restano come sono
+  const templates = rediffDerived(renamed).map((t, i) =>
+    renamed[i] === p.templates[i] ? p.templates[i] : t
+  )
   const sets = p.sets.map((x) => {
     if (!x.data) return x
     const tpl = p.templates.find((t) => t.name === x.template) ?? null

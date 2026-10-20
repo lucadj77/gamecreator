@@ -238,8 +238,10 @@ export interface ColumnInfo {
  * (si creano scrivendoci), poi i livelli fissi e con formula. Una colonna del foglio con il nome di
  * un livello fisso o con formula è calcolata: il suo contenuto non arriva alla carta.
  */
-export function setColumns(s: Sheet, t: Template | null): ColumnInfo[] {
-  const layers = t ? walkLayers([...t.front, ...t.back]) : []
+export function setColumns(s: Sheet, t: Template | null, others: Template[] = []): ColumnInfo[] {
+  // con un template diverso per alcune carte contano anche le colonne di quello
+  const all = t ? [t, ...others.filter((o) => o !== t)] : []
+  const layers = all.flatMap((x) => walkLayers([...x.front, ...x.back]))
   const read = new Set(
     layers
       .filter((l) => l.source.kind === 'column')
@@ -256,7 +258,7 @@ export function setColumns(s: Sheet, t: Template | null): ColumnInfo[] {
     computed: computedNames.has(header)
   }))
   const seen = new Set(s.headers)
-  for (const header of t ? templateColumns(t) : [])
+  for (const header of all.flatMap(templateColumns))
     if (!seen.has(header)) {
       seen.add(header)
       out.push({ header, index: -1, computed: false })

@@ -157,6 +157,21 @@ With two or more layers selected, the buttons at the top of the panel align them
 
 ![The backs of the cards in the grid](img/griglia-retro.png)
 
+### 4.7 Derived templates
+
+A derived template starts from another one, its base, and changes only some parts of it: for example `card-fire` is based on `card` and changes the background and the color of the band. Everything the derived template does not change follows the base, even when the base changes later.
+
+The ↳ button next to a template, in the sidebar, creates a derived template, which opens in the editor identical to the base. The editor header shows which template it is based on, with a link to open it.
+
+You work as on a normal template, with a few differences:
+
+- In the properties panel, next to each value, the chain means it comes from the base; the arrow means the derived template changed it, and clicking the arrow goes back to the base value.
+- In the layers panel, the chain marks the base layers, the arrow the ones with changes (a click reverts them to the base), the + the ones that exist only in the derived template.
+- Base layers cannot be deleted (Delete hides them), moved in the list or renamed: their name is also the sheet column, the same as in the base. Added layers work as usual.
+- The card size is the base's.
+
+**Make independent**, in the header, turns the derived template into a normal one with the values it has at that moment. A template that is the base of another cannot be deleted until its derived templates are made independent or deleted.
+
 ## 5. Entering and editing cards
 
 ### 5.1 Creating a set
@@ -181,7 +196,7 @@ The **grid** shows the cards as they will be printed. The slider at the top chan
 
 ![The card grid](img/griglia.png)
 
-In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field; Alt+click on the same spot moves to the layer underneath, useful when a layer covers another. Double-clicking edits the layer right on the card: a box over the layer for text, the thumbnails for an image, the color picker for a shape. Esc cancels the edit, clicking outside or Ctrl+Enter closes it. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
+In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field; Alt+click on the same spot moves to the layer underneath, useful when a layer covers another. Double-clicking edits the layer right on the card: a box over the layer for text, the thumbnails for an image, the color picker for a shape. Esc cancels the edit, clicking outside or Ctrl+Enter closes it. Double-clicking a fixed or formula layer tells where its value comes from, with a button to open the template. The ⤢ button at the top of the preview opens the card large in a window, with the same clicks and arrows to move from card to card. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
 
 ### 5.3 Sorting and filtering
 
@@ -198,6 +213,8 @@ Besides the main value, every property of a layer can change card by card with a
 ![The window to add a column](img/aggiungi-colonna.png)
 
 In cells, colors are written as names (`red`, or the name of a color variable) or in hex (`#A33A2A`); a stroke as `color/width/dash`, for example `red/0.3/dashed`.
+
+A `template` column picks the template of a single card: empty means the set's. It is useful, for example, to give a few cards of a set a derived template. In the card form the field becomes a menu with the templates that have the same size as the set's.
 
 ### 5.5 Editing the file in Excel
 

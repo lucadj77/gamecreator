@@ -157,6 +157,21 @@ Con due o più livelli selezionati, i pulsanti in cima al pannello li allineano 
 
 ![Il retro delle carte nella griglia](img/griglia-retro.png)
 
+### 4.7 Template derivati
+
+Un template derivato parte da un altro, il base, e ne cambia solo alcune parti: per esempio `carta-fuoco` deriva da `carta` e cambia lo sfondo e il colore della banda. Tutto ciò che il derivato non cambia segue il base, anche quando il base cambia dopo.
+
+Il pulsante ↳ accanto a un template, nella barra laterale, crea un derivato, che si apre nell'editor uguale al base. In intestazione l'editor mostra da quale template deriva, con un link per aprirlo.
+
+Si lavora come su un template normale, con alcune differenze:
+
+- Nel pannello delle proprietà, accanto a ogni valore, la catena indica che viene dal base; la freccia indica che il derivato l'ha cambiato, e un clic sulla freccia torna al valore del base.
+- Nel pannello dei livelli, la catena segna i livelli del base, la freccia quelli con modifiche (un clic li riporta come nel base), il + quelli che esistono solo nel derivato.
+- I livelli del base non si eliminano (Canc li nasconde), non si spostano nell'elenco e non si rinominano: il loro nome è anche la colonna del foglio, uguale a quella del base. I livelli aggiunti si gestiscono come sempre.
+- Le misure della carta sono quelle del base.
+
+**Rendi indipendente**, nell'intestazione, trasforma il derivato in un template normale con i valori che ha in quel momento. Un template che fa da base a un altro non si può eliminare finché i suoi derivati non sono indipendenti o eliminati.
+
 ## 5. Inserire e modificare le carte
 
 ### 5.1 Creare un set
@@ -181,7 +196,7 @@ La **griglia** mostra le carte come verranno stampate. Il cursore in alto cambia
 
 ![La griglia delle carte](img/griglia.png)
 
-In entrambe le viste, a destra, il modulo della carta selezionata ha un campo per ogni colonna. Un clic su un livello dell'anteprima porta al suo campo; Alt+clic nello stesso punto passa al livello sotto, utile quando un livello ne copre un altro. Il doppio clic modifica il livello direttamente sulla carta: per un testo si apre un riquadro sopra il livello, per un'immagine le miniature, per una forma il selettore del colore. Esc annulla la modifica, un clic fuori o Ctrl+Invio la chiude. PagSu e PagGiù passano alla carta precedente o successiva, anche mentre si scrive in un campo del modulo, che resta lo stesso.
+In entrambe le viste, a destra, il modulo della carta selezionata ha un campo per ogni colonna. Un clic su un livello dell'anteprima porta al suo campo; Alt+clic nello stesso punto passa al livello sotto, utile quando un livello ne copre un altro. Il doppio clic modifica il livello direttamente sulla carta: per un testo si apre un riquadro sopra il livello, per un'immagine le miniature, per una forma il selettore del colore. Esc annulla la modifica, un clic fuori o Ctrl+Invio la chiude. Il doppio clic su un livello fisso o con formula dice da dove arriva il valore, con un pulsante per aprire il template. Il pulsante ⤢ in alto nell'anteprima apre la carta grande in una finestra, con gli stessi clic e le frecce per passare da una carta all'altra. PagSu e PagGiù passano alla carta precedente o successiva, anche mentre si scrive in un campo del modulo, che resta lo stesso.
 
 ### 5.3 Ordinare e filtrare
 
@@ -198,6 +213,8 @@ Oltre al valore principale, ogni proprietà di un livello può cambiare carta pe
 ![La finestra per aggiungere una colonna](img/aggiungi-colonna.png)
 
 Nelle celle i colori si scrivono come nomi (`red`, o il nome di una variabile colore) o in esadecimale (`#A33A2A`); un contorno come `colore/spessore/tratteggio`, per esempio `red/0.3/dashed`.
+
+Una colonna `template` sceglie il template di una singola carta: vuota vale quello del set. Serve per esempio per dare a poche carte di un set un template derivato. Nel modulo della carta il campo diventa un menu con i template che hanno le stesse misure di quello del set.
 
 ### 5.5 Modificare il file in Excel
 

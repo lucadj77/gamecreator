@@ -13,6 +13,7 @@ import { listAssets } from './assets'
 import { readProjectFonts } from './fonts'
 import { readSources } from '../library/sources'
 import { duplicateNames, normalizeTemplate } from '../../shared/model/normalize'
+import { resolveTemplates } from '../../shared/model/inherit'
 import type { Template } from '../../shared/model/template'
 import { MessageError, messageFromError, msg, type Message } from '../../shared/messages'
 
@@ -84,9 +85,6 @@ async function loadTemplates(folder: string, warnings: Message[]): Promise<Templ
       const file = f.slice(0, -5)
       const t = normalizeTemplate({ ...raw, name: raw.name ?? file })
       if (t.name !== file) t.file = file
-      const dup = duplicateNames(t)
-      if (dup.length)
-        warnings.push(msg('load.duplicateLayers', { template: t.name, names: dup.join(', ') }))
       templates.push(t)
     } catch (e) {
       const m = messageFromError(e)
@@ -97,7 +95,15 @@ async function loadTemplates(folder: string, warnings: Message[]): Promise<Templ
       )
     }
   }
-  return templates
+  // i derivati si completano dal loro base, che va letto prima
+  const resolved = resolveTemplates(templates)
+  warnings.push(...resolved.problems)
+  for (const t of resolved.templates) {
+    const dup = duplicateNames(t)
+    if (dup.length)
+      warnings.push(msg('load.duplicateLayers', { template: t.name, names: dup.join(', ') }))
+  }
+  return resolved.templates
 }
 
 async function exists(path: string): Promise<boolean> {

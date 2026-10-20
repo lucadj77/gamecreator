@@ -254,13 +254,25 @@ button {
   font-size: 14px;
   padding: 2px 6px;
   border-radius: 4px;
-  opacity: 0;
+  display: none;
+  opacity: 0.8;
   color: var(--text);
 }
 
+/* le azioni non tolgono spazio al nome finché non servono */
 .sidebar li:hover button.item-dup,
-.sidebar li button.active + button.item-dup {
-  opacity: 0.8;
+.sidebar li:has(> button.active) button.item-dup {
+  display: inline-flex;
+}
+
+/* base di un template derivato: si accorcia prima del nome */
+.sidebar li > button:first-child > span.derived-base {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar li button.item-dup:hover {
@@ -3096,7 +3108,9 @@ input[type='checkbox'].bool-default {
 .inline-editor textarea {
   width: 100%;
   min-height: 100%;
-  box-shadow: 0 0 0 2px var(--accent), 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .inline-editor-color {
@@ -3105,7 +3119,9 @@ input[type='checkbox'].bool-default {
   padding: 4px;
   background: var(--panel);
   border-radius: 4px;
-  box-shadow: 0 0 0 2px var(--accent), 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .inline-editor-color input:not([type='color']) {
@@ -3130,4 +3146,126 @@ input[type='checkbox'].bool-default {
 
 select.from-template {
   color: var(--muted);
+}
+
+/* template derivati */
+.derived-from {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.derived-from .link {
+  font-size: 12px;
+}
+
+.properties.derived .prop-item,
+.properties.derived .inherit-item {
+  position: relative;
+  padding-right: 20px;
+}
+
+.inherit-mark {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  opacity: 0.55;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.inherit-mark.changed {
+  color: var(--accent);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.inherit-mark.changed:hover {
+  background: var(--accent-soft);
+  border-radius: 3px;
+}
+
+.layer-inherit {
+  flex: none;
+  width: 16px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  opacity: 0.55;
+  font-size: 11px;
+  text-align: center;
+}
+
+.layer-inherit.changed {
+  color: var(--accent);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.layer-inherit.added {
+  color: var(--accent);
+  opacity: 1;
+  font-weight: 600;
+}
+
+.value-info {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 240px;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+  cursor: auto;
+}
+
+.value-info button {
+  align-self: flex-start;
+}
+
+.big-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.big-preview-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dialog:has(.big-preview) {
+  max-width: none;
+  width: auto;
+}
+
+.preview-card-away {
+  padding: 24px 0;
+}
+
+/* il doppio clic sulla carta non seleziona il testo disegnato */
+.preview-card {
+  user-select: none;
+}
+
+.preview-card .inline-editor,
+.preview-card .value-info {
+  user-select: text;
 }

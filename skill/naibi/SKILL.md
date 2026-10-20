@@ -143,6 +143,30 @@ Template keys: `name`, `width`, `height`, `bleed` (default 3), `safeMargin`, `co
 
 Layer names are unique in a template and are also column names: use short names without dots, braces or brackets.
 
+### Derived templates
+
+A template can be based on another one and store only its differences. The app and `naibi template` show the resolved layers; the file looks like this:
+
+```json
+{
+  "extends": "character",
+  "changes": {
+    "template": { "cornerRadius": 5 },
+    "layers": { "band": { "fill": "#B3261E" }, "badge": { "visible": false } },
+    "added": [
+      { "side": "front", "after": "name", "layer": { "type": "image", "name": "flame", "x": 4, "y": 4, "w": 8, "h": 8 } }
+    ]
+  }
+}
+```
+
+- `changes.template` may change `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`; the card size always comes from the base.
+- `changes.layers` maps a base layer name to the properties that differ; compound values (stroke, shadow, source) are written whole.
+- `changes.added` lists layers that exist only in the derived template: `side`, optional `parent` (an inherited group) and `after` (the layer just above it in the list; missing means on top).
+- Inherited layers cannot be deleted or reordered: hide them with `"visible": false`. Do not write `front`/`back` in a derived template.
+- When you rename a layer of a base template by hand, rename it in the `changes` of its derived templates too (the app does this itself).
+- A sheet column `template` picks the template of a single card (empty: the set's template). It must have the same size as the set's template.
+
 ### Properties of every layer (defaults)
 
 `name`, `visible` (true), `locked` (false), `x`, `y` (0; top-left corner), `w` (20), `h` (10), `rotation` (0, degrees, around `anchor`), `anchor` (`center`; one of `top-left`, `top`, `top-right`, `left`, `center`, `right`, `bottom-left`, `bottom`, `bottom-right`), `opacity` (1), `blend` (`normal`, `multiply`, `screen`, `overlay`), `shadow` (null or `{ "color", "blur", "dx", "dy" }` in mm), `fade` (null or `{ "kind": "linear"|"radial", "angle", "from", "to", "start", "end" }`, values 0-1, angle 180 = top to bottom), `constraints` (`{ "h": "left", "v": "top" }`, used when the template is resized), `source`.

@@ -209,3 +209,45 @@ export function EyeOffIcon(): React.JSX.Element {
     </svg>
   )
 }
+
+/** Valore ereditato dal template base: due anelli di catena */
+export function LinkIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+      style={{ verticalAlign: '-0.125em' }}
+    >
+      <path d="M6.5 9.5 L9.5 6.5" />
+      <path d="M7 4.5 L8.5 3a2.5 2.5 0 0 1 3.5 3.5 L10.5 8" />
+      <path d="M9 11.5 L7.5 13a2.5 2.5 0 0 1 -3.5 -3.5 L5.5 8" />
+    </svg>
+  )
+}
+
+/** Valore cambiato rispetto al base: freccia che torna indietro */
+export function RevertIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ verticalAlign: '-0.125em' }}
+    >
+      <path d="M3.5 6.5 A5 5 0 1 1 3.8 10" />
+      <path d="M3 3 L3.5 6.5 L7 6" />
+    </svg>
+  )
+}

@@ -1,5 +1,6 @@
 import { MessageError, msg } from '../messages'
 import type {
+  AddedLayer,
   GroupLayer,
   ManualGuides,
   ImageLayer,
@@ -7,6 +8,7 @@ import type {
   LayerBase,
   ShapeLayer,
   Template,
+  TemplateChanges,
   TextLayer,
   ValueLayer
 } from './template'
@@ -102,10 +104,16 @@ export type RawLayer = {
   children?: RawLayer[]
 } & Record<string, unknown>
 
-export type RawTemplate = Partial<Omit<Template, 'front' | 'back'>> & {
+export type RawTemplate = Partial<Omit<Template, 'front' | 'back' | 'changes'>> & {
   name: string
   front?: RawLayer[]
   back?: RawLayer[]
+  changes?: RawChanges
+}
+
+/** Differenze di un derivato come nel file: i livelli aggiunti con le sole proprietà non di base */
+export type RawChanges = Omit<TemplateChanges, 'added'> & {
+  added?: (Omit<AddedLayer, 'layer'> & { layer: RawLayer })[]
 }
 
 export function normalizeLayer(raw: RawLayer, index: number): Layer {
@@ -195,13 +203,44 @@ function extent(all: Layer[]): Partial<LayerBase> {
 }
 
 export function normalizeTemplate(raw: RawTemplate): Template {
+  // un derivato si completa risolvendolo sul base (resolveTemplates): qui solo le differenze
+  if (raw.extends) {
+    const c = raw.changes ?? {}
+    return {
+      name: raw.name,
+      ...(raw.file ? { file: raw.file } : {}),
+      width: 0,
+      height: 0,
+      bleed: 0,
+      safeMargin: 0,
+      cornerRadius: 0,
+      front: [],
+      back: [],
+      extends: raw.extends,
+      changes: {
+        ...(c.template ? { template: c.template } : {}),
+        ...(c.layers ? { layers: c.layers } : {}),
+        ...(c.added?.length
+          ? {
+              added: c.added.map((a, i) => ({
+                ...a,
+                side: a.side === 'back' ? 'back' : 'front',
+                layer: normalizeLayer(a.layer, i)
+              }))
+            }
+          : {})
+      }
+    }
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { changes: _ignored, ...plain } = raw
   return {
     width: 63,
     height: 88,
     bleed: 3,
     safeMargin: 3,
     cornerRadius: 3,
-    ...raw,
+    ...plain,
     front: (raw.front ?? []).map(normalizeLayer),
     back: (raw.back ?? []).map(normalizeLayer)
   }
@@ -262,6 +301,24 @@ export function denormalizeLayer(l: Layer): RawLayer {
 }
 
 export function denormalizeTemplate(t: Template): RawTemplate {
+  if (t.extends) {
+    const c = t.changes ?? {}
+    const layers = Object.fromEntries(
+      Object.entries(c.layers ?? {})
+        .filter(([, v]) => Object.keys(v).length)
+        .map(([k, v]) => [k, tidy(v) as Record<string, unknown>])
+    )
+    const changes: RawChanges = {
+      ...(c.template && Object.keys(c.template).length
+        ? { template: tidy(c.template) as RawChanges['template'] }
+        : {}),
+      ...(Object.keys(layers).length ? { layers } : {}),
+      ...(c.added?.length
+        ? { added: c.added.map((a) => ({ ...a, layer: denormalizeLayer(a.layer) })) }
+        : {})
+    }
+    return { name: t.name, extends: t.extends, changes }
+  }
   return {
     name: t.name,
     width: t.width,

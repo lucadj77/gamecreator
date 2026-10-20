@@ -51,7 +51,10 @@ export default function InlineEditor({
     if (edit.type === 'image') return
     const onDown = (e: PointerEvent): void => {
       const el = e.target as Element
-      if (boxRef.current?.contains(el) || el.closest?.('.dialog-backdrop')) return
+      if (boxRef.current?.contains(el)) return
+      // una finestra aperta sopra (formato, icone) non chiude; quella che contiene la carta sì
+      const dialog = el.closest?.('.dialog-backdrop')
+      if (dialog && !dialog.contains(boxRef.current)) return
       onClose()
     }
     window.addEventListener('pointerdown', onDown, true)

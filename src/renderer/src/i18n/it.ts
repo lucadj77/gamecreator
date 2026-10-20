@@ -41,6 +41,17 @@ export const it: Record<MessageKey, string> = {
   'preview.clickHint':
     'Clic su un livello per andare al suo campo, Alt+clic per il livello sotto; doppio clic per modificarlo sulla carta',
   'inlineEdit.hint': 'Esc annulla · clic fuori o Ctrl+Invio per chiudere',
+  'cardForm.template': 'Template',
+  'cardForm.setTemplate': 'Quello del set ({name})',
+  'cardForm.templateHint':
+    'Template solo per questa carta; deve avere le stesse misure di quello del set',
+  'preview.openBig': 'Ingrandisci la carta',
+  'preview.closeBig': "Torna all'anteprima piccola",
+  'preview.bigTitle': 'Carta {n}',
+  'preview.prevCard': 'Carta precedente (PagSu)',
+  'preview.nextCard': 'Carta successiva (PagGiù)',
+  'valueInfo.fixed': 'Valore fisso del template, uguale su tutte le carte',
+  'valueInfo.formula': 'Calcolato dalla formula {expr}',
   'cardForm.title': 'Carta {n}',
   'cardForm.multiTitle': '{n} carte selezionate',
   'cardForm.multiHint':
@@ -658,6 +669,37 @@ export const it: Record<MessageKey, string> = {
     'Formato del file dati non supportato: {ext} (usa .xlsx, .ods o .csv)',
   'load.newerFormat':
     "Il progetto usa il formato {version}, più recente di questa versione dell'app",
+  'inherit.fromBase': 'Come nel template base',
+  'inherit.revert': 'Cambiato in questo template: clic per tornare al valore del base',
+  'inherit.sizeFromBase': 'Un template derivato ha sempre le misure della carta del suo base',
+  'inherit.nameFromBase': 'Il nome di un livello del base è la sua colonna: si cambia nel base',
+  'inherit.addedLayer': "Questo livello c'è solo in questo template",
+  'inherit.layerFromBase': 'Dal base',
+  'inherit.layerChanged': 'Cambiato rispetto al base',
+  'inherit.layerAdded': 'Solo in questo template',
+  'inherit.revertLayer': 'Ripristina dal base',
+  'inherit.derivedFrom': 'deriva da',
+  'inherit.openBase': 'Apri il template base',
+  'inherit.detach': 'Rendi indipendente',
+  'inherit.detachHint':
+    'Trasforma il template in uno normale, con i valori che ha ora: le modifiche al base non gli arrivano più',
+  'inherit.detachConfirm':
+    'Rendere "{name}" indipendente da "{base}"? Le modifiche a "{base}" non gli arriveranno più.',
+  'inherit.derive': 'Nuovo template derivato da questo',
+  'inherit.deriveTitle': 'Nuovo template derivato',
+  'inherit.deriveOk': 'Crea',
+  'inherit.hasDerived':
+    'Il template "{name}" è il base di {list}: prima rendili indipendenti o eliminali',
+  'inherit.baseMissing': 'Manca il template base "{base}": le modifiche qui non si possono salvare',
+  'inherit.missingBase': 'Il template "{template}" deriva da "{base}", che non esiste',
+  'inherit.cycle': 'Il template "{template}" deriva da se stesso attraverso altri template',
+  'inherit.lostLayer':
+    'Template "{template}": il base non ha più il livello "{layer}", le sue modifiche non valgono',
+  'inherit.lostPosition':
+    'Template "{template}": il posto del livello aggiunto "{layer}" non c\'è più, va in cima',
+  'inherit.cardTemplateMissing': 'La carta usa il template "{name}", che non esiste',
+  'inherit.cardTemplateSize':
+    'La carta usa il template "{name}", che ha misure diverse da quello del set',
   'load.missingSheet': 'Il set "{set}" non trova il foglio "{sheet}"',
   'load.missingTemplate': 'Il set "{set}" usa il template "{template}", che non esiste',
   'load.duplicateLayers': 'Template "{template}": nomi di livello ripetuti ({names})',

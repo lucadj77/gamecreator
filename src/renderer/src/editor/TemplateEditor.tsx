@@ -4,6 +4,8 @@ import { bindCard, rowToCard } from '../../../shared/model/bind'
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import type { LoadedSet } from '../../../shared/project'
 import type { ShapeKind, Side, Template } from '../../../shared/model/template'
+import { rebase, resolveTemplate } from '../../../shared/model/inherit'
+import { walkLayers } from '../../../shared/model/normalize'
 import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
@@ -21,16 +23,39 @@ interface Props {
   /** Set che usano questo template: servono per l'anteprima con i dati */
   sets: LoadedSet[]
   onChange(template: Template): void
+  /** Template base già risolto, se questo è derivato; null se il base manca */
+  base?: Template | null
+  /** Apre un altro template nell'editor */
+  onOpen?(name: string): void
+  /** Rende il derivato un template normale */
+  onDetach?(): void
 }
 
 const NUDGE = 0.5
 
-export default function TemplateEditor({ template, sets, onChange }: Props): React.JSX.Element {
+export default function TemplateEditor({
+  template,
+  sets,
+  onChange,
+  base = null,
+  onOpen,
+  onDetach
+}: Props): React.JSX.Element {
   const { t } = useI18n()
-  const [state, dispatch] = useEditor(template)
+  // in un derivato ogni modifica passa per le sue regole: si salvano solo le differenze
+  const normalize = useMemo(() => (base ? (x: Template) => rebase(base, x) : undefined), [base])
+  const [state, dispatch] = useEditor(template, normalize)
   const [resizing, setResizing] = useState<[number, number] | null>(null)
   const [preview, setPreview] = useState<{ set: number; row: number } | null>(null)
-  const cmd = commands(state, dispatch)
+  const inheritedIds = useMemo(
+    () => (base ? new Set(walkLayers([...base.front, ...base.back]).map((l) => l.id)) : null),
+    [base]
+  )
+  const cmd = commands(state, dispatch, (id) => !!inheritedIds?.has(id))
+  const inheritProblems = useMemo(
+    () => (base ? resolveTemplate(base, state.template).problems : []),
+    [base, state.template]
+  )
   const [layersWidth, setLayersWidth] = usePanelWidth('layers', 230)
   const [propsWidth, setPropsWidth] = usePanelWidth('properties', 320)
   const [layersSide, toggleLayersSide] = usePanelSide('layers', 'left')
@@ -145,6 +170,7 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
       width={layersWidth}
       side={layersSide}
       onToggleSide={toggleLayersSide}
+      base={base}
     />
   )
   const propsPanel = (
@@ -159,6 +185,7 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
       onResize={(w, h) => setResizing([w, h])}
       side={propsSide}
       onToggleSide={togglePropsSide}
+      base={base}
     />
   )
   const panels = [
@@ -199,6 +226,21 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
     <div className="editor">
       <div className="editor-toolbar">
         <h1>{state.template.name}</h1>
+        {state.template.extends && (
+          <span className="derived-from">
+            {t('inherit.derivedFrom')}{' '}
+            <button
+              className="link"
+              title={t('inherit.openBase')}
+              onClick={() => onOpen?.(state.template.extends!)}
+            >
+              {state.template.extends}
+            </button>
+            <button className="small-btn" title={t('inherit.detachHint')} onClick={onDetach}>
+              {t('inherit.detach')}
+            </button>
+          </span>
+        )}
         <div className="tool-group">
           {tools.map(([icon, run, label]) => (
             <button key={label} className="tool" title={label} onClick={run}>
@@ -266,9 +308,14 @@ export default function TemplateEditor({ template, sets, onChange }: Props): Rea
         {left}
         <div className="editor-center">
           <Canvas state={state} display={display.template} dispatch={dispatch} />
-          {display.problems.length > 0 && (
+          {(display.problems.length > 0 ||
+            inheritProblems.length > 0 ||
+            (state.template.extends && !base)) && (
             <div className="canvas-problems">
-              {display.problems.map((p, i) => (
+              {state.template.extends && !base && (
+                <div>{t('inherit.baseMissing', { base: state.template.extends })}</div>
+              )}
+              {[...inheritProblems, ...display.problems].map((p, i) => (
                 <div key={i}>{t(p)}</div>
               ))}
             </div>

@@ -212,3 +212,17 @@ describe('rinomine e indipendenza', () => {
     expect(wouldCycle([base, d], 'fuoco', 'carta')).toBe(false)
   })
 })
+
+describe('rinomina del base non ancora salvata', () => {
+  it('origin del base non passa ai derivati: resta il file del derivato', () => {
+    const renamedBase = { ...base, name: 'carta2', origin: 'carta' }
+    const d = newDerived(renamedBase, 'speciale')
+    expect(d.origin).toBeUndefined()
+    const r = resolveTemplates([renamedBase, { ...d, origin: undefined, file: 'speciale-file' }])
+    expect(r.templates[1].origin).toBeUndefined()
+    expect(r.templates[1].file).toBe('speciale-file')
+    // un derivato rinominato tiene invece il suo origin
+    const own = resolveTemplates([renamedBase, { ...d, name: 'speciale2', origin: 'speciale' }])
+    expect(own.templates[1].origin).toBe('speciale')
+  })
+})

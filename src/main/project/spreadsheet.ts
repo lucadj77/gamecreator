@@ -24,11 +24,35 @@ async function readXlsx(path: string): Promise<Sheet[]> {
     const table: string[][] = []
     ws.eachRow({ includeEmpty: false }, (row) => {
       const cells: string[] = []
-      for (let c = 1; c <= width; c++) cells.push(row.getCell(c).text ?? '')
+      for (let c = 1; c <= width; c++) cells.push(cellText(row.getCell(c)))
       table.push(cells)
     })
     return toSheet(ws.name, table)
   })
+}
+
+/**
+ * Testo di una cella come lo vede chi la legge: una data come AAAA-MM-GG (con l'ora se non è
+ * mezzanotte), non la stringa JavaScript che darebbe `text`
+ */
+export function cellText(cell: ExcelJS.Cell): string {
+  const v = cell.value
+  const date =
+    v instanceof Date
+      ? v
+      : v && typeof v === 'object' && 'result' in v && v.result instanceof Date
+        ? v.result
+        : null
+  if (date) return isoDate(date)
+  return cell.text ?? ''
+}
+
+function isoDate(d: Date): string {
+  const p = (n: number): string => String(n).padStart(2, '0')
+  // le date dell'xlsx sono in UTC
+  const day = `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}`
+  const time = `${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`
+  return time === '00:00' ? day : `${day} ${time}`
 }
 
 async function readCsv(path: string): Promise<Sheet> {
@@ -154,7 +178,8 @@ function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
     columns.forEach((c, i) => {
       const cell = row.getCell(c)
       const v = values?.[i] ?? ''
-      if (cell.formula && cell.text === v) return
+      // una cella con lo stesso testo resta com'è: formula, data, testo formattato, collegamento
+      if (cellText(cell) === v) return
       cell.value = toCellValue(v)
     })
     for (const c of removed) row.getCell(c).value = null
@@ -165,7 +190,8 @@ function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
 /** I numeri scritti come tali restano numeri nel foglio; "007" e simili restano testo */
 function toCellValue(v: string): string | number | null {
   if (v === '') return null
-  if (/^-?(0|[1-9]\d*)(\.\d+)?$/.test(v)) return Number(v)
+  // solo se il numero si rilegge uguale: "1.50" e i numeri oltre le 15 cifre restano testo
+  if (/^-?(0|[1-9]\d*)(\.\d+)?$/.test(v) && String(Number(v)) === v) return Number(v)
   return v
 }
 

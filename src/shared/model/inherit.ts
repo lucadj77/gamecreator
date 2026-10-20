@@ -116,8 +116,12 @@ export function resolveTemplate(
     extends: own.extends,
     changes: own.changes
   }
+  // file e origin sono del derivato, mai del base: altrimenti una rinomina del base non ancora
+  // salvata farebbe rinominare o spostare in deleted/ il file del base al posto di quello del derivato
   if (own.file) template.file = own.file
   else delete template.file
+  if (own.origin) template.origin = own.origin
+  else delete template.origin
   for (const k of INHERITABLE_TEMPLATE_KEYS) {
     if (c.template && k in c.template) Object.assign(template, { [k]: c.template[k] })
   }
@@ -331,6 +335,7 @@ export function newDerived(base: Template, name: string): Template {
     ...base,
     name,
     file: undefined,
+    origin: undefined,
     extends: base.name,
     changes: {}
   }).template

@@ -111,3 +111,40 @@ describe('writeSpreadsheet', () => {
     expect(await readFile(path, 'utf8')).toBe('nome,testo\r\nA,"x, y"\n')
   })
 })
+
+describe('celle che non cambiano', () => {
+  it('date, testo formattato e numeri lunghi restano come erano', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    const path = join(dir, 'dati.xlsx')
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet('Set')
+    ws.addRow(['nome', 'quando', 'codice', 'prezzo'])
+    const row = ws.addRow(['a', new Date(Date.UTC(2024, 0, 15)), '12345678901234567890', '1.50'])
+    row.getCell(1).value = { richText: [{ text: 'a', font: { bold: true } }, { text: 'b' }] }
+    await wb.xlsx.writeFile(path)
+    const [sheet] = await readSpreadsheet(path)
+    expect(sheet.rows).toEqual([['ab', '2024-01-15', '12345678901234567890', '1.50']])
+    await writeSpreadsheet(path, [{ ...sheet, rows: [[...sheet.rows[0]]] }])
+    const wb2 = new ExcelJS.Workbook()
+    await wb2.xlsx.readFile(path)
+    const r = wb2.getWorksheet('Set')!.getRow(2)
+    expect(r.getCell(1).value).toEqual({
+      richText: [{ text: 'a', font: { bold: true } }, { text: 'b' }]
+    })
+    expect(r.getCell(2).value).toBeInstanceOf(Date)
+    expect(r.getCell(3).value).toBe('12345678901234567890')
+    expect(r.getCell(4).value).toBe('1.50')
+    // una cella cambiata si scrive: numero esatto come numero, il resto come testo
+    await writeSpreadsheet(path, [
+      { ...sheet, rows: [['ab', '2024-02-01 10:30', '12345678901234567890', '2.5']] }
+    ])
+    const wb3 = new ExcelJS.Workbook()
+    await wb3.xlsx.readFile(path)
+    const r3 = wb3.getWorksheet('Set')!.getRow(2)
+    expect(r3.getCell(2).value).toBe('2024-02-01 10:30')
+    expect(r3.getCell(4).value).toBe(2.5)
+    expect((await readSpreadsheet(path))[0].rows).toEqual([
+      ['ab', '2024-02-01 10:30', '12345678901234567890', '2.5']
+    ])
+  })
+})

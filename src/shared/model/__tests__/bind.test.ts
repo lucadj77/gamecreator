@@ -246,3 +246,20 @@ describe('colori da un campo', () => {
     expect((debole.template.front[1] as ShapeLayer).fill).toBe('#2F5DA8')
   })
 })
+
+describe('errori delle formule', () => {
+  it('segnala gli errori di sintassi dei livelli con formula e dei livelli valore', () => {
+    const t = normalizeTemplate({
+      name: 't',
+      front: [
+        { type: 'value', name: 'doppio', source: { kind: 'formula', expr: '=IF({forza}>3; "a"' } },
+        { type: 'text', name: 'testo', source: { kind: 'formula', expr: '=NOPE(1)' } }
+      ]
+    })
+    const bound = bindCard(t, rowToCard(['forza'], ['5']))
+    expect(bound.problems.map((p) => `${p.key}:${p.params?.layer}`)).toEqual([
+      'bind.formulaError:doppio',
+      'bind.formulaError:testo'
+    ])
+  })
+})

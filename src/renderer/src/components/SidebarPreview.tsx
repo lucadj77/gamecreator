@@ -1,5 +1,7 @@
 import type { LoadedProject } from '../../../shared/project'
 import { bindRow } from '../../../shared/model/bind'
+import { systemOfSet } from '../../../shared/model/system'
+import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import { palette, resolveColor, type Variables } from '../../../shared/model/variables'
 import { useI18n } from '../i18n/context'
@@ -35,10 +37,17 @@ export default function SidebarPreview({
   const { target, rect } = hover
   const variables = project.file.variables ?? {}
 
-  const cards = (tpl: Template, rows: string[][], headers: string[]): Template[] =>
-    (rows.length ? rows : [[]]).map(
-      (r) => bindRow(headers, r, tpl, project.templates, ctx).template
+  const cards = (tpl: Template, set: LoadedSet | undefined, count: number): Template[] => {
+    const rows = set?.data?.rows.slice(0, count) ?? []
+    const info = set ? systemOfSet(project.file.name, set) : { project: project.file.name }
+    return (rows.length ? rows : [[]]).map(
+      (r, i) =>
+        bindRow(set?.data?.headers ?? [], r, tpl, project.templates, {
+          ...ctx,
+          system: { ...info, number: rows.length ? i + 1 : undefined }
+        }).template
     )
+  }
   const scaleOf = (tpl: Template): number => Math.min(CARD_HEIGHT / tpl.height, 140 / tpl.width)
 
   let title: string
@@ -53,7 +62,7 @@ export default function SidebarPreview({
     note = t('sidebarPreview.set', { template: set.template, n: set.data?.rows.length ?? 0 })
     hint = t('tip.openSet')
     if (tpl && set.data?.rows.length) {
-      const shown = cards(tpl, set.data.rows.slice(0, SET_CARDS), set.data.headers)
+      const shown = cards(tpl, set, SET_CARDS)
       body = (
         <div className="sidebar-preview-cards">
           {shown.map((c, i) => (
@@ -67,9 +76,7 @@ export default function SidebarPreview({
     if (!tpl) return null
     // con i dati della prima carta di un set che lo usa, altrimenti con i valori predefiniti
     const set = project.sets.find((s) => s.template === tpl.name && s.data?.rows.length)
-    const [card] = set?.data
-      ? cards(tpl, set.data.rows.slice(0, 1), set.data.headers)
-      : cards(tpl, [], [])
+    const [card] = cards(tpl, set, 1)
     title = tpl.name
     note = t('sidebarPreview.template', { w: tpl.width, h: tpl.height })
     hint = t('tip.openTemplate')

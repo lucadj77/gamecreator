@@ -68,11 +68,15 @@ export function planImages(o: ImageOptions, sets: ExportSet[]): ImageFile[] {
     const all: string[] = []
     for (const card of set.cards)
       for (const side of sides) {
-        const copies = expandCopies([card], o.copies).map((x) => x.copy)
-        const names = copies.map((copy) =>
+        const copies = expandCopies([card], o.copies)
+        const names = copies.map(({ copy }) =>
           fileName(pattern, { set: set.name, n: card.n, digits, copy, side, fields: card.fields })
         )
-        files.push({ set: set.name, card, side, names })
+        // copie diverse ({card.copy}): un'immagine per copia, altrimenti una sola per tutti i nomi
+        const groups = card.perCopy
+          ? copies.map((c, k) => ({ card: c.card, names: [names[k]] }))
+          : [{ card, names }]
+        for (const g of groups) files.push({ set: set.name, card: g.card, side, names: g.names })
         all.push(...names)
       }
     // nomi ripetuti (per esempio {nome} uguale su due carte): si numerano

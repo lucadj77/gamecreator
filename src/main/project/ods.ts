@@ -213,16 +213,39 @@ function readCells(xml: string, row: Tag): string[] {
 
 export interface OdsSheet {
   name: string
+  /** Nome della tabella prima di una rinomina */
+  origin?: string
   headers: string[]
   rows: string[][]
 }
 
 /** Il file aggiornato, o un file nuovo se data è null */
-export async function writeOds(data: Buffer | null, sheets: OdsSheet[]): Promise<Buffer> {
+export async function writeOds(
+  data: Buffer | null,
+  sheets: OdsSheet[],
+  removed: string[] = []
+): Promise<Buffer> {
   const zip = data ? await JSZip.loadAsync(data) : newPackage()
-  let xml = (await zip.file('content.xml')?.async('string')) ?? EMPTY_CONTENT
+  // prima si tolgono le tabelle dei set eliminati: un set può prenderne il nome
+  let xml = dropTables((await zip.file('content.xml')?.async('string')) ?? EMPTY_CONTENT, (name) =>
+    removed.includes(name)
+  )
   for (const s of sheets) {
-    const table = tablesOf(xml).find((t) => t.name === s.name)
+    const tables = tablesOf(xml)
+    let table = tables.find((t) => t.name === s.name)
+    const renamed = !table && s.origin ? tables.find((t) => t.name === s.origin) : undefined
+    if (renamed) {
+      // nuovo nome nel tag di apertura, poi si rilegge la tabella con le posizioni aggiornate
+      const raw = renamed.tag.raw.replace(
+        /table:name\s*=\s*("[^"]*"|'[^']*')/,
+        `table:name="${escape(s.name)}"`
+      )
+      xml =
+        xml.slice(0, renamed.tag.start) +
+        raw +
+        xml.slice(renamed.tag.start + renamed.tag.raw.length)
+      table = tablesOf(xml).find((t) => t.name === s.name)
+    }
     if (table) {
       xml =
         xml.slice(0, table.tag.start) +
@@ -236,11 +259,49 @@ export async function writeOds(data: Buffer | null, sheets: OdsSheet[]): Promise
         xml.slice(0, at) + writeTable(fresh, [...tokens(fresh)][0], fresh.length, s) + xml.slice(at)
     }
   }
+  // un foglio di calcolo senza tabelle non si apre
+  if (!tablesOf(xml).length) {
+    const at = xml.lastIndexOf('</office:spreadsheet>')
+    if (at >= 0) xml = xml.slice(0, at) + EMPTY_TABLE + xml.slice(at)
+  }
+  return pack(zip, xml)
+}
+
+/** Una copia del file con la sola tabella `name`, per conservarla in deleted/ */
+export async function odsWithOnly(data: Buffer, name: string): Promise<Buffer> {
+  const zip = await JSZip.loadAsync(data)
+  const xml = (await zip.file('content.xml')?.async('string')) ?? EMPTY_CONTENT
+  return pack(
+    zip,
+    dropTables(xml, (n) => n !== name)
+  )
+}
+
+/** Nomi delle tabelle del file */
+export async function odsTableNames(data: Buffer): Promise<string[]> {
+  const zip = await JSZip.loadAsync(data)
+  return tablesOf((await zip.file('content.xml')?.async('string')) ?? EMPTY_CONTENT).map(
+    (t) => t.name
+  )
+}
+
+function dropTables(xml: string, drop: (name: string) => boolean): string {
+  // dall'ultima alla prima, così le posizioni di quelle prima restano valide
+  for (const t of tablesOf(xml).reverse())
+    if (drop(t.name)) xml = xml.slice(0, t.tag.start) + xml.slice(t.end)
+  return xml
+}
+
+function pack(zip: JSZip, xml: string): Promise<Buffer> {
   zip.file('content.xml', xml)
   // il tipo deve essere il primo file, non compresso
   zip.file('mimetype', MIME, { compression: 'STORE' })
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
 }
+
+const EMPTY_TABLE =
+  '<table:table table:name="Sheet1"><table:table-column/>' +
+  '<table:table-row><table:table-cell/></table:table-row></table:table>'
 
 interface RawCell {
   /** XML della cella senza l'attributo di ripetizione */

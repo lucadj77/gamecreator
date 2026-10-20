@@ -260,6 +260,27 @@ Le immagini nel testo, variabili o file di `assets/`, accettano attributi dopo i
 
 Se il nome è un campo, il suo valore diventa il nome dell'immagine: con `icona` = `spada`, `{icona tint=red}` dà `{spada tint=red}`. Una variabile immagine usata come sorgente di un livello immagine porta con sé tinta, ribaltamento e opacità; la rotazione è quella del livello.
 
+### 6.1.1 Variabili di sistema
+
+Valori che Naibi conosce da sé, scritti come i campi nei testi e nelle formule. Il punto nel nome li distingue dalle variabili del progetto, che non lo ammettono; un campo o una variabile con lo stesso nome ha comunque la precedenza.
+
+| Variabile         | Valore                                                                                         |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| `{project.name}`  | nome del progetto                                                                              |
+| `{set.name}`      | nome del set                                                                                   |
+| `{template.name}` | nome del template della carta (anche quello scelto nella colonna `template`)                   |
+| `{card.number}`   | riga della carta nel set, da 1                                                                 |
+| `{set.rows}`      | righe del set                                                                                  |
+| `{set.cards}`     | carte del set con le copie: somma di `amount` (vuoto vale 1)                                   |
+| `{card.copies}`   | `amount` della carta                                                                           |
+| `{card.copy}`     | copia disegnata, da 1; diversa per ogni copia solo esportando PDF e immagini con le copie      |
+| `{card.side}`     | `front` o `back`                                                                               |
+| `{date}`          | data di oggi, AAAA-MM-GG                                                                       |
+
+Dove manca il contesto (l'editor senza carta in anteprima, la miniatura di un template senza set) i valori del set e della carta sono vuoti. In Tabletop Simulator tutte le copie mostrano `{card.copy}` = 1, perché il mazzo ripete la stessa immagine.
+
+L'aiuto interno (pulsante **Aiuto**, F1) elenca markup, campi e variabili, variabili di sistema, formule e scorciatoie.
+
 ### 6.2 Stili di testo
 
 Uno stile raggruppa proprietà di carattere (font, peso, corsivo, dimensione, colore, trasformazione, decorazione, contorno) e, se applicato a un intero livello, anche di paragrafo (allineamento, interlinea, spaziature).
@@ -334,8 +355,10 @@ Nei campi numerici del pannello delle proprietà, trascinare l'etichetta a destr
 - PagSu e PagGiù passano alla carta precedente o successiva, nell'ordine della vista (con ordinamento e filtro), sia nella tabella sia nella griglia. Valgono anche mentre si scrive in un campo della carta accanto all'anteprima, e il cursore resta nello stesso campo della carta nuova; non valgono mentre si modifica una cella della tabella.
 - Il template del set si cambia dal menu nell'intestazione del set; i dati restano gli stessi, e le colonne che il nuovo template non usa vengono ignorate. ⌘Z annulla.
 - Sotto l'anteprima della carta, **Modifica template** apre nell'editor il template del set.
-- Il cestino accanto a un set lo toglie dal progetto dopo una conferma. Il foglio dei dati resta nel file, tra quelli non collegati, e si può ricollegare con **Nuovo set**; ⌘Z annulla.
-- Il cestino accanto a un template lo elimina dopo una conferma, spostando il file nel cestino del sistema. Un template usato da un set non si elimina: prima vanno eliminati i set che lo usano.
+- Il cestino accanto a un set lo toglie dal progetto dopo una conferma. Al salvataggio il suo foglio esce dal file dei dati e va in `deleted/` come file a sé (stesso formato, con formattazione, data e ora nel nome), così il nome torna libero per un altro set; prima di salvare ⌘Z annulla. Con un file .csv il foglio resta. I fogli che non erano collegati a nessun set restano nel file.
+- Il cestino accanto a un template lo elimina dopo una conferma, spostando il file in `deleted/` nel progetto, con data e ora nel nome (il cestino del sistema non funziona in tutte le cartelle, per esempio quelle sincronizzate). Un template usato da un set non si elimina: prima vanno eliminati i set che lo usano.
+- **Rinomina set** cambia il nome del set; se il foglio dei dati ha lo stesso nome, al salvataggio cambia nome anche il foglio (xlsx e ods), con formattazione e formule. Un set collegato a un foglio con un nome diverso, o un file .csv, tiene il foglio com'è. I profili di esportazione che scelgono il set seguono il nome nuovo. ⌘Z annulla.
+- **Rinomina** nell'editor cambia il nome di un template: il nome nuovo va nei set, nei derivati che lo usano come base e nella colonna `template` delle carte; al salvataggio il file in `templates/` cambia nome. La rinomina non si annulla con ⌘Z (si rinomina di nuovo), e la cronologia di ⌘Z dei set riparte.
 
 ### 8.3 Generare le carte
 

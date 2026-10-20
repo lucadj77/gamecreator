@@ -37,8 +37,15 @@ describe('aiuto alla scrittura del markup', () => {
     const r = at('Bonus {s')!
     expect(r.items.map((s) => [s.label, s.insert])).toEqual([
       ['scudo', 'scudo}'],
-      ['spada', 'spada}']
+      ['spada', 'spada}'],
+      // poi le variabili di sistema, prima quelle che cominciano con s
+      ['set.name', 'set.name}'],
+      ['set.rows', 'set.rows}'],
+      ['set.cards', 'set.cards}'],
+      ['card.copies', 'card.copies}'],
+      ['card.side', 'card.side}']
     ])
+    expect(at('{')!.items.some((s) => s.kind === 'system')).toBe(false)
     expect(labels('{spada*f')).toEqual(['forza'])
   })
 })

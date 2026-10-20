@@ -3780,3 +3780,48 @@ select.from-template {
 .agent-note {
   font-style: italic;
 }
+
+/* Aiuto: markup, variabili, formule e scorciatoie */
+.dialog:has(> .help-dialog) {
+  max-width: 760px;
+  width: 760px;
+}
+
+.help-body {
+  max-height: 62vh;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+
+.help-body h3 {
+  font-size: 13px;
+  margin: 16px 0 6px;
+}
+
+.help-body h3:first-child {
+  margin-top: 0;
+}
+
+.help-body p {
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.help-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.help-table td {
+  border-top: 1px solid var(--border);
+  padding: 5px 8px 5px 0;
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.help-table td:first-child {
+  white-space: nowrap;
+  width: 1%;
+  padding-right: 16px;
+}

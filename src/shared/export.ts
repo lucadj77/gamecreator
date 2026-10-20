@@ -173,6 +173,8 @@ export interface ExportCard {
   label: string
   fields: Record<string, string>
   template: Template
+  /** Template di ogni copia, se cambia da copia a copia ({card.copy}) */
+  perCopy?: Template[]
 }
 
 export interface ExportSet {
@@ -277,12 +279,18 @@ export interface Instance {
   copy: number
 }
 
+/** La carta della copia `copy`: con perCopy ha il suo template */
+export function copyOf(card: ExportCard, copy: number): ExportCard {
+  const t = card.perCopy?.[copy - 1]
+  return t ? { ...card, template: t } : card
+}
+
 /** Le carte ripetute secondo amount; senza copie, una per riga (anche se amount è 0) */
 export function expandCopies(cards: ExportCard[], copies: boolean): Instance[] {
   const out: Instance[] = []
   for (const card of cards) {
     const n = copies ? card.amount : 1
-    for (let copy = 1; copy <= n; copy++) out.push({ card, copy })
+    for (let copy = 1; copy <= n; copy++) out.push({ card: copyOf(card, copy), copy })
   }
   return out
 }

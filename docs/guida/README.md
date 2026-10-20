@@ -76,7 +76,7 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 7. **Anteprima** della carta selezionata, fronte o retro. **Modifica template** apre il template della carta, cioè quello del set o quello scelto per la carta; **Ingrandisci** apre la carta grande con il modulo accanto.
 8. **Campi della carta** selezionata, modificabili come le celle della tabella.
 
-Accanto al nome del set o del template aperto ci sono i pulsanti per duplicarlo, eliminarlo e, per un template, crearne un derivato. Le voci della barra laterale si riordinano trascinandole; il + accanto a ciascun titolo crea un elemento nuovo. Soffermando il mouse su una voce compare un'anteprima: le prime carte di un set, fronte e retro di un template, una frase con lo stile, l'icona o il colore di una variabile. Il pulsante in alto a sinistra riduce la barra a sole icone, e le frecce accanto ai titoli dei pannelli li spostano dall'altro lato della finestra.
+Accanto al nome del set o del template aperto ci sono i pulsanti per rinominarlo, duplicarlo, eliminarlo e, per un template, crearne un derivato. Rinominando un set cambia nome anche il suo foglio nel file dei dati; rinominando un template cambia nome il suo file, e il nome nuovo va nei set, nei derivati e nella colonna `template` delle carte che lo usano. I file cambiano nome quando si salva. Un template eliminato va nella cartella `deleted` del progetto, da cui si recupera rimettendo il file in `templates`. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero; per recuperarlo si copia il foglio nel file dei dati e lo si collega con **Nuovo set**. Le voci della barra laterale si riordinano trascinandole; il + accanto a ciascun titolo crea un elemento nuovo. Soffermando il mouse su una voce compare un'anteprima: le prime carte di un set, fronte e retro di un template, una frase con lo stile, l'icona o il colore di una variabile. Il pulsante in alto a sinistra riduce la barra a sole icone, e le frecce accanto ai titoli dei pannelli li spostano dall'altro lato della finestra.
 
 Le modifiche restano in memoria finché non si salva. Il pulsante **Salva** diventa **Salvato** quando non c'è nulla da scrivere.
 
@@ -274,6 +274,10 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 | `{legno}`                     | un'immagine di `assets/` con quel nome, alta quanto la riga     |
 | `{spada tint=red size=150%}`  | l'icona con attributi validi solo per questo uso                |
 | `\{`, `\*`, `\[`              | il carattere letterale                                          |
+
+Naibi conosce da sé alcuni valori, le **variabili di sistema**, che si scrivono come i campi, anche nelle formule: `{project.name}` (il gioco), `{set.name}`, `{template.name}`, `{card.number}` (la riga della carta nel set), `{set.rows}`, `{set.cards}` (le carte con le copie), `{card.copies}`, `{card.copy}` (la copia stampata, per scrivere per esempio `{card.copy}/{card.copies}`), `{card.side}` (`front` o `back`) e `{date}`. Un piè di pagina come `{set.name} {card.number}/{set.rows}` numera le carte da solo.
+
+Il pulsante **Aiuto** nella barra in alto e nella schermata di ingresso, o il tasto F1, apre un riepilogo del markup, dei campi e delle variabili, delle variabili di sistema, delle formule e delle scorciatoie.
 
 ### 6.4 Aiuto alla scrittura
 
@@ -503,6 +507,7 @@ Esempio/
   assets/fonts/         font del progetto
   assets/sources.json   provenienza e licenza di icone e font importati
   export/               file esportati, si possono rigenerare
+  deleted/              template e fogli dei set eliminati, da cui si possono recuperare
 ```
 
 Il progetto è autonomo: copiando la cartella su un altro computer si vede uguale, a parte i font installati solo sul primo. I dettagli del formato sono in [docs/formato.md](../formato.md).

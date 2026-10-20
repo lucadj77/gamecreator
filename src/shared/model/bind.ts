@@ -8,6 +8,7 @@ import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
 import { cardTemplate } from './inherit'
+import { systemFields, usesSide, type SystemInfo } from './system'
 import {
   combineFlip,
   imageVariable,
@@ -20,6 +21,7 @@ import {
 import {
   PRIMARY_PROPERTY,
   type Layer,
+  type Side,
   type Shadow,
   type Stroke,
   type Template,
@@ -72,6 +74,8 @@ export interface BindContext {
   /** Dice se un font è disponibile: nel progetto, nell'app o installato sul computer */
   hasFont?: (family: string) => boolean
   variables?: Variables
+  /** Progetto, set e posizione della carta, per le variabili di sistema */
+  system?: SystemInfo
 }
 
 export function bindCard(template: Template, card: CardData, ctx: BindContext = {}): BoundCard {
@@ -89,86 +93,99 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
     overrides.get(layer)!.set(prop ?? '', value.trim() === '' ? '' : value)
   }
 
-  const fields = cardFields(template, card, ctx.variables)
-  const images = imageFields(template, fields)
+  const fields = cardFields(template, card, ctx.variables, ctx.system)
+  // {card.side} vale back sul retro: solo allora servono campi a parte
+  const backFields = usesSide(template)
+    ? cardFields(template, card, ctx.variables, ctx.system, 'back')
+    : fields
   const pal = palette(ctx.variables)
-  const apply = (layers: Layer[]): Layer[] =>
-    layers.map((layer) => {
-      let out: Layer = layer
-      const src = layer.source
-      const column = src.kind === 'column' && src.column ? src.column : layer.name
-      const props = new Map(overrides.get(column))
-      // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
-      if (src.kind === 'fixed') props.delete('')
-      if (src.kind === 'formula') {
-        const r = evaluateFormula(src.expr, fields)
-        for (const f of r.missing)
-          problems.push(msg('bind.formulaField', { layer: layer.name, field: f }))
-        if (r.value.trim() !== '') props.set('', r.value)
-        else props.delete('')
-      }
-      if (props.size) {
-        const patch: Record<string, unknown> = {}
-        for (const [prop, raw] of props) {
-          const key = prop || PRIMARY_PROPERTY[layer.type]
-          if (!(key in layer)) {
-            problems.push(msg('bind.unknownProperty', { column: `${column}.${key}` }))
-            continue
+  const bindSide = (layers: Layer[], fields: Record<string, string>): Layer[] => {
+    const images = imageFields(template, fields)
+    const apply = (layers: Layer[]): Layer[] =>
+      layers.map((layer) => {
+        let out: Layer = layer
+        const src = layer.source
+        const column = src.kind === 'column' && src.column ? src.column : layer.name
+        const props = new Map(overrides.get(column))
+        // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
+        if (src.kind === 'fixed') props.delete('')
+        if (src.kind === 'formula') {
+          const r = evaluateFormula(src.expr, fields)
+          for (const f of r.missing)
+            problems.push(msg('bind.formulaField', { layer: layer.name, field: f }))
+          if (r.value.trim() !== '') props.set('', r.value)
+          else props.delete('')
+        }
+        if (props.size) {
+          const patch: Record<string, unknown> = {}
+          for (const [prop, raw] of props) {
+            const key = prop || PRIMARY_PROPERTY[layer.type]
+            if (!(key in layer)) {
+              problems.push(msg('bind.unknownProperty', { column: `${column}.${key}` }))
+              continue
+            }
+            const parsed = parseValue(key, (layer as unknown as Record<string, unknown>)[key], raw)
+            if (parsed === undefined)
+              problems.push(msg('bind.invalidValue', { column: `${column}.${key}`, value: raw }))
+            else patch[key] = parsed
           }
-          const parsed = parseValue(key, (layer as unknown as Record<string, unknown>)[key], raw)
-          if (parsed === undefined)
-            problems.push(msg('bind.invalidValue', { column: `${column}.${key}`, value: raw }))
-          else patch[key] = parsed
+          out = { ...layer, ...patch } as Layer
         }
-        out = { ...layer, ...patch } as Layer
-      }
-      if (out.type === 'text') {
-        // il font può essere una variabile o un campo: {titoli}
-        out = {
-          ...out,
-          text: substituteFields(out.text, fields, images),
-          font: substituteFields(out.font, fields).trim()
-        }
-        if (out.visible) {
-          problems.push(...textProblems(out.name, out.text, ctx))
-          if (ctx.hasFont)
-            for (const font of new Set([
-              out.font,
-              ...markupFonts(out.text, ctx.styles, ctx.variables)
-            ]))
-              if (font.trim() && !isGenericFont(font) && !ctx.hasFont(font))
-                problems.push(msg('bind.missingFont', { layer: out.name, font }))
-        }
-      }
-      if (out.type === 'image') {
-        out = { ...out, src: substituteFields(out.src, fields) }
-        // una variabile immagine prevale su un file con lo stesso nome
-        // {spada} come sorgente vale quanto spada
-        const v = imageVariable(out.src.trim().replace(/^\{(.*)\}$/, '$1'), ctx.variables)
-        if (v) {
-          const [flipH, flipV] = combineFlip(v.flip, out.flipH, out.flipV)
+        if (out.type === 'text') {
+          // il font può essere una variabile o un campo: {titoli}
           out = {
             ...out,
-            src: v.src,
-            tint: out.tint ?? v.tint ?? null,
-            flipH,
-            flipV,
-            opacity: out.opacity * (v.opacity ?? 1)
+            text: substituteFields(out.text, fields, images),
+            font: substituteFields(out.font, fields).trim()
+          }
+          if (out.visible) {
+            problems.push(...textProblems(out.name, out.text, ctx))
+            if (ctx.hasFont)
+              for (const font of new Set([
+                out.font,
+                ...markupFonts(out.text, ctx.styles, ctx.variables)
+              ]))
+                if (font.trim() && !isGenericFont(font) && !ctx.hasFont(font))
+                  problems.push(msg('bind.missingFont', { layer: out.name, font }))
           }
         }
-      }
-      if (out.type === 'group') {
-        // un campo vuoto vale 0; un campo che non c'è (template senza dati) resta 1
-        const repeat = substituteFields(out.repeat, fields).trim() || '0'
-        if (parseRepeat(repeat) === null && !/\{[^}]*\}/.test(repeat))
-          problems.push(msg('bind.invalidValue', { column: `${layer.name}.repeat`, value: repeat }))
-        out = { ...out, repeat, children: apply(out.children) }
-      }
-      return paintLayer(out, pal, fields)
-    })
+        if (out.type === 'image') {
+          out = { ...out, src: substituteFields(out.src, fields) }
+          // una variabile immagine prevale su un file con lo stesso nome
+          // {spada} come sorgente vale quanto spada
+          const v = imageVariable(out.src.trim().replace(/^\{(.*)\}$/, '$1'), ctx.variables)
+          if (v) {
+            const [flipH, flipV] = combineFlip(v.flip, out.flipH, out.flipV)
+            out = {
+              ...out,
+              src: v.src,
+              tint: out.tint ?? v.tint ?? null,
+              flipH,
+              flipV,
+              opacity: out.opacity * (v.opacity ?? 1)
+            }
+          }
+        }
+        if (out.type === 'group') {
+          // un campo vuoto vale 0; un campo che non c'è (template senza dati) resta 1
+          const repeat = substituteFields(out.repeat, fields).trim() || '0'
+          if (parseRepeat(repeat) === null && !/\{[^}]*\}/.test(repeat))
+            problems.push(
+              msg('bind.invalidValue', { column: `${layer.name}.repeat`, value: repeat })
+            )
+          out = { ...out, repeat, children: apply(out.children) }
+        }
+        return paintLayer(out, pal, fields)
+      })
+    return apply(layers)
+  }
 
   return {
-    template: { ...template, front: apply(template.front), back: apply(template.back) },
+    template: {
+      ...template,
+      front: bindSide(template.front, fields),
+      back: bindSide(template.back, backFields)
+    },
     amount: card.amount,
     problems,
     label: cardLabel(template, card, fields)
@@ -243,11 +260,17 @@ export function switchSource(l: Layer, kind: ValueSource['kind']): ValueSource {
 export function cardFields(
   template: Template,
   card: CardData,
-  variables?: Variables
+  variables?: Variables,
+  system?: SystemInfo,
+  side: Side = 'front'
 ): Record<string, string> {
   const all = walkLayers([...template.front, ...template.back])
-  // le variabili di testo e valore valgono come campi, ma un campo con lo stesso nome vince
-  const fields: Record<string, string> = variableFields(variables)
+  // le variabili di testo e valore valgono come campi, ma un campo con lo stesso nome vince;
+  // sotto ancora le variabili di sistema
+  const fields: Record<string, string> = {
+    ...systemFields(system, template, card.amount, side),
+    ...variableFields(variables)
+  }
   for (const l of all) {
     const v = defaultValue(l)
     if (v !== null) fields[l.name] = v

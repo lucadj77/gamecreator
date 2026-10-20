@@ -20,7 +20,8 @@ export default function StartScreen({
   settings,
   onOpen,
   onChoose,
-  onImport
+  onImport,
+  onHelp
 }: {
   error: Message | null
   loading: boolean
@@ -30,6 +31,7 @@ export default function StartScreen({
   /** Sceglie una cartella di progetto e la apre */
   onChoose(): void
   onImport(): void
+  onHelp(): void
 }): React.JSX.Element {
   const { t, lang } = useI18n()
   const [recent, setRecent] = useState<RecentProject[] | null>(null)
@@ -94,6 +96,9 @@ export default function StartScreen({
           </button>
           <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
             {t('app.aiTools')}
+          </button>
+          <button onClick={onHelp} title={t('tip.help')}>
+            {t('app.help')}
           </button>
           {loading && <span className="muted">{t('app.loading')}</span>}
         </div>

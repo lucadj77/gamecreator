@@ -3,8 +3,9 @@ import { extname } from 'path'
 import ExcelJS from 'exceljs'
 import Papa from 'papaparse'
 import type { Sheet } from '../../shared/project'
-import { readOds, writeOds } from './ods'
+import { odsTableNames, odsWithOnly, readOds, writeOds } from './ods'
 import { MessageError, msg } from '../../shared/messages'
+import { deletedPath } from './deleted'
 
 export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   const ext = extname(path).toLowerCase()
@@ -58,19 +59,72 @@ function toSheet(name: string, table: string[][]): Sheet {
  * con intestazione: formattazione, altri fogli e colonne senza intestazione restano. Una cella
  * con formula resta formula se il suo risultato non è cambiato.
  */
-export async function writeSpreadsheet(path: string, sheets: Sheet[]): Promise<void> {
+export async function writeSpreadsheet(
+  path: string,
+  sheets: Sheet[],
+  removed: string[] = []
+): Promise<void> {
   const ext = extname(path).toLowerCase()
-  if (ext === '.xlsx') return writeXlsx(path, sheets)
-  if (ext === '.csv') return writeCsv(path, sheets)
-  if (ext === '.ods') return writeOdsFile(path, sheets)
+  if (ext === '.xlsx') return writeXlsx(path, sheets, removed)
+  // un csv ha un solo foglio: eliminando il set il file resta
+  if (ext === '.csv') return sheets.length ? writeCsv(path, sheets) : undefined
+  if (ext === '.ods') return writeOdsFile(path, sheets, removed)
   throw new MessageError(msg('load.unsupportedDataFile', { ext }))
 }
 
-async function writeXlsx(path: string, sheets: Sheet[]): Promise<void> {
+/**
+ * Copia in deleted/ i fogli che stanno per uscire dal file dati, uno per file con la sua
+ * formattazione: da lì si recuperano copiandoli di nuovo nel file dati. Restituisce i file scritti.
+ */
+export async function keepDeletedSheets(
+  folder: string,
+  path: string,
+  names: string[]
+): Promise<string[]> {
+  const ext = extname(path).toLowerCase()
+  if (!names.length || ext === '.csv' || !(await exists(path))) return []
+  const out: string[] = []
+  if (ext === '.xlsx') {
+    const probe = new ExcelJS.Workbook()
+    await probe.xlsx.readFile(path)
+    for (const name of names.filter((n) => probe.getWorksheet(n))) {
+      const copy = new ExcelJS.Workbook()
+      await copy.xlsx.readFile(path)
+      for (const ws of [...copy.worksheets]) if (ws.name !== name) copy.removeWorksheet(ws.id)
+      const target = await deletedPath(folder, name, ext)
+      await copy.xlsx.writeFile(target)
+      out.push(target)
+    }
+  } else if (ext === '.ods') {
+    const data = await readFile(path)
+    const present = await odsTableNames(data)
+    for (const name of names.filter((n) => present.includes(n))) {
+      const target = await deletedPath(folder, name, ext)
+      await writeFile(target, await odsWithOnly(data, name))
+      out.push(target)
+    }
+  }
+  return out
+}
+
+async function writeXlsx(path: string, sheets: Sheet[], removed: string[]): Promise<void> {
   const workbook = new ExcelJS.Workbook()
   if (await exists(path)) await workbook.xlsx.readFile(path)
-  for (const s of sheets)
-    writeWorksheet(workbook.getWorksheet(s.name) ?? workbook.addWorksheet(s.name), s)
+  // prima si tolgono i fogli dei set eliminati: un set può prenderne il nome
+  for (const name of removed) {
+    const ws = workbook.getWorksheet(name)
+    if (ws) workbook.removeWorksheet(ws.id)
+  }
+  for (const s of sheets) {
+    let ws = workbook.getWorksheet(s.name)
+    // un set rinominato si porta dietro il suo foglio, con formattazione e colonne in più
+    const renamed = !ws && s.origin ? workbook.getWorksheet(s.origin) : undefined
+    if (renamed) renamed.name = s.name
+    ws ??= renamed ?? workbook.addWorksheet(s.name)
+    writeWorksheet(ws, s)
+  }
+  // un file senza fogli non si apre
+  if (!workbook.worksheets.length) workbook.addWorksheet('Sheet1')
   // scrittura in un file temporaneo e rinomina: un errore a metà non rovina il file
   const tmp = path + '.tmp'
   await workbook.xlsx.writeFile(tmp)
@@ -115,10 +169,10 @@ function toCellValue(v: string): string | number | null {
   return v
 }
 
-async function writeOdsFile(path: string, sheets: Sheet[]): Promise<void> {
+async function writeOdsFile(path: string, sheets: Sheet[], removed: string[]): Promise<void> {
   const data = (await exists(path)) ? await readFile(path) : null
   const tmp = path + '.tmp'
-  await writeFile(tmp, await writeOds(data, sheets))
+  await writeFile(tmp, await writeOds(data, sheets, removed))
   await rename(tmp, path)
 }
 

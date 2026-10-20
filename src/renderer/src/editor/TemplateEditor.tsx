@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { useBindContext } from '../render/assets'
 import { bindCard, rowToCard } from '../../../shared/model/bind'
+import { systemOfSet } from '../../../shared/model/system'
 import { findLayer, findParent, resizeTemplate } from '../../../shared/model/edit'
 import type { LoadedSet } from '../../../shared/project'
 import type { ShapeKind, Side, Template } from '../../../shared/model/template'
@@ -10,7 +11,7 @@ import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
-import { ImageIcon, TrashIcon } from '../components/icons'
+import { ImageIcon, PencilIcon, TrashIcon } from '../components/icons'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
 import PropertiesPanel from './PropertiesPanel'
@@ -23,6 +24,8 @@ interface Props {
   template: Template
   /** Set che usano questo template: servono per l'anteprima con i dati */
   sets: LoadedSet[]
+  /** Nome del progetto, per {project.name} */
+  projectName?: string
   onChange(template: Template): void
   /** Template base già risolto, se questo è derivato; null se il base manca */
   base?: Template | null
@@ -34,6 +37,7 @@ interface Props {
   onDuplicate?(): void
   onDerive?(): void
   onDelete?(): void
+  onRename?(): void
   /** Dice se ci sono passi da annullare o ripetere: i pulsanti stanno nella barra dell'app */
   onHistory?(h: { undo: boolean; redo: boolean }): void
 }
@@ -46,6 +50,7 @@ const NUDGE = 0.5
 export default function TemplateEditor({
   template,
   sets,
+  projectName = '',
   onChange,
   base = null,
   onOpen,
@@ -53,6 +58,7 @@ export default function TemplateEditor({
   onDuplicate,
   onDerive,
   onDelete,
+  onRename,
   onHistory
 }: Props): React.JSX.Element {
   const { t } = useI18n()
@@ -171,8 +177,14 @@ export default function TemplateEditor({
     const row = data?.rows[preview?.row ?? -1]
     // senza riga si applicano i soli valori del template: le formule mostrano il risultato
     const card = data && row ? rowToCard(data.headers, row) : { fields: {}, amount: 1 }
-    return bindCard(state.template, card, bindCtx)
-  }, [state.template, previewSet, preview?.row, bindCtx])
+    const system = previewSet
+      ? {
+          ...systemOfSet(projectName, previewSet),
+          ...(row ? { number: (preview?.row ?? 0) + 1 } : {})
+        }
+      : { project: projectName }
+    return bindCard(state.template, card, { ...bindCtx, system })
+  }, [state.template, previewSet, preview?.row, projectName, bindCtx])
 
   const displayInfo = useMemo(
     () => ({
@@ -278,6 +290,9 @@ export default function TemplateEditor({
           </span>
         )}
         <span className="item-actions">
+          <button title={t('tip.renameTemplate')} onClick={onRename}>
+            <PencilIcon /> {t('rename.ok')}
+          </button>
           <button title={t('tip.duplicateTemplate')} onClick={onDuplicate}>
             ⧉ {t('sidebar.duplicate')}
           </button>

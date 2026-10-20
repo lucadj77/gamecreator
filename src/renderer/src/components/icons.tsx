@@ -152,6 +152,15 @@ export function TrashIcon(): React.JSX.Element {
   )
 }
 
+/** Matita: rinomina */
+export function PencilIcon(): React.JSX.Element {
+  return (
+    <Outline>
+      <path d="M10.5 2.5l3 3L6 13H3v-3zM9 4l3 3" />
+    </Outline>
+  )
+}
+
 /** Occhio: mostra o nasconde un campo */
 export function EyeIcon(): React.JSX.Element {
   return (

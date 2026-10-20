@@ -46,6 +46,8 @@ export interface ProjectFile {
 
 export interface Sheet {
   name: string
+  /** Nome del foglio nel file dati, se il set è stato rinominato e non ancora salvato */
+  origin?: string
   headers: string[]
   /** Righe come testo, nello stesso ordine di headers */
   rows: string[][]
@@ -64,6 +66,8 @@ export interface LoadedProject {
   unusedSheets: string[]
   /** Contenuto dei fogli non collegati: un set nuovo può riprenderli */
   unusedData: Sheet[]
+  /** Fogli nel file dati all'ultima lettura o salvataggio: quelli che nessuno usa più si tolgono */
+  diskSheets?: string[]
   /** Template letti da templates/ */
   templates: Template[]
   /** File sotto assets/, percorsi relativi */

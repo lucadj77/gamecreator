@@ -571,8 +571,19 @@ function App(): React.JSX.Element {
       const sheets = project.sets
         .map((x) => x.data)
         .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
-      if (sheets.length || fileDirty)
-        await window.api.saveData({ file: fileDirty ? project.file : undefined, sheets })
+      // fogli sul disco che nessun set usa più (set eliminati): escono dal file dati
+      const used = new Set([
+        ...project.sets.flatMap((x) => (x.data ? [x.data.name, x.data.origin ?? ''] : [])),
+        ...project.unusedSheets
+      ])
+      const removed = (project.diskSheets ?? []).filter((x) => !used.has(x))
+      if (sheets.length || fileDirty || removed.length)
+        await window.api.saveData({ file: fileDirty ? project.file : undefined, sheets, removed })
+      const onDisk = [
+        ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
+        ...project.unusedSheets
+      ]
+      setProject((p) => p && { ...p, diskSheets: onDisk })
       // i fogli rinominati ora hanno sul disco il nome nuovo
       if (sheets.some((x) => x.origin))
         setProject(
@@ -703,8 +714,8 @@ function App(): React.JSX.Element {
   }
 
   /**
-   * Toglie un set dal progetto. Il foglio dei dati resta nel file, tra quelli non collegati:
-   * si può ricollegare con Nuovo set, e ⌘Z annulla.
+   * Toglie un set dal progetto. Al salvataggio il suo foglio esce dal file dati e va in deleted/,
+   * così il nome torna libero; fino ad allora ⌘Z annulla.
    */
   const deleteSet = (index: number): void => {
     if (!project) return
@@ -716,14 +727,10 @@ function App(): React.JSX.Element {
       at: 0
     }))
     const sheet = set.data
-    // un foglio mai salvato non è nel file: sparisce con il set
-    const saved = sheet && !dirtySheets.has(sheet.name)
     setProject({
       ...project,
       sets: project.sets.filter((_, i) => i !== index),
-      file: { ...project.file, sets: project.file.sets.filter((_, i) => i !== index) },
-      unusedSheets: saved ? [...project.unusedSheets, sheet.name] : project.unusedSheets,
-      unusedData: saved ? [...(project.unusedData ?? []), sheet] : project.unusedData
+      file: { ...project.file, sets: project.file.sets.filter((_, i) => i !== index) }
     })
     if (sheet)
       setDirtySheets((d) => {

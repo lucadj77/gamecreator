@@ -115,7 +115,7 @@ export const it: Record<MessageKey, string> = {
   'addColumn.invalid': 'Le graffe non sono ammesse nei nomi delle colonne',
   'sidebar.delete': 'Elimina',
   'sidebar.deleteSetConfirm':
-    'Eliminare il set "{name}"? Il suo foglio resta nel file dei dati e si può ricollegare con Nuovo set.',
+    'Eliminare il set "{name}"? Al salvataggio il suo foglio esce dal file dei dati e va nella cartella deleted del progetto, da cui si può recuperare.',
   'sidebar.deleteTemplateConfirm':
     'Eliminare il template "{name}"? Il file va nella cartella deleted del progetto, da cui si può recuperare.',
   'sidebar.templateInUse': 'Il template "{name}" è usato da questi set: {sets}. Eliminali prima.',

@@ -111,7 +111,7 @@ export const en = {
   'addColumn.invalid': 'Braces are not allowed in column names',
   'sidebar.delete': 'Delete',
   'sidebar.deleteSetConfirm':
-    'Delete the set "{name}"? Its sheet stays in the data file and can be linked again with New set.',
+    'Delete the set "{name}"? When you save, its sheet leaves the data file and goes to the project\'s deleted folder, from where it can be recovered.',
   'sidebar.deleteTemplateConfirm':
     'Delete the template "{name}"? Its file is moved to the project\'s deleted folder, where you can get it back.',
   'sidebar.templateInUse':

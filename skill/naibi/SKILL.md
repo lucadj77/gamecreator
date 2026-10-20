@@ -54,7 +54,7 @@ project/
   assets/fonts/          # project fonts (ttf, otf, woff, woff2)
   assets/sources.json    # origin and license of imported icons and fonts (written by the app)
   export/                # exported files, can be regenerated
-  deleted/               # templates deleted in the app; not part of the project
+  deleted/               # templates and set sheets deleted in the app; not part of the project
 ```
 
 Older projects have `gamecreator.json` instead of `naibi.json`; the format is the same.

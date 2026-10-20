@@ -7,6 +7,7 @@ import {
 } from '../../shared/model/normalize'
 import type { Template } from '../../shared/model/template'
 import { MessageError, msg } from '../../shared/messages'
+import { deletedPath } from './deleted'
 
 async function exists(path: string): Promise<boolean> {
   try {
@@ -54,10 +55,7 @@ export async function trashTemplate(folder: string, file: string): Promise<strin
     return null
   }
   try {
-    const dir = join(folder, 'deleted')
-    await mkdir(dir, { recursive: true })
-    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
-    const moved = join(dir, `${file} ${stamp}.json`)
+    const moved = await deletedPath(folder, file, '.json')
     await rename(target, moved)
     return moved
   } catch (e) {

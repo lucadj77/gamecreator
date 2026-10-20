@@ -1,8 +1,9 @@
-import { mkdtemp, readFile } from 'fs/promises'
+import { mkdtemp, readdir, readFile, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import ExcelJS from 'exceljs'
 import { describe, expect, it } from 'vitest'
+import { saveData } from '../save'
 import { readSpreadsheet, writeSpreadsheet } from '../spreadsheet'
 
 async function workbook(path: string): Promise<void> {
@@ -41,6 +42,29 @@ describe('writeSpreadsheet', () => {
     expect(ws.getCell('D2').formula).toBe('C2+2')
     expect(ws.getCell('B1').font?.bold).toBe(true)
     expect(ws.getCell('E2').text).toBe('nota')
+  })
+
+  it('sposta in deleted/ il foglio di un set eliminato e ne libera il nome', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    await workbook(join(dir, 'dati.xlsx'))
+    const file = { version: 1, dataFile: 'dati.xlsx', sets: [] }
+    await writeFile(join(dir, 'naibi.json'), JSON.stringify(file))
+    await saveData(dir, {
+      sheets: [{ name: 'Personaggi', origin: 'Altro', headers: ['a'], rows: [['b']] }],
+      removed: ['Personaggi']
+    })
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.readFile(join(dir, 'dati.xlsx'))
+    expect(wb.worksheets.map((w) => w.name)).toEqual(['Personaggi'])
+    expect(wb.getWorksheet('Personaggi')!.getCell('A2').text).toBe('b')
+    const kept = await readdir(join(dir, 'deleted'))
+    expect(kept).toHaveLength(1)
+    expect(kept[0]).toMatch(/^Personaggi \d{4}-\d\d-\d\d-\d\d-\d\d-\d\d\.xlsx$/)
+    const copy = new ExcelJS.Workbook()
+    await copy.xlsx.readFile(join(dir, 'deleted', kept[0]))
+    expect(copy.worksheets.map((w) => w.name)).toEqual(['Personaggi'])
+    expect(copy.getWorksheet('Personaggi')!.getCell('D2').formula).toBe('C2+2')
+    expect(copy.getWorksheet('Personaggi')!.getCell('B1').font?.bold).toBe(true)
   })
 
   it('riscrive le celle tenendo formule, formattazione e altri fogli', async () => {

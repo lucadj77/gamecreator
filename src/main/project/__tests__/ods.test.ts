@@ -1,6 +1,6 @@
 import JSZip from 'jszip'
 import { describe, expect, it } from 'vitest'
-import { readOds, writeOds } from '../ods'
+import { odsWithOnly, readOds, writeOds } from '../ods'
 
 const NS =
   'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" ' +
@@ -87,6 +87,23 @@ describe('ods', () => {
     expect(tables[0].rows[1]).toEqual(['2', 'Cavaliere', '4'])
     const xml = await (await JSZip.loadAsync(out)).file('content.xml')!.async('string')
     expect(xml).toContain('table:formula="of:=1+3"')
+  })
+
+  it('toglie la tabella di un set eliminato e ne lascia prendere il nome', async () => {
+    const out = await writeOds(
+      await sample(),
+      [{ name: 'Carte', origin: 'Altro', headers: ['x'], rows: [['y']] }],
+      ['Carte']
+    )
+    const tables = await readOds(out)
+    expect(tables.map((t) => t.name)).toEqual(['Carte'])
+    expect(tables[0].rows).toEqual([['x'], ['y']])
+  })
+
+  it('copia una sola tabella, con il suo contenuto', async () => {
+    const tables = await readOds(await odsWithOnly(await sample(), 'Carte'))
+    expect(tables.map((t) => t.name)).toEqual(['Carte'])
+    expect(tables[0].rows[1]).toEqual(['2', 'Cavaliere', '4'])
   })
 
   it('crea un file nuovo', async () => {

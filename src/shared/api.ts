@@ -93,7 +93,7 @@ export interface Api {
   /** Sposta il file del template in deleted/ nel progetto; restituisce il nuovo percorso */
   deleteTemplate(file: string): Promise<string | null>
   /** Salva i fogli modificati e, se cambiati i set, il file di progetto */
-  saveData(changes: { file?: ProjectFile; sheets: Sheet[] }): Promise<void>
+  saveData(changes: { file?: ProjectFile; sheets: Sheet[]; removed?: string[] }): Promise<void>
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */
   setUiZoom(factor: number): void
   /** Tema chiaro, scuro o quello del sistema: vale anche per menu e controlli nativi */

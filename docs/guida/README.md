@@ -196,7 +196,7 @@ La **griglia** mostra le carte come verranno stampate. Il cursore in alto cambia
 
 ![La griglia delle carte](img/griglia.png)
 
-In entrambe le viste, a destra, il modulo della carta selezionata ha un campo per ogni colonna. Un clic su un livello dell'anteprima porta al suo campo; Alt+clic nello stesso punto passa al livello sotto, utile quando un livello ne copre un altro. Il doppio clic modifica il livello direttamente sulla carta: per un testo si apre un riquadro sopra il livello, per un'immagine le miniature, per una forma il selettore del colore. Esc annulla la modifica, un clic fuori o Ctrl+Invio la chiude. Il doppio clic su un livello fisso o con formula dice da dove arriva il valore, con un pulsante per aprire il template. Il pulsante ⤢ in alto nell'anteprima apre la carta grande in una finestra, con gli stessi clic e le frecce per passare da una carta all'altra. PagSu e PagGiù passano alla carta precedente o successiva, anche mentre si scrive in un campo del modulo, che resta lo stesso.
+In entrambe le viste, a destra, il modulo della carta selezionata ha un campo per ogni colonna. Un clic su un livello dell'anteprima porta al suo campo; Alt+clic nello stesso punto passa al livello sotto, utile quando un livello ne copre un altro. Il doppio clic modifica il livello direttamente sulla carta: per un testo si apre un riquadro sopra il livello, per un'immagine le miniature, per una forma il selettore del colore. Esc annulla la modifica, un clic fuori o Ctrl+Invio la chiude. Il doppio clic su un livello fisso o con formula dice da dove arriva il valore, con un pulsante per aprire il template. Il pulsante ⤢ in alto nell'anteprima apre la carta grande in una finestra, con il modulo della carta accanto, gli stessi clic e le frecce per passare da una carta all'altra. PagSu e PagGiù passano alla carta precedente o successiva, anche mentre si scrive in un campo del modulo, che resta lo stesso.
 
 ### 5.3 Ordinare e filtrare
 
@@ -214,7 +214,7 @@ Oltre al valore principale, ogni proprietà di un livello può cambiare carta pe
 
 Nelle celle i colori si scrivono come nomi (`red`, o il nome di una variabile colore) o in esadecimale (`#A33A2A`); un contorno come `colore/spessore/tratteggio`, per esempio `red/0.3/dashed`.
 
-Una colonna `template` sceglie il template di una singola carta: vuota vale quello del set. Serve per esempio per dare a poche carte di un set un template derivato. Nel modulo della carta il campo diventa un menu con i template che hanno le stesse misure di quello del set.
+Il campo **Template**, in cima al modulo della carta, sceglie il template di una singola carta tra quelli con le misure del set: vuoto vale quello del set, e la scelta va nella colonna `template` del foglio. Serve per esempio per dare a poche carte di un set un template derivato. Nel modulo della carta il campo diventa un menu con i template che hanno le stesse misure di quello del set.
 
 ### 5.5 Modificare il file in Excel
 

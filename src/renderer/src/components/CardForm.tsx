@@ -376,8 +376,15 @@ function CardForm({
           : t('cardForm.title', { n: row + 1 })}
       </h3>
       {multi && <p className="muted small">{t('cardForm.multiHint')}</p>}
+      {/* il template della carta è sempre a portata di mano, anche senza la colonna nel foglio */}
+      {templateChoices.some((n) => n !== setTemplate) &&
+        field(TEMPLATE_COLUMN, { index: sheet.headers.indexOf(TEMPLATE_COLUMN), calc: false })}
       {columns
-        .filter((c) => !inDetails(c.header))
+        .filter(
+          (c) =>
+            !inDetails(c.header) &&
+            !(c.header === TEMPLATE_COLUMN && templateChoices.some((n) => n !== setTemplate))
+        )
         .map(({ header: h, index, computed: calc }) => (
           <Fragment key={h}>
             {field(h, { index, calc })}

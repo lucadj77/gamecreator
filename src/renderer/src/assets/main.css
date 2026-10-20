@@ -3055,8 +3055,10 @@ input[type='checkbox'].bool-default {
 
 .field-tools .icon-btn {
   position: relative;
+  padding: 3px 4px;
+  font-size: 16px;
   color: var(--muted);
-  opacity: 0.55;
+  opacity: 0.75;
 }
 
 .card-form .field:hover .field-tools .icon-btn,
@@ -3141,7 +3143,7 @@ input[type='checkbox'].bool-default {
 
 .field-tools .icon-btn.off {
   color: var(--muted);
-  opacity: 0.6;
+  opacity: 0.75;
 }
 
 select.from-template {
@@ -3164,22 +3166,22 @@ select.from-template {
 .properties.derived .prop-item,
 .properties.derived .inherit-item {
   position: relative;
-  padding-right: 20px;
+  padding-right: 26px;
 }
 
 .inherit-mark {
   position: absolute;
-  top: 5px;
+  top: 3px;
   right: 0;
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   border: none;
   background: none;
   color: var(--muted);
-  opacity: 0.55;
-  font-size: 12px;
-  line-height: 16px;
+  opacity: 0.75;
+  font-size: 16px;
+  line-height: 22px;
   text-align: center;
 }
 
@@ -3196,13 +3198,13 @@ select.from-template {
 
 .layer-inherit {
   flex: none;
-  width: 16px;
+  width: 22px;
   padding: 0;
   border: none;
   background: none;
   color: var(--muted);
-  opacity: 0.55;
-  font-size: 11px;
+  opacity: 0.75;
+  font-size: 15px;
   text-align: center;
 }
 
@@ -3268,4 +3270,36 @@ select.from-template {
 .preview-card .inline-editor,
 .preview-card .value-info {
   user-select: text;
+}
+
+.preview-big-btn {
+  font-size: 18px;
+  opacity: 0.8;
+  padding: 2px 6px;
+}
+
+.big-preview-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.big-preview-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.big-preview-form {
+  width: 400px;
+  max-height: calc(100vh - 170px);
+  overflow: auto;
+  font-size: 14px;
+}
+
+.big-preview-form .card-form {
+  margin-top: 0;
+  border-top: none;
+  padding-top: 0;
 }

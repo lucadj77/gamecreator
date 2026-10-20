@@ -1653,6 +1653,39 @@ function SetView({
       </div>
     ) : null
 
+  // il modulo sta accanto all'anteprima, o nella finestra della carta grande
+  const cardForm = !none && (
+    <CardForm
+      key={selection.join(',')}
+      sheet={sheet}
+      row={current}
+      rows={selection}
+      template={rowTemplates[current] ?? template}
+      setTemplate={set.template}
+      templateChoices={
+        template
+          ? templates
+              .filter((x) => x.width === template.width && x.height === template.height)
+              .map((x) => x.name)
+          : []
+      }
+      columns={columns}
+      booleans={booleans}
+      computed={computed}
+      focus={focus}
+      details={details}
+      onToggleDetails={(h) =>
+        setDetails((d) => {
+          const next = new Set(d)
+          if (next.has(h)) next.delete(h)
+          else next.add(h)
+          return next
+        })
+      }
+      onChange={onChange}
+    />
+  )
+
   const preview = (
     <aside className="preview" data-side={previewSide} style={{ width: previewWidth }}>
       <div className="preview-header">
@@ -1669,7 +1702,7 @@ function SetView({
           onChange={setSide}
         />
         <button
-          className="icon-btn"
+          className="icon-btn preview-big-btn"
           title={t('preview.openBig')}
           disabled={!card}
           onClick={() => setBig(true)}
@@ -1709,37 +1742,7 @@ function SetView({
       ) : (
         <p className="muted">{t('preview.selectRow')}</p>
       )}
-      {!none && (
-        <CardForm
-          key={selection.join(',')}
-          sheet={sheet}
-          row={current}
-          rows={selection}
-          template={rowTemplates[current] ?? template}
-          setTemplate={set.template}
-          templateChoices={
-            template
-              ? templates
-                  .filter((x) => x.width === template.width && x.height === template.height)
-                  .map((x) => x.name)
-              : []
-          }
-          columns={columns}
-          booleans={booleans}
-          computed={computed}
-          focus={focus}
-          details={details}
-          onToggleDetails={(h) =>
-            setDetails((d) => {
-              const next = new Set(d)
-              if (next.has(h)) next.delete(h)
-              else next.add(h)
-              return next
-            })
-          }
-          onChange={onChange}
-        />
-      )}
+      {!big && cardForm}
     </aside>
   )
 
@@ -1986,13 +1989,18 @@ function SetView({
                 →
               </button>
             </div>
-            {cardStage(
-              Math.min(
-                (window.innerHeight - 200) / card.template.height,
-                (window.innerWidth - 120) / card.template.width
-              )
-            )}
-            <p className="muted small">{t('preview.clickHint')}</p>
+            <div className="big-preview-body">
+              <div className="big-preview-card">
+                {cardStage(
+                  Math.min(
+                    (window.innerHeight - 200) / card.template.height,
+                    (window.innerWidth - 560) / card.template.width
+                  )
+                )}
+                <p className="muted small">{t('preview.clickHint')}</p>
+              </div>
+              <div className="big-preview-form">{cardForm}</div>
+            </div>
           </div>
         </Dialog>
       )}

@@ -59,6 +59,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      # le novità vengono da CHANGELOG.md; si ferma se il tag non è la versione di package.json
+      - run: node scripts/release-notes.mjs ${{ github.ref_name }} > release-notes.md
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -66,4 +69,6 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           draft: false
+          name: Naibi ${{ github.ref_name }}
+          body_path: release-notes.md
           files: dist/*

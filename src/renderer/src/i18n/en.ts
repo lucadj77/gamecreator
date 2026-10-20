@@ -1108,7 +1108,14 @@ export const en = {
   'newProject.dataFile': 'Data file',
   'newProject.xlsx': 'Excel (.xlsx), recommended',
   'newProject.ods': 'OpenDocument (.ods)',
-  'newProject.notEmpty': 'The folder {folder} already exists and is not empty.'
+  'newProject.notEmpty': 'The folder {folder} already exists and is not empty.',
+  'update.available': 'Naibi {version} is available.',
+  'update.whatsNew': "What's new",
+  'update.download': 'Download',
+  'update.skip': 'Skip this version',
+  'update.later': 'Remind me later',
+  'update.title': "What's new in Naibi {version}",
+  'update.noNotes': 'This version has no notes.'
 }
 
 export type MessageKey = keyof typeof en

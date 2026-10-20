@@ -80,7 +80,7 @@ import {
   TrashIcon,
   VariablesIcon
 } from './components/icons'
-import TemplateEditor from './editor/TemplateEditor'
+import TemplateEditor, { EDITOR_UNDO } from './editor/TemplateEditor'
 import { Dialog, NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
@@ -207,7 +207,7 @@ function App(): React.JSX.Element {
   }>({ past: [], future: [], at: 0 })
   const [saving, setSaving] = useState(false)
   const anyDirty = dirty.size > 0 || dirtySheets.size > 0 || fileDirty
-  const [sidebarWidth, setSidebarWidth] = usePanelWidth('sidebar', 220)
+  const [sidebarWidth, setSidebarWidth] = usePanelWidth('sidebar.v2', 260)
   const [sidebarSide, toggleSidebarSide] = usePanelSide('sidebar', 'left')
   const [sidebarCompact, setSidebarCompact] = usePanelCompact('sidebar')
   const [closedSections, setSectionClosed] = useClosedSections('sidebar')
@@ -276,6 +276,14 @@ function App(): React.JSX.Element {
     setProject((p) => p && { ...p, templates: [...p.templates, tpl] })
     setDirty((d) => new Set(d).add(name))
     setSelected({ kind: 'template', name })
+  }
+
+  /** Cronologia dell'editor aperto, per i pulsanti annulla e ripeti della barra */
+  const [editorHistory, setEditorHistory] = useState({ undo: false, redo: false })
+  const undoAny = (redo: boolean): void => {
+    if (selected.kind === 'template')
+      window.dispatchEvent(new CustomEvent(EDITOR_UNDO, { detail: { redo } }))
+    else undoData(redo)
   }
 
   /** Il derivato diventa un template normale, con i valori che ha ora */
@@ -1091,6 +1099,25 @@ function App(): React.JSX.Element {
                   <span className="project-path">{project.folder}</span>
                   {loading && <span className="muted">{t('app.loading')}</span>}
                   <span className="spacer" />
+                  {/* annulla e ripeti valgono per ciò che è aperto: l'editor o i dati */}
+                  <span className="tool-group">
+                    <button
+                      className="tool"
+                      title={t('editor.undo')}
+                      disabled={editing ? !editorHistory.undo : !history.past.length}
+                      onClick={() => undoAny(false)}
+                    >
+                      ↶
+                    </button>
+                    <button
+                      className="tool"
+                      title={t('editor.redo')}
+                      disabled={editing ? !editorHistory.redo : !history.future.length}
+                      onClick={() => undoAny(true)}
+                    >
+                      ↷
+                    </button>
+                  </span>
                   <button onClick={() => setExporting(true)} title={t('tip.export')}>
                     {t('app.export')}
                   </button>
@@ -1154,6 +1181,10 @@ function App(): React.JSX.Element {
                       base={baseOf(project.templates, editing)}
                       onOpen={(name) => setSelected({ kind: 'template', name })}
                       onDetach={() => detachTemplate(editing.name)}
+                      onDuplicate={() => setDuplicating({ kind: 'template', name: editing.name })}
+                      onDerive={() => setDeriving(editing.name)}
+                      onDelete={() => deleteTemplate(editing.name)}
+                      onHistory={setEditorHistory}
                     />
                   ) : current ? (
                     <SetView
@@ -1163,9 +1194,15 @@ function App(): React.JSX.Element {
                       onChange={(sheet, key) =>
                         updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
                       }
-                      onEditTemplate={() =>
-                        setSelected({ kind: 'template', name: current.template })
+                      onEditTemplate={(name) => setSelected({ kind: 'template', name })}
+                      onDuplicateSet={() =>
+                        setDuplicating({
+                          kind: 'set',
+                          index: selected.kind === 'set' ? selected.index : 0
+                        })
                       }
+                      onDeleteSet={() => deleteSet(selected.kind === 'set' ? selected.index : 0)}
+
                       onChangeTemplate={(name) =>
                         setTemplate(selected.kind === 'set' ? selected.index : 0, name)
                       }
@@ -1371,6 +1408,8 @@ function SetView({
   templates,
   onChange,
   onEditTemplate,
+  onDuplicateSet,
+  onDeleteSet,
   onChangeTemplate,
   onChangeColumns
 }: {
@@ -1381,8 +1420,11 @@ function SetView({
   onChangeTemplate(name: string): void
   /** Colonne nascoste e livelli calcolati mostrati */
   onChangeColumns(view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>): void
-  /** Apre nell'editor il template del set */
-  onEditTemplate(): void
+  /** Apre nell'editor un template: quello del set o quello di una carta */
+  onEditTemplate(name: string): void
+  /** Duplica ed elimina il set */
+  onDuplicateSet(): void
+  onDeleteSet(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const [selection, setSelection] = useState<number[]>([0])
@@ -1401,7 +1443,7 @@ function SetView({
   /** Ultimo clic sull'anteprima, per passare al livello sotto con un altro clic */
   const lastPick = useRef<{ x: number; y: number; row: number; column: string } | null>(null)
   const [rowView, setRowView] = useState<RowView>(NO_VIEW)
-  const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
+  const [previewWidth, setPreviewWidth] = usePanelWidth('preview.v2', 380)
   const [previewSide, togglePreviewSide] = usePanelSide('preview', 'right')
   // dimensione delle miniature: pixel per millimetro
   const [thumb, setThumb] = usePanelWidth('thumbScale', 2.6)
@@ -1522,6 +1564,8 @@ function SetView({
     )
   const current = selection[0] ?? -1
   const card = cards[current]
+  // "Modifica template" apre quello della carta, che può essere diverso da quello del set
+  const cardTemplateName = rowTemplates[current]?.name ?? set.template
   const none = current < 0 || current >= sheet.rows.length
 
   const addCard = (): void => {
@@ -1645,7 +1689,7 @@ function SetView({
               layer={info.layer}
               box={info.box}
               scale={scale}
-              onEditTemplate={onEditTemplate}
+              onEditTemplate={() => onEditTemplate(cardTemplateName)}
               onClose={() => setInfo(null)}
             />
           )}
@@ -1701,14 +1745,6 @@ function SetView({
           ]}
           onChange={setSide}
         />
-        <button
-          className="icon-btn preview-big-btn"
-          title={t('preview.openBig')}
-          disabled={!card}
-          onClick={() => setBig(true)}
-        >
-          ⤢
-        </button>
       </div>
       {!template ? (
         <p className="muted">{t('preview.noTemplate', { name: set.template })}</p>
@@ -1721,13 +1757,20 @@ function SetView({
           ) : (
             cardStage(PREVIEW_SCALE)
           )}
-          <button
-            className="preview-edit"
-            title={t('tip.editTemplate', { name: set.template })}
-            onClick={onEditTemplate}
-          >
-            <TemplateIcon /> {t('preview.editTemplate')}
-          </button>
+          <div className="preview-buttons">
+            <button
+              className="preview-edit"
+              title={t('tip.editTemplate', { name: cardTemplateName })}
+              onClick={() => onEditTemplate(cardTemplateName)}
+            >
+              <TemplateIcon /> {t('preview.editTemplate')}
+            </button>
+            {!big && (
+              <button className="preview-edit" onClick={() => setBig(true)}>
+                ⤢ {t('preview.openBig')}
+              </button>
+            )}
+          </div>
           {card.problems.length > 0 && (
             <div className="problems">
               <h3>{t('preview.problems')}</h3>
@@ -1763,6 +1806,15 @@ function SetView({
       <section className="content" ref={contentRef}>
         <div className="set-header">
           <h1>{set.name}</h1>
+          <span className="item-actions">
+            <button title={t('tip.duplicateSet')} onClick={onDuplicateSet}>
+              ⧉ {t('set.duplicateSet')}
+            </button>
+            <button title={t('tip.deleteSet')} onClick={onDeleteSet}>
+              <TrashIcon /> {t('set.deleteSet')}
+            </button>
+          </span>
+
           <span className="muted set-template">
             {t('set.templateLabel')}
             <select

@@ -3303,3 +3303,55 @@ select.from-template {
   border-top: none;
   padding-top: 0;
 }
+
+.preview-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.preview-buttons .preview-edit {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* duplica, deriva, elimina accanto al nome del set o del template aperto */
+.item-actions {
+  display: inline-flex;
+  gap: 4px;
+  align-self: center;
+}
+
+.item-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+/* la barra dell'editor va a capo invece di schiacciare nome e pulsanti */
+.editor-toolbar {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.editor-toolbar h1,
+.derived-from,
+.item-actions button {
+  white-space: nowrap;
+}
+
+.item-actions button {
+  flex-direction: row;
+}
+
+.set-header {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.set-header .set-template,
+.set-header h1 {
+  white-space: nowrap;
+}

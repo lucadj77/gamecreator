@@ -16,6 +16,8 @@ dell'interfaccia quando segnala un aggiornamento. Come si prepara una versione �
 - Cards can be exported as SVG, with project images and fonts inside the file and texts as editable SVG text.
 - Double-clicking a layer in the card preview edits it right on the card: text in a box over the layer, images from the thumbnails, shapes with a color picker. A single click still goes to the field. Alt+click on the preview moves to the field of the layer underneath; in the editor Alt+click selects the layer underneath. Thin lines and the children of arranged or repeated groups are easier to click.
 - The ⤢ button enlarges the card preview in a window, with the card form next to it and the same clicks and on-card editing. Double-clicking a fixed or formula layer tells where its value comes from.
+- Undo and redo are always in the top bar, for sets, templates, styles and variables. Sets and templates have Duplicate, Derive and Delete buttons next to their name, and panels are wider by default.
+- **Edit template** under the card preview opens the card's own template.
 - Sets open in the grid view; the table is one click away.
 - A click on the canvas scrollbars no longer clears the selection (Windows).
 - The window title shows the installed version of Naibi.
@@ -30,6 +32,8 @@ dell'interfaccia quando segnala un aggiornamento. Come si prepara una versione �
 - Le carte si esportano anche in SVG, con immagini e font del progetto dentro il file e i testi come testo SVG modificabile.
 - Il doppio clic su un livello nell'anteprima della carta lo modifica direttamente sulla carta: il testo in un riquadro sopra il livello, le immagini dalle miniature, le forme con il selettore del colore. Il clic singolo porta ancora al campo. Alt+clic sull'anteprima passa al campo del livello sotto; nell'editor Alt+clic seleziona il livello sotto. Le linee sottili e i figli dei gruppi disposti o ripetuti si prendono più facilmente.
 - Il pulsante ⤢ ingrandisce l'anteprima della carta in una finestra, con il modulo della carta accanto e gli stessi clic e la modifica sulla carta. Il doppio clic su un livello fisso o con formula dice da dove arriva il valore.
+- Annulla e ripristina sono sempre nella barra in alto, per set, template, stili e variabili. Set e template hanno i pulsanti Duplica, Deriva ed Elimina accanto al nome, e i pannelli sono più larghi di base.
+- **Modifica template** sotto l'anteprima apre il template della carta.
 - I set si aprono nella vista griglia; la tabella è a un clic.
 - Un clic sulle barre di scorrimento della tela non toglie più la selezione (Windows).
 - Il titolo della finestra mostra la versione di Naibi installata.

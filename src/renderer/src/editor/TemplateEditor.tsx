@@ -10,7 +10,7 @@ import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
-import { ImageIcon } from '../components/icons'
+import { ImageIcon, TrashIcon } from '../components/icons'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
 import PropertiesPanel from './PropertiesPanel'
@@ -29,7 +29,16 @@ interface Props {
   onOpen?(name: string): void
   /** Rende il derivato un template normale */
   onDetach?(): void
+  /** Duplica, crea un derivato, elimina il template */
+  onDuplicate?(): void
+  onDerive?(): void
+  onDelete?(): void
+  /** Dice se ci sono passi da annullare o ripetere: i pulsanti stanno nella barra dell'app */
+  onHistory?(h: { undo: boolean; redo: boolean }): void
 }
+
+/** Evento della barra dell'app per annullare o ripetere nell'editor */
+export const EDITOR_UNDO = 'naibi-editor-undo'
 
 const NUDGE = 0.5
 
@@ -39,7 +48,11 @@ export default function TemplateEditor({
   onChange,
   base = null,
   onOpen,
-  onDetach
+  onDetach,
+  onDuplicate,
+  onDerive,
+  onDelete,
+  onHistory
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   // in un derivato ogni modifica passa per le sue regole: si salvano solo le differenze
@@ -56,8 +69,8 @@ export default function TemplateEditor({
     () => (base ? resolveTemplate(base, state.template).problems : []),
     [base, state.template]
   )
-  const [layersWidth, setLayersWidth] = usePanelWidth('layers', 230)
-  const [propsWidth, setPropsWidth] = usePanelWidth('properties', 320)
+  const [layersWidth, setLayersWidth] = usePanelWidth('layers.v2', 270)
+  const [propsWidth, setPropsWidth] = usePanelWidth('properties.v2', 380)
   const [layersSide, toggleLayersSide] = usePanelSide('layers', 'left')
   const [propsSide, togglePropsSide] = usePanelSide('properties', 'right')
 
@@ -66,6 +79,18 @@ export default function TemplateEditor({
   useEffect(() => {
     if (state.template !== initial.current) onChange(state.template)
   }, [state.template, onChange])
+
+  const canUndo = state.past.length > 0
+  const canRedo = state.future.length > 0
+  useEffect(() => {
+    onHistory?.({ undo: canUndo, redo: canRedo })
+  }, [canUndo, canRedo, onHistory])
+  useEffect(() => {
+    const run = (e: Event): void =>
+      dispatch({ type: (e as CustomEvent<{ redo: boolean }>).detail.redo ? 'redo' : 'undo' })
+    window.addEventListener(EDITOR_UNDO, run)
+    return () => window.removeEventListener(EDITOR_UNDO, run)
+  }, [dispatch])
 
   // la tastiera: le scorciatoie usano Cmd su macOS e Ctrl altrove
   const onKey = (e: KeyboardEvent): void => {
@@ -241,6 +266,17 @@ export default function TemplateEditor({
             </button>
           </span>
         )}
+        <span className="item-actions">
+          <button title={t('tip.duplicateTemplate')} onClick={onDuplicate}>
+            ⧉ {t('sidebar.duplicate')}
+          </button>
+          <button title={t('inherit.derive')} onClick={onDerive}>
+            ↳ {t('inherit.deriveShort')}
+          </button>
+          <button title={t('tip.deleteTemplate')} onClick={onDelete}>
+            <TrashIcon /> {t('sidebar.delete')}
+          </button>
+        </span>
         <div className="tool-group">
           {tools.map(([icon, run, label]) => (
             <button key={label} className="tool" title={label} onClick={run}>
@@ -256,24 +292,6 @@ export default function TemplateEditor({
           ]}
           onChange={(side) => dispatch({ type: 'side', side })}
         />
-        <div className="tool-group">
-          <button
-            className="tool"
-            title={t('editor.undo')}
-            disabled={!state.past.length}
-            onClick={() => dispatch({ type: 'undo' })}
-          >
-            ↶
-          </button>
-          <button
-            className="tool"
-            title={t('editor.redo')}
-            disabled={!state.future.length}
-            onClick={() => dispatch({ type: 'redo' })}
-          >
-            ↷
-          </button>
-        </div>
         <span className="spacer" />
         <label className="muted preview-data">
           {t('editor.previewData')}{' '}

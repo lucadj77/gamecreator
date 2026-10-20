@@ -67,16 +67,16 @@ A new project is empty: the app suggests creating a template first, then a set t
 
 ![The project window, with numbered parts](img/progetto.png)
 
-1. **Top bar.** Project name and folder, **Export…**, **Backup…**, **AI tools…**, **Save** (⌘S), **Reload** (reads the project from disk again, losing unsaved changes) and **Close**.
+1. **Top bar.** Project name and folder, undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), **Export…**, **Backup…**, **AI tools…**, **Save** (⌘S), **Reload** (reads the project from disk again, losing unsaved changes) and **Close**.
 2. **Sets.** A click opens the cards of the set; the number is the total of cards, copies included.
 3. **Templates.** A click opens the template in the editor; next to it is the format in millimeters.
 4. Project text **styles** ([chapter 7](#7-variables-and-styles)).
 5. Project **variables**, with a preview.
 6. **Cards of the set**, in a table or a grid.
-7. **Preview** of the selected card, front or back. **Edit template** opens the set's template.
+7. **Preview** of the selected card, front or back. **Edit template** opens the card's template, that is the set's or the one chosen for the card; **Enlarge** opens the card large with the form next to it.
 8. **Fields of the selected card**, editable like the table cells.
 
-Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
+Next to the name of the open set or template are the buttons to duplicate it, delete it and, for a template, create a derived one. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
 
 Changes stay in memory until you save. The **Save** button reads **Saved** when there is nothing to write.
 

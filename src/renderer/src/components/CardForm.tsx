@@ -14,6 +14,7 @@ import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
+import { ColorSwatch } from './ColorPicker'
 import { EyeIcon, EyeOffIcon, ImageIcon, SlidersIcon } from './icons'
 import { propControl, propLabel } from './cardProps'
 
@@ -337,12 +338,11 @@ function CardForm({
                 {...common}
                 placeholder={value === null ? common.placeholder : (colors.get(h) ?? '')}
               />
-              <input
-                type="color"
+              <ColorSwatch
                 title={t('cardForm.pickColor')}
                 // senza valore nella cella il selettore parte dal colore del template
-                value={toHex6(common.value.trim() || colors.get(h) || '')}
-                onChange={(e) => write(h, e.target.value.toUpperCase())}
+                value={common.value.trim() || colors.get(h) || ''}
+                onChange={(v) => write(h, v)}
               />
             </span>
           ) : imageColumns.has(h) ? (
@@ -410,21 +410,5 @@ function CardForm({
 
 /** Proprietà comuni a tutti i livelli: nei dettagli vengono dopo quelle del tipo */
 const COMMON_KEYS = ['opacity', 'x', 'y', 'w', 'h', 'rotation', 'anchor', 'blend', 'shadow']
-
-let probe: CanvasRenderingContext2D | null = null
-
-/** Il selettore nativo vuole #rrggbb: i nomi dei colori si convertono con il canvas */
-function toHex6(c: string): string {
-  const v = c.trim()
-  if (/^#[0-9a-f]{6}$/i.test(v)) return v
-  if (/^#[0-9a-f]{8}$/i.test(v)) return v.slice(0, 7)
-  if (/^#[0-9a-f]{3,4}$/i.test(v)) return '#' + [...v.slice(1, 4)].map((ch) => ch + ch).join('')
-  if (!/^[a-z]+$/i.test(v)) return '#000000'
-  probe ??= document.createElement('canvas').getContext('2d')
-  if (!probe) return '#000000'
-  probe.fillStyle = '#000000'
-  probe.fillStyle = v
-  return /^#[0-9a-f]{6}$/i.test(probe.fillStyle) ? probe.fillStyle : '#000000'
-}
 
 export default CardForm

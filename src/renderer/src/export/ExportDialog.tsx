@@ -30,6 +30,7 @@ import { EXPORT_PRESETS } from '../../../shared/exportPresets'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { buildSets } from '../../../shared/exportJob'
+import { ColorSwatch } from '../components/ColorPicker'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 
@@ -587,11 +588,10 @@ export default function ExportDialog({
                     (marks) => patch({ marks })
                   )}
                   {pdf.marks !== 'none' && (
-                    <input
-                      type="color"
+                    <ColorSwatch
                       value={pdf.markColor}
                       title={t('export.markColor')}
-                      onChange={(e) => patch({ markColor: e.target.value })}
+                      onChange={(markColor) => patch({ markColor })}
                     />
                   )}
                 </>

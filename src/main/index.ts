@@ -22,6 +22,14 @@ import { defaultTarget, importTtc } from './import/ttc'
 import { runExport } from './export/run'
 import { saveExportProfiles } from './project/exportProfiles'
 import { fontCatalog, iconCatalog } from './library/catalogs'
+import { updateGameIcons, updateGoogleFonts } from './library/catalogUpdate'
+import {
+  iconifyCollection,
+  iconifyCollections,
+  iconifySearch,
+  iconifySvgs,
+  importIconifyIcons
+} from './library/iconify'
 import { importIcons } from './library/icons'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
@@ -230,6 +238,20 @@ function registerIpc(): void {
 
   ipcMain.handle('library:icon-catalog', (_, collection: IconCollection) => iconCatalog(collection))
   ipcMain.handle('library:font-catalog', () => fontCatalog())
+  ipcMain.handle('library:update-catalog', (_, which: string) =>
+    which === 'google-fonts' ? updateGoogleFonts() : updateGameIcons()
+  )
+  ipcMain.handle('iconify:collections', () => iconifyCollections())
+  ipcMain.handle('iconify:collection', (_, prefix: string) => iconifyCollection(prefix))
+  ipcMain.handle('iconify:search', (_, query: string, prefix?: string) =>
+    iconifySearch(query, prefix)
+  )
+  ipcMain.handle('iconify:svgs', (_, ids: string[]) => iconifySvgs(ids))
+  ipcMain.handle('iconify:import', async (_, items: IconImport[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return importIconifyIcons(folder, items)
+  })
 
   ipcMain.handle(
     'library:import-icons',

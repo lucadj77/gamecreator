@@ -2,6 +2,8 @@ import { useContext, useEffect, useMemo, useState } from 'react'
 import type { IconCatalog, IconCollection, IconImport } from '../../../shared/library'
 import {
   ICON_COLLECTIONS,
+  ICONS_FOLDER,
+  IMAGES_FOLDER,
   collectionFolder,
   iconExtension,
   isValidAssetName
@@ -14,13 +16,20 @@ import { useI18n } from '../i18n/context'
 import { ICON_GROUPS_IT, ICON_TAG_WORDS_IT, ICON_TAGS_IT } from '../i18n/iconTags'
 import { AssetsContext, publishAssetsUpdate } from '../render/assets'
 import Segmented from './Segmented'
+import { ColorSwatch } from './ColorPicker'
+import IconifyPane, { IconifyPreview, type IconifyIcon } from './IconifyPane'
 
 // Finestra di importazione delle icone di game-icons.net e di Kenney: categorie a sinistra, ricerca
-// approssimata, anteprima con la tinta scelta. Vedi docs/specifica.md, sezione 10.1.
+// approssimata, anteprima con la tinta scelta. La scheda Iconify cerca online nelle altre
+// collezioni (IconifyPane). Vedi docs/specifica.md, sezione 10.1.
 
 const PAGE = 240
 const TINT_KEY = 'iconBrowserTint'
 const COLLECTION_KEY = 'iconBrowserCollection'
+
+/** Raccolte incluse nell'app, più le collezioni online di Iconify */
+type Tab = IconCollection | 'iconify'
+const TABS: Tab[] = [...ICON_COLLECTIONS, 'iconify']
 
 const catalogs = new Map<IconCollection, Promise<IconCatalog>>()
 
@@ -34,12 +43,10 @@ function loadCatalog(collection: IconCollection): Promise<IconCatalog> {
   return p
 }
 
-function loadCollection(): IconCollection {
+function loadCollection(): Tab {
   try {
     const c = localStorage.getItem(COLLECTION_KEY)
-    return (ICON_COLLECTIONS as readonly string[]).includes(c ?? '')
-      ? (c as IconCollection)
-      : 'game-icons'
+    return (TABS as string[]).includes(c ?? '') ? (c as Tab) : 'game-icons'
   } catch {
     return 'game-icons'
   }
@@ -48,13 +55,15 @@ function loadCollection(): IconCollection {
 interface Icon {
   /** Raccolta e id nel catalogo: "kenney-icons:icons/pawn" */
   key: string
-  collection: IconCollection
+  collection: Tab
   id: string
   name: string
   author: string
   /** Tracciato nel riquadro 512 × 512, o data URL dell'immagine */
   d: string
   image: boolean
+  /** SVG completo, per le icone di Iconify */
+  svg?: string
   tags: string[]
   /** Testo su cui si cerca: nome, autore e nomi dei tag in inglese e in italiano */
   search: string
@@ -78,7 +87,7 @@ export default function IconBrowser({
 }): React.JSX.Element {
   const { t, lang } = useI18n()
   const assets = useContext(AssetsContext)
-  const [collection, setCollectionState] = useState<IconCollection>(loadCollection)
+  const [collection, setCollectionState] = useState<Tab>(loadCollection)
   const [catalog, setCatalog] = useState<{ c: IconCollection; catalog: IconCatalog } | null>(null)
   const [error, setError] = useState<Message | null>(null)
   const [query, setQuery] = useState('')
@@ -91,8 +100,14 @@ export default function IconBrowser({
   /** chiave → icona e nome del file scelto; si possono scegliere icone di più raccolte */
   const [chosen, setChosen] = useState<Map<string, { icon: Icon; name: string }>>(new Map())
   const [busy, setBusy] = useState(false)
+  /** Aggiornamento del catalogo in corso, o il suo esito */
+  const [updating, setUpdating] = useState<'running' | { before: number; after: number } | null>(
+    null
+  )
+  const [reload, setReload] = useState(0)
 
   useEffect(() => {
+    if (collection === 'iconify') return
     let live = true
     loadCatalog(collection)
       .then((c) => live && setCatalog({ c: collection, catalog: c }))
@@ -100,9 +115,23 @@ export default function IconBrowser({
     return () => {
       live = false
     }
-  }, [collection])
+  }, [collection, reload])
 
-  const setCollection = (c: IconCollection): void => {
+  const updateCatalog = async (): Promise<void> => {
+    setUpdating('running')
+    setError(null)
+    try {
+      const r = await window.api.updateCatalog('game-icons')
+      catalogs.delete('game-icons')
+      setReload((n) => n + 1)
+      setUpdating(r)
+    } catch (e) {
+      setUpdating(null)
+      setError(messageFromError(e))
+    }
+  }
+
+  const setCollection = (c: Tab): void => {
     setCollectionState(c)
     setTag(null)
     setOpen(null)
@@ -188,6 +217,19 @@ export default function IconBrowser({
 
   const view = `${collection}|${tag}|${query}`
   const limit = more.view === view ? more.limit : PAGE
+  const toggleIconify = (i: IconifyIcon): void =>
+    toggle({
+      key: `iconify:${i.id}`,
+      collection: 'iconify',
+      id: i.id,
+      name: i.name,
+      author: i.set.author.name,
+      d: '',
+      image: i.set.palette,
+      svg: i.svg,
+      tags: [],
+      search: ''
+    })
   const toggle = (icon: Icon): void => {
     const next = new Map(chosen)
     if (next.has(icon.key)) next.delete(icon.key)
@@ -202,7 +244,9 @@ export default function IconBrowser({
 
   /** Percorso sotto assets/ del file che un'icona diventa */
   const filePath = (icon: Icon, name: string): string =>
-    `${collectionFolder(icon.collection)}/${name}.${iconExtension(icon.d)}`
+    icon.collection === 'iconify'
+      ? `${icon.image ? IMAGES_FOLDER : ICONS_FOLDER}/${name}.svg`
+      : `${collectionFolder(icon.collection)}/${name}.${iconExtension(icon.d)}`
 
   /** Problema del nome scelto per un'icona, o null */
   const nameIssue = (key: string, name: string): { text: string; blocking: boolean } | null => {
@@ -228,14 +272,18 @@ export default function IconBrowser({
     setError(null)
     try {
       // un'importazione per raccolta; l'ultima porta lo stato completo degli asset
-      const byCollection = new Map<IconCollection, IconImport[]>()
+      const byCollection = new Map<Tab, IconImport[]>()
       for (const { icon, name } of chosen.values())
         byCollection.set(icon.collection, [
           ...(byCollection.get(icon.collection) ?? []),
           { id: icon.id, name }
         ])
       for (const [c, items] of byCollection)
-        publishAssetsUpdate(await window.api.importIcons(c, items))
+        publishAssetsUpdate(
+          c === 'iconify'
+            ? await window.api.importIconifyIcons(items)
+            : await window.api.importIcons(c, items)
+        )
       onImported?.([...chosen.values()].map((c) => c.name))
       onClose()
     } catch (e) {
@@ -246,15 +294,20 @@ export default function IconBrowser({
   }
 
   const preview = (i: Icon, size: number): React.JSX.Element =>
-    i.image ? (
+    i.svg ? (
+      <IconifyPreview svg={i.svg} tint={tint} size={size} />
+    ) : i.image ? (
       <img src={i.d} alt="" style={{ maxWidth: size, maxHeight: size }} draggable={false} />
     ) : (
       <svg viewBox="0 0 512 512" width={size} height={size} aria-hidden="true">
         <path d={i.d} fill={tint} />
       </svg>
     )
-  const kenneyChosen = [...chosen.values()].some((c) => c.icon.collection !== 'game-icons')
-  const gameIconsChosen = [...chosen.values()].some((c) => c.icon.collection === 'game-icons')
+  const has = (test: (c: Tab) => boolean): boolean =>
+    test(collection) || [...chosen.values()].some((c) => test(c.icon.collection))
+  const kenneyChosen = has((c) => c.startsWith('kenney'))
+  const gameIconsChosen = has((c) => c === 'game-icons')
+  const iconifyChosen = has((c) => c === 'iconify')
 
   const tagButton = (x: { slug: string; label: string }, sub: boolean): React.JSX.Element => (
     <button
@@ -269,9 +322,9 @@ export default function IconBrowser({
   return (
     <Dialog title={t('icons.title')} onClose={busy ? () => undefined : onClose}>
       <div className="icon-browser">
-        <Segmented<IconCollection>
+        <Segmented<Tab>
           value={collection}
-          options={ICON_COLLECTIONS.map((c) => [c, t(`icons.collection.${c}`)])}
+          options={TABS.map((c) => [c, t(`icons.collection.${c}`)])}
           onChange={setCollection}
         />
         <div className="asset-picker-bar">
@@ -283,59 +336,86 @@ export default function IconBrowser({
             onChange={(e) => setQuery(e.target.value)}
           />
           {!imageCatalog && (
-            <label className="icon-tint" title={t('icons.tint')}>
-              <input type="color" value={tint} onChange={(e) => setTint(e.target.value)} />
-            </label>
+            <span className="icon-tint" title={t('icons.tint')}>
+              <ColorSwatch value={tint} onChange={setTint} />
+            </span>
           )}
           <button className={dark ? 'small-btn on' : 'small-btn'} onClick={() => setDark(!dark)}>
             {t('icons.darkBackground')}
           </button>
-        </div>
-        <div className="icon-browser-body">
-          <nav className="icon-tags">
-            <button className={tag === null ? 'on' : ''} onClick={() => setTag(null)}>
-              {t('icons.allTags')} <span className="muted">{icons.length}</span>
-            </button>
-            {flat
-              ? groups[0].tags.map((x) => tagButton(x, false))
-              : groups.map((g) => (
-                  <div key={g.label}>
-                    <button
-                      className="icon-group"
-                      onClick={() => setOpen(open === g.label ? null : g.label)}
-                    >
-                      {open === g.label ? '▾' : '▸'} {groupLabel(g.label)}
-                    </button>
-                    {open === g.label && g.tags.map((x) => tagButton(x, true))}
-                  </div>
-                ))}
-          </nav>
-          <div className="icon-results">
-            {!current && !error && <p className="muted">{t('icons.loading')}</p>}
-            {current && shown.length === 0 && <p className="muted">{t('assetPicker.noMatch')}</p>}
-            <div
-              className={dark ? 'asset-grid icon-grid dark' : 'asset-grid icon-grid'}
-              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))' }}
+          {collection === 'game-icons' && (
+            <button
+              className="small-btn"
+              title={t('catalog.updateHint')}
+              disabled={updating === 'running'}
+              onClick={updateCatalog}
             >
-              {shown.slice(0, limit).map((i) => (
-                <button
-                  key={i.key}
-                  className={chosen.has(i.key) ? 'asset-tile on' : 'asset-tile'}
-                  title={`${i.name} · ${i.author}`}
-                  onClick={() => toggle(i)}
-                >
-                  <span className="asset-thumb icon-thumb">{preview(i, 56)}</span>
-                  <span className="asset-name">{i.name}</span>
-                </button>
-              ))}
-            </div>
-            {shown.length > limit && (
-              <button className="more-btn" onClick={() => setMore({ view, limit: limit + PAGE })}>
-                {t('icons.more', { n: shown.length - limit })}
-              </button>
-            )}
-          </div>
+              {updating === 'running' ? t('catalog.updating') : t('catalog.update')}
+            </button>
+          )}
         </div>
+        {updating && updating !== 'running' && collection === 'game-icons' && (
+          <p className="muted small">
+            {updating.after === updating.before
+              ? t('catalog.unchanged', { n: updating.after })
+              : t('catalog.updated', { before: updating.before, after: updating.after })}
+          </p>
+        )}
+        {collection === 'iconify' ? (
+          <IconifyPane
+            query={query}
+            tint={tint}
+            dark={dark}
+            chosen={new Set([...chosen.values()].map((c) => c.icon.id))}
+            onToggle={toggleIconify}
+          />
+        ) : (
+          <div className="icon-browser-body">
+            <nav className="icon-tags">
+              <button className={tag === null ? 'on' : ''} onClick={() => setTag(null)}>
+                {t('icons.allTags')} <span className="muted">{icons.length}</span>
+              </button>
+              {flat
+                ? groups[0].tags.map((x) => tagButton(x, false))
+                : groups.map((g) => (
+                    <div key={g.label}>
+                      <button
+                        className="icon-group"
+                        onClick={() => setOpen(open === g.label ? null : g.label)}
+                      >
+                        {open === g.label ? '▾' : '▸'} {groupLabel(g.label)}
+                      </button>
+                      {open === g.label && g.tags.map((x) => tagButton(x, true))}
+                    </div>
+                  ))}
+            </nav>
+            <div className="icon-results">
+              {!current && !error && <p className="muted">{t('icons.loading')}</p>}
+              {current && shown.length === 0 && <p className="muted">{t('assetPicker.noMatch')}</p>}
+              <div
+                className={dark ? 'asset-grid icon-grid dark' : 'asset-grid icon-grid'}
+                style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(76px, 1fr))' }}
+              >
+                {shown.slice(0, limit).map((i) => (
+                  <button
+                    key={i.key}
+                    className={chosen.has(i.key) ? 'asset-tile on' : 'asset-tile'}
+                    title={`${i.name} · ${i.author}`}
+                    onClick={() => toggle(i)}
+                  >
+                    <span className="asset-thumb icon-thumb">{preview(i, 56)}</span>
+                    <span className="asset-name">{i.name}</span>
+                  </button>
+                ))}
+              </div>
+              {shown.length > limit && (
+                <button className="more-btn" onClick={() => setMore({ view, limit: limit + PAGE })}>
+                  {t('icons.more', { n: shown.length - limit })}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         {chosen.size > 0 && (
           <div className="icon-chosen">
             <h3>{t('icons.chosen', { n: chosen.size })}</h3>
@@ -346,11 +426,13 @@ export default function IconBrowser({
                   {preview(icon, 22)}
                   <input
                     value={name}
-                    title={t('icons.fileName', { folder: collectionFolder(icon.collection) })}
+                    title={t('icons.fileName', {
+                      folder: filePath(icon, name).split('/')[0]
+                    })}
                     onChange={(e) => rename(key, e.target.value.trim())}
                   />
                   <span className="muted small">
-                    .{iconExtension(icon.d)} · {icon.author}
+                    .{icon.svg ? 'svg' : iconExtension(icon.d)} · {icon.author}
                   </span>
                   {issue && (
                     <span className={issue.blocking ? 'field-error' : 'field-warning'}>
@@ -373,8 +455,9 @@ export default function IconBrowser({
         <div className="dialog-buttons">
           <span className="muted small spacer-right">
             {[
-              (gameIconsChosen || collection === 'game-icons') && t('icons.license'),
-              (kenneyChosen || collection !== 'game-icons') && t('icons.licenseKenney')
+              gameIconsChosen && t('icons.license'),
+              kenneyChosen && t('icons.licenseKenney'),
+              iconifyChosen && t('icons.licenseIconify')
             ]
               .filter(Boolean)
               .join(' ')}

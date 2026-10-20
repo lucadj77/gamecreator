@@ -96,6 +96,12 @@ export interface FontVariant {
   italic: boolean
 }
 
+/** Esito dell'aggiornamento di un catalogo: numero di voci prima e dopo */
+export interface CatalogUpdate {
+  before: number
+  after: number
+}
+
 /** Stato degli asset dopo un'importazione, per aggiornare il progetto aperto */
 export interface AssetsUpdate {
   assets: string[]

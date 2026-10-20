@@ -97,6 +97,24 @@ export default function FontPicker({
   const [variants, setVariants] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<Message | null>(null)
+  /** Aggiornamento del catalogo dei font Google in corso, o il suo esito */
+  const [updating, setUpdating] = useState<'running' | { before: number; after: number } | null>(
+    null
+  )
+
+  const updateCatalog = async (): Promise<void> => {
+    setUpdating('running')
+    setError(null)
+    try {
+      const r = await window.api.updateCatalog('google-fonts')
+      catalogPromise = null
+      setCatalog(await loadCatalog())
+      setUpdating(r)
+    } catch (e) {
+      setUpdating(null)
+      setError(messageFromError(e))
+    }
+  }
 
   const setSample = (s: string): void => {
     setSampleState(s)
@@ -236,7 +254,23 @@ export default function FontPicker({
                 {t(`fonts.category.${c}` as MessageKey)}
               </button>
             ))}
+            <span className="spacer" />
+            <button
+              className="small-btn"
+              title={t('catalog.updateHint')}
+              disabled={updating === 'running'}
+              onClick={updateCatalog}
+            >
+              {updating === 'running' ? t('catalog.updating') : t('catalog.update')}
+            </button>
           </div>
+        )}
+        {tab === 'google' && updating && updating !== 'running' && (
+          <p className="muted small">
+            {updating.after === updating.before
+              ? t('catalog.unchanged', { n: updating.after })
+              : t('catalog.updated', { before: updating.before, after: updating.after })}
+          </p>
         )}
         <div className="font-list">
           {tab === 'project' &&

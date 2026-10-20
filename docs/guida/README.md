@@ -196,6 +196,10 @@ La **griglia** mostra le carte come verranno stampate. Il cursore in alto cambia
 
 ![La griglia delle carte](img/griglia.png)
 
+Per selezionare più carte nella griglia si trascina sullo spazio vuoto intorno alle carte: il rettangolo seleziona quelle che tocca, e con Maiuscolo o ⌘ le aggiunge a quelle già selezionate. ⌘A seleziona tutte le carte mostrate (anche con un filtro attivo, solo quelle che passano il filtro), Esc torna alla sola carta in anteprima. Sopra la griglia una barra dice quante carte sono selezionate, con **Seleziona tutte** e **Tieni solo una**. Trascinando una delle carte selezionate si spostano tutte insieme.
+
+![Più carte selezionate nella griglia](img/griglia-selezione.png)
+
 In entrambe le viste, a destra, il modulo della carta selezionata ha un campo per ogni colonna. Un clic su un livello dell'anteprima porta al suo campo; Alt+clic nello stesso punto passa al livello sotto, utile quando un livello ne copre un altro. Il doppio clic modifica il livello direttamente sulla carta: per un testo si apre un riquadro sopra il livello, per un'immagine le miniature, per una forma il selettore del colore. Esc annulla la modifica, un clic fuori o Ctrl+Invio la chiude. Il doppio clic su un livello fisso o con formula dice da dove arriva il valore, con un pulsante per aprire il template. Il pulsante ⤢ in alto nell'anteprima apre la carta grande in una finestra, con il modulo della carta accanto, gli stessi clic e le frecce per passare da una carta all'altra. PagSu e PagGiù passano alla carta precedente o successiva, anche mentre si scrive in un campo del modulo, che resta lo stesso.
 
 ### 5.3 Ordinare e filtrare
@@ -318,6 +322,12 @@ Uno stile raccoglie attributi del testo con un nome: si applica a un livello int
 
 ![L'editor di uno stile](img/stile.png)
 
+### 7.3 Scegliere un colore
+
+Il quadratino accanto a ogni campo colore apre il selettore: l'area grande sceglie saturazione e luminosità, le due barre sotto la tonalità e la trasparenza. Il codice esadecimale si scrive nel campo accanto all'anteprima; **RGB** e **HSL** cambiano i tre campi numerici (le frecce su e giù li cambiano di 1, con Maiuscolo di 10). Il contagocce prende un colore da qualunque punto dello schermo, anche da un'altra finestra. Sotto ci sono i colori del progetto (le variabili colore, che si scrivono per nome) e gli ultimi colori scelti, comuni a tutti i progetti. Esc o un clic fuori chiudono il selettore.
+
+![Il selettore colore](img/colore.png)
+
 ## 8. Immagini, icone e font
 
 ### 8.1 Immagini del progetto
@@ -332,22 +342,27 @@ Le icone a un colore (SVG nere su fondo trasparente) si ricolorano con la propri
 
 ### 8.2 Importare icone
 
-**Importa icone…**, nella scelta delle immagini e nella finestra di una variabile icona, apre tre raccolte incluse nell'app, che funzionano senza rete:
+**Importa icone…**, nella scelta delle immagini e nella finestra di una variabile icona, apre tre raccolte incluse nell'app, che funzionano senza rete, e una online:
 
-- **game-icons.net**: circa 4200 icone, con categorie tradotte e ricerca anche in italiano. Licenza CC BY 3.0: gli autori vanno citati (vedi i crediti, [capitolo 11.6](#116-crediti)).
+- **game-icons.net**: circa 4200 icone, con categorie tradotte e ricerca anche in italiano. Licenza CC BY 3.0: gli autori vanno citati (vedi i crediti, [capitolo 11.6](#116-crediti)). **Aggiorna catalogo** scarica le icone pubblicate dopo questa versione dell'app (serve la rete, richiede circa un minuto).
 - **Kenney: icone e motivi**: icone per giochi da tavolo e motivi ripetibili, in CC0.
 - **Kenney: carte, dadi e pedine**: immagini PNG a colori, in CC0.
+- **Iconify (online)**: oltre 200 altre collezioni (Material Design, Tabler, Phosphor, emoji...), cercate su internet. Si scrive nella ricerca per cercare in tutte, oppure si sceglie una collezione a sinistra per sfogliarla. I nomi delle icone sono in inglese.
 
-Si possono scegliere più icone e rinominarle prima di importarle. Le icone finiscono in `assets/icons/` e la loro provenienza in `assets/sources.json`.
+Si possono scegliere più icone, anche da raccolte diverse, e rinominarle prima di importarle. Le icone finiscono in `assets/icons/` (quelle a colori in `assets/images/`) e la loro provenienza in `assets/sources.json`.
 
 ![L'importazione delle icone](img/importa-icone.png)
+
+Ogni collezione di Iconify ha la sua licenza, indicata da un pallino: verde per le licenze libere, blu per quelle che chiedono di citare l'autore, arancione per quelle restrittive per un gioco pubblicato (condivisione allo stesso modo, uso non commerciale, GPL). **Nascondi le licenze restrittive** le toglie dall'elenco e dai risultati. La licenza e l'autore della collezione finiscono nei crediti come per le altre icone.
+
+![Le collezioni di Iconify](img/iconify.png)
 
 ### 8.3 Font
 
 Il pulsante **Aa** accanto al campo del font apre la scelta dei font, con tre schede:
 
 - **Nel progetto**: i font in `assets/fonts/` e Nunito, il font incluso nell'app.
-- **Google Fonts**: il catalogo di Google Fonts, con filtro per categoria. Si scelgono gli stili e **Scarica** salva i file in `assets/fonts/`, con la licenza. Le anteprime richiedono la rete; dopo il download il font funziona anche senza.
+- **Google Fonts**: il catalogo di Google Fonts, con filtro per categoria. Si scelgono gli stili e **Scarica** salva i file in `assets/fonts/`, con la licenza. Le anteprime richiedono la rete; dopo il download il font funziona anche senza. **Aggiorna catalogo** scarica l'elenco più recente, con i font pubblicati dopo questa versione dell'app.
 - **Sul computer**: i font installati. **Copia nel progetto** copia i file in `assets/fonts/`, se la licenza lo permette; altrimenti il progetto si vede uguale solo dove quel font è installato.
 
 <table>
@@ -500,6 +515,7 @@ Su Windows e Linux ⌘ è Ctrl.
 | ------------- | --------------------- | ----------------------------------------------- |
 | ovunque       | ⌘S                    | salva template, dati e impostazioni             |
 | set           | ⌘Z, ⇧⌘Z               | annulla e ripete le modifiche ai dati           |
+| set           | ⌘A, Esc               | seleziona tutte le carte, torna a una sola      |
 | tabella       | Alt+Invio             | a capo dentro una cella                         |
 | testo         | `{`, poi ↑ ↓, Invio   | suggerimenti di campi e variabili               |
 | editor        | ⌘Z, ⇧⌘Z (o ⌘Y)        | annulla e ripete                                |

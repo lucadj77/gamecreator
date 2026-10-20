@@ -2422,8 +2422,16 @@ div.font-row {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 2px 4px;
+  border: none;
+  background: none;
   color: var(--muted);
   font-size: 12px;
+  cursor: pointer;
+}
+
+.start-version:hover {
+  color: var(--text);
 }
 
 .beta-badge {
@@ -2440,6 +2448,7 @@ div.font-row {
 .start-footer {
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
   padding: 4px 16px 8px;
 }
 

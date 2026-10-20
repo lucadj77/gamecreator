@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.6
+
+### English
+
+- Tabletop Simulator export on Windows: card images could stay "still waiting" until the export stopped, even if they show in the app. The export no longer waits for Chromium to pre-decode each image, which in the hidden export window may never answer; it waits for the image to load and then draws it.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator su Windows: le immagini delle carte potevano restare "in attesa" fino all'arresto dell'esportazione, anche se nell'app si vedono. L'esportazione non aspetta più che Chromium decodifichi in anticipo ogni immagine, cosa che nella finestra nascosta di esportazione può non rispondere mai; aspetta che l'immagine sia caricata e poi la disegna.
+
 ## 1.2.0-beta.5
 
 ### English

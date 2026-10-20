@@ -76,7 +76,7 @@ A new project is empty: the app suggests creating a template first, then a set t
 7. **Preview** of the selected card, front or back. **Edit template** opens the card's template, that is the set's or the one chosen for the card; **Enlarge** opens the card large with the form next to it.
 8. **Fields of the selected card**, editable like the table cells.
 
-Next to the name of the open set or template are the buttons to duplicate it, delete it and, for a template, create a derived one. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
+Next to the name of the open set or template are the buttons to rename it, duplicate it, delete it and, for a template, create a derived one. Renaming a set also renames its sheet in the data file; renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the cards that use it. Files are renamed when you save. A deleted template goes to the project's `deleted` folder, from which you get it back by putting the file back in `templates`. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
 
 Changes stay in memory until you save. The **Save** button reads **Saved** when there is nothing to write.
 
@@ -503,6 +503,7 @@ Example/
   assets/fonts/         project fonts
   assets/sources.json   origin and license of imported icons and fonts
   export/               exported files, can be regenerated
+  deleted/              deleted templates, which can be recovered
 ```
 
 A project is self-contained: copying the folder to another computer gives the same result, except for fonts installed only on the first one. The format is described in [docs/formato.md](../formato.md) (in Italian).

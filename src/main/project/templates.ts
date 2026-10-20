@@ -1,6 +1,5 @@
 import { access, mkdir, rename, writeFile } from 'fs/promises'
 import { join } from 'path'
-import { shell } from 'electron'
 import {
   denormalizeTemplate,
   isValidTemplateName,
@@ -8,6 +7,15 @@ import {
 } from '../../shared/model/normalize'
 import type { Template } from '../../shared/model/template'
 import { MessageError, msg } from '../../shared/messages'
+
+async function exists(path: string): Promise<boolean> {
+  try {
+    await access(path)
+    return true
+  } catch {
+    return false
+  }
+}
 
 /** Scrive templates/<file>.json con le sole proprietà diverse dai default */
 export async function saveTemplate(folder: string, template: Template): Promise<void> {
@@ -17,6 +25,11 @@ export async function saveTemplate(folder: string, template: Template): Promise<
   const dir = join(folder, 'templates')
   await mkdir(dir, { recursive: true })
   const target = join(dir, `${file}.json`)
+  // template rinominato: il file vecchio si toglie, così non torna come template a sé
+  if (template.origin && template.origin !== file && isValidTemplateName(template.origin)) {
+    const old = join(dir, `${template.origin}.json`)
+    if ((await exists(old)) && !(await exists(target))) await rename(old, target)
+  }
   // con file diverso dal nome il nome va scritto, altrimenti si ricava dal file
   const content: Partial<RawTemplate> = denormalizeTemplate(template)
   if (!template.file) delete content.name
@@ -26,8 +39,11 @@ export async function saveTemplate(folder: string, template: Template): Promise<
   await rename(tmp, target)
 }
 
-/** Sposta templates/<file>.json nel cestino del sistema, così si può ancora recuperare */
-export async function trashTemplate(folder: string, file: string): Promise<void> {
+/**
+ * Sposta templates/<file>.json in deleted/ dentro il progetto, con data e ora nel nome: da lì si
+ * recupera rimettendolo in templates/. Restituisce il percorso, null se il file non c'era.
+ */
+export async function trashTemplate(folder: string, file: string): Promise<string | null> {
   if (!isValidTemplateName(file))
     throw new MessageError(msg('template.invalidName', { name: file }))
   const target = join(folder, 'templates', `${file}.json`)
@@ -35,9 +51,20 @@ export async function trashTemplate(folder: string, file: string): Promise<void>
     await access(target)
   } catch {
     // mai salvato: non c'è nulla da spostare
-    return
+    return null
   }
-  await shell.trashItem(target)
+  try {
+    const dir = join(folder, 'deleted')
+    await mkdir(dir, { recursive: true })
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+    const moved = join(dir, `${file} ${stamp}.json`)
+    await rename(target, moved)
+    return moved
+  } catch (e) {
+    throw new MessageError(
+      msg('template.deleteFailed', { name: file, text: (e as Error).message ?? String(e) })
+    )
+  }
 }
 
 /**

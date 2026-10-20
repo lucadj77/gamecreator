@@ -205,7 +205,7 @@ function registerIpc(): void {
   ipcMain.handle('template:delete', async (_, file: string) => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
-    await trashTemplate(folder, file)
+    return trashTemplate(folder, file)
   })
 
   ipcMain.handle('data:save', async (_, changes: DataChanges) => {

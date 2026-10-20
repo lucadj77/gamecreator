@@ -335,7 +335,9 @@ Nei campi numerici del pannello delle proprietà, trascinare l'etichetta a destr
 - Il template del set si cambia dal menu nell'intestazione del set; i dati restano gli stessi, e le colonne che il nuovo template non usa vengono ignorate. ⌘Z annulla.
 - Sotto l'anteprima della carta, **Modifica template** apre nell'editor il template del set.
 - Il cestino accanto a un set lo toglie dal progetto dopo una conferma. Il foglio dei dati resta nel file, tra quelli non collegati, e si può ricollegare con **Nuovo set**; ⌘Z annulla.
-- Il cestino accanto a un template lo elimina dopo una conferma, spostando il file nel cestino del sistema. Un template usato da un set non si elimina: prima vanno eliminati i set che lo usano.
+- Il cestino accanto a un template lo elimina dopo una conferma, spostando il file in `deleted/` nel progetto, con data e ora nel nome (il cestino del sistema non funziona in tutte le cartelle, per esempio quelle sincronizzate). Un template usato da un set non si elimina: prima vanno eliminati i set che lo usano.
+- **Rinomina set** cambia il nome del set; se il foglio dei dati ha lo stesso nome, al salvataggio cambia nome anche il foglio (xlsx e ods), con formattazione e formule. Un set collegato a un foglio con un nome diverso, o un file .csv, tiene il foglio com'è. I profili di esportazione che scelgono il set seguono il nome nuovo. ⌘Z annulla.
+- **Rinomina** nell'editor cambia il nome di un template: il nome nuovo va nei set, nei derivati che lo usano come base e nella colonna `template` delle carte; al salvataggio il file in `templates/` cambia nome. La rinomina non si annulla con ⌘Z (si rinomina di nuovo), e la cronologia di ⌘Z dei set riparte.
 
 ### 8.3 Generare le carte
 

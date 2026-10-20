@@ -10,7 +10,7 @@ import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
-import { ImageIcon, TrashIcon } from '../components/icons'
+import { ImageIcon, PencilIcon, TrashIcon } from '../components/icons'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
 import PropertiesPanel from './PropertiesPanel'
@@ -34,6 +34,7 @@ interface Props {
   onDuplicate?(): void
   onDerive?(): void
   onDelete?(): void
+  onRename?(): void
   /** Dice se ci sono passi da annullare o ripetere: i pulsanti stanno nella barra dell'app */
   onHistory?(h: { undo: boolean; redo: boolean }): void
 }
@@ -53,6 +54,7 @@ export default function TemplateEditor({
   onDuplicate,
   onDerive,
   onDelete,
+  onRename,
   onHistory
 }: Props): React.JSX.Element {
   const { t } = useI18n()
@@ -278,6 +280,9 @@ export default function TemplateEditor({
           </span>
         )}
         <span className="item-actions">
+          <button title={t('tip.renameTemplate')} onClick={onRename}>
+            <PencilIcon /> {t('rename.ok')}
+          </button>
           <button title={t('tip.duplicateTemplate')} onClick={onDuplicate}>
             ⧉ {t('sidebar.duplicate')}
           </button>

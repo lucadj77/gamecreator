@@ -46,6 +46,8 @@ export interface ProjectFile {
 
 export interface Sheet {
   name: string
+  /** Nome del foglio nel file dati, se il set è stato rinominato e non ancora salvato */
+  origin?: string
   headers: string[]
   /** Righe come testo, nello stesso ordine di headers */
   rows: string[][]

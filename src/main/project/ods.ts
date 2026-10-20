@@ -213,6 +213,8 @@ function readCells(xml: string, row: Tag): string[] {
 
 export interface OdsSheet {
   name: string
+  /** Nome della tabella prima di una rinomina */
+  origin?: string
   headers: string[]
   rows: string[][]
 }
@@ -222,7 +224,21 @@ export async function writeOds(data: Buffer | null, sheets: OdsSheet[]): Promise
   const zip = data ? await JSZip.loadAsync(data) : newPackage()
   let xml = (await zip.file('content.xml')?.async('string')) ?? EMPTY_CONTENT
   for (const s of sheets) {
-    const table = tablesOf(xml).find((t) => t.name === s.name)
+    const tables = tablesOf(xml)
+    let table = tables.find((t) => t.name === s.name)
+    const renamed = !table && s.origin ? tables.find((t) => t.name === s.origin) : undefined
+    if (renamed) {
+      // nuovo nome nel tag di apertura, poi si rilegge la tabella con le posizioni aggiornate
+      const raw = renamed.tag.raw.replace(
+        /table:name\s*=\s*("[^"]*"|'[^']*')/,
+        `table:name="${escape(s.name)}"`
+      )
+      xml =
+        xml.slice(0, renamed.tag.start) +
+        raw +
+        xml.slice(renamed.tag.start + renamed.tag.raw.length)
+      table = tablesOf(xml).find((t) => t.name === s.name)
+    }
     if (table) {
       xml =
         xml.slice(0, table.tag.start) +

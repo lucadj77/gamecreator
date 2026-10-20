@@ -69,8 +69,14 @@ export async function writeSpreadsheet(path: string, sheets: Sheet[]): Promise<v
 async function writeXlsx(path: string, sheets: Sheet[]): Promise<void> {
   const workbook = new ExcelJS.Workbook()
   if (await exists(path)) await workbook.xlsx.readFile(path)
-  for (const s of sheets)
-    writeWorksheet(workbook.getWorksheet(s.name) ?? workbook.addWorksheet(s.name), s)
+  for (const s of sheets) {
+    let ws = workbook.getWorksheet(s.name)
+    // un set rinominato si porta dietro il suo foglio, con formattazione e colonne in più
+    const renamed = !ws && s.origin ? workbook.getWorksheet(s.origin) : undefined
+    if (renamed) renamed.name = s.name
+    ws ??= renamed ?? workbook.addWorksheet(s.name)
+    writeWorksheet(ws, s)
+  }
   // scrittura in un file temporaneo e rinomina: un errore a metà non rovina il file
   const tmp = path + '.tmp'
   await workbook.xlsx.writeFile(tmp)

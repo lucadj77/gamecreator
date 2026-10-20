@@ -73,6 +73,22 @@ describe('ods', () => {
     expect(xml).toContain('<text:p>Drago <text:s text:c="1"/>&amp; co</text:p>')
   })
 
+  it('rinomina la tabella di un set rinominato tenendone il contenuto', async () => {
+    const out = await writeOds(await sample(), [
+      {
+        name: 'Eroi & co',
+        origin: 'Carte',
+        headers: ['amount', 'nome', 'forza'],
+        rows: [['2', 'Cavaliere', '4']]
+      }
+    ])
+    const tables = await readOds(out)
+    expect(tables.map((t) => t.name)).toEqual(['Eroi & co', 'Altro'])
+    expect(tables[0].rows[1]).toEqual(['2', 'Cavaliere', '4'])
+    const xml = await (await JSZip.loadAsync(out)).file('content.xml')!.async('string')
+    expect(xml).toContain('table:formula="of:=1+3"')
+  })
+
   it('crea un file nuovo', async () => {
     const out = await writeOds(null, [{ name: 'Set', headers: ['nome', 'n'], rows: [['A', '1']] }])
     const zip = await JSZip.loadAsync(out)

@@ -58,6 +58,13 @@ export const it: Record<MessageKey, string> = {
   'tip.deleteTemplate': 'Elimina il template',
   'inherit.deriveShort': 'Deriva',
   'set.duplicateSet': 'Duplica set',
+  'set.renameSet': 'Rinomina set',
+  'tip.renameSet': 'Cambia il nome del set; il suo foglio nel file dati cambia nome al salvataggio',
+  'rename.setTitle': 'Rinomina set',
+  'rename.ok': 'Rinomina',
+  'rename.templateTitle': 'Rinomina template',
+  'tip.renameTemplate':
+    'Cambia il nome del template, anche nei set, nei derivati e nelle carte che lo usano; il file cambia nome al salvataggio',
   'set.deleteSet': 'Elimina set',
   'cardForm.title': 'Carta {n}',
   'cardForm.multiTitle': '{n} carte selezionate',
@@ -109,7 +116,8 @@ export const it: Record<MessageKey, string> = {
   'sidebar.delete': 'Elimina',
   'sidebar.deleteSetConfirm':
     'Eliminare il set "{name}"? Il suo foglio resta nel file dei dati e si può ricollegare con Nuovo set.',
-  'sidebar.deleteTemplateConfirm': 'Eliminare il template "{name}"? Il file va nel cestino.',
+  'sidebar.deleteTemplateConfirm':
+    'Eliminare il template "{name}"? Il file va nella cartella deleted del progetto, da cui si può recuperare.',
   'sidebar.templateInUse': 'Il template "{name}" è usato da questi set: {sets}. Eliminali prima.',
   'sidebar.sortAlpha': 'Ordina alfabeticamente (trascina le voci per scegliere un altro ordine)',
   'sidebar.duplicate': 'Duplica',
@@ -726,6 +734,8 @@ export const it: Record<MessageKey, string> = {
   'resize.keep': 'Lascia i livelli',
   'save.csvOneSheet': 'Un file dati CSV contiene un solo set. Per avere più set usa un file .xlsx.',
   'template.noProject': 'Nessun progetto aperto',
+  'template.deleteFailed':
+    'Non è stato possibile eliminare il template "{name}": {text}. Controlla di poter modificare i file nella cartella templates del progetto.',
   'template.invalidName': '"{name}" non si può usare come nome di file',
 
   'error.generic': '{text}',

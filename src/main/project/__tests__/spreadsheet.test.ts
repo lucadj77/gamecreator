@@ -19,6 +19,30 @@ async function workbook(path: string): Promise<void> {
 }
 
 describe('writeSpreadsheet', () => {
+  it('rinomina il foglio di un set rinominato, con formule e formattazione', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    const path = join(dir, 'dati.xlsx')
+    await workbook(path)
+    await writeSpreadsheet(path, [
+      {
+        name: 'Eroi',
+        origin: 'Personaggi',
+        headers: ['amount', 'nome', 'forza', 'energia'],
+        rows: [
+          ['1', 'Cavaliere', '4', '6'],
+          ['2', 'Arciere', '2', '4']
+        ]
+      }
+    ])
+    const wb = new ExcelJS.Workbook()
+    await wb.xlsx.readFile(path)
+    expect(wb.worksheets.map((w) => w.name)).toEqual(['Eroi', 'Altro'])
+    const ws = wb.getWorksheet('Eroi')!
+    expect(ws.getCell('D2').formula).toBe('C2+2')
+    expect(ws.getCell('B1').font?.bold).toBe(true)
+    expect(ws.getCell('E2').text).toBe('nota')
+  })
+
   it('riscrive le celle tenendo formule, formattazione e altri fogli', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'gc-'))
     const path = join(dir, 'dati.xlsx')

@@ -54,6 +54,14 @@ export const en = {
   'tip.deleteTemplate': 'Delete the template',
   'inherit.deriveShort': 'Derive',
   'set.duplicateSet': 'Duplicate set',
+  'set.renameSet': 'Rename set',
+  'tip.renameSet':
+    'Change the name of the set; its sheet in the data file is renamed when you save',
+  'rename.setTitle': 'Rename set',
+  'rename.ok': 'Rename',
+  'rename.templateTitle': 'Rename template',
+  'tip.renameTemplate':
+    'Change the name of the template, also in the sets, derived templates and cards that use it; its file is renamed when you save',
   'set.deleteSet': 'Delete set',
   'cardForm.title': 'Card {n}',
   'cardForm.multiTitle': '{n} cards selected',
@@ -104,7 +112,8 @@ export const en = {
   'sidebar.delete': 'Delete',
   'sidebar.deleteSetConfirm':
     'Delete the set "{name}"? Its sheet stays in the data file and can be linked again with New set.',
-  'sidebar.deleteTemplateConfirm': 'Delete the template "{name}"? Its file goes to the trash.',
+  'sidebar.deleteTemplateConfirm':
+    'Delete the template "{name}"? Its file is moved to the project\'s deleted folder, where you can get it back.',
   'sidebar.templateInUse':
     'The template "{name}" is used by these sets: {sets}. Delete them first.',
   'sidebar.sortAlpha': 'Sort alphabetically (drag the items to choose another order)',
@@ -716,6 +725,8 @@ export const en = {
   'resize.keep': 'Keep layers',
   'save.csvOneSheet': 'A CSV data file holds a single set. To have more sets, use an .xlsx file.',
   'template.noProject': 'No project is open',
+  'template.deleteFailed':
+    'Could not delete the template "{name}": {text}. Check that you can change the files in the project\'s templates folder.',
   'template.invalidName': '"{name}" cannot be used as a file name',
 
   'error.generic': '{text}',

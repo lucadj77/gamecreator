@@ -78,6 +78,7 @@ import {
   SetsIcon,
   StylesIcon,
   TemplateIcon,
+  PencilIcon,
   TrashIcon,
   VariablesIcon
 } from './components/icons'
@@ -89,6 +90,8 @@ import ColumnsMenu from './components/ColumnsMenu'
 import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
+import { renameSet } from '../../shared/model/renameSet'
+import { renameTemplate } from '../../shared/model/renameTemplate'
 import CardSvg from './render/CardSvg'
 import {
   AssetsContext,
@@ -194,6 +197,10 @@ function App(): React.JSX.Element {
   const [aiTools, setAiTools] = useState(false)
   const [importing, setImporting] = useState(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
+  /** Set di cui si sta cambiando il nome */
+  const [renamingSet, setRenamingSet] = useState<number | null>(null)
+  /** Template di cui si sta cambiando il nome */
+  const [renamingTemplate, setRenamingTemplate] = useState<string | null>(null)
   /** Template da cui si sta creando un derivato */
   const [deriving, setDeriving] = useState<string | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
@@ -526,16 +533,47 @@ function App(): React.JSX.Element {
     setError(null)
     setSaving(true)
     try {
+      const savedTemplates: Template[] = []
       for (const name of dirty) {
         const tpl = project.templates.find((x) => x.name === name)
-        if (tpl) await window.api.saveTemplate(tpl)
+        if (!tpl) continue
+        await window.api.saveTemplate(tpl)
+        savedTemplates.push(tpl)
       }
       setDirty(new Set())
+      // i template rinominati ora hanno sul disco il file nuovo
+      if (savedTemplates.some((x) => x.origin))
+        setProject(
+          (p) =>
+            p && {
+              ...p,
+              templates: p.templates.map((x) => {
+                if (!x.origin || !savedTemplates.includes(x)) return x
+                const tpl = { ...x }
+                delete tpl.origin
+                return tpl
+              })
+            }
+        )
       const sheets = project.sets
         .map((x) => x.data)
         .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
       if (sheets.length || fileDirty)
         await window.api.saveData({ file: fileDirty ? project.file : undefined, sheets })
+      // i fogli rinominati ora hanno sul disco il nome nuovo
+      if (sheets.some((x) => x.origin))
+        setProject(
+          (p) =>
+            p && {
+              ...p,
+              sets: p.sets.map((x) => {
+                if (!x.data?.origin || !sheets.includes(x.data)) return x
+                const data = { ...x.data }
+                delete data.origin
+                return { ...x, data }
+              })
+            }
+        )
       setDirtySheets(new Set())
       setFileDirty(false)
       updateThumbnail(project, false)
@@ -588,11 +626,19 @@ function App(): React.JSX.Element {
       ? [
           ...project.sets.map((x) => x.name),
           ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
+          // il foglio di un set rinominato ha ancora il nome vecchio finché non si salva
+          ...project.sets.flatMap((x) => (x.data?.origin ? [x.data.origin] : [])),
           ...project.unusedSheets
         ]
       : []
   const templateNames = (): string[] =>
-    project ? project.templates.flatMap((x) => [x.name, x.file ?? x.name]) : []
+    project
+      ? project.templates.flatMap((x) => [
+          x.name,
+          x.file ?? x.name,
+          ...(x.origin ? [x.origin] : [])
+        ])
+      : []
 
   const duplicateSet = (index: number, name: string): void => {
     if (!project) return
@@ -619,6 +665,28 @@ function App(): React.JSX.Element {
     setDirtySheets((d) => new Set(d).add(name))
     setFileDirty(true)
     setSelected({ kind: 'set', index: at })
+  }
+
+  /** Nuovo nome di un set; il foglio dei dati prende lo stesso nome al salvataggio */
+  const renameSetAt = (index: number, name: string): void => {
+    if (!project) return
+    const before = project.sets[index].data
+    const csv = project.file.dataFile.toLowerCase().endsWith('.csv')
+    const { file, sets } = renameSet(project.file, project.sets, index, name, csv)
+    setHistory((h) => ({
+      past: [...h.past, { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    setProject({ ...project, file, sets })
+    const after = sets[index].data
+    if (before && after && before.name !== after.name)
+      setDirtySheets((d) => {
+        const next = new Set(d)
+        next.delete(before.name)
+        return next.add(after.name)
+      })
+    setFileDirty(true)
   }
 
   /**
@@ -655,7 +723,28 @@ function App(): React.JSX.Element {
       setSelected({ kind: 'set', index: selected.index - 1 })
   }
 
-  /** Elimina un template non usato dai set: il file va nel cestino del sistema */
+  /**
+   * Nuovo nome di un template, anche nei derivati, nei set e nella colonna `template` delle carte.
+   * Il file cambia nome al salvataggio. Non si annulla con ⌘Z (come l'eliminazione): la cronologia
+   * dei dati riparte, perché i passi precedenti richiamano il nome vecchio.
+   */
+  const renameTemplateTo = (from: string, to: string): void => {
+    if (!project) return
+    const after = { ...project, ...renameTemplate(project, from, to) }
+    setProject(after)
+    setHistory({ past: [], future: [], at: 0 })
+    setDirty((d) => {
+      const next = new Set(d)
+      next.delete(from)
+      return next
+    })
+    markRenamed(project, after)
+    setFileDirty(true)
+    if (selected.kind === 'template' && selected.name === from)
+      setSelected({ kind: 'template', name: to })
+  }
+
+  /** Elimina un template non usato dai set: il file va in deleted/ nel progetto */
   const deleteTemplate = async (name: string): Promise<void> => {
     if (!project) return
     const users = project.sets.filter((s) => s.template === name).map((s) => s.name)
@@ -671,7 +760,7 @@ function App(): React.JSX.Element {
     const tpl = project.templates.find((x) => x.name === name)
     if (!tpl || !window.confirm(t('sidebar.deleteTemplateConfirm', { name }))) return
     try {
-      await window.api.deleteTemplate(tpl.file ?? tpl.name)
+      await window.api.deleteTemplate(tpl.origin ?? tpl.file ?? tpl.name)
     } catch (e) {
       setError(messageFromError(e))
       return
@@ -1202,6 +1291,7 @@ function App(): React.JSX.Element {
                       onDuplicate={() => setDuplicating({ kind: 'template', name: editing.name })}
                       onDerive={() => setDeriving(editing.name)}
                       onDelete={() => deleteTemplate(editing.name)}
+                      onRename={() => setRenamingTemplate(editing.name)}
                       onHistory={setEditorHistory}
                     />
                   ) : current ? (
@@ -1220,6 +1310,9 @@ function App(): React.JSX.Element {
                         })
                       }
                       onDeleteSet={() => deleteSet(selected.kind === 'set' ? selected.index : 0)}
+                      onRenameSet={() =>
+                        setRenamingSet(selected.kind === 'set' ? selected.index : 0)
+                      }
 
                       onChangeTemplate={(name) =>
                         setTemplate(selected.kind === 'set' ? selected.index : 0, name)
@@ -1275,6 +1368,48 @@ function App(): React.JSX.Element {
                   onOpen={load}
                   onChoose={open}
                   onImport={() => setImporting(true)}
+                />
+              )}
+              {renamingTemplate !== null && project && (
+                <DuplicateDialog
+                  title={t('rename.templateTitle')}
+                  okLabel={t('rename.ok')}
+                  initial={renamingTemplate}
+                  validate={(name) => {
+                    const tpl = project.templates.find((x) => x.name === renamingTemplate)
+                    const own = [renamingTemplate, tpl?.file, tpl?.origin]
+                    return !isValidTemplateName(name)
+                      ? t('newTemplate.invalidName')
+                      : !own.includes(name) && templateNames().includes(name)
+                        ? t('newTemplate.exists')
+                        : null
+                  }}
+                  onDuplicate={(name) => {
+                    if (name !== renamingTemplate) renameTemplateTo(renamingTemplate, name)
+                    setRenamingTemplate(null)
+                  }}
+                  onClose={() => setRenamingTemplate(null)}
+                />
+              )}
+              {renamingSet !== null && project?.sets[renamingSet] && (
+                <DuplicateDialog
+                  title={t('rename.setTitle')}
+                  okLabel={t('rename.ok')}
+                  initial={project.sets[renamingSet].name}
+                  validate={(name) => {
+                    const set = project.sets[renamingSet]
+                    const own = [set.name, set.data?.name, set.data?.origin]
+                    return !isValidSheetName(name)
+                      ? t('newSet.invalidName')
+                      : !own.includes(name) && setNames().includes(name)
+                        ? t('newSet.exists')
+                        : null
+                  }}
+                  onDuplicate={(name) => {
+                    if (name !== project.sets[renamingSet].name) renameSetAt(renamingSet, name)
+                    setRenamingSet(null)
+                  }}
+                  onClose={() => setRenamingSet(null)}
                 />
               )}
               {duplicating && project && (
@@ -1436,6 +1571,7 @@ function SetView({
   onEditTemplate,
   onDuplicateSet,
   onDeleteSet,
+  onRenameSet,
   onChangeTemplate,
   onChangeColumns
 }: {
@@ -1451,6 +1587,7 @@ function SetView({
   /** Duplica ed elimina il set */
   onDuplicateSet(): void
   onDeleteSet(): void
+  onRenameSet(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const [selection, setSelection] = useState<number[]>([0])
@@ -1857,6 +1994,9 @@ function SetView({
         <div className="set-header">
           <h1>{set.name}</h1>
           <span className="item-actions">
+            <button title={t('tip.renameSet')} onClick={onRenameSet}>
+              <PencilIcon /> {t('set.renameSet')}
+            </button>
             <button title={t('tip.duplicateSet')} onClick={onDuplicateSet}>
               ⧉ {t('set.duplicateSet')}
             </button>

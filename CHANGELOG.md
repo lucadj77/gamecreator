@@ -12,12 +12,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Rename set**, next to Duplicate set: the set's sheet in the data file takes the new name when you save, with its formatting and formulas, and the export profiles that pick the set follow the new name.
 - **Rename** in the template editor: the new name also goes into the sets, the derived templates and the `template` column of the cards that use it, and the template's file is renamed when you save.
 - A deleted template now always goes to the project's `deleted` folder, with date and time in its name, instead of the system trash, which some folders (synced or on network drives) do not allow. To get it back, put the file back in `templates`.
+- **System variables** for text and formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}`, `{set.rows}`, `{set.cards}`, `{card.copies}`, `{card.copy}`, `{card.side}` and `{date}`. They are suggested while you type a field name, after the project's variables. `{card.copy}` gives each copy of a card its own number in PDF and image exports.
+- **Help** (button in the top bar and on the start screen, or F1): the text markup, the system variables, the formula functions and the keyboard shortcuts in one window.
 
 ### Italiano
 
 - **Rinomina set**, accanto a Duplica set: al salvataggio il foglio del set nel file dati prende il nome nuovo, con formattazione e formule, e i profili di esportazione che scelgono il set seguono il nome nuovo.
 - **Rinomina** nell'editor dei template: il nome nuovo va anche nei set, nei template derivati e nella colonna `template` delle carte che lo usano, e il file del template cambia nome al salvataggio.
 - Un template eliminato ora va sempre nella cartella `deleted` del progetto, con data e ora nel nome, invece che nel cestino del sistema, che in alcune cartelle (sincronizzate o su dischi di rete) non si può usare. Per recuperarlo si rimette il file in `templates`.
+- **Variabili di sistema** per testi e formule: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}`, `{set.rows}`, `{set.cards}`, `{card.copies}`, `{card.copy}`, `{card.side}` e `{date}`. Vengono suggerite mentre scrivi il nome di un campo, dopo le variabili del progetto. `{card.copy}` dà a ogni copia di una carta il suo numero nelle esportazioni PDF e immagini.
+- **Aiuto** (pulsante nella barra in alto e nella schermata iniziale, oppure F1): i marcatori del testo, le variabili di sistema, le funzioni delle formule e le scorciatoie da tastiera in una sola finestra.
 
 ## 1.2.0-beta.3
 

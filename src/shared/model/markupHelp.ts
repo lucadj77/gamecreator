@@ -1,11 +1,12 @@
 import { NAMED_COLORS } from './colors'
 import { IMAGE_ATTRIBUTES, type Variables } from './variables'
+import { SYSTEM_VARIABLES } from './system'
 import { ATTRIBUTES, BUILTIN_SHAPES, BUILTIN_STYLES, type AttributeName } from './markup'
 
 // Aiuto alla scrittura del markup (docs/specifica.md, 2.1): cosa proporre dove si trova il cursore.
 
 export type SuggestionKind =
-  'attribute' | 'style' | 'color' | 'shape' | 'image' | 'field' | 'value' | 'variable'
+  'attribute' | 'style' | 'color' | 'shape' | 'image' | 'field' | 'value' | 'variable' | 'system'
 
 export interface Suggestion {
   kind: SuggestionKind
@@ -147,6 +148,14 @@ function refs(
     label: n,
     insert: n + close
   }))
+  // le variabili di sistema solo dopo il primo carattere: altrimenti coprono campi e variabili
+  const system = typed.trim()
+    ? SYSTEM_VARIABLES.filter((n) => !fieldSet.has(n)).map((n): Suggestion => ({
+        kind: 'system',
+        label: n,
+        insert: n + close
+      }))
+    : []
   const taken = new Set([...ctx.fields, ...vars])
   const images = unique(ctx.assets.map(imageName))
     .filter((n) => !taken.has(n))
@@ -154,7 +163,7 @@ function refs(
   return {
     from: open + 1,
     to: end,
-    items: rank([...fields, ...varItems, ...images], typed.trim())
+    items: rank([...fields, ...varItems, ...system, ...images], typed.trim())
   }
 }
 

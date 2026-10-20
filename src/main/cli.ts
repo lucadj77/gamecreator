@@ -13,6 +13,7 @@ import {
   type Parsed
 } from './cliParse'
 import { bindRow, rowToCard } from '../shared/model/bind'
+import { systemOfSet } from '../shared/model/system'
 import { isGenericFont } from '../shared/model/fonts'
 import { resolveAsset } from '../shared/model/assets'
 import { walkLayers } from '../shared/model/normalize'
@@ -221,8 +222,12 @@ async function check(p: Parsed): Promise<number> {
     if (only && s.name !== only) continue
     const tpl = project.templates.find((t) => t.name === s.template)
     if (!tpl || !s.data) continue
+    const info = systemOfSet(project.file.name, s)
     s.data.rows.forEach((row, i) => {
-      const bound = bindRow(s.data!.headers, row, tpl, project.templates, ctx)
+      const bound = bindRow(s.data!.headers, row, tpl, project.templates, {
+        ...ctx,
+        system: { ...info, number: i + 1 }
+      })
       const problems = bound.problems.map(messageText)
       // le immagini dei livelli: l'app le segnala solo all'esportazione
       for (const side of ['front', 'back'] as const)

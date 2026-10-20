@@ -1,5 +1,6 @@
 import AiToolsDialog from './components/AiToolsDialog'
 import AgentLockOverlay from './components/AgentLockOverlay'
+import HelpDialog from './components/HelpDialog'
 import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -12,6 +13,7 @@ import type {
 } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
 import { bindRow, computedValues, rowToCard, type BoundCard } from '../../shared/model/bind'
+import { systemOfSet } from '../../shared/model/system'
 import {
   baseOf,
   cardTemplate,
@@ -195,6 +197,17 @@ function App(): React.JSX.Element {
   const [exporting, setExporting] = useState(false)
   const [backingUp, setBackingUp] = useState(false)
   const [aiTools, setAiTools] = useState(false)
+  const [help, setHelp] = useState(false)
+  // F1 apre l'aiuto da qualsiasi schermata
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== 'F1') return
+      e.preventDefault()
+      setHelp(true)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
   const [importing, setImporting] = useState(false)
   const [duplicating, setDuplicating] = useState<Selected | null>(null)
   /** Set di cui si sta cambiando il nome */
@@ -1192,6 +1205,7 @@ function App(): React.JSX.Element {
             <div className="app">
               <Tooltip />
               <UpdateNotice />
+              {help && <HelpDialog onClose={() => setHelp(false)} />}
               {project && !sidebarCompact && (
                 <SidebarPreview
                   hover={sidebarPreview.hover}
@@ -1233,6 +1247,9 @@ function App(): React.JSX.Element {
                   </button>
                   <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
                     {t('app.aiTools')}
+                  </button>
+                  <button onClick={() => setHelp(true)} title={t('tip.help')}>
+                    {t('app.help')}
                   </button>
                   <span className="toolbar-group">
                     <button
@@ -1284,6 +1301,7 @@ function App(): React.JSX.Element {
                       key={`${editing.name}:${editorRev}`}
                       template={editing}
                       sets={project.sets.filter((s) => s.template === editing.name)}
+                      projectName={project.file.name}
                       onChange={updateTemplate}
                       base={baseOf(project.templates, editing)}
                       onOpen={(name) => setSelected({ kind: 'template', name })}
@@ -1298,6 +1316,7 @@ function App(): React.JSX.Element {
                     <SetView
                       key={current.name}
                       set={current}
+                      projectName={project.file.name}
                       templates={project.templates}
                       onChange={(sheet, key) =>
                         updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
@@ -1362,6 +1381,7 @@ function App(): React.JSX.Element {
                 </main>
               ) : (
                 <StartScreen
+                  onHelp={() => setHelp(true)}
                   error={error}
                   loading={loading}
                   settings={settings}
@@ -1566,6 +1586,7 @@ function App(): React.JSX.Element {
 
 function SetView({
   set,
+  projectName,
   templates,
   onChange,
   onEditTemplate,
@@ -1576,6 +1597,8 @@ function SetView({
   onChangeColumns
 }: {
   set: LoadedSet
+  /** Nome del progetto, per {project.name} */
+  projectName: string
   templates: Template[]
   onChange(sheet: Sheet, key?: string): void
   /** Assegna al set un altro template */
@@ -1636,8 +1659,11 @@ function SetView({
   const cards = useMemo<BoundCard[]>(() => {
     if (!template || !set.data) return []
     const { headers, rows } = set.data
-    return rows.map((row) => bindRow(headers, row, template, templates, bindCtx))
-  }, [template, templates, set.data, bindCtx])
+    const info = systemOfSet(projectName, set)
+    return rows.map((row, i) =>
+      bindRow(headers, row, template, templates, { ...bindCtx, system: { ...info, number: i + 1 } })
+    )
+  }, [template, templates, set, projectName, bindCtx])
   /** Template di ogni carta: quello del set o quello della colonna template */
   const rowTemplates = useMemo(
     () =>

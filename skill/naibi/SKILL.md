@@ -236,6 +236,10 @@ Box attributes turn the text into an inline box: `border=colour/width`, `fill=`,
 
 Colours: hex (`#A33A2A`), the 148 CSS colour names, colour variables (`red` or `{red}`). A field and a variable with the same name: the field wins. An unknown `{name}` that is neither a field, a variable nor an image is reported by `check`.
 
+### System variables
+
+Naibi fills these by itself; write them like fields, in text and in formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}` (row in the set, from 1), `{set.rows}`, `{set.cards}` (cards with copies, sum of `amount`), `{card.copies}` (the card's `amount`), `{card.copy}` (copy being drawn, from 1; different per copy only in PDF and image exports with copies), `{card.side}` (`front` or `back`), `{date}` (today, `YYYY-MM-DD`). A field or project variable with the same name wins. Example footer: `{set.name} {card.number}/{set.rows}`.
+
 ## Formulas
 
 A layer with `source.kind = "formula"`, or a value layer, computes its value:

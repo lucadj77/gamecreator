@@ -260,6 +260,27 @@ Le immagini nel testo, variabili o file di `assets/`, accettano attributi dopo i
 
 Se il nome è un campo, il suo valore diventa il nome dell'immagine: con `icona` = `spada`, `{icona tint=red}` dà `{spada tint=red}`. Una variabile immagine usata come sorgente di un livello immagine porta con sé tinta, ribaltamento e opacità; la rotazione è quella del livello.
 
+### 6.1.1 Variabili di sistema
+
+Valori che Naibi conosce da sé, scritti come i campi nei testi e nelle formule. Il punto nel nome li distingue dalle variabili del progetto, che non lo ammettono; un campo o una variabile con lo stesso nome ha comunque la precedenza.
+
+| Variabile         | Valore                                                                                         |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| `{project.name}`  | nome del progetto                                                                              |
+| `{set.name}`      | nome del set                                                                                   |
+| `{template.name}` | nome del template della carta (anche quello scelto nella colonna `template`)                   |
+| `{card.number}`   | riga della carta nel set, da 1                                                                 |
+| `{set.rows}`      | righe del set                                                                                  |
+| `{set.cards}`     | carte del set con le copie: somma di `amount` (vuoto vale 1)                                   |
+| `{card.copies}`   | `amount` della carta                                                                           |
+| `{card.copy}`     | copia disegnata, da 1; diversa per ogni copia solo esportando PDF e immagini con le copie      |
+| `{card.side}`     | `front` o `back`                                                                               |
+| `{date}`          | data di oggi, AAAA-MM-GG                                                                       |
+
+Dove manca il contesto (l'editor senza carta in anteprima, la miniatura di un template senza set) i valori del set e della carta sono vuoti. In Tabletop Simulator tutte le copie mostrano `{card.copy}` = 1, perché il mazzo ripete la stessa immagine.
+
+L'aiuto interno (pulsante **Aiuto**, F1) elenca markup, campi e variabili, variabili di sistema, formule e scorciatoie.
+
 ### 6.2 Stili di testo
 
 Uno stile raggruppa proprietà di carattere (font, peso, corsivo, dimensione, colore, trasformazione, decorazione, contorno) e, se applicato a un intero livello, anche di paragrafo (allineamento, interlinea, spaziature).

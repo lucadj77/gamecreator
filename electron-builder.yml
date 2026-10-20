@@ -34,6 +34,8 @@ nsis:
   createDesktopShortcut: always
   oneClick: false
   allowToChangeInstallationDirectory: true
+  # apre la cartella di installazione agli agenti IA in sandbox (vedi build/win/installer.nsh)
+  include: build/win/installer.nsh
 mac:
   category: public.app-category.graphics-design
   target:

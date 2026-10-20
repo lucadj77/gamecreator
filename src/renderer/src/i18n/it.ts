@@ -39,14 +39,20 @@ export const it: Record<MessageKey, string> = {
   'set.editHint':
     'Doppio clic o scrivi in una cella per modificarla; Alt+Invio per andare a capo. Trascina il numero di riga per spostarla.',
   'preview.clickHint':
-    'Fai clic su un livello per modificarne il campo; un altro clic nello stesso punto passa al livello sotto',
+    'Clic su un livello per andare al suo campo, Alt+clic per il livello sotto; doppio clic per modificarlo sulla carta',
+  'inlineEdit.hint': 'Esc annulla · clic fuori o Ctrl+Invio per chiudere',
   'cardForm.title': 'Carta {n}',
   'cardForm.multiTitle': '{n} carte selezionate',
   'cardForm.multiHint':
     'Ciò che scrivi in un campo va in tutte le carte selezionate. I campi vuoti hanno valori diversi tra le carte e restano come sono finché non li modifichi.',
   'cardForm.mixed': 'valori diversi',
   'cardForm.details': 'Proprietà del livello per questa carta',
-  'cardForm.hide': 'Nascondi il campo (si rimette con Colonne)',
+  'prop.x': 'X',
+  'prop.y': 'Y',
+  'cardProps.strokeHint': 'colore/spessore/stile, per esempio red/0.3/dashed',
+  'cardProps.shadowHint': 'colore/sfocatura/x/y in mm, per esempio black/0.5/0.3/0.3',
+  'cardForm.toggleVisible': 'Mostra o nascondi questo livello su questa carta',
+  'cardProps.fromTemplate': 'Dal template ({value})',
   'cardForm.pickColor': 'Scegli un colore',
   'cardForm.amount': 'Copie (amount)',
   'table.computedHint':
@@ -523,6 +529,7 @@ export const it: Record<MessageKey, string> = {
   'prop.shadowDx': 'Scostamento X',
   'prop.shadowDy': 'Scostamento Y',
   'prop.text': 'Testo',
+  'prop.style': 'Stile',
   'prop.font': 'Font',
   'prop.weight': 'Peso',
   'prop.italic': 'Corsivo',

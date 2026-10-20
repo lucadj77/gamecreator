@@ -13,7 +13,8 @@ import { PRIMARY_PROPERTY, type Layer, type Template } from '../../../shared/mod
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
-import { EyeIcon, ImageIcon, SlidersIcon } from './icons'
+import { EyeIcon, EyeOffIcon, ImageIcon, SlidersIcon } from './icons'
+import { propControl, propLabel } from './cardProps'
 
 interface Props {
   sheet: Sheet
@@ -32,8 +33,6 @@ interface Props {
   /** Campi con i dettagli del livello aperti */
   details: Set<string>
   onToggleDetails(column: string): void
-  /** Nasconde il campo (e la colonna in tabella) */
-  onHide(column: string): void
   onChange(sheet: Sheet, key?: string): void
 }
 
@@ -52,7 +51,6 @@ function CardForm({
   focus,
   details,
   onToggleDetails,
-  onHide,
   onChange
 }: Props): React.JSX.Element {
   const { t } = useI18n()
@@ -126,7 +124,7 @@ function CardForm({
     // il valore principale è già il campo stesso
     const keys = propertyColumns(template, l.name)
       .map((c) => c.slice(c.indexOf('.') + 1))
-      .filter((k) => k !== PRIMARY_PROPERTY[l.type])
+      .filter((k) => k !== PRIMARY_PROPERTY[l.type] && k !== 'visible')
     const own = keys.filter((k) => !COMMON_KEYS.includes(k))
     const common = COMMON_KEYS.filter((k) => keys.includes(k))
     const all = [...own, ...common].map((k) => `${column}.${k}`)
@@ -161,7 +159,14 @@ function CardForm({
     const className = ['field', h.includes('.') && 'prop-field', calc && 'calc-field']
       .filter(Boolean)
       .join(' ')
-    const label = h === 'amount' ? t('cardForm.amount') : opts.prop ? h.slice(dot + 1) : h
+    const propKey = h.slice(dot + 1)
+    const labelKey = opts.prop && layer ? propLabel(layer, propKey) : null
+    const label =
+      h === 'amount' ? t('cardForm.amount') : opts.prop ? (labelKey ? t(labelKey) : propKey) : h
+    // visibilità del livello su questa carta: la colonna livello.visible
+    const visibleColumn = `${h}.visible`
+    const ownVisible = layerOf.has(h) ? parseBool(valueOf(visibleColumn) ?? '') : null
+    const isVisible = ownVisible ?? layerOf.get(h)?.visible ?? true
     const tools = !opts.prop && (
       <span className="field-tools">
         {layerOf.has(h) && !calc && (
@@ -179,16 +184,25 @@ function CardForm({
             {usedProperties(h) > 0 && <span className="field-count">{usedProperties(h)}</span>}
           </button>
         )}
-        <button
-          className="icon-btn"
-          title={t('cardForm.hide')}
-          onClick={(e) => {
-            e.preventDefault()
-            onHide(h)
-          }}
-        >
-          <EyeIcon />
-        </button>
+        {layerOf.has(h) && !calc && (
+          <button
+            className={'icon-btn' + (isVisible ? '' : ' off')}
+            aria-pressed={!isVisible}
+            title={t('cardForm.toggleVisible')}
+            onClick={(e) => {
+              e.preventDefault()
+              // tornando come nel template la cella si svuota
+              write(
+                visibleColumn,
+                !isVisible === (layerOf.get(h)?.visible ?? true)
+                  ? ''
+                  : boolText(sheet, visibleColumn, !isVisible)
+              )
+            }}
+          >
+            {isVisible ? <EyeIcon /> : <EyeOffIcon />}
+          </button>
+        )}
       </span>
     )
     if (calc)
@@ -201,6 +215,51 @@ function CardForm({
           {tools}
         </label>
       )
+    const control = opts.prop && layer ? propControl(layer, propKey) : null
+    if (control?.kind === 'select' || control?.kind === 'number' || control?.kind === 'text') {
+      const optionLabel = (v: string): string => {
+        const found = control.kind === 'select' && control.options.find(([o]) => o === v)
+        return found && found[1] ? t(found[1]) : v
+      }
+      return (
+        <label key={h} className={className}>
+          <span className="field-label">{label}</span>
+          <span className="field-control">
+            {control.kind === 'select' ? (
+              <select
+                data-column={h}
+                className={value?.trim() ? undefined : 'from-template'}
+                value={value ?? ''}
+                onChange={(e) => write(h, e.target.value)}
+              >
+                {/* vuoto: vale il template */}
+                <option value="">
+                  {t('cardProps.fromTemplate', { value: optionLabel(hint) })}
+                </option>
+                {control.options.map(([v, key]) => (
+                  <option key={v} value={v}>
+                    {key ? t(key) : v}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                {...common}
+                type={control.kind === 'number' ? 'number' : undefined}
+                className={control.kind === 'number' ? 'num' : undefined}
+                step={control.kind === 'number' ? control.step : undefined}
+                title={control.kind === 'text' && control.hint ? t(control.hint) : undefined}
+                placeholder={
+                  value === null
+                    ? t('cardForm.mixed')
+                    : hint || (control.kind === 'text' && control.hint ? t(control.hint) : '')
+                }
+              />
+            )}
+          </span>
+        </label>
+      )
+    }
     const boolDefault = booleans.has(h)
       ? booleans.get(h)
       : typeof fallback === 'boolean'
@@ -309,18 +368,7 @@ function CardForm({
 }
 
 /** Proprietà comuni a tutti i livelli: nei dettagli vengono dopo quelle del tipo */
-const COMMON_KEYS = [
-  'visible',
-  'opacity',
-  'x',
-  'y',
-  'w',
-  'h',
-  'rotation',
-  'anchor',
-  'blend',
-  'shadow'
-]
+const COMMON_KEYS = ['opacity', 'x', 'y', 'w', 'h', 'rotation', 'anchor', 'blend', 'shadow']
 
 let probe: CanvasRenderingContext2D | null = null
 

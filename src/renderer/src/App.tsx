@@ -11,7 +11,8 @@ import type {
 } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
 import { bindCard, computedValues, rowToCard, type BoundCard } from '../../shared/model/bind'
-import type { Layer, Side, Template } from '../../shared/model/template'
+import type { GroupLayer, Layer, Side, Template } from '../../shared/model/template'
+import type { Bounds } from '../../shared/model/edit'
 import {
   addColumn,
   booleanColumns,
@@ -24,6 +25,7 @@ import {
   applyOrder,
   setColumns,
   viewRows,
+  writeCells,
   NO_VIEW,
   type RowView
 } from '../../shared/model/sheet'
@@ -33,7 +35,7 @@ import {
   renameInTemplate,
   type RefKind
 } from '../../shared/model/rename'
-import { hitTest, toLocal } from '../../shared/model/geometry'
+import { hitTest, toLocal, worldBounds } from '../../shared/model/geometry'
 import { arrangeGroup } from '../../shared/model/arrange'
 import {
   denormalizeTemplate,
@@ -73,6 +75,7 @@ import { NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
 import ColumnsMenu from './components/ColumnsMenu'
+import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import CardSvg from './render/CardSvg'
 import {
@@ -1310,6 +1313,8 @@ function SetView({
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
   /** Campi del modulo con i dettagli del livello aperti: restano aperti passando di carta in carta */
   const [details, setDetails] = useState<Set<string>>(new Set())
+  /** Livello in modifica direttamente sulla carta in anteprima */
+  const [inline, setInline] = useState<InlineEdit | null>(null)
   /** Ultimo clic sull'anteprima, per passare al livello sotto con un altro clic */
   const lastPick = useRef<{ x: number; y: number; row: number; column: string } | null>(null)
   const [rowView, setRowView] = useState<RowView>(NO_VIEW)
@@ -1445,31 +1450,59 @@ function SetView({
     setSelection([Math.min(Math.min(...selection), sheet.rows.length - selection.length - 1)])
   }
 
-  /**
-   * Clic su un livello della carta in anteprima: si va al campo della sua colonna. Un altro clic
-   * nello stesso punto passa al livello sotto, se anche quello ha un campo.
-   */
-  const pickField = (e: React.MouseEvent<HTMLDivElement>): void => {
-    if (!card) return
+  /** Livelli con un campo sotto il puntatore, dal più in alto, con dove stanno sulla carta */
+  const fieldsAt = (
+    e: React.MouseEvent<HTMLDivElement>,
+    allowed: Set<string>
+  ): { column: string; layer: Layer; box: Bounds; p: { x: number; y: number } }[] => {
+    if (!card) return []
     const svg = e.currentTarget.querySelector('svg')
-    if (!svg) return
+    if (!svg) return []
     const r = svg.getBoundingClientRect()
     const p = { x: (e.clientX - r.left) / PREVIEW_SCALE, y: (e.clientY - r.top) / PREVIEW_SCALE }
     const layers = side === 'front' ? card.template.front : card.template.back
-    const editable = new Set(columns.filter((c) => !c.computed).map((c) => c.header))
-    const found: string[] = []
-    for (const l of hitsAt(layers, p)) {
+    const out: { column: string; layer: Layer; box: Bounds; p: { x: number; y: number } }[] = []
+    for (const { layer: l, chain } of hitsAt(layers, p)) {
       const column = l.source.kind === 'column' ? (l.source.column ?? l.name) : null
-      if (column && editable.has(column) && !found.includes(column)) found.push(column)
+      if (column && allowed.has(column) && !out.some((f) => f.column === column))
+        out.push({ column, layer: l, box: worldBounds(l, chain), p })
     }
+    return out
+  }
+
+  /**
+   * Clic su un livello della carta in anteprima: si va al campo della sua colonna. Alt+clic
+   * nello stesso punto passa al livello sotto, se anche quello ha un campo.
+   */
+  const pickField = (e: React.MouseEvent<HTMLDivElement>): void => {
+    // il secondo clic di un doppio clic apre la modifica sulla carta
+    if (e.detail > 1) return
+    const found = fieldsAt(e, new Set(columns.filter((c) => !c.computed).map((c) => c.header)))
     if (!found.length) return
+    const p = found[0].p
     const last = lastPick.current
     const again =
-      last && last.row === current && Math.hypot(last.x - p.x, last.y - p.y) < 1
-        ? (found.indexOf(last.column) + 1) % found.length
+      e.altKey && last && last.row === current && Math.hypot(last.x - p.x, last.y - p.y) < 1
+        ? (found.findIndex((f) => f.column === last.column) + 1) % found.length
         : 0
-    lastPick.current = { ...p, row: current, column: found[again] }
-    setFocus({ column: found[again], seq: Date.now() })
+    lastPick.current = { ...p, row: current, column: found[again].column }
+    setFocus({ column: found[again].column, seq: Date.now() })
+  }
+
+  /** Doppio clic sulla carta: si modifica il livello lì, sopra l'anteprima */
+  const editOnCard = (e: React.MouseEvent<HTMLDivElement>): void => {
+    if (none) return
+    const found = fieldsAt(
+      e,
+      new Set(allColumns.filter((c) => !c.computed).map((c) => c.header))
+    ).filter((f) => f.layer.type === 'text' || f.layer.type === 'image' || f.layer.type === 'shape')
+    if (!found.length) return
+    // dopo un Alt+clic si modifica il livello scelto, non quello in cima
+    const last = lastPick.current
+    const hit = (last && found.find((f) => f.column === last.column)) || found[0]
+    const index = sheet.headers.indexOf(hit.column)
+    const original = index < 0 ? '' : (sheet.rows[current]?.[index] ?? '')
+    setInline({ column: hit.column, type: hit.layer.type, box: hit.box, original, row: current })
   }
 
   const preview = (
@@ -1492,8 +1525,31 @@ function SetView({
         <p className="muted">{t('preview.noTemplate', { name: set.template })}</p>
       ) : card ? (
         <>
-          <div className="preview-card" title={t('preview.clickHint')} onClick={pickField}>
-            <CardSvg template={card.template} side={side} scale={PREVIEW_SCALE} />
+          <div
+            className="preview-card"
+            title={inline ? undefined : t('preview.clickHint')}
+            onClick={pickField}
+            onDoubleClick={editOnCard}
+          >
+            <div className="preview-card-inner">
+              <CardSvg template={card.template} side={side} scale={PREVIEW_SCALE} />
+              {inline && inline.row === current && (
+                <InlineEditor
+                  key={`${inline.row}:${inline.column}`}
+                  edit={inline}
+                  scale={PREVIEW_SCALE}
+                  value={sheet.rows[current]?.[sheet.headers.indexOf(inline.column)] ?? ''}
+                  fields={sheet.headers.filter((h) => h !== 'amount' && !h.includes('.'))}
+                  onChange={(v) =>
+                    onChange(
+                      writeCells(sheet, [inline.row], inline.column, v),
+                      `cell:${inline.row}:${inline.column}`
+                    )
+                  }
+                  onClose={() => setInline(null)}
+                />
+              )}
+            </div>
           </div>
           <button
             className="preview-edit"
@@ -1536,7 +1592,6 @@ function SetView({
               return next
             })
           }
-          onHide={(h) => onChangeColumns({ hiddenColumns: [...hidden, h] })}
           onChange={onChange}
         />
       )}
@@ -1806,16 +1861,22 @@ function renameReferences(
 }
 
 /**
- * Livelli sotto il punto, dal più in alto, entrando nei gruppi con i figli dove sono disegnati.
- * I livelli che sulla carta non mostrano nulla (testo vuoto, immagine senza file, opacità zero)
- * non coprono quelli sotto.
+ * Livelli sotto il punto, dal più in alto, entrando nei gruppi con i figli dove sono disegnati,
+ * ognuno con i gruppi che lo contengono. I livelli che sulla carta non mostrano nulla (testo
+ * vuoto, immagine senza file, opacità zero) non coprono quelli sotto.
  */
-function hitsAt(layers: Layer[], p: { x: number; y: number }): Layer[] {
-  const out: Layer[] = []
+function hitsAt(
+  layers: Layer[],
+  p: { x: number; y: number },
+  chain: GroupLayer[] = []
+): { layer: Layer; chain: GroupLayer[] }[] {
+  const out: { layer: Layer; chain: GroupLayer[] }[] = []
   for (const l of layers) {
     if (!hitTest(l, p) || l.opacity <= 0) continue
-    if (l.type === 'group') out.push(...hitsAt(arrangeGroup(l).children, toLocal(l, p)), l)
-    else if (!isBlank(l)) out.push(l)
+    if (l.type === 'group') {
+      const g = arrangeGroup(l)
+      out.push(...hitsAt(g.children, toLocal(l, p), [...chain, g]), { layer: l, chain })
+    } else if (!isBlank(l)) out.push({ layer: l, chain })
   }
   return out
 }

@@ -10,9 +10,9 @@ dell'interfaccia quando segnala un aggiornamento. Come si prepara una versione �
 
 - The table and the card form show every column you can edit, including the ones the template reads but the sheet does not have yet: typing a value creates the column. The **Columns** button hides the ones you do not need and can also show fixed and formula layers, read only.
 - True/false columns, such as `crest.visible`, show a checkbox.
-- In the card form, the eye next to a field hides it, and the sliders icon opens the layer's properties for that card (color, italic, visibility, position...) without adding fields to the form.
+- In the card form, the eye next to a layer's field shows or hides that layer on the card, and the sliders icon opens the layer's properties for that card without adding fields to the form. Property names are translated, and properties with a fixed set of values (shape, alignment, blend...) are menus, numbers have number fields, colors a color picker.
 - Cards can be exported as SVG, with project images and fonts inside the file and texts as editable SVG text.
-- Clicking again on the same spot of the card preview moves to the field of the layer underneath; in the editor Alt+click selects the layer underneath. Thin lines and the children of arranged or repeated groups are easier to click.
+- Double-clicking a layer in the card preview edits it right on the card: text in a box over the layer, images from the thumbnails, shapes with a color picker. A single click still goes to the field. Alt+click on the preview moves to the field of the layer underneath; in the editor Alt+click selects the layer underneath. Thin lines and the children of arranged or repeated groups are easier to click.
 - A click on the canvas scrollbars no longer clears the selection (Windows).
 - The window title shows the installed version of Naibi.
 
@@ -20,9 +20,9 @@ dell'interfaccia quando segnala un aggiornamento. Come si prepara una versione �
 
 - La tabella e il modulo della carta mostrano tutte le colonne modificabili, anche quelle che il template legge ma il foglio non ha ancora: scrivendo un valore la colonna si crea. Il pulsante **Colonne** nasconde quelle che non servono e può mostrare anche i livelli fissi e con formula, in sola lettura.
 - Le colonne vero/falso, come `stemma.visible`, hanno una casella da spuntare.
-- Nel modulo della carta l'occhio accanto a un campo lo nasconde, e l'icona con i cursori apre le proprietà del livello per quella carta (colore, corsivo, visibilità, posizione...) senza aggiungere campi al modulo.
+- Nel modulo della carta l'occhio accanto al campo di un livello mostra o nasconde quel livello sulla carta, e l'icona con i cursori apre le proprietà del livello per quella carta senza aggiungere campi al modulo. I nomi delle proprietà sono tradotti, e le proprietà con valori prestabiliti (forma, allineamento, fusione...) sono menu, i numeri hanno campi numerici, i colori il selettore.
 - Le carte si esportano anche in SVG, con immagini e font del progetto dentro il file e i testi come testo SVG modificabile.
-- Un altro clic nello stesso punto dell'anteprima della carta passa al campo del livello sotto; nell'editor Alt+clic seleziona il livello sotto. Le linee sottili e i figli dei gruppi disposti o ripetuti si prendono più facilmente.
+- Il doppio clic su un livello nell'anteprima della carta lo modifica direttamente sulla carta: il testo in un riquadro sopra il livello, le immagini dalle miniature, le forme con il selettore del colore. Il clic singolo porta ancora al campo. Alt+clic sull'anteprima passa al campo del livello sotto; nell'editor Alt+clic seleziona il livello sotto. Le linee sottili e i figli dei gruppi disposti o ripetuti si prendono più facilmente.
 - Un clic sulle barre di scorrimento della tela non toglie più la selezione (Windows).
 - Il titolo della finestra mostra la versione di Naibi installata.
 

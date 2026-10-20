@@ -190,3 +190,22 @@ export function SlidersIcon(): React.JSX.Element {
     </svg>
   )
 }
+
+/** Occhio barrato: livello nascosto su questa carta */
+export function EyeOffIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M1.5 8c1.6-3 3.8-4.5 6.5-4.5s4.9 1.5 6.5 4.5c-1.6 3-3.8 4.5-6.5 4.5S3.1 11 1.5 8z" />
+      <path d="M2.5 13.5l11-11" />
+    </svg>
+  )
+}

@@ -3079,3 +3079,55 @@ input[type='checkbox'].bool-default {
 .field-details .field-label {
   width: 76px;
 }
+
+.preview-card-inner {
+  position: relative;
+}
+
+.inline-editor {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: auto;
+}
+
+.inline-editor textarea {
+  width: 100%;
+  min-height: 100%;
+  box-shadow: 0 0 0 2px var(--accent), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.inline-editor-color {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px var(--accent), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.inline-editor-color input:not([type='color']) {
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-editor-hint {
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--panel);
+  padding: 1px 4px;
+  border-radius: 3px;
+  align-self: flex-start;
+  white-space: nowrap;
+}
+
+.field-tools .icon-btn.off {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+select.from-template {
+  color: var(--muted);
+}

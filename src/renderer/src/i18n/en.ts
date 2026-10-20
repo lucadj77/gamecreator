@@ -36,14 +36,20 @@ export const en = {
   'set.editHint':
     'Double-click or type in a cell to edit; Alt+Enter for a new line. Drag the row number to reorder.',
   'preview.clickHint':
-    'Click a layer to edit its field; click again on the same spot for the layer underneath',
+    'Click a layer to go to its field, Alt+click for the layer underneath; double-click to edit it on the card',
+  'inlineEdit.hint': 'Esc cancels · click outside or Ctrl+Enter to close',
   'cardForm.title': 'Card {n}',
   'cardForm.multiTitle': '{n} cards selected',
   'cardForm.multiHint':
     'What you type in a field goes into all the selected cards. Empty fields have different values across the cards and stay as they are until you edit them.',
   'cardForm.mixed': 'different values',
   'cardForm.details': 'Properties of this layer for this card',
-  'cardForm.hide': 'Hide this field (Columns brings it back)',
+  'prop.x': 'X',
+  'prop.y': 'Y',
+  'cardProps.strokeHint': 'color/width/style, for example red/0.3/dashed',
+  'cardProps.shadowHint': 'color/blur/x/y in mm, for example black/0.5/0.3/0.3',
+  'cardForm.toggleVisible': 'Show or hide this layer on this card',
+  'cardProps.fromTemplate': 'From the template ({value})',
   'cardForm.pickColor': 'Pick a color',
   'cardForm.amount': 'Copies (amount)',
   'table.computedHint':
@@ -514,6 +520,7 @@ export const en = {
   'prop.shadowDx': 'Offset X',
   'prop.shadowDy': 'Offset Y',
   'prop.text': 'Text',
+  'prop.style': 'Style',
   'prop.font': 'Font',
   'prop.weight': 'Weight',
   'prop.italic': 'Italic',

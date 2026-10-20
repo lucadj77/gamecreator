@@ -10,10 +10,26 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - The start screen has **What's new**, which shows the news of the version in use even without a connection, and **Check for updates**, which asks GitHub right away and says so when you already have the latest version. Clicking the version next to the name also opens what's new.
+- **Iconify** tab in the icon window: searches over 200 more icon collections online (Material Design, Tabler, Phosphor, emoji and many others). Each collection shows its license with a colored dot: green free, blue the author must be credited, orange restrictive (share-alike, non-commercial or GPL), which you can also hide. Imported icons go to the project with their license, like the others, and appear in the credits. Needs the network.
+- **Update catalog**: the game-icons.net catalog (in the icon window) and the Google Fonts list (in the font window) can be updated from the app, to get icons and fonts published after this version.
+- New color picker everywhere a color is chosen: saturation area, hue and transparency sliders, hex code, RGB or HSL fields, eyedropper to pick a color from the screen, project colors and the last colors used.
+- Set grid: drag on the empty space around the cards to select several at once (⇧ or ⌘ add to the selection), ⌘A selects all the cards shown and Esc goes back to one. A bar shows how many cards are selected. Dragging one of the selected cards moves all of them.
+- Image **crop**: the **Crop…** button in the image properties opens the whole image with a rectangle to drag and resize, free or with the proportions of the layer's frame, to use only part of the picture. The file is not changed. Each card can have its own crop from the card form or with the `layer.crop` column (`x y width height` in percent of the image, for example `10 0 50 50`).
+- Card form: changing a layer property for a card, for example with the arrows of a number field, no longer moves that property to the top of the list while you are editing it.
+- Set grid: a card can also be dropped on the empty space between or after the cards, for example to move it to the end.
+- Portable version for Windows (`Naibi-…-windows-portable.exe`): it runs without installing, also from a USB stick, and keeps its data (recent projects, preferences) in a `Naibi data` folder next to the file.
 
 ### Italiano
 
 - Nella schermata di ingresso ci sono **Novità**, che mostra le novità della versione in uso anche senza rete, e **Controlla aggiornamenti**, che chiede subito a GitHub e dice anche quando hai già l'ultima versione. Anche un clic sulla versione accanto al nome apre le novità.
+- Scheda **Iconify** nella finestra delle icone: cerca online in oltre 200 altre collezioni di icone (Material Design, Tabler, Phosphor, emoji e molte altre). Ogni collezione mostra la licenza con un pallino colorato: verde libera, blu va citato l'autore, arancione restrittiva (condivisione allo stesso modo, uso non commerciale o GPL), che si può anche nascondere. Le icone importate vanno nel progetto con la loro licenza, come le altre, e compaiono nei crediti. Serve la rete.
+- **Aggiorna catalogo**: il catalogo di game-icons.net (nella finestra delle icone) e l'elenco dei font Google (nella finestra dei font) si aggiornano dall'app, per avere icone e font pubblicati dopo questa versione.
+- Nuovo selettore colore dovunque si sceglie un colore: area della saturazione, cursori per tonalità e trasparenza, codice esadecimale, campi RGB o HSL, contagocce per prendere un colore dallo schermo, colori del progetto e ultimi colori usati.
+- Griglia del set: trascinando sullo spazio vuoto intorno alle carte se ne selezionano più insieme (⇧ o ⌘ aggiungono alla selezione), ⌘A seleziona tutte le carte mostrate ed Esc torna a una sola. Una barra dice quante carte sono selezionate. Trascinando una delle carte selezionate si spostano tutte.
+- **Ritaglio** delle immagini: il pulsante **Ritaglia…** nelle proprietà dell'immagine mostra l'immagine intera con un rettangolo da spostare e ridimensionare, libero o con le proporzioni del riquadro del livello, per usare solo una parte della figura. Il file non viene modificato. Ogni carta può avere il suo ritaglio dal modulo della carta o con la colonna `livello.crop` (`x y larghezza altezza` in percentuale dell'immagine, per esempio `10 0 50 50`).
+- Modulo della carta: cambiando una proprietà di un livello per una carta, per esempio con le frecce di un campo numerico, la proprietà non salta più in cima all'elenco mentre la stai modificando.
+- Griglia del set: una carta si può lasciare anche sullo spazio vuoto tra le carte o dopo l'ultima, per esempio per spostarla in fondo.
+- Versione portable per Windows (`Naibi-…-windows-portable.exe`): si avvia senza installarla, anche da una chiavetta, e tiene i suoi dati (progetti recenti, preferenze) nella cartella `Naibi data` accanto al file.
 
 ## 1.2.0-beta.1
 

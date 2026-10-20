@@ -29,7 +29,7 @@ import {
   duplicateRows,
   insertRow,
   isValidSheetName,
-  moveRow,
+  moveRows,
   newSheet,
   removeRows,
   applyOrder,
@@ -1544,6 +1544,26 @@ function SetView({
     return () => window.removeEventListener('keydown', onKey)
   })
 
+  // ⌘A seleziona tutte le carte della vista, Esc torna a una sola; non mentre si scrive
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.defaultPrevented || !order.length) return
+      const target = e.target instanceof HTMLElement ? e.target : null
+      if (target?.closest('input, textarea, select, [contenteditable], [role="dialog"]')) return
+      const all = (e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'a'
+      if (all) {
+        e.preventDefault()
+        const first = order.includes(selection[0]) ? selection[0] : order[0]
+        setSelection([first, ...order.filter((r) => r !== first)])
+      } else if (e.key === 'Escape' && selection.length > 1) {
+        e.preventDefault()
+        setSelection([selection[0]])
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
   if (!set.data) {
     return (
       <section className="content">
@@ -1567,6 +1587,10 @@ function SetView({
   // "Modifica template" apre quello della carta, che può essere diverso da quello del set
   const cardTemplateName = rowTemplates[current]?.name ?? set.template
   const none = current < 0 || current >= sheet.rows.length
+
+  /** Tutte le carte della vista, con quella mostrata per prima */
+  const selectAll = (): void =>
+    setSelection(none ? order : [current, ...order.filter((r) => r !== current)])
 
   const addCard = (): void => {
     const at = none ? sheet.rows.length : Math.max(...selection) + 1
@@ -1946,13 +1970,29 @@ function SetView({
             </button>
           )}
         </div>
-        <p className="muted small set-hint">
-          {viewActive
-            ? t('set.viewHint', { shown: order.length, total: sheet.rows.length })
-            : view === 'grid' && template
-              ? t('set.gridHint')
-              : t('set.editHint')}
-        </p>
+        {selection.length > 1 ? (
+          <div className="selection-bar set-hint">
+            <strong title={t('set.selectedHint')}>
+              {t('set.selected', { n: selection.length })}
+            </strong>
+            {selection.length < order.length && (
+              <button title={t('tip.selectAll')} onClick={selectAll}>
+                {t('set.selectAll')}
+              </button>
+            )}
+            <button title={t('tip.selectNone')} onClick={() => setSelection([current])}>
+              {t('set.selectNone')}
+            </button>
+          </div>
+        ) : (
+          <p className="muted small set-hint">
+            {viewActive
+              ? t('set.viewHint', { shown: order.length, total: sheet.rows.length })
+              : view === 'grid' && template
+                ? t('set.gridHint')
+                : t('set.editHint')}
+          </p>
+        )}
         {view === 'table' || !template ? (
           <DataTable
             sheet={sheet}
@@ -1989,12 +2029,17 @@ function SetView({
                 setSelection(next.length ? next : [i])
               } else setSelection([i])
             }}
+            onSelectArea={setSelection}
             onMove={
               viewActive
                 ? undefined
-                : (from, to) => {
-                    onChange(moveRow(sheet, from, to))
-                    setSelection([to])
+                : (rows, before) => {
+                    const moved = moveRows(sheet, rows, before)
+                    if (moved.sheet === sheet) return
+                    onChange(moved.sheet)
+                    // la carta trascinata resta quella mostrata accanto
+                    const first = moved.rows[rows.indexOf(current)] ?? moved.rows[0]
+                    setSelection([first, ...moved.rows.filter((r) => r !== first)])
                   }
             }
             scale={thumb}

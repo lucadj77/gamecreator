@@ -115,11 +115,21 @@ export interface TextLayer extends LayerBase {
   wrap: boolean
 }
 
+/** Parte dell'immagine da usare, in frazioni (0-1) del file: vedi crop.ts */
+export interface Crop {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 export interface ImageLayer extends LayerBase {
   type: 'image'
   src: string
   /** overflow: come cover, ma la parte che esce dal riquadro resta visibile */
   fit: 'cover' | 'overflow' | 'contain' | 'stretch' | 'original' | 'tile'
+  /** Ritaglio dell'immagine prima dell'adattamento; null per l'immagine intera */
+  crop: Crop | null
   /** Dove sta l'immagine nel riquadro quando non lo riempie o lo eccede */
   align: Anchor
   /** Scala dell'immagine rispetto all'adattamento, intorno al centro: 1 = 100% */

@@ -139,7 +139,7 @@ At the top of every layer are its **name**, which is also the name of the sheet 
 The main properties by layer type:
 
 - **Text**: content, style, font, weight, size, color, horizontal and vertical alignment, line height, fit (shrink to fit the box, cut off at the box, spill out). Under Advanced: spacing, indent, padding, case, underline, strikethrough, wrapping and letter outline.
-- **Image**: file or variable name, fit (fill by cropping, fill letting the part outside the frame show, fit inside, stretch, original size, tile), alignment, zoom, rotation of the image inside its frame, shift and tint. Under Advanced: flips, adjustments (grayscale, brightness, contrast, saturation), radius, outline and what to do when the image is missing.
+- **Image**: file or variable name, fit (fill by cropping, fill letting the part outside the frame show, fit inside, stretch, original size, tile), alignment, zoom, rotation of the image inside its frame, shift, tint and crop. **Crop…** shows the whole image with a rectangle to move and resize: the layer uses only that part, and the file is not changed. The rectangle can keep the proportions of the layer's frame; × removes the crop. When the image name comes from a column, the crop is tried on the image of the card shown and applies to all cards. Under Advanced: flips, adjustments (grayscale, brightness, contrast, saturation), radius, outline and what to do when the image is missing.
 - **Shape**: type, fill (none, color, or linear or radial gradient), stroke (solid, dashed, dotted) and corner radius. Polygons and stars have the number of sides or points; a line goes from point A to point B; the "from an image" shape takes the outline of a PNG with transparency or of an SVG.
 - **Group**: can arrange its children in a row, a column or a grid, repeat them a fixed number of times or as many as a field says (for example `{strength}` icons), and use its bottom layer as a mask.
 
@@ -196,6 +196,10 @@ The **grid** shows the cards as they will be printed. The slider at the top chan
 
 ![The card grid](img/griglia.png)
 
+To select several cards in the grid, drag on the empty space around the cards: the rectangle selects the cards it touches, and with Shift or ⌘ adds them to the ones already selected. ⌘A selects all the cards shown (with a filter, only the ones that pass it), Esc goes back to the card in the preview. Above the grid a bar shows how many cards are selected, with **Select all** and **Keep only one**. Dragging one of the selected cards moves all of them.
+
+![Several cards selected in the grid](img/griglia-selezione.png)
+
 In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field; Alt+click on the same spot moves to the layer underneath, useful when a layer covers another. Double-clicking edits the layer right on the card: a box over the layer for text, the thumbnails for an image, the color picker for a shape. Esc cancels the edit, clicking outside or Ctrl+Enter closes it. Double-clicking a fixed or formula layer tells where its value comes from, with a button to open the template. The ⤢ button at the top of the preview opens the card large in a window, with the card form next to it, the same clicks and arrows to move from card to card. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
 
 ### 5.3 Sorting and filtering
@@ -212,7 +216,7 @@ Besides the main value, every property of a layer can change card by card with a
 
 ![The window to add a column](img/aggiungi-colonna.png)
 
-In cells, colors are written as names (`red`, or the name of a color variable) or in hex (`#A33A2A`); a stroke as `color/width/dash`, for example `red/0.3/dashed`.
+In cells, colors are written as names (`red`, or the name of a color variable) or in hex (`#A33A2A`); a stroke as `color/width/dash`, for example `red/0.3/dashed`; a crop as `x y width height` in percent of the image, for example `10 0 50 50` (`none` for the whole image). In the card form the **Crop…** button next to the crop field writes these numbers for you.
 
 The **Template** field, at the top of the card form, picks the template of a single card among those with the set's size: empty means the set's, and the choice goes into the sheet's `template` column. It is useful, for example, to give a few cards of a set a derived template. In the card form the field becomes a menu with the templates that have the same size as the set's.
 
@@ -318,6 +322,12 @@ A style groups text attributes under a name: it applies to a whole layer (**Styl
 
 ![The style editor](img/stile.png)
 
+### 7.3 Choosing a color
+
+The small square next to every color field opens the color picker: the large area chooses saturation and brightness, the two bars below it hue and transparency. The hex code goes in the field next to the preview; **RGB** and **HSL** switch the three number fields (the up and down arrows change them by 1, with Shift by 10). The eyedropper picks a color from anywhere on the screen, even another window. Below are the project colors (color variables, written by name) and the last colors chosen, shared by all projects. Esc or a click outside closes the picker.
+
+![The color picker](img/colore.png)
+
 ## 8. Images, icons and fonts
 
 ### 8.1 Project images
@@ -332,22 +342,27 @@ Single-color icons (black SVGs on a transparent background) are recolored with t
 
 ### 8.2 Importing icons
 
-**Import icons…**, in the image chooser and in the window of an icon variable, opens three collections included in the app, which work offline:
+**Import icons…**, in the image chooser and in the window of an icon variable, opens three collections included in the app, which work offline, and an online one:
 
-- **game-icons.net**: about 4200 icons, with categories and search. License CC BY 3.0: authors must be credited (see credits, [chapter 11.6](#116-credits)).
+- **game-icons.net**: about 4200 icons, with categories and search. License CC BY 3.0: authors must be credited (see credits, [chapter 11.6](#116-credits)). **Update catalog** downloads the icons published after this version of the app (needs the network, takes about a minute).
 - **Kenney: icons and patterns**: board game icons and tileable patterns, CC0.
 - **Kenney: cards, dice and pawns**: color PNG images, CC0.
+- **Iconify (online)**: over 200 more collections (Material Design, Tabler, Phosphor, emoji...), searched on the internet. Type in the search box to search all of them, or choose a collection on the left to browse it.
 
-You can pick several icons and rename them before importing. Icons go to `assets/icons/` and their origin to `assets/sources.json`.
+You can pick several icons, also from different collections, and rename them before importing. Icons go to `assets/icons/` (color ones to `assets/images/`) and their origin to `assets/sources.json`.
 
 ![Importing icons](img/importa-icone.png)
+
+Each Iconify collection has its own license, shown by a dot: green for free licenses, blue for those that require crediting the author, orange for those that are restrictive for a published game (share-alike, non-commercial, GPL). **Hide restrictive licenses** removes them from the list and the results. The license and author of the collection go into the credits like those of the other icons.
+
+![Iconify collections](img/iconify.png)
 
 ### 8.3 Fonts
 
 The **Aa** button next to the font field opens the font chooser, with three tabs:
 
 - **In the project**: the fonts in `assets/fonts/` and Nunito, the font included in the app.
-- **Google Fonts**: the Google Fonts catalog, with a category filter. Choose the styles and **Download** saves the files in `assets/fonts/`, with the license. Previews need the network; once downloaded, the font works offline.
+- **Google Fonts**: the Google Fonts catalog, with a category filter. Choose the styles and **Download** saves the files in `assets/fonts/`, with the license. Previews need the network; once downloaded, the font works offline. **Update catalog** downloads the latest list, with the fonts published after this version of the app.
 - **On this computer**: installed fonts. **Copy to project** copies the files to `assets/fonts/`, if the license allows it; otherwise the project looks the same only where that font is installed.
 
 <table>
@@ -500,6 +515,7 @@ On Windows and Linux ⌘ is Ctrl.
 | ------------ | -------------------- | --------------------------------------- |
 | anywhere     | ⌘S                   | save templates, data and settings       |
 | set          | ⌘Z, ⇧⌘Z              | undo and redo data changes              |
+| set          | ⌘A, Esc              | select all cards, go back to one        |
 | table        | Alt+Enter            | new line inside a cell                  |
 | text         | `{`, then ↑ ↓, Enter | field and variable suggestions          |
 | editor       | ⌘Z, ⇧⌘Z (or ⌘Y)      | undo and redo                           |

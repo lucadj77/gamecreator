@@ -181,6 +181,7 @@ Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livell
 | Proprietà                 | Valori                                                                                                                              |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | sorgente ◆                | file in `assets/`, variabile immagine, oppure colonna o formula che restituisce un nome di file (risoluzione dei nomi: sezione 3.1) |
+| ritaglio ◆                | parte dell'immagine da usare: x, y, larghezza, altezza in % del file; nessuno = immagine intera                                     |
 | adattamento               | riempi (ritaglia), riempi (lascia uscire), adatta (bande vuote), allunga, dimensione originale, ripeti                              |
 | allineamento interno      | 9 posizioni                                                                                                                         |
 | zoom, spostamento x e y ◆ | %, mm                                                                                                                               |
@@ -192,7 +193,7 @@ Un font si indica con il nome della famiglia (`Cinzel`, `Open Sans`), nel livell
 | contorno                  | colore, spessore                                                                                                                    |
 | immagine mancante         | mostra segnaposto, nascondi livello                                                                                                 |
 
-Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per le immagini raster), a partire dalla posizione data dall'allineamento interno; lo zoom cambia la dimensione delle piastrelle. La rotazione dell'immagine gira intorno al centro dell'immagine; l'adattamento tiene conto della rotazione: con **riempi** l'immagine ruotata copre sempre tutto il riquadro (vale anche per **riempi (lascia uscire)**, che ha la stessa misura ma non ritaglia: la parte che esce dal riquadro resta visibile, fino al bordo della carta; utile con zoom oltre il 100% o per un'immagine che sborda di proposito), con **adatta** ci sta tutta dentro. Un'immagine orizzontale ruotata di 90° riempie così un riquadro verticale senza bande. Con **ripeti** ruota tutta la trama. Le regolazioni si applicano prima della tinta. Il contorno può essere continuo, tratteggiato o a punti, come quello delle forme.
+Stato: **ripeti** affianca l'immagine alla sua dimensione originale (300 DPI per le immagini raster), a partire dalla posizione data dall'allineamento interno; lo zoom cambia la dimensione delle piastrelle. La rotazione dell'immagine gira intorno al centro dell'immagine; l'adattamento tiene conto della rotazione: con **riempi** l'immagine ruotata copre sempre tutto il riquadro (vale anche per **riempi (lascia uscire)**, che ha la stessa misura ma non ritaglia: la parte che esce dal riquadro resta visibile, fino al bordo della carta; utile con zoom oltre il 100% o per un'immagine che sborda di proposito), con **adatta** ci sta tutta dentro. Un'immagine orizzontale ruotata di 90° riempie così un riquadro verticale senza bande. Con **ripeti** ruota tutta la trama. Il **ritaglio** non modifica il file: sceglie la parte dell'immagine che il livello usa, e adattamento, allineamento, zoom e rotazione trattano quella parte come se fosse l'immagine intera. Si sceglie con il pulsante **Ritaglia…**, che mostra l'immagine intera con un rettangolo da spostare e ridimensionare, libero o con le proporzioni del riquadro del livello (così con **riempi** non si perde altro), oppure con i campi in percentuale. Nel foglio la colonna `livello.crop` vale `x y larghezza altezza` in percentuale (`10 0 50 50`; il simbolo % è facoltativo), `none` per l'immagine intera anche se il template ha un ritaglio, vuota per il ritaglio del template. Le regolazioni si applicano prima della tinta. Il contorno può essere continuo, tratteggiato o a punti, come quello delle forme.
 
 ### 3.1 Risoluzione dei nomi di file
 
@@ -272,7 +273,7 @@ Uno stile raggruppa proprietà di carattere (font, peso, corsivo, dimensione, co
 
 - **Nomi predefiniti.** I nomi di colore standard del web (`red`, `yellow`, `blue`, `darkgreen`, ... sono 148 in tutto) funzionano ovunque senza creare variabili.
 - **Palette del progetto.** Le variabili di tipo colore formano la palette. Una variabile con lo stesso nome di un colore predefinito lo ridefinisce in tutto il progetto: per esempio `red` = `#A33A2A`.
-- **Selettore.** Ogni proprietà colore apre un selettore con campo per il codice (esadecimale, RGB, HSL), area saturazione/luminosità, cursori per tonalità e trasparenza, contagocce, palette del progetto e colori recenti.
+- **Selettore.** Il campione accanto a ogni campo colore apre il selettore dell'app: area saturazione/valore, cursori per tonalità e trasparenza, codice esadecimale, campi RGB o HSL (si sceglie quale, e la scelta resta), contagocce che prende un colore da qualunque punto dello schermo, colori del progetto e gli ultimi 12 colori scelti (comuni a tutti i progetti). Scrive sempre `#RRGGBB`, o `#RRGGBBAA` se il colore è trasparente; un colore del progetto si scrive per nome. Esc o un clic fuori lo chiudono.
 
 ## 7. Campi calcolati
 
@@ -329,7 +330,7 @@ Nei campi numerici del pannello delle proprietà, trascinare l'etichetta a destr
 | ordinamento e filtro | per qualsiasi colonna, solo nella vista, senza cambiare l'ordine salvato; si può rendere definitivo con "Applica questo ordine" |
 
 - Ordinamento e filtro: nella tabella un clic sull'intestazione ordina per quella colonna (crescente, decrescente, poi l'ordine del foglio); nella griglia si sceglie la colonna dal menu. I numeri si ordinano come numeri, i testi senza markup, maiuscole e accenti, le celle vuote vanno in fondo. Il filtro cerca il testo in tutte le colonne o in una sola. Con ordinamento o filtro attivi le righe non si trascinano; **Applica questo ordine** riordina il foglio (⌘Z annulla), **Mostra tutto** torna alla vista normale.
-- Selezione multipla: nella tabella e nella griglia Maiuscolo seleziona un intervallo e ⌘ aggiunge o toglie una carta. Con più carte selezionate il modulo accanto all'anteprima diventa la modifica in blocco: un campo mostra il valore solo se è uguale in tutte le carte, altrimenti resta vuoto con la scritta "valori diversi"; scrivere in un campo mette lo stesso valore in tutte le carte selezionate, i campi non toccati non cambiano. ⌘Z annulla.
+- Selezione multipla: nella tabella e nella griglia Maiuscolo seleziona un intervallo e ⌘ aggiunge o toglie una carta. Nella griglia, trascinando sullo spazio vuoto intorno alle carte si traccia un rettangolo che seleziona le carte che tocca (con Maiuscolo o ⌘ si aggiungono a quelle già selezionate). ⌘A seleziona tutte le carte della vista, Esc torna alla sola carta in anteprima; sopra la griglia una barra dice quante carte sono selezionate. Trascinando una carta che fa parte della selezione si spostano tutte, nel loro ordine. Duplica ed Elimina valgono per tutte le carte selezionate. Con più carte selezionate il modulo accanto all'anteprima diventa la modifica in blocco: un campo mostra il valore solo se è uguale in tutte le carte, altrimenti resta vuoto con la scritta "valori diversi"; scrivere in un campo mette lo stesso valore in tutte le carte selezionate, i campi non toccati non cambiano. ⌘Z annulla.
 - PagSu e PagGiù passano alla carta precedente o successiva, nell'ordine della vista (con ordinamento e filtro), sia nella tabella sia nella griglia. Valgono anche mentre si scrive in un campo della carta accanto all'anteprima, e il cursore resta nello stesso campo della carta nuova; non valgono mentre si modifica una cella della tabella.
 - Il template del set si cambia dal menu nell'intestazione del set; i dati restano gli stessi, e le colonne che il nuovo template non usa vengono ignorate. ⌘Z annulla.
 - Sotto l'anteprima della carta, **Modifica template** apre nell'editor il template del set.
@@ -446,6 +447,25 @@ Nella stessa finestra, sopra la ricerca, si sceglie la raccolta: game-icons.net 
 - **Carte, dadi e pedine**: le 523 immagini PNG del Boardgame Pack (carte da gioco, fiches, dadi, pedine in sette colori). Si salvano in `assets/images/` così come sono e non si ricolorano. Sono piccole (64 px i dadi, 140 × 190 px le carte): in stampa vanno usate a dimensioni ridotte.
 
 Licenza: CC0, non serve citare l'autore. La voce in `assets/sources.json` resta comunque, con il pacchetto di provenienza.
+
+### 10.1.2 Altre collezioni con Iconify
+
+L'ultima scheda della finestra, **Iconify (online)**, usa l'API pubblica di Iconify (`api.iconify.design`, senza chiave) per le altre collezioni di icone, oltre 200. Funziona solo con la rete; le richieste partono dal processo principale.
+
+- A sinistra l'elenco delle collezioni con il numero di icone e un pallino per la licenza: verde per le licenze libere (MIT, Apache, ISC, BSD, OFL, MPL, CC0...), blu per le CC BY, che chiedono di citare l'autore, arancione per quelle restrittive per un gioco pubblicato (condivisione allo stesso modo, uso non commerciale, GPL, licenza non dichiarata). Le restrittive si possono nascondere; è un'informazione, non un divieto.
+- Scrivendo nella ricerca si cerca online (fino a 999 risultati) in tutte le collezioni o in quella scelta. Senza ricerca, una collezione scelta mostra tutte le sue icone, con le categorie in un menu. Le anteprime si scaricano a pagine di 240.
+- Le icone a un colore usano `currentColor`: nel file diventa nero e si salvano in `assets/icons/<nome>.svg`, ricolorabili con la tinta come le altre. Quelle delle collezioni a più colori (emoji, bandiere...) vanno in `assets/images/` così come sono.
+- Il disegno si richiede di nuovo al momento dell'importazione; dal disegno si tolgono script e attributi di evento. Il file ha solo il viewBox della collezione, senza larghezza e altezza.
+- La voce in `assets/sources.json` ha come fonte "Iconify: <collezione>", come id `prefisso:nome`, come autore l'autore della collezione e la licenza SPDX dichiarata; i crediti la raggruppano come le altre.
+
+### 10.1.3 Aggiornare i cataloghi
+
+**Aggiorna catalogo**, nella scheda game-icons.net della finestra delle icone e nella scheda Google Fonts della finestra dei font, scarica i dati più recenti:
+
+- game-icons.net: l'archivio del repository ufficiale da GitHub (circa 4 MB) e le pagine dei tag già noti dal sito; se una pagina non risponde, per quel tag restano le icone di prima. I tag nuovi del sito non si aggiungono: servono le traduzioni, quindi passano dallo script.
+- Google Fonts: il pacchetto npm `google-font-metadata` dal registro di npm (circa 5 MB), lo stesso usato da `scripts/make-font-catalog.mjs`.
+
+Il catalogo aggiornato si salva nella cartella dei dati dell'app (`catalogs/`), non nell'app, e vale finché ha almeno tante voci quanto quello incluso: una versione nuova di Naibi con un catalogo più grande torna a usare il proprio. Un catalogo scaricato con meno della metà delle voci di quello in uso viene scartato.
 
 ### 10.2 Font di Google Fonts
 

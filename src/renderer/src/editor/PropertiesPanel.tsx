@@ -34,6 +34,9 @@ import { evaluateFormula } from '../../../shared/model/formula'
 import { cardFields, rowToCard, substituteFields, switchSource } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext, assetUrl } from '../render/assets'
+import CropDialog from '../components/CropDialog'
+import { DisplayContext } from './displayContext'
+import { cropText } from '../../../shared/model/crop'
 import { traceImage } from '../render/traceImage'
 import { ColorFieldsContext } from './colorFields'
 import {
@@ -44,6 +47,7 @@ import {
   SizeFields,
   FillField,
   FadeFields,
+  Row,
   SelectField,
   ShadowFields,
   StrokeField,
@@ -1101,6 +1105,28 @@ function ImageProperties({
   const res = resolveAsset(l.src, assets)
   const listId = `assets-${l.id}`
   const [picking, setPicking] = useState(false)
+  const [cropping, setCropping] = useState(false)
+  const display = useContext(DisplayContext)
+  // l'immagine da ritagliare: quella del livello, o quella della carta mostrata se il livello la
+  // prende da una colonna, o la prima del foglio di un set
+  const cropSrc = ((): string | null => {
+    if (res.ok) return assetUrl(res.path)
+    const shown = display.template
+      ? walkLayers([...display.template.front, ...display.template.back]).find((x) => x.id === l.id)
+      : undefined
+    const candidates = [shown?.type === 'image' ? shown.src : '']
+    const column = l.source.kind === 'column' ? (l.source.column ?? l.name) : null
+    if (column)
+      for (const s of display.sheets) {
+        const i = s.headers.indexOf(column)
+        if (i >= 0) candidates.push(...s.rows.map((r) => r[i] ?? ''))
+      }
+    for (const c of candidates) {
+      const r = c.trim() ? resolveAsset(c, assets) : null
+      if (r?.ok) return assetUrl(r.path)
+    }
+    return null
+  })()
   return (
     <>
       {/* con una formula il valore è il suo risultato: il campo non serve */}
@@ -1124,6 +1150,18 @@ function ImageProperties({
             }
           />
         </Inherit>
+      )}
+      {cropping && cropSrc && (
+        <CropDialog
+          url={cropSrc}
+          value={l.crop}
+          frame={{ w: l.w, h: l.h }}
+          onApply={(crop) => {
+            set({ crop })
+            setCropping(false)
+          }}
+          onClose={() => setCropping(false)}
+        />
       )}
       {picking && (
         <AssetPicker
@@ -1160,6 +1198,25 @@ function ImageProperties({
             ] as const)}
             onChange={(fit) => set({ fit })}
           />
+        </P>
+        <P id="crop">
+          <Row label={t('prop.crop')} hint={`${t('editor.cropHint')} ${col('crop')}`}>
+            <span className="crop-summary">
+              {l.crop ? cropText(l.crop).replace(/ /g, ' · ') : t('crop.none')}
+            </span>
+            <button disabled={!cropSrc} onClick={() => setCropping(true)}>
+              {t('crop.open')}
+            </button>
+            {l.crop && (
+              <button
+                className="icon-btn"
+                title={t('crop.remove')}
+                onClick={() => set({ crop: null })}
+              >
+                ×
+              </button>
+            )}
+          </Row>
         </P>
         {l.fit !== 'stretch' && (
           <P id="align">

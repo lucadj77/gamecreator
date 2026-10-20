@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useContext, useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import {
   boolText,
@@ -9,13 +9,24 @@ import {
   type ColumnInfo
 } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
-import { PRIMARY_PROPERTY, type Layer, type Template } from '../../../shared/model/template'
+import {
+  PRIMARY_PROPERTY,
+  type Crop,
+  type ImageLayer,
+  type Layer,
+  type Template
+} from '../../../shared/model/template'
 import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
+import { ColorSwatch } from './ColorPicker'
 import { EyeIcon, EyeOffIcon, ImageIcon, SlidersIcon } from './icons'
 import { propControl, propLabel } from './cardProps'
+import CropDialog from './CropDialog'
+import { cropText, parseCrop } from '../../../shared/model/crop'
+import { resolveAsset } from '../../../shared/model/assets'
+import { AssetsContext, assetUrl } from '../render/assets'
 
 interface Props {
   sheet: Sheet
@@ -74,6 +85,9 @@ function CardForm({
   const imageColumns = columnsOf('image')
   /** Colonna di cui si sta scegliendo l'immagine */
   const [picking, setPicking] = useState<string | null>(null)
+  /** Colonna del ritaglio (livello.crop) che si sta modificando nella finestra */
+  const [cropping, setCropping] = useState<string | null>(null)
+  const assets = useContext(AssetsContext)
 
   const colors = template ? colorColumns(template) : new Map<string, string | null>()
 
@@ -108,8 +122,21 @@ function CardForm({
       )
     )
   }
-  const write = (h: string, v: string): void =>
-    onChange(writeCells(sheet, targets, h, v), `cell:${targets.join(',')}:${h}`)
+  // ordine delle proprietà di un livello fissato alla prima modifica, finché si resta sulla
+  // stessa carta: altrimenti la proprietà appena cambiata salterebbe in cima all'elenco
+  const cardKey = targets.join(',')
+  const [frozen, setFrozen] = useState<{ card: string; order: Record<string, string[]> } | null>(
+    null
+  )
+  const write = (h: string, v: string): void => {
+    const column = h.includes('.') ? h.slice(0, h.indexOf('.')) : null
+    if (column && details.has(column)) {
+      const order = frozen?.card === cardKey ? frozen.order : {}
+      if (!order[column])
+        setFrozen({ card: cardKey, order: { ...order, [column]: propertiesOf(column) } })
+    }
+    onChange(writeCells(sheet, targets, h, v), `cell:${cardKey}:${h}`)
+  }
 
   // livello di ogni campo: le sue proprietà si aprono con l'icona accanto al campo
   const layerOf = new Map<string, Layer>()
@@ -117,6 +144,14 @@ function CardForm({
     if (l.type === 'group') continue
     const column = l.source.kind === 'column' && l.source.column ? l.source.column : l.name
     if (!layerOf.has(column)) layerOf.set(column, l)
+  }
+  /** Immagine della carta mostrata per un livello immagine: quella della sua colonna o del template */
+  const cropImage = (l: ImageLayer): string | null => {
+    const column = l.source.kind === 'column' ? (l.source.column ?? l.name) : null
+    const index = column ? sheet.headers.indexOf(column) : -1
+    const src = (index >= 0 && sheet.rows[row]?.[index]?.trim()) || l.src
+    const r = resolveAsset(src, assets)
+    return r.ok ? assetUrl(r.path) : null
   }
   const shown = new Set(columns.map((c) => c.header))
   const baseOf = (h: string): string => h.slice(0, h.indexOf('.'))
@@ -135,6 +170,9 @@ function CardForm({
     const own = keys.filter((k) => !COMMON_KEYS.includes(k))
     const common = COMMON_KEYS.filter((k) => keys.includes(k))
     const all = [...own, ...common].map((k) => `${column}.${k}`)
+    const kept = frozen?.card === cardKey ? frozen.order[column] : undefined
+    if (kept)
+      return [...kept.filter((h) => all.includes(h)), ...all.filter((h) => !kept.includes(h))]
     const used = all.filter((h) => valueOf(h)?.trim())
     return [...used, ...all.filter((h) => !used.includes(h))]
   }
@@ -153,9 +191,13 @@ function CardForm({
     const fallback =
       layer && dot > 0 ? (layer as unknown as Record<string, unknown>)[h.slice(dot + 1)] : undefined
     const hint =
-      fallback === undefined || fallback === null || typeof fallback === 'object'
+      fallback === undefined || fallback === null
         ? ''
-        : String(fallback)
+        : typeof fallback === 'object'
+          ? h.endsWith('.crop')
+            ? cropText(fallback as Crop)
+            : ''
+          : String(fallback)
     const common = {
       'data-column': h,
       value: value ?? '',
@@ -290,6 +332,18 @@ function CardForm({
                 }
               />
             )}
+            {layer?.type === 'image' && propKey === 'crop' && (
+              <button
+                className="pick-btn"
+                disabled={!cropImage(layer)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCropping(h)
+                }}
+              >
+                {t('crop.open')}
+              </button>
+            )}
           </span>
         </label>
       )
@@ -337,12 +391,11 @@ function CardForm({
                 {...common}
                 placeholder={value === null ? common.placeholder : (colors.get(h) ?? '')}
               />
-              <input
-                type="color"
+              <ColorSwatch
                 title={t('cardForm.pickColor')}
                 // senza valore nella cella il selettore parte dal colore del template
-                value={toHex6(common.value.trim() || colors.get(h) || '')}
-                onChange={(e) => write(h, e.target.value.toUpperCase())}
+                value={common.value.trim() || colors.get(h) || ''}
+                onChange={(v) => write(h, v)}
               />
             </span>
           ) : imageColumns.has(h) ? (
@@ -397,6 +450,26 @@ function CardForm({
             )}
           </Fragment>
         ))}
+      {cropping !== null &&
+        (() => {
+          const l = layerOf.get(baseOf(cropping))
+          const url = l?.type === 'image' ? cropImage(l) : null
+          if (!l || l.type !== 'image' || !url) return null
+          const own = valueOf(cropping)?.trim()
+          return (
+            <CropDialog
+              url={url}
+              value={own ? (parseCrop(own) ?? null) : l.crop}
+              frame={{ w: l.w, h: l.h }}
+              onApply={(c) => {
+                // senza ritaglio: "none" se il template ne ha uno, altrimenti la cella vuota
+                write(cropping, c ? cropText(c) : l.crop ? 'none' : '')
+                setCropping(null)
+              }}
+              onClose={() => setCropping(null)}
+            />
+          )
+        })()}
       {picking !== null && (
         <AssetPicker
           value={valueOf(picking) ?? ''}
@@ -410,21 +483,5 @@ function CardForm({
 
 /** Proprietà comuni a tutti i livelli: nei dettagli vengono dopo quelle del tipo */
 const COMMON_KEYS = ['opacity', 'x', 'y', 'w', 'h', 'rotation', 'anchor', 'blend', 'shadow']
-
-let probe: CanvasRenderingContext2D | null = null
-
-/** Il selettore nativo vuole #rrggbb: i nomi dei colori si convertono con il canvas */
-function toHex6(c: string): string {
-  const v = c.trim()
-  if (/^#[0-9a-f]{6}$/i.test(v)) return v
-  if (/^#[0-9a-f]{8}$/i.test(v)) return v.slice(0, 7)
-  if (/^#[0-9a-f]{3,4}$/i.test(v)) return '#' + [...v.slice(1, 4)].map((ch) => ch + ch).join('')
-  if (!/^[a-z]+$/i.test(v)) return '#000000'
-  probe ??= document.createElement('canvas').getContext('2d')
-  if (!probe) return '#000000'
-  probe.fillStyle = '#000000'
-  probe.fillStyle = v
-  return /^#[0-9a-f]{6}$/i.test(probe.fillStyle) ? probe.fillStyle : '#000000'
-}
 
 export default CardForm

@@ -19,6 +19,10 @@ win:
   target:
     - target: nsis
       arch: x64
+    - target: portable
+      arch: x64
+portable:
+  artifactName: ${productName}-${version}-windows-portable.${ext}
 nsis:
   artifactName: ${productName}-${version}-windows-setup.${ext}
   shortcutName: ${productName}

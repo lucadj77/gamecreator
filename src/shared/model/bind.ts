@@ -2,6 +2,7 @@ import { msg, type Message } from '../messages'
 import { parseRepeat } from './arrange'
 import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
+import { parseCrop } from './crop'
 import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
@@ -417,7 +418,7 @@ function paintLayer(
   }
 }
 
-const NULLABLE = new Set(['fill', 'tint', 'style', 'stroke', 'shadow'])
+const NULLABLE = new Set(['fill', 'tint', 'style', 'stroke', 'shadow', 'crop'])
 
 /** Converte il testo di una cella nel tipo della proprietà, usando il valore attuale come guida */
 const PERCENT = new Set(['zoom', 'opacity'])
@@ -427,6 +428,7 @@ export function parseValue(key: string, current: unknown, raw: string): unknown 
   if (NULLABLE.has(key) && v.toLowerCase() === 'none') return null
   if (key === 'stroke') return parseStroke(v)
   if (key === 'shadow') return parseShadow(v)
+  if (key === 'crop') return parseCrop(v)
   if (typeof current === 'number') {
     // zoom e opacità si possono scrivere anche in percentuale: 120% = 1.2
     if (PERCENT.has(key) && v.endsWith('%')) {

@@ -1,7 +1,7 @@
 import type { MessageKey } from '../i18n/en'
 import { useContext, useId, useMemo, useState } from 'react'
 import { smoothCss } from '../render/smoothGradient'
-import { palette, resolveColor, resolveFont } from '../../../shared/model/variables'
+import { palette, resolveFont } from '../../../shared/model/variables'
 import { VariablesContext } from '../render/assets'
 import { ColorFieldsContext } from './colorFields'
 import type { Fade, Shadow, Stroke } from '../../../shared/model/template'
@@ -15,6 +15,7 @@ import { useI18n } from '../i18n/context'
 import MarkupTextarea from '../components/MarkupTextarea'
 import { APP_FONTS, useProjectFonts } from '../render/fonts'
 import FontPicker from '../components/FontPicker'
+import { ColorSwatch } from '../components/ColorPicker'
 
 // Campi del pannello proprietà. Ogni modifica si applica subito, mentre si scrive: cambiare
 // selezione o fare clic sulla carta non la perde. Annulla (⌘Z) torna indietro.
@@ -26,7 +27,7 @@ interface Base {
   disabled?: boolean
 }
 
-function Row({
+export function Row({
   label,
   hint,
   disabled,
@@ -370,13 +371,6 @@ export function CheckField({
   )
 }
 
-/** Il selettore nativo vuole #rrggbb: per nomi e codici brevi si mostra il nero */
-function toHex6(c: string): string {
-  if (/^#[0-9a-f]{6}$/i.test(c)) return c
-  if (/^#[0-9a-f]{3}$/i.test(c)) return '#' + [...c.slice(1)].map((ch) => ch + ch).join('')
-  return '#000000'
-}
-
 /** Codice esadecimale completo, nome di colore o colore del progetto: le versioni a metà non si applicano */
 const isColor = (t: string): boolean =>
   /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(t.trim()) ||
@@ -399,12 +393,7 @@ function ColorInput({
   const fields = useContext(ColorFieldsContext)
   return (
     <>
-      <input
-        type="color"
-        disabled={disabled}
-        value={toHex6(resolveColor(value, pal))}
-        onChange={(e) => onChange(e.target.value.toUpperCase())}
-      />
+      <ColorSwatch value={value} disabled={disabled} onChange={onChange} />
       <input
         className="color-text"
         disabled={disabled}

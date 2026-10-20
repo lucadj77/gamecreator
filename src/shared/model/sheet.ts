@@ -54,6 +54,30 @@ export function moveRow(s: Sheet, from: number, to: number): Sheet {
   return { ...s, rows }
 }
 
+/**
+ * Sposta più righe insieme, nel loro ordine, davanti alla riga `before` (indice nel foglio di
+ * partenza; il numero delle righe per metterle in fondo). Restituisce anche i loro nuovi indici.
+ */
+export function moveRows(
+  s: Sheet,
+  indexes: number[],
+  before: number
+): { sheet: Sheet; rows: number[] } {
+  const moving = new Set(indexes.filter((i) => i >= 0 && i < s.rows.length))
+  if (!moving.size) return { sheet: s, rows: [] }
+  const picked = s.rows.filter((_, i) => moving.has(i))
+  const rest = s.rows.filter((_, i) => !moving.has(i))
+  // la posizione tra le righe che restano: quante di quelle prima di `before` non si spostano
+  let at = 0
+  for (let i = 0; i < Math.min(before, s.rows.length); i++) if (!moving.has(i)) at++
+  const rows = [...rest.slice(0, at), ...picked, ...rest.slice(at)]
+  const unchanged = rows.every((r, i) => r === s.rows[i])
+  return {
+    sheet: unchanged ? s : { ...s, rows },
+    rows: picked.map((_, k) => at + k)
+  }
+}
+
 // ——— Ordinamento e filtro della vista: non cambiano il foglio ———
 
 export interface RowView {

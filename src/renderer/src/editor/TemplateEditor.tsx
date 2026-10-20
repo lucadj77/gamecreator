@@ -17,6 +17,7 @@ import PropertiesPanel from './PropertiesPanel'
 import { commands } from './commands'
 import { ResizeDialog } from './dialogs'
 import { useEditor } from './useEditor'
+import { DisplayContext } from './displayContext'
 
 interface Props {
   template: Template
@@ -173,6 +174,14 @@ export default function TemplateEditor({
     return bindCard(state.template, card, bindCtx)
   }, [state.template, previewSet, preview?.row, bindCtx])
 
+  const displayInfo = useMemo(
+    () => ({
+      template: display.template,
+      sheets: sets.flatMap((s) => (s.data ? [s.data] : []))
+    }),
+    [display, sets]
+  )
+
   const tools: [React.ReactNode, () => void, string][] = [
     ['T', () => cmd.add('text'), t('tool.text')],
     [<ImageIcon key="image" />, () => cmd.add('image'), t('tool.image')],
@@ -199,19 +208,21 @@ export default function TemplateEditor({
     />
   )
   const propsPanel = (
-    <PropertiesPanel
-      width={propsWidth}
-      state={state}
-      dispatch={dispatch}
-      cmd={cmd}
-      sheets={sets.flatMap((s) =>
-        s.data ? [{ set: s.name, headers: s.data.headers, rows: s.data.rows }] : []
-      )}
-      onResize={(w, h) => setResizing([w, h])}
-      side={propsSide}
-      onToggleSide={togglePropsSide}
-      base={base}
-    />
+    <DisplayContext.Provider value={displayInfo}>
+      <PropertiesPanel
+        width={propsWidth}
+        state={state}
+        dispatch={dispatch}
+        cmd={cmd}
+        sheets={sets.flatMap((s) =>
+          s.data ? [{ set: s.name, headers: s.data.headers, rows: s.data.rows }] : []
+        )}
+        onResize={(w, h) => setResizing([w, h])}
+        side={propsSide}
+        onToggleSide={togglePropsSide}
+        base={base}
+      />
+    </DisplayContext.Provider>
   )
   const panels = [
     {

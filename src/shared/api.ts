@@ -10,8 +10,10 @@ import type {
   ExportResult,
   Scene
 } from './export'
+import type { IconifySet } from './iconify'
 import type {
   AssetsUpdate,
+  CatalogUpdate,
   FontCatalog,
   SystemFontFamily,
   FontVariant,
@@ -104,6 +106,20 @@ export interface Api {
   iconCatalog(collection: IconCollection): Promise<IconCatalog>
   /** Copia le icone in assets/icons/ (o assets/images/) e ne registra la licenza */
   importIcons(collection: IconCollection, items: IconImport[]): Promise<AssetsUpdate>
+  /** Aggiorna dalla rete il catalogo di game-icons.net o dei font Google */
+  updateCatalog(which: 'game-icons' | 'google-fonts'): Promise<CatalogUpdate>
+  /** Collezioni di Iconify, con licenza (serve la rete) */
+  iconifyCollections(): Promise<IconifySet[]>
+  /** Nomi e categorie delle icone di una collezione di Iconify */
+  iconifyCollection(
+    prefix: string
+  ): Promise<{ icons: string[]; categories: Record<string, string[]> }>
+  /** Id "prefisso:nome" delle icone di Iconify trovate, in una collezione o in tutte */
+  iconifySearch(query: string, prefix?: string): Promise<string[]>
+  /** SVG delle icone di Iconify, per id */
+  iconifySvgs(ids: string[]): Promise<Record<string, string>>
+  /** Scrive le icone di Iconify in assets/icons/ (o assets/images/) e ne registra la licenza */
+  importIconifyIcons(items: IconImport[]): Promise<AssetsUpdate>
   /** Elenco dei font Google incluso nell'app */
   fontCatalog(): Promise<FontCatalog>
   /** Scarica le varianti di un font Google in assets/fonts/<famiglia>/ */

@@ -8,6 +8,7 @@ import {
   duplicateRows,
   insertRow,
   moveRow,
+  moveRows,
   removeColumn,
   removeRows,
   setCell,
@@ -110,5 +111,28 @@ describe('ordinamento e filtro della vista', () => {
   it("applica l'ordine al foglio, comprese le righe filtrate", () => {
     const sorted = applyOrder(s, { ...NO_VIEW, sort: 'forza', filter: 'zzz' })
     expect(sorted.rows.map((r) => r[0])).toEqual(['Strega', 'cavaliere', 'Àncora', '**Arciere**'])
+  })
+})
+
+describe('moveRows', () => {
+  const s: Sheet = { name: 'x', headers: ['n'], rows: [['a'], ['b'], ['c'], ['d'], ['e']] }
+  const names = (x: Sheet): string => x.rows.map((r) => r[0]).join('')
+  it('moves the rows together, in their order, before the given row', () => {
+    const r = moveRows(s, [3, 1], 0)
+    expect(names(r.sheet)).toBe('bdace')
+    expect(r.rows).toEqual([0, 1])
+  })
+  it('moves them to the end', () => {
+    const r = moveRows(s, [0, 2], 5)
+    expect(names(r.sheet)).toBe('bdeac')
+    expect(r.rows).toEqual([3, 4])
+  })
+  it('counts the target in the original sheet', () => {
+    const r = moveRows(s, [0, 1], 4)
+    expect(names(r.sheet)).toBe('cdabe')
+    expect(r.rows).toEqual([2, 3])
+  })
+  it('leaves the sheet alone when nothing changes', () => {
+    expect(moveRows(s, [1, 2], 1).sheet).toBe(s)
   })
 })

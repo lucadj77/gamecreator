@@ -13,6 +13,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Rename** in the template editor: the new name also goes into the sets, the derived templates and the `template` column of the cards that use it, and the template's file is renamed when you save.
 - A deleted template now always goes to the project's `deleted` folder, with date and time in its name, instead of the system trash, which some folders (synced or on network drives) do not allow. To get it back, put the file back in `templates`.
 - The sheet of a deleted set now leaves the data file when you save and goes to the `deleted` folder as a file of its own, with its formatting. Its name is free again for another set.
+- New `naibi rename-set` and `naibi rename-template` commands, so that an AI agent renames sets and templates the same way as the app. Copy the skill again into your agent to update it.
 - **System variables** for text and formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}`, `{set.rows}`, `{set.cards}`, `{card.copies}`, `{card.copy}`, `{card.side}` and `{date}`. They are suggested while you type a field name, after the project's variables. `{card.copy}` gives each copy of a card its own number in PDF and image exports.
 - **Help** (button in the top bar and on the start screen, or F1): the text markup, the system variables, the formula functions and the keyboard shortcuts in one window.
 
@@ -22,6 +23,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Rinomina** nell'editor dei template: il nome nuovo va anche nei set, nei template derivati e nella colonna `template` delle carte che lo usano, e il file del template cambia nome al salvataggio.
 - Un template eliminato ora va sempre nella cartella `deleted` del progetto, con data e ora nel nome, invece che nel cestino del sistema, che in alcune cartelle (sincronizzate o su dischi di rete) non si può usare. Per recuperarlo si rimette il file in `templates`.
 - Anche il foglio di un set eliminato ora, al salvataggio, esce dal file dei dati e va nella cartella `deleted` come file a sé, con la sua formattazione. Il suo nome torna libero per un altro set.
+- Nuovi comandi `naibi rename-set` e `naibi rename-template`, così un agente IA rinomina set e template come fa l'app. Copia di nuovo la skill nel tuo agente per aggiornarla.
 - **Variabili di sistema** per testi e formule: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}`, `{set.rows}`, `{set.cards}`, `{card.copies}`, `{card.copy}`, `{card.side}` e `{date}`. Vengono suggerite mentre scrivi il nome di un campo, dopo le variabili del progetto. `{card.copy}` dà a ogni copia di una carta il suo numero nelle esportazioni PDF e immagini.
 - **Aiuto** (pulsante nella barra in alto e nella schermata iniziale, oppure F1): i marcatori del testo, le variabili di sistema, le funzioni delle formule e le scorciatoie da tastiera in una sola finestra.
 

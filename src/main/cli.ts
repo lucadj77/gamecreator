@@ -16,7 +16,6 @@ import { bindRow, rowToCard } from '../shared/model/bind'
 import { systemOfSet } from '../shared/model/system'
 import { isGenericFont } from '../shared/model/fonts'
 import { resolveAsset } from '../shared/model/assets'
-import { walkLayers } from '../shared/model/normalize'
 import type { Layer, Template } from '../shared/model/template'
 import {
   DEFAULT_IMAGE,
@@ -31,6 +30,11 @@ import { runExport } from './export/run'
 import { loadProject } from './project/load'
 import { createProject } from './project/create'
 import { saveData } from './project/save'
+import { saveTemplate } from './project/templates'
+import { renameSet } from '../shared/model/renameSet'
+import { renameTemplate } from '../shared/model/renameTemplate'
+import { isValidSheetName } from '../shared/model/sheet'
+import { isValidTemplateName, walkLayers } from '../shared/model/normalize'
 import { setProjectFolder } from './protocol'
 import { systemFonts } from './library/systemFonts'
 import { createBackup } from './project/backup'
@@ -50,6 +54,11 @@ Commands:
   rows <project> <set> [--csv|--json]  Rows of a set's sheet (default: tab-separated)
   set-rows <project> <set> <file>      Replace a set's rows with a .csv or .json file
                                        (a backup of the project is made first)
+  rename-set <project> <set> <name>    Rename a set, its sheet in the data file and the export
+                                       profiles that pick it (backup first)
+  rename-template <project> <template> <name>
+                                       Rename a template and its file; sets, derived templates
+                                       and the cards' template column follow (backup first)
   render <project> [--set S] [--card N[,M,A-B]] [--side front|back|both]
          [--dpi 150] [--out folder]    Draw cards as PNG files (default folder: export/naibi-render)
   export <project> --profile NAME      Run a named export profile saved in the project
@@ -308,16 +317,88 @@ async function setRows(p: Parsed): Promise<number> {
     file.toLowerCase().endsWith('.json')
   )
   if (!headers.length) throw new CliError('the file has no columns')
-  const backup = await createBackup(
-    project.folder,
-    project.file.name,
-    join(app.getPath('documents'), 'Naibi', 'Backup', project.file.name || 'project')
-  ).catch(() => null)
+  const done = await backup(project)
   await saveData(project.folder, {
     sheets: [{ name: set.sheet ?? set.name, headers, rows: data }]
   })
   print(`${set.name}: wrote ${data.length} rows, columns ${headers.join(', ')}`)
-  if (backup) print(`Backup of the previous state: ${backup.file}`)
+  done()
+  return 0
+}
+
+/** Copia del progetto prima di cambiarlo; la funzione restituita dice dove è finita */
+async function backup(project: LoadedProject): Promise<() => void> {
+  const made = await createBackup(
+    project.folder,
+    project.file.name,
+    join(app.getPath('documents'), 'Naibi', 'Backup', project.file.name || 'project')
+  ).catch(() => null)
+  return () => {
+    if (made) print(`Backup of the previous state: ${made.file}`)
+  }
+}
+
+async function renameSetCommand(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  if ((await readAppState(project.folder))?.dirty) throw new CliError(UNSAVED)
+  const set = findSet(project, p.positional[1])
+  const to = p.positional[2]?.trim()
+  if (!to) throw new CliError('missing new name')
+  if (to === set.name) throw new CliError(`the set is already called "${to}"`)
+  if (!isValidSheetName(to))
+    throw new CliError('invalid name: at most 31 characters, none of : \\ / ? * [ ]')
+  const taken = [
+    ...project.sets.filter((s) => s !== set).flatMap((s) => [s.name, s.data?.name ?? s.name]),
+    ...project.unusedSheets
+  ]
+  if (taken.includes(to)) throw new CliError(`a set or sheet called "${to}" already exists`)
+  const index = project.sets.indexOf(set)
+  const csv = project.file.dataFile.toLowerCase().endsWith('.csv')
+  const r = renameSet(project.file, project.sets, index, to, csv)
+  const done = await backup(project)
+  const sheet = r.sets[index].data
+  await saveData(project.folder, { file: r.file, sheets: sheet?.origin ? [sheet] : [] })
+  print(
+    `Renamed set "${set.name}" to "${to}"` +
+      (sheet?.origin ? ', with its sheet' : `; its sheet is still "${r.file.sets[index].sheet}"`)
+  )
+  done()
+  return 0
+}
+
+async function renameTemplateCommand(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  if ((await readAppState(project.folder))?.dirty) throw new CliError(UNSAVED)
+  const from = p.positional[1]
+  const tpl = project.templates.find((t) => t.name === from)
+  if (!tpl) {
+    const names = project.templates.map((t) => t.name).join(', ')
+    throw new CliError(`no template "${from ?? ''}" (templates: ${names || 'none'})`)
+  }
+  const to = p.positional[2]?.trim()
+  if (!to) throw new CliError('missing new name')
+  if (to === tpl.name) throw new CliError(`the template is already called "${to}"`)
+  if (!isValidTemplateName(to)) throw new CliError('invalid name: no / \\ : * ? " < > |')
+  const taken = project.templates
+    .filter((t) => t !== tpl)
+    .flatMap((t) => [t.name, t.file ?? t.name])
+  if (taken.includes(to)) throw new CliError(`a template called "${to}" already exists`)
+  const r = renameTemplate(project, tpl.name, to)
+  const done = await backup(project)
+  // prima i template, così i set nuovi trovano già il file con il nome nuovo
+  const changed = r.templates.filter((t, i) => t !== project.templates[i])
+  for (const t of changed) await saveTemplate(project.folder, t)
+  const sheets = r.sets.flatMap((s, i) =>
+    s.data && s.data !== project.sets[i].data ? [s.data] : []
+  )
+  await saveData(project.folder, { file: r.file, sheets })
+  const derived = changed.length - 1
+  print(
+    `Renamed template "${tpl.name}" to "${to}"` +
+      (derived ? `; ${derived} derived template(s) updated` : '') +
+      (sheets.length ? `; template column updated in ${sheets.map((s) => s.name).join(', ')}` : '')
+  )
+  done()
   return 0
 }
 
@@ -439,6 +520,8 @@ const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   template,
   rows,
   'set-rows': setRows,
+  'rename-set': renameSetCommand,
+  'rename-template': renameTemplateCommand,
   render,
   export: exportProfile,
   new: create,

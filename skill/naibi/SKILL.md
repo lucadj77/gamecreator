@@ -24,6 +24,8 @@ followed by a command. `<project>` is the project folder (the one with `naibi.js
 | `template <project> <name>`                                                                         | Layers of a template with position, size and where each value comes from. `--json` prints the full template                                |
 | `rows <project> <set> [--json\|--csv]`                                                              | The set's rows (tab-separated by default; `\n` stands for a line break inside a cell)                                                      |
 | `set-rows <project> <set> <file.json\|file.csv>`                                                    | Replaces all rows of the set (headers included) with the file's content. A backup of the project is made first                             |
+| `rename-set <project> <set> <name>`                                                                 | Renames a set, its sheet in the data file and the export profiles that pick it. A backup is made first                                     |
+| `rename-template <project> <template> <name>`                                                       | Renames a template and its file; the sets, derived templates and `template` column of the cards follow. A backup is made first             |
 | `render <project> [--set S] [--card 1,3,5-7] [--side front\|back\|both] [--dpi 150] [--out folder]` | Draws cards as PNG files, by default in `<project>/export/naibi-render/<set>/<n>.png`. Open the images to check your work                  |
 | `export <project> --profile NAME`                                                                   | Runs an export profile saved in the project (PDF, images or Tabletop Simulator)                                                            |
 | `new <name> <parent folder>`                                                                        | Creates an empty project                                                                                                                   |
@@ -37,7 +39,7 @@ followed by a command. `<project>` is the project folder (the one with `naibi.js
 1. Run `begin` before changing anything in the project, with `--note` saying in a few words what you are doing. If it fails because the app has unsaved changes, stop: tell the user to save (or reload) in the Naibi app, and start again only when they say so. Reading commands (`info`, `check`, `template`, `rows`, `render`) do not need `begin`.
 2. Run `info` to learn the project before changing anything. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
 3. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets, formulas and formatting intact.
-4. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are.
+4. Rename sets and templates only with `rename-set` and `rename-template`: renaming files by hand breaks the references to them. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are.
 5. After every change run `check`, then `render` the cards you touched and look at the images. Fix what is wrong before reporting.
 6. Always run `end` when you have finished, also when you stop because of an error or a question for the user: until then the app stays locked. The app reloads the project by itself.
 

@@ -11,6 +11,8 @@ Il comando `naibi` permette a un agente IA (Claude Code, Codex, Cursor…) o a u
 | `template <progetto> <nome>`                                                                           | livelli del template (per un derivato, già risolti, con il base e le differenze); con `--json` il template completo            |
 | `rows <progetto> <set> [--json\|--csv]`                                                                | righe del set, separate da tab se non si indica altro                                                                          |
 | `set-rows <progetto> <set> <file.json\|file.csv>`                                                      | sostituisce le righe del set, dopo aver fatto un backup del progetto                                                           |
+| `rename-set <progetto> <set> <nome>`                                                                   | rinomina il set, il suo foglio nel file dei dati e i profili di esportazione che lo scelgono, dopo un backup                   |
+| `rename-template <progetto> <template> <nome>`                                                         | rinomina il template e il suo file; set, derivati e colonna `template` delle carte seguono il nome nuovo; prima fa un backup   |
 | `render <progetto> [--set S] [--card 1,3,5-7] [--side front\|back\|both] [--dpi 150] [--out cartella]` | disegna le carte in PNG, di base in `export/naibi-render/<set>/<n>.png`                                                        |
 | `export <progetto> --profile NOME`                                                                     | esegue un profilo di esportazione salvato nel progetto                                                                         |
 | `new <nome> <cartella>`                                                                                | crea un progetto vuoto                                                                                                         |
@@ -33,7 +35,7 @@ L'app e un agente non devono modificare lo stesso progetto insieme, altrimenti u
 - finché c'è `.naibi-ai` l'app mostra un avviso e non si usa. Si controlla ogni secondo;
 - `end` cancella `.naibi-ai`: l'app si sblocca e ricarica il progetto da sola.
 
-Se l'agente si ferma senza `end`, nell'avviso c'è **Sblocca ora**. `set-rows` rifiuta anche da solo se l'app ha modifiche non salvate. I due file iniziano con il punto, quindi restano fuori dai backup; un `.naibi-app` lasciato da un'app chiusa male non conta, perché il suo processo non c'è più.
+Se l'agente si ferma senza `end`, nell'avviso c'è **Sblocca ora**. `set-rows`, `rename-set` e `rename-template` rifiutano anche da soli se l'app ha modifiche non salvate. I due file iniziano con il punto, quindi restano fuori dai backup; un `.naibi-app` lasciato da un'app chiusa male non conta, perché il suo processo non c'è più.
 
 ## Skill per gli agenti
 

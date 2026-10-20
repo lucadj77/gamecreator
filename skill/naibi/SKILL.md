@@ -38,8 +38,8 @@ followed by a command. `<project>` is the project folder (the one with `naibi.js
 
 1. Run `begin` before changing anything in the project, with `--note` saying in a few words what you are doing. If it fails because the app has unsaved changes, stop: tell the user to save (or reload) in the Naibi app, and start again only when they say so. Reading commands (`info`, `check`, `template`, `rows`, `render`) do not need `begin`.
 2. Run `info` to learn the project before changing anything. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
-3. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets, formulas and formatting intact.
-4. Rename sets and templates only with `rename-set` and `rename-template`: renaming files by hand breaks the references to them. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are.
+3. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets and the cells you do not change (formulas, dates, formatting) intact; a changed cell becomes plain text, or a number when it reads back the same.
+4. Rename sets and templates only with `rename-set` and `rename-template`: renaming files by hand breaks the references to them. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are. `set-rows`, `rename-set` and `rename-template` also refuse on their own (exit code 2) when the app has unsaved changes.
 5. After every change run `check`, then `render` the cards you touched and look at the images. Fix what is wrong before reporting.
 6. Always run `end` when you have finished, also when you stop because of an error or a question for the user: until then the app stays locked. The app reloads the project by itself.
 

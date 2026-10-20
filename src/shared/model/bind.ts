@@ -113,6 +113,8 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
           const r = evaluateFormula(src.expr, fields)
           for (const f of r.missing)
             problems.push(msg('bind.formulaField', { layer: layer.name, field: f }))
+          if (r.error)
+            problems.push(msg('bind.formulaError', { layer: layer.name, error: r.error }))
           if (r.value.trim() !== '') props.set('', r.value)
           else props.delete('')
         }

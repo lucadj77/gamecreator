@@ -344,7 +344,8 @@ function cellXml(old: RawCell, v: string): string {
   const style = attr(old.raw.slice(0, old.raw.indexOf('>') + 1), 'table:style-name')
   const s = style ? ` table:style-name="${escape(style)}"` : ''
   if (v === '') return `<table:table-cell${s}/>`
-  if (/^-?(0|[1-9]\d*)(\.\d+)?$/.test(v))
+  // solo se il numero si rilegge uguale: "1.50" e i numeri oltre le 15 cifre restano testo
+  if (/^-?(0|[1-9]\d*)(\.\d+)?$/.test(v) && String(Number(v)) === v)
     return `<table:table-cell${s} office:value-type="float" office:value="${v}"><text:p>${v}</text:p></table:table-cell>`
   const paras = v
     .split('\n')

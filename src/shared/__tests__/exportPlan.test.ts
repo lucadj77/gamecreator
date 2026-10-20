@@ -107,3 +107,27 @@ describe('piegatura e fogli di prova', () => {
     expect(proof.labels?.map((l) => l.text).slice(0, 2)).toEqual(['a 1', 'a 1 · back'])
   })
 })
+
+describe('casi limite', () => {
+  it('immagini: nomi unici tra set diversi anche senza %set', () => {
+    const sets = [
+      { name: 'eroi', cards: [card(1, 1, 'A')] },
+      { name: 'mostri', cards: [card(1, 1, 'A')] }
+    ]
+    const files = planImages({ ...DEFAULT_IMAGE, pattern: '{nome}' }, sets)
+    expect(files.map((f) => f.names[0])).toEqual(['A', 'A_2'])
+  })
+
+  it('poster: senza area utile il conto delle parti resta finito', () => {
+    const L = posterLayout(63, 88, 0, 77, 10, true)
+    expect(Number.isFinite(L.cols) && Number.isFinite(L.rows)).toBe(true)
+    expect(L.cols * L.rows).toBeLessThanOrEqual(4)
+    const big = normalizeTemplate({ name: 'big', width: 300, height: 400, front: [], back: [] })
+    const sets = [{ name: 'eroi', cards: [{ ...card(1), template: big }] }]
+    const plan = planPdf({ ...DEFAULT_PDF, poster: true, margin: 105, sides: 'front' }, sets, 'p')
+    expect(plan.overflow).toEqual(['eroi'])
+    expect(plan.docs.every((d) => d.pages.length < 100)).toBe(true)
+    const grid = planPdf({ ...DEFAULT_PDF, margin: 200, sides: 'front' }, sets, 'p')
+    expect(grid.overflow).toEqual(['eroi'])
+  })
+})

@@ -81,10 +81,14 @@ export default function TemplateEditor({
   const [layersSide, toggleLayersSide] = usePanelSide('layers', 'left')
   const [propsSide, togglePropsSide] = usePanelSide('properties', 'right')
 
-  // le modifiche risalgono subito all'app: le anteprime dei set le mostrano prima del salvataggio
-  const initial = useRef(template)
+  // le modifiche risalgono subito all'app: le anteprime dei set le mostrano prima del salvataggio.
+  // Si confronta con l'ultimo template mandato, non con quello iniziale: annullando fino al
+  // punto di partenza l'app deve ricevere anche quello, altrimenti salverebbe la versione modificata
+  const sent = useRef(template)
   useEffect(() => {
-    if (state.template !== initial.current) onChange(state.template)
+    if (state.template === sent.current) return
+    sent.current = state.template
+    onChange(state.template)
   }, [state.template, onChange])
 
   const canUndo = state.past.length > 0

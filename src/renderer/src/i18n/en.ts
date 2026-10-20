@@ -774,6 +774,7 @@ export const en = {
   'bind.formulaField':
     'Layer {layer}: the formula uses field "{field}", which this row does not have',
   'bind.invalidValue': 'Column {column}: invalid value "{value}"',
+  'bind.formulaError': 'Layer {layer}: formula error: {error}',
   'bind.markup': 'Layer {layer}: {problem}',
   'bind.unknownRef': 'Layer {layer}: {{name}} is not a field or an image in assets',
   'bind.missingVariableImage':

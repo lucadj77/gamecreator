@@ -785,6 +785,7 @@ export const it: Record<MessageKey, string> = {
   'bind.unknownProperty': 'Colonna {column}: proprietà inesistente',
   'bind.formulaField': 'Livello {layer}: la formula usa il campo "{field}", che questa riga non ha',
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
+  'bind.formulaError': 'Livello {layer}: errore nella formula: {error}',
   'bind.markup': 'Livello {layer}: {problem}',
   'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
   'bind.missingVariableImage':

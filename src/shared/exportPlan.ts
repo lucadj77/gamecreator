@@ -61,11 +61,12 @@ export const imageExtension = (o: ImageOptions): ImageOptions['format'] => o.for
 export function planImages(o: ImageOptions, sets: ExportSet[]): ImageFile[] {
   const pattern = effectivePattern(o)
   const sides = sidesOf(o.sides)
-  const out: ImageFile[] = []
+  // i nomi devono essere unici in tutta l'esportazione, non solo dentro un set: con uno schema
+  // senza %set due set darebbero gli stessi nomi e il secondo sovrascriverebbe il primo
+  const files: ImageFile[] = []
+  const all: string[] = []
   for (const set of sets) {
     const digits = String(set.cards.length).length
-    const files: ImageFile[] = []
-    const all: string[] = []
     for (const card of set.cards)
       for (const side of sides) {
         const copies = expandCopies([card], o.copies)
@@ -79,12 +80,11 @@ export function planImages(o: ImageOptions, sets: ExportSet[]): ImageFile[] {
         for (const g of groups) files.push({ set: set.name, card: g.card, side, names: g.names })
         all.push(...names)
       }
-    // nomi ripetuti (per esempio {nome} uguale su due carte): si numerano
-    const unique = uniqueNames(all)
-    let k = 0
-    for (const f of files) out.push({ ...f, names: f.names.map(() => unique[k++]) })
   }
-  return out
+  // nomi ripetuti (per esempio {nome} uguale su due carte): si numerano
+  const unique = uniqueNames(all)
+  let k = 0
+  return files.map((f) => ({ ...f, names: f.names.map(() => unique[k++]) }))
 }
 
 // ——— PDF ———
@@ -106,8 +106,11 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
   const overflow: string[] = []
   const bySet = sets.map((set) => {
     const grid = pdfGrid(o, set.cards[0].template)
-    if (gridOverflows(grid) && o.poster && !o.fold) return { set, pages: posterPages(o, set) }
-    if (gridOverflows(grid)) overflow.push(set.name)
+    // margini oltre metà pagina: nessuna area utile, né per la griglia né per un poster
+    const noRoom = page.width <= 2 * o.margin || page.height <= 2 * o.margin
+    const poster = gridOverflows(grid) && o.poster && !o.fold
+    if (noRoom || (gridOverflows(grid) && !poster)) overflow.push(set.name)
+    if (poster) return { set, pages: posterPages(o, set) }
     if (o.fold) return { set, pages: foldPages(o, set, grid) }
     const plans = planPdfPages(o, grid, expandCopies(set.cards, o.copies))
     const pages = plans.map((plan) => ({
@@ -292,8 +295,10 @@ export function posterLayout(
 ): PosterLayout {
   const axis = (size: number, avail: number): { n: number; step: number; tile: number } => {
     if (size <= avail + 1e-6) return { n: 1, step: 0, tile: size }
+    // senza area utile (margini oltre metà pagina) una sola parte: il conto darebbe infinito
+    if (!(avail > 0)) return { n: 1, step: 0, tile: 0 }
     const ov = Math.min(Math.max(0, overlap), avail / 2)
-    const n = Math.ceil((size - ov) / (avail - ov) - 1e-6)
+    const n = Math.max(2, Math.ceil((size - ov) / (avail - ov) - 1e-6))
     return { n, step: (size - avail) / (n - 1), tile: avail }
   }
   const make = (w: number, h: number, rotated: boolean): PosterLayout => {

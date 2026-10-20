@@ -218,6 +218,11 @@ function App(): React.JSX.Element {
   const [deriving, setDeriving] = useState<string | null>(null)
   /** Fogli modificati e non ancora salvati, per nome del foglio */
   const [dirtySheets, setDirtySheets] = useState<Set<string>>(new Set())
+  /**
+   * Fogli sul disco dei set eliminati e non ancora salvati: al salvataggio vanno in deleted/ anche
+   * se nel frattempo un set nuovo ha preso lo stesso nome (il foglio nuovo si scrive da capo)
+   */
+  const [trashedSheets, setTrashedSheets] = useState<Set<string>>(new Set())
   /** file di progetto da riscrivere (set nuovi) */
   const [fileDirty, setFileDirty] = useState(false)
   const [history, setHistory] = useState<{
@@ -242,6 +247,7 @@ function App(): React.JSX.Element {
       setProject(loaded)
       setDirty(new Set())
       setDirtySheets(new Set())
+      setTrashedSheets(new Set())
       setFileDirty(false)
       setHistory({ past: [], future: [], at: 0 })
       setSelected((s) =>
@@ -452,6 +458,12 @@ function App(): React.JSX.Element {
     )
     // un set eliminato che torna riprende il suo foglio, che non è più tra quelli non collegati
     const linked = new Set(snap.sets.flatMap((x) => (x.data ? [x.data.name] : [])))
+    // un set eliminato che torna non deve più perdere il suo foglio sul disco
+    setTrashedSheets((t) => {
+      const next = new Set(t)
+      for (const x of snap.sets) if (x.data) next.delete(x.data.origin ?? x.data.name)
+      return next
+    })
     setProject({
       ...project,
       ...snap,
@@ -576,7 +588,7 @@ function App(): React.JSX.Element {
         ...project.sets.flatMap((x) => (x.data ? [x.data.name, x.data.origin ?? ''] : [])),
         ...project.unusedSheets
       ])
-      const removed = (project.diskSheets ?? []).filter((x) => !used.has(x))
+      const removed = (project.diskSheets ?? []).filter((x) => !used.has(x) || trashedSheets.has(x))
       if (sheets.length || fileDirty || removed.length)
         await window.api.saveData({ file: fileDirty ? project.file : undefined, sheets, removed })
       const onDisk = [
@@ -599,6 +611,7 @@ function App(): React.JSX.Element {
             }
         )
       setDirtySheets(new Set())
+      setTrashedSheets(new Set())
       setFileDirty(false)
       updateThumbnail(project, false)
     } catch (e) {
@@ -732,12 +745,15 @@ function App(): React.JSX.Element {
       sets: project.sets.filter((_, i) => i !== index),
       file: { ...project.file, sets: project.file.sets.filter((_, i) => i !== index) }
     })
-    if (sheet)
+    if (sheet) {
       setDirtySheets((d) => {
         const next = new Set(d)
         next.delete(sheet.name)
         return next
       })
+      // il foglio sul disco ha ancora il nome di prima se il set era stato rinominato
+      setTrashedSheets((t) => new Set(t).add(sheet.origin ?? sheet.name))
+    }
     setFileDirty(true)
     if (selected.kind === 'set' && selected.index >= index && selected.index > 0)
       setSelected({ kind: 'set', index: selected.index - 1 })

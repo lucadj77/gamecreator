@@ -13,6 +13,7 @@ import {
   planPdfPages,
   safeName,
   ttsAutoGrid,
+  ttsImageUrl,
   ttsSavedObject,
   ttsScale,
   uniqueNames,
@@ -182,5 +183,14 @@ describe('Tabletop Simulator', () => {
       [{ sheet: 0, slot: 0, nickname: '', description: '' }]
     ) as { ObjectStates: Record<string, unknown>[] }
     expect(one.ObjectStates[0]).toMatchObject({ Name: 'Card', CardID: 100, Nickname: 'Eroi' })
+  })
+  it('su Windows scrive le immagini nella forma che legge Tabletop Simulator', () => {
+    const p = 'C:\\Users\\Anna\\Giochi\\Fora arma/export/tts/images/Armeria_faces_1.png'
+    expect(ttsImageUrl(p, 'win32', 'ignored')).toBe(
+      'file:///C:\\Users\\Anna\\Giochi\\Fora arma\\export\\tts\\images\\Armeria_faces_1.png'
+    )
+    expect(ttsImageUrl('/Users/luca/x y.png', 'darwin', 'file:///Users/luca/x%20y.png')).toBe(
+      'file:///Users/luca/x%20y.png'
+    )
   })
 })

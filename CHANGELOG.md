@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.7
+
+### English
+
+- Tabletop Simulator export on Windows: the saved objects now load in TTS. The image addresses in the JSON were written as standard file URLs (`/` and `%20`), which TTS on Windows does not read; they are now written as TTS writes them itself, `file:///C:\...` with backslashes. Export again to update the files.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator su Windows: gli oggetti salvati ora si caricano in TTS. Gli indirizzi delle immagini nel JSON erano scritti come URL di file standard (`/` e `%20`), che TTS su Windows non legge; ora sono scritti come li scrive TTS stesso, `file:///C:\...` con le barre rovesciate. Esporta di nuovo per aggiornare i file.
+
 ## 1.2.0-beta.6
 
 ### English

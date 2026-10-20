@@ -686,3 +686,13 @@ export function defaultTtsFolder(platform: string, home: string, documents: stri
     return `${documents}\\My Games\\Tabletop Simulator\\Saves\\Saved Objects`
   return `${home}/.local/share/Tabletop Simulator/Saves/Saved Objects`
 }
+
+/**
+ * Indirizzo di un'immagine locale per i FaceURL/BackURL di Tabletop Simulator. Su Windows TTS
+ * legge solo la forma che scrive lui stesso, file:/// seguito dal percorso con \ e senza codifica
+ * (spazi e lettere accentate come sono); con le / e i %20 di un URL standard non carica le carte.
+ */
+export function ttsImageUrl(path: string, platform: string, standardUrl: string): string {
+  if (platform === 'win32') return 'file:///' + path.replace(/\//g, '\\')
+  return standardUrl
+}

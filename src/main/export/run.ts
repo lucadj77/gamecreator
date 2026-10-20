@@ -7,6 +7,7 @@ import { pathToFileURL } from 'url'
 import type { NativeImage } from 'electron'
 import {
   defaultTtsFolder,
+  ttsImageUrl,
   pageSize,
   safeName,
   uniqueNames,
@@ -348,8 +349,8 @@ async function exportTts(
           if (i === 0) await write(ctx, backFile, s.back)
         }
         ttsSheets.push({
-          faceUrl: pathToFileURL(faceFile).href,
-          backUrl: pathToFileURL(backFile).href,
+          faceUrl: ttsImageUrl(faceFile, env.platform, pathToFileURL(faceFile).href),
+          backUrl: ttsImageUrl(backFile, env.platform, pathToFileURL(backFile).href),
           cols: s.cols,
           rows: s.rows,
           uniqueBack: s.uniqueBack

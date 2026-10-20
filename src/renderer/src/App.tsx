@@ -2,12 +2,19 @@ import AiToolsDialog from './components/AiToolsDialog'
 import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { LoadedProject, LoadedSet, ProjectFile, Sheet } from '../../shared/project'
+import type {
+  LoadedProject,
+  LoadedSet,
+  ProjectFile,
+  SetDefinition,
+  Sheet
+} from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
-import { bindCard, rowToCard, type BoundCard } from '../../shared/model/bind'
+import { bindCard, computedValues, rowToCard, type BoundCard } from '../../shared/model/bind'
 import type { Layer, Side, Template } from '../../shared/model/template'
 import {
   addColumn,
+  booleanColumns,
   duplicateRows,
   insertRow,
   isValidSheetName,
@@ -15,6 +22,7 @@ import {
   newSheet,
   removeRows,
   applyOrder,
+  setColumns,
   viewRows,
   NO_VIEW,
   type RowView
@@ -26,6 +34,7 @@ import {
   type RefKind
 } from '../../shared/model/rename'
 import { hitTest, toLocal } from '../../shared/model/geometry'
+import { arrangeGroup } from '../../shared/model/arrange'
 import {
   denormalizeTemplate,
   isValidTemplateName,
@@ -63,6 +72,7 @@ import TemplateEditor from './editor/TemplateEditor'
 import { NewTemplateDialog } from './editor/dialogs'
 import CardGrid from './components/CardGrid'
 import CardForm from './components/CardForm'
+import ColumnsMenu from './components/ColumnsMenu'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import CardSvg from './render/CardSvg'
 import {
@@ -145,6 +155,11 @@ function App(): React.JSX.Element {
   }
   const [project, setProject] = useState<LoadedProject | null>(null)
   useRegisterFonts(project?.fonts)
+  // la versione installata resta visibile nel titolo della finestra
+  const projectName = project?.file.name
+  useEffect(() => {
+    document.title = [projectName, `Naibi ${__APP_VERSION__}`].filter(Boolean).join(' — ')
+  }, [projectName])
   // icone e font importati: gli asset cambiano senza ricaricare il progetto
   useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [])
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
@@ -264,6 +279,26 @@ function App(): React.JSX.Element {
         ...project.file,
         sets: project.file.sets.map((x, i) => (i === index ? { ...x, template } : x))
       }
+    })
+    setFileDirty(true)
+  }
+
+  /** Colonne mostrate nel set: è una preferenza, salvata nel progetto ma fuori dall'annulla */
+  const setColumnsView = (
+    index: number,
+    view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>
+  ): void => {
+    if (!project) return
+    const patch = <T extends SetDefinition>(x: T): T => {
+      const next = { ...x, ...view }
+      if (!next.hiddenColumns?.length) delete next.hiddenColumns
+      if (!next.showComputed) delete next.showComputed
+      return next
+    }
+    setProject({
+      ...project,
+      sets: project.sets.map((x, i) => (i === index ? patch(x) : x)),
+      file: { ...project.file, sets: project.file.sets.map((x, i) => (i === index ? patch(x) : x)) }
     })
     setFileDirty(true)
   }
@@ -1071,6 +1106,9 @@ function App(): React.JSX.Element {
                       onChangeTemplate={(name) =>
                         setTemplate(selected.kind === 'set' ? selected.index : 0, name)
                       }
+                      onChangeColumns={(view) =>
+                        setColumnsView(selected.kind === 'set' ? selected.index : 0, view)
+                      }
                     />
                   ) : (
                     <section className="content">
@@ -1251,13 +1289,16 @@ function SetView({
   templates,
   onChange,
   onEditTemplate,
-  onChangeTemplate
+  onChangeTemplate,
+  onChangeColumns
 }: {
   set: LoadedSet
   templates: Template[]
   onChange(sheet: Sheet, key?: string): void
   /** Assegna al set un altro template */
   onChangeTemplate(name: string): void
+  /** Colonne nascoste e livelli calcolati mostrati */
+  onChangeColumns(view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>): void
   /** Apre nell'editor il template del set */
   onEditTemplate(): void
 }): React.JSX.Element {
@@ -1267,6 +1308,8 @@ function SetView({
   const [addingColumn, setAddingColumn] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
+  /** Ultimo clic sull'anteprima, per passare al livello sotto con un altro clic */
+  const lastPick = useRef<{ x: number; y: number; row: number; column: string } | null>(null)
   const [rowView, setRowView] = useState<RowView>(NO_VIEW)
   const [previewWidth, setPreviewWidth] = usePanelWidth('preview', 320)
   const [previewSide, togglePreviewSide] = usePanelSide('preview', 'right')
@@ -1307,6 +1350,36 @@ function SetView({
   }, [template, set.data, bindCtx])
 
   const order = useMemo(() => (set.data ? viewRows(set.data, rowView) : []), [set.data, rowView])
+
+  // colonne mostrate: tutte quelle modificabili, tranne le nascoste; i livelli fissi e con
+  // formula solo a richiesta
+  const allColumns = useMemo(
+    () => (set.data ? setColumns(set.data, template) : []),
+    [set.data, template]
+  )
+  const hidden = new Set(set.hiddenColumns ?? [])
+  const columns = allColumns.filter(
+    (c) => !hidden.has(c.header) && (!c.computed || set.showComputed)
+  )
+  const booleans = useMemo(
+    () => (set.data ? booleanColumns(set.data, template) : new Map<string, boolean | null>()),
+    [set.data, template]
+  )
+  // valori dei livelli fissi e con formula, solo quando si mostrano
+  const showsComputed = columns.some((c) => c.computed)
+  const computedRows = useMemo(
+    () =>
+      template && set.data && showsComputed
+        ? set.data.rows.map((r) =>
+            computedValues(template, rowToCard(set.data!.headers, r), bindCtx.variables)
+          )
+        : [],
+    [template, set.data, bindCtx, showsComputed]
+  )
+  const computed = useCallback(
+    (row: number): Record<string, string> => computedRows[row] ?? {},
+    [computedRows]
+  )
 
   // PagSu e PagGiù passano alla carta precedente o successiva, nell'ordine della vista, anche
   // mentre si scrive nei campi della carta (il campo resta lo stesso)
@@ -1370,7 +1443,10 @@ function SetView({
     setSelection([Math.min(Math.min(...selection), sheet.rows.length - selection.length - 1)])
   }
 
-  /** Clic su un livello della carta in anteprima: si va al campo della sua colonna */
+  /**
+   * Clic su un livello della carta in anteprima: si va al campo della sua colonna. Un altro clic
+   * nello stesso punto passa al livello sotto, se anche quello ha un campo.
+   */
   const pickField = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (!card) return
     const svg = e.currentTarget.querySelector('svg')
@@ -1378,13 +1454,20 @@ function SetView({
     const r = svg.getBoundingClientRect()
     const p = { x: (e.clientX - r.left) / PREVIEW_SCALE, y: (e.clientY - r.top) / PREVIEW_SCALE }
     const layers = side === 'front' ? card.template.front : card.template.back
+    const editable = new Set(columns.filter((c) => !c.computed).map((c) => c.header))
+    const found: string[] = []
     for (const l of hitsAt(layers, p)) {
       const column = l.source.kind === 'column' ? (l.source.column ?? l.name) : null
-      if (column && sheet.headers.includes(column)) {
-        setFocus({ column, seq: Date.now() })
-        return
-      }
+      if (column && editable.has(column) && !found.includes(column)) found.push(column)
     }
+    if (!found.length) return
+    const last = lastPick.current
+    const again =
+      last && last.row === current && Math.hypot(last.x - p.x, last.y - p.y) < 1
+        ? (found.indexOf(last.column) + 1) % found.length
+        : 0
+    lastPick.current = { ...p, row: current, column: found[again] }
+    setFocus({ column: found[again], seq: Date.now() })
   }
 
   const preview = (
@@ -1438,6 +1521,9 @@ function SetView({
           row={current}
           rows={selection}
           template={template}
+          columns={columns}
+          booleans={booleans}
+          computed={computed}
           focus={focus}
           onChange={onChange}
         />
@@ -1518,6 +1604,12 @@ function SetView({
           <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
             {t('set.addColumn')}
           </button>
+          <ColumnsMenu
+            columns={allColumns}
+            hidden={hidden}
+            showComputed={!!set.showComputed}
+            onChange={onChangeColumns}
+          />
           <span className="sep" />
           <input
             type="search"
@@ -1597,6 +1689,9 @@ function SetView({
         {view === 'table' || !template ? (
           <DataTable
             sheet={sheet}
+            columns={columns}
+            booleans={booleans}
+            computed={computed}
             selected={selection}
             onSelect={setSelection}
             onChange={onChange}
@@ -1698,15 +1793,26 @@ function renameReferences(
   return { ...p, templates, sets, file: { ...p.file, ...defs } }
 }
 
-/** Livelli sotto il punto, dal più in alto, entrando nei gruppi */
+/**
+ * Livelli sotto il punto, dal più in alto, entrando nei gruppi con i figli dove sono disegnati.
+ * I livelli che sulla carta non mostrano nulla (testo vuoto, immagine senza file, opacità zero)
+ * non coprono quelli sotto.
+ */
 function hitsAt(layers: Layer[], p: { x: number; y: number }): Layer[] {
   const out: Layer[] = []
   for (const l of layers) {
-    if (!hitTest(l, p)) continue
-    if (l.type === 'group') out.push(...hitsAt(l.children, toLocal(l, p)), l)
-    else out.push(l)
+    if (!hitTest(l, p) || l.opacity <= 0) continue
+    if (l.type === 'group') out.push(...hitsAt(arrangeGroup(l).children, toLocal(l, p)), l)
+    else if (!isBlank(l)) out.push(l)
   }
   return out
+}
+
+function isBlank(l: Layer): boolean {
+  if (l.type === 'text') return !l.text.trim()
+  if (l.type === 'image') return !l.src.trim()
+  if (l.type === 'shape') return !l.fill && !l.stroke
+  return false
 }
 
 const THUMB_MIN = 1.2

@@ -249,6 +249,29 @@ export function cardFields(
   return fields
 }
 
+/**
+ * Valore principale dei livelli fissi e con formula per una carta: il valore del template o il
+ * risultato della formula. Si mostrano in tabella, senza poterli modificare.
+ */
+export function computedValues(
+  template: Template,
+  card: CardData,
+  variables?: Variables
+): Record<string, string> {
+  const fields = cardFields(template, card, variables)
+  const out: Record<string, string> = {}
+  for (const l of walkLayers([...template.front, ...template.back])) {
+    if (l.source.kind === 'column' || l.type === 'group') continue
+    out[l.name] =
+      l.type === 'value'
+        ? (fields[l.name] ?? '')
+        : l.source.kind === 'formula'
+          ? evaluateFormula(l.source.expr, fields).value
+          : (defaultValue(l) ?? '')
+  }
+  return out
+}
+
 /** {spada} o {spada tint=red} come valore di un campo: il riferimento senza le graffe */
 function unbrace(value: string): string {
   const v = value.trim()

@@ -40,6 +40,8 @@ const SNAP_PX = 6
 /** Distanza minima in pixel tra le linee della griglia disegnata */
 const GRID_MIN_PX = 6
 const HANDLE_PX = 8
+/** Distanza in pixel entro cui si prende un livello sottile, come una linea */
+const HIT_PX = 5
 const ROTATE_PX = 22
 const ZOOMS = [2, 3, 4, 6, 8, 12, 16]
 const MIN_SCALE = 1
@@ -186,15 +188,28 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     return { x: (e.clientX - r.left) / scale + stage.x, y: (e.clientY - r.top) / scale + stage.y }
   }
 
-  /** Livello colpito, prima nel gruppo in cui si è entrati e poi al primo livello */
-  const pick = (p: Point): { hit: Layer | null; scope: string | null } => {
+  /** Tolleranza per le linee sottili: qualche pixel, a ogni ingrandimento */
+  const hitPad = Math.max(0.6, HIT_PX / scale)
+
+  /**
+   * Livello colpito, prima nel gruppo in cui si è entrati e poi al primo livello. Con `below`
+   * (Alt+clic) si prende il livello sotto quello selezionato nello stesso punto, e si ricomincia
+   * dall'alto dopo l'ultimo.
+   */
+  const pick = (p: Point, below = false): { hit: Layer | null; scope: string | null } => {
+    const choose = (list: Layer[], q: Point): Layer | null => {
+      const hits = list.filter((l) => !l.locked && hitTest(l, q, hitPad))
+      if (!below || hits.length < 2) return hits[0] ?? null
+      const at = hits.findIndex((l) => selection.includes(l.id))
+      return hits[(at + 1) % hits.length]
+    }
     const group = scope ? findLayer(layers, scope) : null
     if (group && group.type === 'group') {
       const q = toFrame(p, [...ancestorsOf(layers, group.id), group])
-      const hit = group.children.find((l) => !l.locked && hitTest(l, q))
+      const hit = choose(group.children, q)
       if (hit) return { hit, scope }
     }
-    return { hit: layers.find((l) => !l.locked && hitTest(l, p)) ?? null, scope: null }
+    return { hit: choose(layers, p), scope: null }
   }
 
   const frameOf = (id: string): GroupLayer[] => ancestorsOf(layers, id)
@@ -222,7 +237,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const onPointerDown = (e: React.PointerEvent): void => {
     if (e.button !== 0) return
     const p = cardPoint(e)
-    const { hit, scope: hitScope } = pick(p)
+    const { hit, scope: hitScope } = pick(p, e.altKey)
     if (!hit) {
       // sul vuoto si trascina un rettangolo di selezione
       if (!e.shiftKey) dispatch({ type: 'select', ids: [], scope })
@@ -421,7 +436,7 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     const { hit } = pick(p)
     if (!hit || hit.type !== 'group') return
     const q = toFrame(p, [...frameOf(hit.id), hit])
-    const child = hit.children.find((l) => !l.locked && hitTest(l, q))
+    const child = hit.children.find((l) => !l.locked && hitTest(l, q, hitPad))
     dispatch({ type: 'select', ids: child ? [child.id] : [], scope: hit.id })
   }
 
@@ -439,6 +454,10 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         onPointerDown={(e) => {
           // anche fuori dalla carta si può iniziare un rettangolo di selezione
           if (e.target !== e.currentTarget || e.button !== 0) return
+          // un clic sulle barre di scorrimento (su Windows occupano spazio) non deseleziona
+          const el = e.currentTarget
+          const r = el.getBoundingClientRect()
+          if (e.clientX - r.left >= el.clientWidth || e.clientY - r.top >= el.clientHeight) return
           if (!e.shiftKey) dispatch({ type: 'select', ids: [], scope: null })
           marqueeStart.current = { p0: cardPoint(e), base: e.shiftKey ? selection : [] }
           setFrozen(stage)

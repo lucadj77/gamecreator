@@ -1,5 +1,6 @@
 import type { GroupLayer, Layer, LayerBase, ShapeLayer } from './template'
 import { findLayer, type Bounds } from './edit'
+import { arrangeGroup } from './arrange'
 
 // Geometria dei livelli: punti di ancoraggio, rotazioni, selezione con il puntatore e
 // ridimensionamento con le maniglie. Coordinate in mm, angoli in gradi in senso orario.
@@ -54,12 +55,17 @@ export function toFrame(p: Point, chain: GroupLayer[]): Point {
 /** Tolleranza in mm per i livelli molto sottili, come le linee */
 const HIT_PAD = 0.6
 
-export function hitTest(l: Layer, p: Point): boolean {
+/**
+ * Il punto cade sul livello. `pad` è la tolleranza per i livelli sottili, in mm: chi disegna a
+ * un certo ingrandimento la calcola dai pixel, così una linea si prende anche da lontano.
+ * Nei gruppi disposti o ripetuti contano i figli dove sono disegnati.
+ */
+export function hitTest(l: Layer, p: Point, pad = HIT_PAD): boolean {
   if (!l.visible || l.type === 'value') return false
   const q = toLocal(l, p)
-  if (l.type === 'group') return l.children.some((c) => hitTest(c, q))
-  const px = l.w < 2 * HIT_PAD ? HIT_PAD : 0
-  const py = l.h < 2 * HIT_PAD ? HIT_PAD : 0
+  if (l.type === 'group') return arrangeGroup(l).children.some((c) => hitTest(c, q, pad))
+  const px = l.w < 2 * pad ? pad : 0
+  const py = l.h < 2 * pad ? pad : 0
   return q.x >= l.x - px && q.x <= l.x + l.w + px && q.y >= l.y - py && q.y <= l.y + l.h + py
 }
 

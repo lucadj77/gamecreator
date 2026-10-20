@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
-import { colorColumns, setCells } from '../../../shared/model/sheet'
+import {
+  boolText,
+  colorColumns,
+  parseBool,
+  writeCells,
+  type ColumnInfo
+} from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
 import type { Template } from '../../../shared/model/template'
 import { useI18n } from '../i18n/context'
@@ -14,6 +20,12 @@ interface Props {
   /** Carte selezionate quando sono più di una: ogni campo scrive in tutte */
   rows?: number[]
   template: Template | null
+  /** Colonne da mostrare, già senza quelle nascoste (vedi setColumns) */
+  columns: ColumnInfo[]
+  /** Colonne vero/falso, con il valore del template per le celle vuote */
+  booleans: Map<string, boolean | null>
+  /** Valori dei livelli fissi e con formula di una riga */
+  computed(row: number): Record<string, string>
   /** Colonna da mettere a fuoco, per esempio dopo un clic su un livello della carta */
   focus: { column: string; seq: number } | null
   onChange(sheet: Sheet, key?: string): void
@@ -23,7 +35,17 @@ interface Props {
  * Campi della carta selezionata: è la sua riga del foglio, modificabile accanto all'anteprima.
  * Le colonne dei livelli di testo hanno un campo su più righe.
  */
-function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React.JSX.Element {
+function CardForm({
+  sheet,
+  row,
+  rows,
+  template,
+  columns,
+  booleans,
+  computed,
+  focus,
+  onChange
+}: Props): React.JSX.Element {
   const { t } = useI18n()
   const boxRef = useRef<HTMLDivElement>(null)
   const columnsOf = (type: 'text' | 'image'): Set<string> =>
@@ -37,7 +59,7 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
   const textColumns = columnsOf('text')
   const imageColumns = columnsOf('image')
   /** Colonna di cui si sta scegliendo l'immagine */
-  const [picking, setPicking] = useState<number | null>(null)
+  const [picking, setPicking] = useState<string | null>(null)
 
   const colors = template ? colorColumns(template) : new Map<string, string | null>()
 
@@ -63,12 +85,19 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
   const targets = rows && rows.length > 1 ? rows : [row]
   const multi = targets.length > 1
   // con più carte un campo mostra il valore solo se è uguale in tutte; vuoto vuol dire "diversi"
-  const values = sheet.headers.map((_, i) => {
-    const vs = new Set(targets.map((r) => sheet.rows[r]?.[i] ?? ''))
-    return vs.size === 1 ? [...vs][0] : null
-  })
-  const write = (i: number, v: string): void =>
-    onChange(setCells(sheet, targets, i, v), `cell:${targets.join(',')}:${i}`)
+  const same = (vs: string[]): string | null => (new Set(vs).size === 1 ? vs[0] : null)
+  const values = new Map(
+    columns.map(({ header, index, computed: calc }) => [
+      header,
+      same(
+        targets.map((r) =>
+          calc ? (computed(r)[header] ?? '') : index < 0 ? '' : (sheet.rows[r]?.[index] ?? '')
+        )
+      )
+    ])
+  )
+  const write = (h: string, v: string): void =>
+    onChange(writeCells(sheet, targets, h, v), `cell:${targets.join(',')}:${h}`)
   return (
     <div className="card-form" ref={boxRef}>
       <h3>
@@ -77,17 +106,53 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
           : t('cardForm.title', { n: row + 1 })}
       </h3>
       {multi && <p className="muted small">{t('cardForm.multiHint')}</p>}
-      {sheet.headers.map((h, i) => {
+      {columns.map(({ header: h, index, computed: calc }) => {
+        const value = values.get(h) ?? null
         const common = {
           'data-column': h,
-          value: values[i] ?? '',
-          ...(values[i] === null ? { placeholder: t('cardForm.mixed') } : {}),
+          value: value ?? '',
+          ...(value === null ? { placeholder: t('cardForm.mixed') } : {}),
           onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-            write(i, e.target.value)
+            write(h, e.target.value)
+        }
+        const className = ['field', h.includes('.') && 'prop-field', calc && 'calc-field']
+          .filter(Boolean)
+          .join(' ')
+        const label = h === 'amount' ? t('cardForm.amount') : h
+        if (calc)
+          return (
+            <label key={h} className={className} title={t('table.computedHint')}>
+              <span className="field-label">ƒ {label}</span>
+              <span className="field-control">
+                <input {...common} readOnly onChange={undefined} />
+              </span>
+            </label>
+          )
+        if (booleans.has(h)) {
+          const own = value === null ? null : parseBool(value)
+          const fallback = booleans.get(h) ?? false
+          return (
+            <label key={h} className={className}>
+              <span className="field-label">{label}</span>
+              <span className="field-control">
+                <input
+                  type="checkbox"
+                  data-column={h}
+                  className={value?.trim() ? undefined : 'bool-default'}
+                  title={value?.trim() ? value : t('table.boolDefault')}
+                  checked={own ?? (value === null ? false : fallback)}
+                  ref={(el) => {
+                    if (el) el.indeterminate = value === null
+                  }}
+                  onChange={(e) => write(h, boolText(sheet, h, e.target.checked))}
+                />
+              </span>
+            </label>
+          )
         }
         return (
-          <label key={h} className={h.includes('.') ? 'field prop-field' : 'field'}>
-            <span className="field-label">{h === 'amount' ? t('cardForm.amount') : h}</span>
+          <label key={h} className={index < 0 ? className + ' new-field' : className}>
+            <span className="field-label">{label}</span>
             <span className="field-control">
               {textColumns.has(h) ? (
                 <MarkupTextarea
@@ -103,7 +168,7 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
                     title={t('cardForm.pickColor')}
                     // senza valore nella cella il selettore parte dal colore del template
                     value={toHex6(common.value.trim() || colors.get(h) || '')}
-                    onChange={(e) => write(i, e.target.value.toUpperCase())}
+                    onChange={(e) => write(h, e.target.value.toUpperCase())}
                   />
                 </span>
               ) : imageColumns.has(h) ? (
@@ -115,7 +180,7 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
                     onClick={(e) => {
                       // il pulsante è dentro l'etichetta: senza questo il clic va al campo
                       e.preventDefault()
-                      setPicking(i)
+                      setPicking(h)
                     }}
                   >
                     <ImageIcon />
@@ -130,7 +195,7 @@ function CardForm({ sheet, row, rows, template, focus, onChange }: Props): React
       })}
       {picking !== null && (
         <AssetPicker
-          value={values[picking] ?? ''}
+          value={values.get(picking) ?? ''}
           onPick={(name) => write(picking, name)}
           onClose={() => setPicking(null)}
         />

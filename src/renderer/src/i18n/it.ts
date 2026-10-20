@@ -38,7 +38,8 @@ export const it: Record<MessageKey, string> = {
   'table.noMatch': 'Nessuna riga corrisponde al filtro.',
   'set.editHint':
     'Doppio clic o scrivi in una cella per modificarla; Alt+Invio per andare a capo. Trascina il numero di riga per spostarla.',
-  'preview.clickHint': 'Fai clic su un livello per modificarne il campo',
+  'preview.clickHint':
+    'Fai clic su un livello per modificarne il campo; un altro clic nello stesso punto passa al livello sotto',
   'cardForm.title': 'Carta {n}',
   'cardForm.multiTitle': '{n} carte selezionate',
   'cardForm.multiHint':
@@ -46,8 +47,18 @@ export const it: Record<MessageKey, string> = {
   'cardForm.mixed': 'valori diversi',
   'cardForm.pickColor': 'Scegli un colore',
   'cardForm.amount': 'Copie (amount)',
-  'table.expand': 'Mostra le colonne delle proprietà di questo livello',
-  'table.collapse': 'Nascondi le colonne delle proprietà',
+  'table.computedHint':
+    'Valore fisso o con formula del template: si vede qui, si cambia nel template',
+  'table.newColumnHint':
+    "Il template legge questa colonna ma il foglio non l'ha ancora: si crea scrivendo un valore",
+  'table.boolDefault': 'Cella vuota: vale il valore del template',
+  'columns.button': 'Colonne',
+  'columns.buttonHidden': 'Colonne ({n} nascoste)',
+  'columns.hint': 'Colonne mostrate nella tabella e nei campi della carta.',
+  'columns.showComputed': 'Mostra i livelli fissi e con formula (sola lettura)',
+  'columns.showAll': 'Mostra tutte',
+  'tip.columns':
+    'Scegli le colonne da mostrare; si possono mostrare anche i livelli fissi e con formula',
   'table.removeColumn': 'Elimina colonna',
   'table.removeColumnConfirm': 'Eliminare la colonna “{column}” con i suoi valori?',
   'table.rowHint': 'Clic per selezionare (Maiuscolo o ⌘ per più righe), trascina per spostare',
@@ -126,7 +137,7 @@ export const it: Record<MessageKey, string> = {
   'dialog.cancel': 'Annulla',
   'editor.templateProperties': 'Template',
   'editor.noSelectionHint':
-    'Seleziona un livello sulla carta o nel pannello livelli per modificarlo.',
+    'Seleziona un livello sulla carta o nel pannello livelli per modificarlo. Alt+clic prende il livello che sta sotto.',
   'editor.geometry': 'Posizione e dimensioni',
   'editor.appearance': 'Aspetto',
   'editor.typography': 'Tipografia',

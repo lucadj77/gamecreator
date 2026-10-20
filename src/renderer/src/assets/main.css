@@ -2942,3 +2942,93 @@ details.advanced > button.link {
   font-size: 20px;
   font-variant-numeric: tabular-nums;
 }
+
+/* colonne mostrate, caselle vero/falso e livelli calcolati */
+
+.columns-menu {
+  position: relative;
+}
+
+.columns-menu-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  min-width: 240px;
+  max-width: 340px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
+.columns-menu-panel p {
+  margin: 0 0 6px;
+}
+
+.columns-menu-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.columns-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.columns-menu-computed {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.columns-menu-all {
+  margin-top: 8px;
+}
+
+th.calc-col,
+th.new-col {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+th.new-col {
+  font-style: italic;
+}
+
+.calc-mark {
+  font-style: italic;
+}
+
+.data-table td.calc-cell {
+  color: var(--muted);
+  cursor: default;
+}
+
+.data-table td.bool-cell {
+  text-align: center;
+}
+
+input[type='checkbox'].bool-default {
+  opacity: 0.45;
+}
+
+.card-form .calc-field input {
+  color: var(--muted);
+  background: transparent;
+}
+
+.card-form .new-field .field-label {
+  color: var(--muted);
+}
+
+.card-form .field-control input[type='checkbox'] {
+  width: auto;
+}

@@ -1,11 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
-import { moveRow, removeColumn, setCell } from '../../../shared/model/sheet'
+import {
+  boolText,
+  moveRow,
+  parseBool,
+  removeColumn,
+  writeCells,
+  type ColumnInfo
+} from '../../../shared/model/sheet'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
 
 interface Props {
   sheet: Sheet
+  /** Colonne da mostrare, nell'ordine (vedi setColumns), già senza quelle nascoste */
+  columns: ColumnInfo[]
+  /** Colonne vero/falso, mostrate come caselle, con il valore del template per le celle vuote */
+  booleans: Map<string, boolean | null>
+  /** Valori dei livelli fissi e con formula di una riga */
+  computed(row: number): Record<string, string>
   /** Righe selezionate; la prima è quella mostrata nell'anteprima */
   selected: number[]
   onSelect(rows: number[]): void
@@ -21,16 +34,20 @@ interface Props {
 
 interface Cell {
   row: number
-  col: number
+  /** Intestazione della colonna */
+  col: string
 }
 
 /**
  * Tabella del set modificabile come un foglio di calcolo: clic per scegliere la cella, doppio
- * clic, Invio o una lettera per scriverci. Le colonne delle proprietà (`nome.color`) restano
- * nascoste finché non si apre il loro livello con il +.
+ * clic, Invio o una lettera per scriverci. Le colonne che il foglio non ha ancora si creano
+ * scrivendoci; quelle dei livelli fissi e con formula mostrano il valore e non si modificano.
  */
 function DataTable({
   sheet,
+  columns,
+  booleans,
+  computed,
   selected,
   onSelect,
   onChange,
@@ -41,7 +58,6 @@ function DataTable({
   const { t } = useI18n()
   const [active, setActive] = useState<Cell | null>(null)
   const [editing, setEditing] = useState<{ cell: Cell; original: string } | null>(null)
-  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [dragRow, setDragRow] = useState<number | null>(null)
   const [dropRow, setDropRow] = useState<number | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -49,17 +65,17 @@ function DataTable({
   // con un ordinamento o un filtro le righe non si trascinano: l'ordine mostrato non è quello del foglio
   const reorderable = rows.length === sheet.rows.length && rows.every((r, k) => r === k)
 
-  const base = (h: string): string => (h.includes('.') ? h.slice(0, h.indexOf('.')) : h)
-  const hasProps = (h: string): boolean => sheet.headers.some((x) => x.startsWith(h + '.'))
-  const visible = sheet.headers
-    .map((h, i) => ({ h, i }))
-    .filter(
-      ({ h }) => !h.includes('.') || expanded.has(base(h)) || !sheet.headers.includes(base(h))
-    )
-
-  const value = (c: Cell): string => sheet.rows[c.row]?.[c.col] ?? ''
-  const write = (c: Cell, v: string): void =>
-    onChange(setCell(sheet, c.row, c.col, v), `cell:${c.row}:${c.col}`)
+  const info = new Map(columns.map((c) => [c.header, c]))
+  const index = (h: string): number => sheet.headers.indexOf(h)
+  const value = (c: Cell): string => sheet.rows[c.row]?.[index(c.col)] ?? ''
+  const isComputed = (h: string): boolean => info.get(h)?.computed ?? false
+  const write = (c: Cell, v: string): void => {
+    if (isComputed(c.col)) return
+    onChange(writeCells(sheet, [c.row], c.col, v), `cell:${c.row}:${c.col}`)
+  }
+  /** Valore di una casella: la cella, o il template se è vuota */
+  const checked = (c: Cell): boolean => parseBool(value(c)) ?? booleans.get(c.col) ?? false
+  const toggle = (c: Cell): void => write(c, boolText(sheet, c.col, !checked(c)))
 
   const activate = (c: Cell): void => {
     setActive(c)
@@ -67,14 +83,15 @@ function DataTable({
   }
 
   const startEdit = (c: Cell, replaceWith?: string): void => {
+    if (isComputed(c.col)) return
     setEditing({ cell: c, original: value(c) })
     if (replaceWith !== undefined) write(c, replaceWith)
   }
 
   const move = (dr: number, dc: number): void => {
     if (!active) return
-    const vi = visible.findIndex((v) => v.i === active.col)
-    const col = visible[Math.max(0, Math.min(visible.length - 1, vi + dc))]?.i ?? active.col
+    const vi = columns.findIndex((v) => v.header === active.col)
+    const col = columns[Math.max(0, Math.min(columns.length - 1, vi + dc))]?.header ?? active.col
     const at = rows.indexOf(active.row)
     const row = rows[Math.max(0, Math.min(rows.length - 1, at + dr))] ?? active.row
     activate({ row, col })
@@ -84,7 +101,7 @@ function DataTable({
   useEffect(() => {
     if (!active) return
     wrapRef.current
-      ?.querySelector(`[data-cell="${active.row}:${active.col}"]`)
+      ?.querySelector(`[data-cell="${active.row}:${CSS.escape(active.col)}"]`)
       ?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   }, [active])
 
@@ -108,6 +125,7 @@ function DataTable({
     else if (k === 'ArrowDown') move(1, 0)
     else if (k === 'ArrowLeft') move(0, -1)
     else if (k === 'ArrowRight' || k === 'Tab') move(0, e.shiftKey && k === 'Tab' ? -1 : 1)
+    else if (k === ' ' && booleans.has(active.col)) toggle(active)
     else if (k === 'Enter' || k === 'F2') startEdit(active)
     else if (k === 'Delete' || k === 'Backspace') write(active, '')
     else if (k.length === 1 && !e.altKey) startEdit(active, k)
@@ -136,43 +154,42 @@ function DataTable({
         <thead>
           <tr>
             <th className="row-num">#</th>
-            {visible.map(({ h, i }) => (
-              <th key={h} className={h.includes('.') ? 'prop-col' : undefined}>
+            {columns.map(({ header: h, index: i, computed: calc }) => (
+              <th
+                key={h}
+                className={
+                  [h.includes('.') && 'prop-col', calc && 'calc-col', i < 0 && 'new-col']
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                }
+                title={
+                  calc ? t('table.computedHint') : i < 0 ? t('table.newColumnHint') : undefined
+                }
+              >
                 <span className="th-inner">
                   <span
-                    title={onSort ? t('table.sortHint', { column: h }) : h}
-                    className={onSort ? 'th-sort' : undefined}
-                    onClick={() => onSort?.(h)}
+                    title={onSort && i >= 0 && !calc ? t('table.sortHint', { column: h }) : h}
+                    className={onSort && i >= 0 && !calc ? 'th-sort' : undefined}
+                    onClick={() => i >= 0 && !calc && onSort?.(h)}
                   >
-                    {h.includes('.') ? h.slice(h.indexOf('.')) : h}
+                    {calc && <span className="calc-mark">ƒ </span>}
+                    {h}
                     {sort?.column === h && (
                       <span className="sort-mark">{sort.desc ? ' ↓' : ' ↑'}</span>
                     )}
                   </span>
-                  {!h.includes('.') && hasProps(h) && (
+                  {i >= 0 && (
                     <button
-                      className="icon-btn"
-                      title={expanded.has(h) ? t('table.collapse') : t('table.expand')}
+                      className="icon-btn th-remove"
+                      title={t('table.removeColumn')}
                       onClick={() => {
-                        const next = new Set(expanded)
-                        if (next.has(h)) next.delete(h)
-                        else next.add(h)
-                        setExpanded(next)
+                        if (window.confirm(t('table.removeColumnConfirm', { column: h })))
+                          onChange(removeColumn(sheet, i))
                       }}
                     >
-                      {expanded.has(h) ? '−' : '+'}
+                      ×
                     </button>
                   )}
-                  <button
-                    className="icon-btn th-remove"
-                    title={t('table.removeColumn')}
-                    onClick={() => {
-                      if (window.confirm(t('table.removeColumnConfirm', { column: h })))
-                        onChange(removeColumn(sheet, i))
-                    }}
-                  >
-                    ×
-                  </button>
                 </span>
               </th>
             ))}
@@ -223,21 +240,37 @@ function DataTable({
                 >
                   {r + 1}
                 </td>
-                {visible.map(({ h, i }) => {
-                  const c = { row: r, col: i }
-                  const isActive = active?.row === r && active.col === i
-                  const isEditing = editing?.cell.row === r && editing.cell.col === i
+                {columns.map(({ header: h, index: i, computed: calc }) => {
+                  const c = { row: r, col: h }
+                  const isActive = active?.row === r && active.col === h
+                  const isEditing = editing?.cell.row === r && editing.cell.col === h
+                  const raw = i >= 0 ? (row[i] ?? '') : ''
+                  const bool = !calc && !isEditing && booleans.has(h)
                   return (
                     <td
                       key={h}
-                      data-cell={`${r}:${i}`}
-                      className={isActive ? 'active-cell' : undefined}
+                      data-cell={`${r}:${h}`}
+                      className={
+                        [isActive && 'active-cell', calc && 'calc-cell', bool && 'bool-cell']
+                          .filter(Boolean)
+                          .join(' ') || undefined
+                      }
                       onClick={() => activate(c)}
-                      onDoubleClick={() => startEdit(c)}
+                      onDoubleClick={() => !bool && startEdit(c)}
                     >
-                      {isEditing ? (
+                      {calc ? (
+                        (computed(r)[h] ?? '')
+                      ) : bool ? (
+                        <input
+                          type="checkbox"
+                          className={raw.trim() ? undefined : 'bool-default'}
+                          title={raw.trim() ? raw : t('table.boolDefault')}
+                          checked={checked(c)}
+                          onChange={() => toggle(c)}
+                        />
+                      ) : isEditing ? (
                         <CellEditor
-                          value={row[i] ?? ''}
+                          value={raw}
                           fields={sheet.headers.filter((h) => h !== 'amount' && !h.includes('.'))}
                           onChange={(v) => write(c, v)}
                           onDone={(how) => {
@@ -250,7 +283,7 @@ function DataTable({
                           }}
                         />
                       ) : (
-                        row[i]
+                        raw
                       )}
                     </td>
                   )

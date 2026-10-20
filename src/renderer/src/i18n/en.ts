@@ -35,7 +35,8 @@ export const en = {
   'table.noMatch': 'No row matches the filter.',
   'set.editHint':
     'Double-click or type in a cell to edit; Alt+Enter for a new line. Drag the row number to reorder.',
-  'preview.clickHint': 'Click a layer to edit its field',
+  'preview.clickHint':
+    'Click a layer to edit its field; click again on the same spot for the layer underneath',
   'cardForm.title': 'Card {n}',
   'cardForm.multiTitle': '{n} cards selected',
   'cardForm.multiHint':
@@ -43,8 +44,17 @@ export const en = {
   'cardForm.mixed': 'different values',
   'cardForm.pickColor': 'Pick a color',
   'cardForm.amount': 'Copies (amount)',
-  'table.expand': 'Show the property columns of this layer',
-  'table.collapse': 'Hide the property columns',
+  'table.computedHint':
+    'Fixed or formula value from the template: shown here, changed in the template',
+  'table.newColumnHint':
+    'The template reads this column but the sheet does not have it yet: it is created when you type a value',
+  'table.boolDefault': 'Empty cell: the template value applies',
+  'columns.button': 'Columns',
+  'columns.buttonHidden': 'Columns ({n} hidden)',
+  'columns.hint': 'Columns shown in the table and in the card fields.',
+  'columns.showComputed': 'Show fixed and formula layers (read only)',
+  'columns.showAll': 'Show all',
+  'tip.columns': 'Choose which columns to show; fixed and formula layers can be shown too',
   'table.removeColumn': 'Remove column',
   'table.removeColumnConfirm': 'Remove the column “{column}” and its values?',
   'table.rowHint': 'Click to select (Shift or ⌘ for several), drag to reorder',
@@ -123,7 +133,8 @@ export const en = {
   'sidebar.newTemplate': 'New template',
   'dialog.cancel': 'Cancel',
   'editor.templateProperties': 'Template',
-  'editor.noSelectionHint': 'Select a layer on the card or in the layers panel to edit it.',
+  'editor.noSelectionHint':
+    'Select a layer on the card or in the layers panel to edit it. Alt+click picks the layer underneath.',
   'editor.geometry': 'Position and size',
   'editor.appearance': 'Appearance',
   'editor.typography': 'Typography',

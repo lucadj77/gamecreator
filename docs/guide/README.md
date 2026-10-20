@@ -99,7 +99,7 @@ The + next to **Templates** opens the new template window: name, format (poker, 
 5. **Canvas bar**: shows or hides bleed, safe area and grid, chooses what to snap to (grid, objects) and sets the zoom.
 6. **Data**: draws the canvas with the values of a card from a set, instead of the template values.
 
-On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
+On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
 
 In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ selects several layers; ⌘G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
@@ -171,11 +171,15 @@ The **table** works like a spreadsheet: double-click or type to edit a cell, Alt
 
 The `amount` column says how many copies of each card to print; empty means 1.
 
+The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Columns** button chooses which ones to hide. Columns of fixed or formula layers do not reach the card and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each card.
+
+True/false columns (properties such as `crest.visible` or `name.italic`, and columns where every cell is `true` or `false`) have a checkbox: a click, or the space bar on the cell, ticks or clears it. A faded checkbox means an empty cell: the template value applies.
+
 The **grid** shows the cards as they will be printed. The slider at the top changes the thumbnail size (also with ⌘ and the mouse wheel); dragging a card moves it.
 
 ![The card grid](img/griglia.png)
 
-In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
+In both views, on the right, the form of the selected card has a field for every column. Clicking a layer in the preview takes you to its field; clicking again on the same spot moves to the layer underneath, useful when a layer covers another. Page Up and Page Down move to the previous or next card, even while typing in a field of the form, which stays the same.
 
 ### 5.3 Sorting and filtering
 

@@ -1203,5 +1203,11 @@ export const it: Record<MessageKey, string> = {
   'update.skip': 'Salta questa versione',
   'update.later': 'Ricordamelo più tardi',
   'update.title': 'Novità di Naibi {version}',
-  'update.noNotes': 'Questa versione non ha note.'
+  'update.noNotes': 'Questa versione non ha note.',
+  'update.whatsNewTip': 'Le novità di questa versione',
+  'update.check': 'Controlla aggiornamenti',
+  'update.checking': 'Controllo degli aggiornamenti…',
+  'update.latest': "Hai l'ultima versione di Naibi.",
+  'update.failed': 'Non è stato possibile controllare gli aggiornamenti: GitHub non risponde.',
+  'update.allVersions': 'Tutte le versioni'
 }

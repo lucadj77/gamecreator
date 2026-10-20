@@ -7,6 +7,8 @@ import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import appIcon from '../assets/app-icon.png'
 import AiToolsDialog from './AiToolsDialog'
+import { WhatsNewDialog } from './UpdateNotice'
+import { checkForUpdateNow } from './updateCheck'
 
 // Schermata di ingresso: progetti recenti con miniatura, nuovo progetto, apertura e importazione.
 
@@ -35,6 +37,7 @@ export default function StartScreen({
   const [about, setAbout] = useState(false)
   const [aiTools, setAiTools] = useState(false)
   const [version, setVersion] = useState<string | null>(null)
+  const [whatsNew, setWhatsNew] = useState(false)
 
   useEffect(() => {
     window.api.appVersion().then(setVersion, () => {})
@@ -65,10 +68,14 @@ export default function StartScreen({
         <img className="start-logo" src={appIcon} alt="" draggable={false} />
         <h1>Naibi</h1>
         {version && (
-          <span className="start-version">
+          <button
+            className="start-version"
+            title={t('update.whatsNewTip')}
+            onClick={() => setWhatsNew(true)}
+          >
             {version}
             {isPrerelease(version) && <span className="beta-badge">beta</span>}
-          </span>
+          </button>
         )}
         <span className="spacer" />
         {settings}
@@ -126,10 +133,21 @@ export default function StartScreen({
         </ul>
       </div>
       <footer className="start-footer">
+        {version && (
+          <button className="about-link" onClick={() => setWhatsNew(true)}>
+            {t('update.whatsNew')}
+          </button>
+        )}
+        <button className="about-link" onClick={checkForUpdateNow}>
+          {t('update.check')}
+        </button>
         <button className="about-link" onClick={() => setAbout(true)}>
           {t('about.link')}
         </button>
       </footer>
+      {whatsNew && version && (
+        <WhatsNewDialog version={version} onClose={() => setWhatsNew(false)} />
+      )}
       {about && <AboutDialog onClose={() => setAbout(false)} />}
       {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
       {creating && (

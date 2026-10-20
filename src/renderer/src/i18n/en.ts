@@ -1183,7 +1183,13 @@ export const en = {
   'update.skip': 'Skip this version',
   'update.later': 'Remind me later',
   'update.title': "What's new in Naibi {version}",
-  'update.noNotes': 'This version has no notes.'
+  'update.noNotes': 'This version has no notes.',
+  'update.whatsNewTip': "What's new in this version",
+  'update.check': 'Check for updates',
+  'update.checking': 'Checking for updates…',
+  'update.latest': 'You have the latest version of Naibi.',
+  'update.failed': 'Could not check for updates: no connection to GitHub.',
+  'update.allVersions': 'All versions'
 }
 
 export type MessageKey = keyof typeof en

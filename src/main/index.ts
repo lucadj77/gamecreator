@@ -281,20 +281,17 @@ function registerIpc(): void {
     }
   })
   ipcMain.handle('app:version', () => app.getVersion())
-  // l'ultima release su GitHub, se è più recente di questa versione; senza rete non dice nulla
+  // l'ultima release su GitHub, se è più recente di questa versione; senza rete la richiesta
+  // fallisce, e il renderer all'avvio tace mentre a un controllo chiesto a mano lo dice
   ipcMain.handle('update:check', async () => {
-    try {
-      const res = await net.fetch(RELEASES_API, {
-        headers: {
-          Accept: 'application/vnd.github+json',
-          'User-Agent': `Naibi/${app.getVersion()}`
-        }
-      })
-      if (!res.ok) return null
-      return updateFromReleases(await res.json(), app.getVersion())
-    } catch {
-      return null
-    }
+    const res = await net.fetch(RELEASES_API, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': `Naibi/${app.getVersion()}`
+      }
+    })
+    if (!res.ok) throw new Error(`GitHub ${res.status}`)
+    return updateFromReleases(await res.json(), app.getVersion())
   })
   ipcMain.handle('ai:save-skill', async (_, folder: string, text: string) => {
     const file = join(folder, 'naibi', 'SKILL.md')

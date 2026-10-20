@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useContext, useEffect, useRef, useState } from 'react'
 import type { Sheet } from '../../../shared/project'
 import {
   boolText,
@@ -9,7 +9,13 @@ import {
   type ColumnInfo
 } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
-import { PRIMARY_PROPERTY, type Layer, type Template } from '../../../shared/model/template'
+import {
+  PRIMARY_PROPERTY,
+  type Crop,
+  type ImageLayer,
+  type Layer,
+  type Template
+} from '../../../shared/model/template'
 import { TEMPLATE_COLUMN } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
 import MarkupTextarea from './MarkupTextarea'
@@ -17,6 +23,10 @@ import AssetPicker from './AssetPicker'
 import { ColorSwatch } from './ColorPicker'
 import { EyeIcon, EyeOffIcon, ImageIcon, SlidersIcon } from './icons'
 import { propControl, propLabel } from './cardProps'
+import CropDialog from './CropDialog'
+import { cropText, parseCrop } from '../../../shared/model/crop'
+import { resolveAsset } from '../../../shared/model/assets'
+import { AssetsContext, assetUrl } from '../render/assets'
 
 interface Props {
   sheet: Sheet
@@ -75,6 +85,9 @@ function CardForm({
   const imageColumns = columnsOf('image')
   /** Colonna di cui si sta scegliendo l'immagine */
   const [picking, setPicking] = useState<string | null>(null)
+  /** Colonna del ritaglio (livello.crop) che si sta modificando nella finestra */
+  const [cropping, setCropping] = useState<string | null>(null)
+  const assets = useContext(AssetsContext)
 
   const colors = template ? colorColumns(template) : new Map<string, string | null>()
 
@@ -119,6 +132,14 @@ function CardForm({
     const column = l.source.kind === 'column' && l.source.column ? l.source.column : l.name
     if (!layerOf.has(column)) layerOf.set(column, l)
   }
+  /** Immagine della carta mostrata per un livello immagine: quella della sua colonna o del template */
+  const cropImage = (l: ImageLayer): string | null => {
+    const column = l.source.kind === 'column' ? (l.source.column ?? l.name) : null
+    const index = column ? sheet.headers.indexOf(column) : -1
+    const src = (index >= 0 && sheet.rows[row]?.[index]?.trim()) || l.src
+    const r = resolveAsset(src, assets)
+    return r.ok ? assetUrl(r.path) : null
+  }
   const shown = new Set(columns.map((c) => c.header))
   const baseOf = (h: string): string => h.slice(0, h.indexOf('.'))
   // le colonne delle proprietà stanno nei dettagli del loro campo, se il campo è mostrato
@@ -154,9 +175,13 @@ function CardForm({
     const fallback =
       layer && dot > 0 ? (layer as unknown as Record<string, unknown>)[h.slice(dot + 1)] : undefined
     const hint =
-      fallback === undefined || fallback === null || typeof fallback === 'object'
+      fallback === undefined || fallback === null
         ? ''
-        : String(fallback)
+        : typeof fallback === 'object'
+          ? h.endsWith('.crop')
+            ? cropText(fallback as Crop)
+            : ''
+          : String(fallback)
     const common = {
       'data-column': h,
       value: value ?? '',
@@ -291,6 +316,18 @@ function CardForm({
                 }
               />
             )}
+            {layer?.type === 'image' && propKey === 'crop' && (
+              <button
+                className="pick-btn"
+                disabled={!cropImage(layer)}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCropping(h)
+                }}
+              >
+                {t('crop.open')}
+              </button>
+            )}
           </span>
         </label>
       )
@@ -397,6 +434,26 @@ function CardForm({
             )}
           </Fragment>
         ))}
+      {cropping !== null &&
+        (() => {
+          const l = layerOf.get(baseOf(cropping))
+          const url = l?.type === 'image' ? cropImage(l) : null
+          if (!l || l.type !== 'image' || !url) return null
+          const own = valueOf(cropping)?.trim()
+          return (
+            <CropDialog
+              url={url}
+              value={own ? (parseCrop(own) ?? null) : l.crop}
+              frame={{ w: l.w, h: l.h }}
+              onApply={(c) => {
+                // senza ritaglio: "none" se il template ne ha uno, altrimenti la cella vuota
+                write(cropping, c ? cropText(c) : l.crop ? 'none' : '')
+                setCropping(null)
+              }}
+              onClose={() => setCropping(null)}
+            />
+          )
+        })()}
       {picking !== null && (
         <AssetPicker
           value={valueOf(picking) ?? ''}

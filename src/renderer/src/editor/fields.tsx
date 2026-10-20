@@ -27,7 +27,7 @@ interface Base {
   disabled?: boolean
 }
 
-function Row({
+export function Row({
   label,
   hint,
   disabled,

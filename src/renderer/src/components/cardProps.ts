@@ -82,6 +82,8 @@ export function propControl(l: Layer, key: string): PropControl {
       return { kind: 'text', hint: 'cardProps.strokeHint' }
     case 'shadow':
       return { kind: 'text', hint: 'cardProps.shadowHint' }
+    case 'crop':
+      return { kind: 'text', hint: 'cardProps.cropHint' }
     case 'opacity':
     case 'zoom':
       return { kind: 'number', step: 0.05, percent: true }

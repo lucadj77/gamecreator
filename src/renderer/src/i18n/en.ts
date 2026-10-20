@@ -603,6 +603,20 @@ export const en = {
   'editor.moveToAdvanced': 'Move to Advanced',
   'editor.showAlways': 'Always show',
   'editor.resetAdvanced': 'Restore the default layout',
+  'prop.crop': 'Crop',
+  'editor.cropHint':
+    'Uses only a part of the image, which is then fitted to the frame. The file is not changed.',
+  'cardProps.cropHint': 'x y width height, in % of the image (e.g. 10 0 50 50), or none',
+  'crop.title': 'Crop image',
+  'crop.open': 'Crop…',
+  'crop.none': 'whole image',
+  'crop.width': 'Width',
+  'crop.height': 'Height',
+  'crop.lock': 'Proportions of the frame',
+  'crop.hint':
+    'Drag the rectangle to move it and the white squares to resize it. Values are percentages of the image. The file in assets is not changed.',
+  'crop.remove': 'Remove crop',
+  'crop.apply': 'Crop',
   'prop.imageRotation': 'Rotate image',
   'editor.imageRotationHint':
     'Rotates the image inside its frame, which stays still; fitting takes the rotation into account.',

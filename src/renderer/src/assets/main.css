@@ -3655,3 +3655,115 @@ select.from-template {
 .selection-bar strong {
   font-size: 13px;
 }
+
+/* ritaglio delle immagini */
+.dialog:has(> .crop-dialog) {
+  max-width: min(720px, 94vw);
+}
+
+.crop-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crop-area {
+  position: relative;
+  align-self: center;
+  touch-action: none;
+  user-select: none;
+  background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 0 0 / 12px 12px;
+  overflow: hidden;
+}
+
+.crop-area img {
+  display: block;
+}
+
+.crop-rect {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  outline: 1px solid rgb(0 0 0 / 60%);
+  /* fuori dal ritaglio l'immagine si scurisce */
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 50%);
+  cursor: move;
+}
+
+.crop-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 60%);
+  border-radius: 2px;
+}
+
+.crop-n {
+  left: 50%;
+  top: 0;
+  cursor: ns-resize;
+}
+.crop-s {
+  left: 50%;
+  top: 100%;
+  cursor: ns-resize;
+}
+.crop-e {
+  left: 100%;
+  top: 50%;
+  cursor: ew-resize;
+}
+.crop-w {
+  left: 0;
+  top: 50%;
+  cursor: ew-resize;
+}
+.crop-ne {
+  left: 100%;
+  top: 0;
+  cursor: nesw-resize;
+}
+.crop-sw {
+  left: 0;
+  top: 100%;
+  cursor: nesw-resize;
+}
+.crop-nw {
+  left: 0;
+  top: 0;
+  cursor: nwse-resize;
+}
+.crop-se {
+  left: 100%;
+  top: 100%;
+  cursor: nwse-resize;
+}
+
+.crop-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.crop-num {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.crop-num input {
+  width: 64px;
+}
+
+.crop-lock {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.crop-summary {
+  font-size: 12px;
+}

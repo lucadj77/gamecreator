@@ -139,7 +139,7 @@ In cima a ogni livello ci sono il **nome**, che è anche il nome della colonna d
 Le proprietà principali per tipo di livello:
 
 - **Testo**: contenuto, stile, font, peso, dimensione, colore, allineamento orizzontale e verticale, interlinea, adattamento (riduci per stare nel riquadro, taglia al bordo, lascia uscire). In Avanzate spaziature, rientro, margini interni, maiuscole, sottolineato, barrato, a capo automatico e contorno delle lettere.
-- **Immagine**: nome del file o della variabile, adattamento (riempi ritagliando, riempi lasciando uscire la parte fuori dal riquadro, adatta dentro, allunga, dimensione originale, ripeti), allineamento, zoom, rotazione dell'immagine dentro il riquadro, spostamento e colorazione. In Avanzate riflessioni, regolazioni (scala di grigi, luminosità, contrasto, saturazione), raggio, contorno e cosa fare se l'immagine manca.
+- **Immagine**: nome del file o della variabile, adattamento (riempi ritagliando, riempi lasciando uscire la parte fuori dal riquadro, adatta dentro, allunga, dimensione originale, ripeti), allineamento, zoom, rotazione dell'immagine dentro il riquadro, spostamento, colorazione e ritaglio. **Ritaglia…** mostra l'immagine intera con un rettangolo da spostare e ridimensionare: il livello usa solo quella parte, senza modificare il file. Il rettangolo può tenere le proporzioni del riquadro del livello; × toglie il ritaglio. Se il nome dell'immagine viene da una colonna, il ritaglio si prova sull'immagine della carta mostrata e vale per tutte le carte. In Avanzate riflessioni, regolazioni (scala di grigi, luminosità, contrasto, saturazione), raggio, contorno e cosa fare se l'immagine manca.
 - **Forma**: tipo, riempimento (nessuno, colore o sfumatura lineare o radiale), contorno (continuo, tratteggiato, a punti) e raggio degli angoli. Poligoni e stelle hanno il numero di lati o punte; la linea va da un punto A a un punto B; la forma "da un'immagine" prende la sagoma di una PNG con trasparenza o di una SVG.
 - **Gruppo**: può disporre i figli in riga, in colonna o in griglia, ripeterli un numero di volte fisso o preso da un campo (per esempio `{forza}` icone) e usare il livello più in basso come maschera.
 
@@ -216,7 +216,7 @@ Oltre al valore principale, ogni proprietà di un livello può cambiare carta pe
 
 ![La finestra per aggiungere una colonna](img/aggiungi-colonna.png)
 
-Nelle celle i colori si scrivono come nomi (`red`, o il nome di una variabile colore) o in esadecimale (`#A33A2A`); un contorno come `colore/spessore/tratteggio`, per esempio `red/0.3/dashed`.
+Nelle celle i colori si scrivono come nomi (`red`, o il nome di una variabile colore) o in esadecimale (`#A33A2A`); un contorno come `colore/spessore/tratteggio`, per esempio `red/0.3/dashed`; un ritaglio come `x y larghezza altezza` in percentuale dell'immagine, per esempio `10 0 50 50` (`none` per l'immagine intera). Nel modulo della carta il pulsante **Ritaglia…** accanto al campo del ritaglio scrive questi numeri al posto tuo.
 
 Il campo **Template**, in cima al modulo della carta, sceglie il template di una singola carta tra quelli con le misure del set: vuoto vale quello del set, e la scelta va nella colonna `template` del foglio. Serve per esempio per dare a poche carte di un set un template derivato. Nel modulo della carta il campo diventa un menu con i template che hanno le stesse misure di quello del set.
 

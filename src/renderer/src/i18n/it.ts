@@ -612,6 +612,21 @@ export const it: Record<MessageKey, string> = {
   'editor.moveToAdvanced': 'Sposta in Avanzate',
   'editor.showAlways': 'Mostra sempre',
   'editor.resetAdvanced': 'Ripristina la disposizione predefinita',
+  'prop.crop': 'Ritaglio',
+  'editor.cropHint':
+    "Usa solo una parte dell'immagine, che poi si adatta al riquadro. Il file non cambia.",
+  'cardProps.cropHint':
+    "x y larghezza altezza, in % dell'immagine (per esempio 10 0 50 50), oppure none",
+  'crop.title': 'Ritaglia immagine',
+  'crop.open': 'Ritaglia…',
+  'crop.none': 'immagine intera',
+  'crop.width': 'Larghezza',
+  'crop.height': 'Altezza',
+  'crop.lock': 'Proporzioni del riquadro',
+  'crop.hint':
+    "Trascina il rettangolo per spostarlo e i quadratini bianchi per ridimensionarlo. I valori sono in percentuale dell'immagine. Il file in assets non cambia.",
+  'crop.remove': 'Togli ritaglio',
+  'crop.apply': 'Ritaglia',
   'prop.imageRotation': 'Ruota immagine',
   'editor.imageRotationHint':
     "Ruota l'immagine dentro il riquadro, che resta fermo; l'adattamento tiene conto della rotazione.",

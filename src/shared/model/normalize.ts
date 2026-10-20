@@ -62,6 +62,7 @@ const TEXT_DEFAULTS: Omit<TextLayer, keyof LayerBase | 'type'> = {
 const IMAGE_DEFAULTS: Omit<ImageLayer, keyof LayerBase | 'type'> = {
   src: '',
   fit: 'cover',
+  crop: null,
   align: 'center',
   zoom: 1,
   imageRotation: 0,

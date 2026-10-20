@@ -11,6 +11,7 @@ import {
 import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
+import { cropRect } from '../../../shared/model/crop'
 import MarkupText from './MarkupText'
 import {
   isGradient,
@@ -462,7 +463,11 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
   const { t } = useI18n()
   const showEmpty = useContext(ShowEmptyContext)
   const res = resolveAsset(l.src, assets)
-  const size = useImageSize(res.ok ? assetUrl(res.path) : null)
+  const natural = useImageSize(res.ok ? assetUrl(res.path) : null)
+  // il ritaglio prende una parte dell'immagine, che poi si adatta come se fosse l'immagine intera
+  const crop = natural ? cropRect(l.crop) : null
+  const size =
+    natural && crop ? { ...natural, w: natural.w * crop.w, h: natural.h * crop.h } : natural
   if (!res.ok) {
     if (res.reason === 'empty' && showEmpty) return <Placeholder layer={l} label={l.name} />
     if (l.missing === 'hide' || res.reason === 'empty') return null
@@ -471,6 +476,8 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     const key = res.reason === 'ambiguous' ? 'asset.ambiguous' : 'asset.missing'
     return <Placeholder layer={l} label={t(key, { name: l.src })} />
   }
+  // senza le dimensioni il ritaglio non si può applicare: meglio niente che l'immagine intera
+  if (l.crop && !natural) return null
   // l'immagine ruotata si adatta al riquadro con l'ingombro che ha da ruotata
   const angle = l.imageRotation % 360
   const rad = (angle * Math.PI) / 180
@@ -517,14 +524,33 @@ function ImageView({ layer: l, id }: { layer: ImageLayer; id: string }): React.J
     l.grayscale || l.brightness !== 1 || l.contrast !== 1 || l.saturation !== 1 || !!l.tint
   const filter = adjusted ? `url(#${id}-fx)` : undefined
   const tile = l.fit === 'tile' && size
-  const image = (
-    <image
-      href={assetUrl(res.path)}
-      {...(tile ? { x: 0, y: 0, width: r.w, height: r.h } : rect)}
-      preserveAspectRatio={size ? 'none' : PRESERVE[l.fit]}
-      filter={tile ? undefined : filter}
-    />
-  )
+  const place = tile ? { x: 0, y: 0, width: r.w, height: r.h } : rect
+  const image =
+    crop && natural ? (
+      // la parte ritagliata è il viewBox di un svg annidato che contiene l'immagine intera
+      <g filter={tile ? undefined : filter}>
+        <svg
+          {...place}
+          viewBox={`${crop.x * natural.w} ${crop.y * natural.h} ${crop.w * natural.w} ${crop.h * natural.h}`}
+          preserveAspectRatio="none"
+          overflow="hidden"
+        >
+          <image
+            href={assetUrl(res.path)}
+            width={natural.w}
+            height={natural.h}
+            preserveAspectRatio="none"
+          />
+        </svg>
+      </g>
+    ) : (
+      <image
+        href={assetUrl(res.path)}
+        {...place}
+        preserveAspectRatio={size ? 'none' : PRESERVE[l.fit]}
+        filter={tile ? undefined : filter}
+      />
+    )
   return (
     <>
       <defs>

@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.5
+
+### English
+
+- Exports to Tabletop Simulator with large sheets (many cards, big images, 4096 px or more) no longer stop with "the export page did not answer within 60 s". The 60 s limit introduced in 1.2.0-beta.4 counted the whole sheet; now an export can take as long as it needs while it keeps working, and stops only when nothing moves for 60 s.
+- When an export does get stuck, the error now says what it was waiting for: the names of the images or fonts that did not load, a page that stopped drawing, or a page that closed.
+
+### Italiano
+
+- Le esportazioni per Tabletop Simulator con fogli grandi (molte carte, immagini pesanti, 4096 px o più) non si fermano più con "the export page did not answer within 60 s". Il limite di 60 s introdotto nella 1.2.0-beta.4 contava tutto il foglio; ora un'esportazione può durare quanto serve finché procede, e si ferma solo se per 60 s non succede niente.
+- Quando un'esportazione si blocca davvero, l'errore dice cosa stava aspettando: i nomi delle immagini o dei font che non si sono caricati, una pagina che ha smesso di disegnare o una pagina che si è chiusa.
+
 ## 1.2.0-beta.4
 
 ### English

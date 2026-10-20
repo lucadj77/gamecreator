@@ -122,8 +122,21 @@ function CardForm({
       )
     )
   }
-  const write = (h: string, v: string): void =>
-    onChange(writeCells(sheet, targets, h, v), `cell:${targets.join(',')}:${h}`)
+  // ordine delle proprietà di un livello fissato alla prima modifica, finché si resta sulla
+  // stessa carta: altrimenti la proprietà appena cambiata salterebbe in cima all'elenco
+  const cardKey = targets.join(',')
+  const [frozen, setFrozen] = useState<{ card: string; order: Record<string, string[]> } | null>(
+    null
+  )
+  const write = (h: string, v: string): void => {
+    const column = h.includes('.') ? h.slice(0, h.indexOf('.')) : null
+    if (column && details.has(column)) {
+      const order = frozen?.card === cardKey ? frozen.order : {}
+      if (!order[column])
+        setFrozen({ card: cardKey, order: { ...order, [column]: propertiesOf(column) } })
+    }
+    onChange(writeCells(sheet, targets, h, v), `cell:${cardKey}:${h}`)
+  }
 
   // livello di ogni campo: le sue proprietà si aprono con l'icona accanto al campo
   const layerOf = new Map<string, Layer>()
@@ -157,6 +170,9 @@ function CardForm({
     const own = keys.filter((k) => !COMMON_KEYS.includes(k))
     const common = COMMON_KEYS.filter((k) => keys.includes(k))
     const all = [...own, ...common].map((k) => `${column}.${k}`)
+    const kept = frozen?.card === cardKey ? frozen.order[column] : undefined
+    if (kept)
+      return [...kept.filter((h) => all.includes(h)), ...all.filter((h) => !kept.includes(h))]
     const used = all.filter((h) => valueOf(h)?.trim())
     return [...used, ...all.filter((h) => !used.includes(h))]
   }

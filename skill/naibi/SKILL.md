@@ -27,16 +27,19 @@ followed by a command. `<project>` is the project folder (the one with `naibi.js
 | `render <project> [--set S] [--card 1,3,5-7] [--side front\|back\|both] [--dpi 150] [--out folder]` | Draws cards as PNG files, by default in `<project>/export/naibi-render/<set>/<n>.png`. Open the images to check your work                  |
 | `export <project> --profile NAME`                                                                   | Runs an export profile saved in the project (PDF, images or Tabletop Simulator)                                                            |
 | `new <name> <parent folder>`                                                                        | Creates an empty project                                                                                                                   |
+| `begin <project> [--note TEXT]`                                                                     | Start of your work. Fails with exit code 3 if the Naibi app has unsaved changes in the project; otherwise the app locks itself             |
+| `end <project>`                                                                                     | End of your work: the app unlocks and reloads the project                                                                                  |
 
 `info`, `check` and `template` accept `--json`.
 
 ## Workflow
 
-1. Run `info` to learn the project before changing anything. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
-2. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets, formulas and formatting intact.
-3. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are.
-4. After every change run `check`, then `render` the cards you touched and look at the images. Fix what is wrong before reporting.
-5. If the Naibi app has the project open, tell the user to press **Reload** (Ricarica) in the app to see your changes, and not to save from the app before reloading, or the app's copy will overwrite yours.
+1. Run `begin` before changing anything in the project, with `--note` saying in a few words what you are doing. If it fails because the app has unsaved changes, stop: tell the user to save (or reload) in the Naibi app, and start again only when they say so. Reading commands (`info`, `check`, `template`, `rows`, `render`) do not need `begin`.
+2. Run `info` to learn the project before changing anything. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
+3. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets, formulas and formatting intact.
+4. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are.
+5. After every change run `check`, then `render` the cards you touched and look at the images. Fix what is wrong before reporting.
+6. Always run `end` when you have finished, also when you stop because of an error or a question for the user: until then the app stays locked. The app reloads the project by itself.
 
 Ask before deleting sets, templates, layers or assets, and before replacing many rows the user did not ask to change.
 
@@ -154,7 +157,11 @@ A template can be based on another one and store only its differences. The app a
     "template": { "cornerRadius": 5 },
     "layers": { "band": { "fill": "#B3261E" }, "badge": { "visible": false } },
     "added": [
-      { "side": "front", "after": "name", "layer": { "type": "image", "name": "flame", "x": 4, "y": 4, "w": 8, "h": 8 } }
+      {
+        "side": "front",
+        "after": "name",
+        "layer": { "type": "image", "name": "flame", "x": 4, "y": 4, "w": 8, "h": 8 }
+      }
     ]
   }
 }

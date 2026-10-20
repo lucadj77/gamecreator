@@ -488,7 +488,7 @@ An AI agent that runs commands on your computer (for example Claude Code, Codex 
 
 ![The tools for AI agents](img/strumenti-ia.png)
 
-If the project is open in Naibi while the agent works, press **Reload** when it has finished, without saving first: otherwise the app's copy overwrites the agent's changes.
+The project can stay open in Naibi while the agent works. Before changing it, the agent asks the app with `naibi begin`: if there are unsaved changes it stops and asks you to save; otherwise Naibi shows that an AI is working and cannot be used until the agent has finished (`naibi end`), then reloads the project by itself. If the agent stops without unlocking the app, **Unlock now** frees it. With a skill copied before version 1.2.0-beta.3 the agent cannot do this: copy it again.
 
 The `naibi` command can also be used directly, for example in a script: `info` describes the project, `check` lists the problems of the cards, `rows` and `set-rows` read and write the rows of a set, `render` draws cards as PNG, `export` runs an export profile. The details are in [docs/cli.md](../cli.md) (in Italian).
 

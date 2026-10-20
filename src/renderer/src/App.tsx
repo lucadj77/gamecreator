@@ -1,4 +1,5 @@
 import AiToolsDialog from './components/AiToolsDialog'
+import AgentLockOverlay from './components/AgentLockOverlay'
 import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -112,7 +113,7 @@ import { useSidebarPreview } from './components/useSidebarPreview'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
-import type { Theme } from '../../shared/api'
+import type { AgentLock, Theme } from '../../shared/api'
 
 const NO_STYLES: Record<string, string> = {}
 const NO_VARIABLES: Variables = {}
@@ -237,6 +238,23 @@ function App(): React.JSX.Element {
       setLoading(false)
     }
   }, [])
+
+  // Un'IA che lavora con il comando naibi (vedi docs/cli.md): `naibi begin` legge da qui se ci sono
+  // modifiche non salvate; mentre lavora l'app è bloccata, quando finisce si ricarica il progetto
+  const [agentLock, setAgentLock] = useState<{ folder: string; lock: AgentLock } | null>(null)
+  const folder = project?.folder ?? null
+  useEffect(() => {
+    window.api.setAppState(folder, anyDirty).catch((e) => console.error(e))
+  }, [folder, anyDirty])
+  useEffect(() => {
+    if (!folder) return
+    let working = false
+    return window.api.onAgentLock((lock) => {
+      setAgentLock(lock && { folder, lock })
+      if (working && !lock) load(folder)
+      working = !!lock
+    })
+  }, [folder, load])
 
   /** Chiede conferma prima di perdere modifiche non salvate */
   const discardOk = (): boolean => !anyDirty || window.confirm(t('app.discardChanges'))
@@ -1344,6 +1362,14 @@ function App(): React.JSX.Element {
               />
             )}
             {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
+            {agentLock && agentLock.folder === folder && (
+              <AgentLockOverlay
+                lock={agentLock.lock}
+                onUnlock={() =>
+                  window.api.unlockAgent().catch((e) => setError(messageFromError(e)))
+                }
+              />
+            )}
             {backingUp && project && (
               <BackupDialog
                 dirty={anyDirty}

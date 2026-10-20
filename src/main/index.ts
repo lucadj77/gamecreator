@@ -46,6 +46,7 @@ import {
   writeBackupSettings
 } from './project/backup'
 import { copySystemFont, systemFonts } from './library/systemFonts'
+import { clearAppState, endAgent, readAgentLock, writeAppState } from './project/agentLock'
 import type { FontVariant, IconCollection, IconImport } from '../shared/library'
 import {
   defaultTtsFolder,
@@ -53,6 +54,19 @@ import {
   type ExportJob,
   type ExportProfiles
 } from '../shared/export'
+
+/** Progetto aperto nell'app, per il blocco mentre lavora un'IA */
+let stateFolder: string | null = null
+/** Ultimo blocco inviato al renderer, per mandare solo i cambiamenti */
+let lockJson: string | undefined
+
+async function pollAgentLock(): Promise<void> {
+  if (!stateFolder) return
+  const json = JSON.stringify(await readAgentLock(stateFolder))
+  if (json === lockJson) return
+  lockJson = json
+  for (const w of BrowserWindow.getAllWindows()) w.webContents.send('agent:lock', JSON.parse(json))
+}
 
 /** Argomenti del comando naibi: tutto ciò che segue --cli (vedi cli.ts) */
 const cliIndex = process.argv.indexOf('--cli')
@@ -354,6 +368,16 @@ function registerIpc(): void {
   // l'importazione scrive solo nella cartella di destinazione, che deve essere nuova o vuota
   ipcMain.handle('ttc:import', (_, options: TtcImportOptions) => importTtc(options))
 
+  // Blocco mentre lavora un'IA (vedi project/agentLock.ts): il renderer dice se ha modifiche non
+  // salvate, qui si scrive il file per `naibi begin` e si controlla ogni secondo il file dell'IA
+  ipcMain.handle('agent:app-state', async (_, folder: string | null, dirty: boolean) => {
+    if (stateFolder && stateFolder !== folder) clearAppState(stateFolder)
+    stateFolder = folder
+    lockJson = undefined
+    if (folder) await writeAppState(folder, dirty)
+  })
+  ipcMain.handle('agent:unlock', () => stateFolder && endAgent(stateFolder))
+
   // il renderer segue prefers-color-scheme, che Chromium ricava da themeSource
   ipcMain.on('theme:set', (_, theme: Theme) => {
     if (theme === 'system' || theme === 'light' || theme === 'dark') nativeTheme.themeSource = theme
@@ -373,6 +397,8 @@ if (!cliArgs)
     handleAssetProtocol()
     registerIpc()
     createWindow()
+    setInterval(() => pollAgentLock().catch((e) => console.error(e)), 1000)
+    app.on('will-quit', () => stateFolder && clearAppState(stateFolder))
 
     app.on('activate', function () {
       if (BrowserWindow.getAllWindows().length === 0) createWindow()

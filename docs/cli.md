@@ -8,12 +8,14 @@ Il comando `naibi` permette a un agente IA (Claude Code, Codex, Cursor…) o a u
 | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
 | `info <progetto>`                                                                                      | set, template e livelli, variabili, stili, asset, profili di esportazione                                                      |
 | `check <progetto> [--set S]`                                                                           | problemi di ogni carta (immagini o font mancanti, variabili sconosciute, errori di markup e formule); esce con 1 se ce ne sono |
-| `template <progetto> <nome>`                                                                           | livelli del template (per un derivato, già risolti, con il base e le differenze); con `--json` il template completo                                                                        |
+| `template <progetto> <nome>`                                                                           | livelli del template (per un derivato, già risolti, con il base e le differenze); con `--json` il template completo            |
 | `rows <progetto> <set> [--json\|--csv]`                                                                | righe del set, separate da tab se non si indica altro                                                                          |
 | `set-rows <progetto> <set> <file.json\|file.csv>`                                                      | sostituisce le righe del set, dopo aver fatto un backup del progetto                                                           |
 | `render <progetto> [--set S] [--card 1,3,5-7] [--side front\|back\|both] [--dpi 150] [--out cartella]` | disegna le carte in PNG, di base in `export/naibi-render/<set>/<n>.png`                                                        |
 | `export <progetto> --profile NOME`                                                                     | esegue un profilo di esportazione salvato nel progetto                                                                         |
 | `new <nome> <cartella>`                                                                                | crea un progetto vuoto                                                                                                         |
+| `begin <progetto> [--note testo]`                                                                      | inizio del lavoro di un'IA: esce con 3 se l'app ha modifiche non salvate nel progetto, altrimenti l'app si blocca              |
+| `end <progetto>`                                                                                       | fine del lavoro: l'app si sblocca e ricarica il progetto                                                                       |
 
 `info`, `check` e `template` accettano `--json`. `naibi --help` elenca i comandi.
 
@@ -22,7 +24,16 @@ Il comando `naibi` permette a un agente IA (Claude Code, Codex, Cursor…) o a u
 - App installata: `"<percorso del programma>" --cli <comando>`. Su Mac il programma è dentro il pacchetto, per esempio `"/Applications/Naibi.app/Contents/MacOS/Naibi" --cli info ~/Documents/Naibi/Prova`.
 - Dal codice: una volta `npm run build`, poi `npm run naibi -- info <progetto>` oppure `node bin/naibi.mjs info <progetto>`. Con `npm link` il comando diventa `naibi` in ogni cartella.
 
-Il comando non serve con l'app aperta: se l'app ha lo stesso progetto aperto, dopo le modifiche dell'agente si preme **Ricarica**, senza salvare prima, altrimenti la copia dell'app sovrascrive quella dell'agente.
+## Lavorare con l'app aperta
+
+L'app e un agente non devono modificare lo stesso progetto insieme, altrimenti un salvataggio dell'uno cancella le modifiche dell'altro. Per questo l'agente apre e chiude il suo lavoro con `begin` ed `end`, come chiede la skill:
+
+- l'app aperta scrive nella cartella del progetto il file `.naibi-app`, con il suo processo e se ha modifiche non salvate;
+- `begin` rifiuta di partire (codice di uscita 3) se l'app ha modifiche non salvate: l'agente chiede di salvare e si ferma. Altrimenti scrive il file `.naibi-ai`;
+- finché c'è `.naibi-ai` l'app mostra un avviso e non si usa. Si controlla ogni secondo;
+- `end` cancella `.naibi-ai`: l'app si sblocca e ricarica il progetto da sola.
+
+Se l'agente si ferma senza `end`, nell'avviso c'è **Sblocca ora**. `set-rows` rifiuta anche da solo se l'app ha modifiche non salvate. I due file iniziano con il punto, quindi restano fuori dai backup; un `.naibi-app` lasciato da un'app chiusa male non conta, perché il suo processo non c'è più.
 
 ## Skill per gli agenti
 

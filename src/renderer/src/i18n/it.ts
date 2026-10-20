@@ -1176,6 +1176,14 @@ export const it: Record<MessageKey, string> = {
   'ai.save': 'Salva come file…',
   'ai.copied': 'Skill copiata. Incollala nel tuo agente.',
   'ai.saved': 'Skill salvata in {file}',
+  'agent.title': "Un'IA sta lavorando su questo progetto",
+  'agent.text':
+    'Un agente IA ha iniziato a lavorare su questo progetto con il comando naibi. Naibi resta bloccato finché non finisce, poi ricarica il progetto da solo.',
+  'agent.since': 'Iniziato alle {time}',
+  'agent.unlock': 'Sblocca ora',
+  'agent.unlockHint': "Da usare se l'IA si è fermata senza sbloccare il progetto",
+  'agent.unlockConfirm':
+    "Sbloccare e ricaricare il progetto? Se l'IA sta ancora lavorando, le sue modifiche e le tue potrebbero mescolarsi.",
   'app.backup': 'Backup…',
   'tip.backup': 'Copie di sicurezza del progetto, da ripristinare se qualcosa va storto',
   'dialog.close': 'Chiudi',

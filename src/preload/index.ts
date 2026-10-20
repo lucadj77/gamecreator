@@ -52,6 +52,13 @@ const api: Api = {
   appVersion: () => ipcRenderer.invoke('app:version'),
   saveSkill: (folder, text) => ipcRenderer.invoke('ai:save-skill', folder, text),
   skillsFolder: () => ipcRenderer.invoke('ai:skills-folder'),
+  setAppState: (folder, dirty) => ipcRenderer.invoke('agent:app-state', folder, dirty),
+  onAgentLock: (cb) => {
+    const listener = (_: unknown, lock: Parameters<typeof cb>[0]): void => cb(lock)
+    ipcRenderer.on('agent:lock', listener)
+    return () => ipcRenderer.removeListener('agent:lock', listener)
+  },
+  unlockAgent: () => ipcRenderer.invoke('agent:unlock'),
   exportPage: {
     onContext: (cb) => ipcRenderer.on('export:context', (_, c) => cb(c)),
     onScene: (cb) => ipcRenderer.on('export:scene', (_, id, scene) => cb(id, scene)),

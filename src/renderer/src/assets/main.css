@@ -254,13 +254,25 @@ button {
   font-size: 14px;
   padding: 2px 6px;
   border-radius: 4px;
-  opacity: 0;
+  display: none;
+  opacity: 0.8;
   color: var(--text);
 }
 
+/* le azioni non tolgono spazio al nome finché non servono */
 .sidebar li:hover button.item-dup,
-.sidebar li button.active + button.item-dup {
-  opacity: 0.8;
+.sidebar li:has(> button.active) button.item-dup {
+  display: inline-flex;
+}
+
+/* base di un template derivato: si accorcia prima del nome */
+.sidebar li > button:first-child > span.derived-base {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar li button.item-dup:hover {
@@ -2941,4 +2953,405 @@ details.advanced > button.link {
 .sidebar-preview-value {
   font-size: 20px;
   font-variant-numeric: tabular-nums;
+}
+
+/* colonne mostrate, caselle vero/falso e livelli calcolati */
+
+.columns-menu {
+  position: relative;
+}
+
+.columns-menu-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  min-width: 240px;
+  max-width: 340px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
+.columns-menu-panel p {
+  margin: 0 0 6px;
+}
+
+.columns-menu-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.columns-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.columns-menu-computed {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.columns-menu-all {
+  margin-top: 8px;
+}
+
+th.calc-col,
+th.new-col {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+th.new-col {
+  font-style: italic;
+}
+
+.calc-mark {
+  font-style: italic;
+}
+
+.data-table td.calc-cell {
+  color: var(--muted);
+  cursor: default;
+}
+
+.data-table td.bool-cell {
+  text-align: center;
+}
+
+input[type='checkbox'].bool-default {
+  opacity: 0.45;
+}
+
+.card-form .calc-field input {
+  color: var(--muted);
+  background: transparent;
+}
+
+.card-form .new-field .field-label {
+  color: var(--muted);
+}
+
+.card-form .field-control input[type='checkbox'] {
+  width: auto;
+}
+
+/* icone accanto ai campi della carta: dettagli del livello e nascondi */
+
+.field-tools {
+  display: inline-flex;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.field-tools .icon-btn {
+  position: relative;
+  padding: 3px 4px;
+  font-size: 16px;
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+.card-form .field:hover .field-tools .icon-btn,
+.field-tools .icon-btn.on {
+  opacity: 1;
+}
+
+.field-tools .icon-btn.on {
+  color: var(--accent);
+}
+
+.field-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 12px;
+  padding: 0 2px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+}
+
+.field-details {
+  margin: -2px 0 8px 12px;
+  padding: 6px 0 2px 10px;
+  border-left: 2px solid var(--accent-soft);
+}
+
+.field-details .field-label {
+  width: 76px;
+}
+
+.preview-card-inner {
+  position: relative;
+}
+
+.inline-editor {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: auto;
+}
+
+.inline-editor textarea {
+  width: 100%;
+  min-height: 100%;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.inline-editor-color {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.inline-editor-color input:not([type='color']) {
+  flex: 1;
+  min-width: 0;
+}
+
+.inline-editor-hint {
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--panel);
+  padding: 1px 4px;
+  border-radius: 3px;
+  align-self: flex-start;
+  white-space: nowrap;
+}
+
+.field-tools .icon-btn.off {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+select.from-template {
+  color: var(--muted);
+}
+
+/* template derivati */
+.derived-from {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.derived-from .link {
+  font-size: 12px;
+}
+
+.properties.derived .prop-item,
+.properties.derived .inherit-item {
+  position: relative;
+  padding-right: 26px;
+}
+
+.inherit-mark {
+  position: absolute;
+  top: 3px;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  opacity: 0.75;
+  font-size: 16px;
+  line-height: 22px;
+  text-align: center;
+}
+
+.inherit-mark.changed {
+  color: var(--accent);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.inherit-mark.changed:hover {
+  background: var(--accent-soft);
+  border-radius: 3px;
+}
+
+.layer-inherit {
+  flex: none;
+  width: 22px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  opacity: 0.75;
+  font-size: 15px;
+  text-align: center;
+}
+
+.layer-inherit.changed {
+  color: var(--accent);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.layer-inherit.added {
+  color: var(--accent);
+  opacity: 1;
+  font-weight: 600;
+}
+
+.value-info {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 240px;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+  cursor: auto;
+}
+
+.value-info button {
+  align-self: flex-start;
+}
+
+.big-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.big-preview-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.dialog:has(.big-preview) {
+  max-width: none;
+  width: auto;
+}
+
+.preview-card-away {
+  padding: 24px 0;
+}
+
+/* il doppio clic sulla carta non seleziona il testo disegnato */
+.preview-card {
+  user-select: none;
+}
+
+.preview-card .inline-editor,
+.preview-card .value-info {
+  user-select: text;
+}
+
+.preview-big-btn {
+  font-size: 18px;
+  opacity: 0.8;
+  padding: 2px 6px;
+}
+
+.big-preview-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.big-preview-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.big-preview-form {
+  width: 400px;
+  max-height: calc(100vh - 170px);
+  overflow: auto;
+  font-size: 14px;
+}
+
+.big-preview-form .card-form {
+  margin-top: 0;
+  border-top: none;
+  padding-top: 0;
+}
+
+.preview-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.preview-buttons .preview-edit {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* duplica, deriva, elimina accanto al nome del set o del template aperto */
+.item-actions {
+  display: inline-flex;
+  gap: 4px;
+  align-self: center;
+}
+
+.item-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+}
+
+/* la barra dell'editor va a capo invece di schiacciare nome e pulsanti */
+.editor-toolbar {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.editor-toolbar h1,
+.derived-from,
+.item-actions button {
+  white-space: nowrap;
+}
+
+.item-actions button {
+  flex-direction: row;
+}
+
+.set-header {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.set-header .set-template,
+.set-header h1 {
+  white-space: nowrap;
 }

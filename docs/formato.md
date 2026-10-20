@@ -43,7 +43,7 @@ I progetti creati quando l'app si chiamava GameCreator hanno `gamecreator.json`:
 }
 ```
 
-`sheet` è facoltativo: se manca si usa il foglio con lo stesso nome del set.
+`sheet` è facoltativo: se manca si usa il foglio con lo stesso nome del set. `hiddenColumns` (facoltativo) elenca le colonne nascoste nella tabella e nei campi della carta; `showComputed: true` mostra anche i livelli fissi e con formula, in sola lettura. Sono solo preferenze di vista: non cambiano le carte.
 
 `styles` (facoltativo) contiene gli stili di testo del progetto, scritti con gli stessi attributi del markup (docs/specifica.md, 2.1). Gli stili `heading1`, `heading2` e `note` esistono sempre e si possono ridefinire qui. Finché non c'è l'editor degli stili si modificano a mano.
 
@@ -133,11 +133,44 @@ Un file JSON per template in `templates/`. Le unità sono millimetri, la dimensi
 }
 ```
 
+- Un template derivato ha un formato a parte: vedi sotto.
 - Facoltativi: `shape` (`rect` di base, `ellipse`, `hexagon`, `path` con `shapePath`, tracciato SVG in coordinate 0–1 della carta) e `guides` (`{ "x": [mm...], "y": [mm...] }`, guide manuali dell'editor).
 - Il primo livello dell'elenco è quello in cima.
 - Tipi: `text`, `image`, `shape` (`rect`, `ellipse`, `polygon`, `star`, `line`, `path`), `group` (con `children`). Una `line` va dal centro del lato sinistro al centro del lato destro del suo riquadro, ruotato di `rotation`: `w` è la lunghezza. Un `path` ha in `path` il tracciato in coordinate 0–1 del riquadro, ricavato dalla sagoma di un'immagine.
 - La colonna con il nome del livello ne sostituisce il valore principale: il testo per `text`, il file per `image`, il riempimento per `shape`, la visibilità per `group`.
 - Un `group` con `layout` (`row`, `column`, `grid`) o con `repeat` diverso da 1 salva il proprio riquadro (`x`, `y`, `w`, `h`): i figli vi si dispongono dentro con `gap`, `columns`, `justify` e `alignItems` (`start`, `center`, `end`). `repeat` è un numero o un campo, come `"{forza}"`; le copie non si salvano.
 - In testi e nomi di file, `{campo}` prende il valore di quella colonna della stessa riga.
+
+### Template derivati
+
+Un template derivato ha `extends` con il nome del template base e in `changes` solo le differenze. Il resto lo eredita: una modifica al base arriva ai derivati, salvo le proprietà che il derivato ha cambiato. Un derivato può a sua volta fare da base.
+
+```json
+{
+  "extends": "personaggio",
+  "changes": {
+    "template": { "cornerRadius": 5 },
+    "layers": {
+      "banda": { "fill": "#B3261E" },
+      "nome": { "color": "#FFD27A", "y": 70 },
+      "stemma": { "visible": false }
+    },
+    "added": [
+      { "side": "front", "after": "nome", "layer": { "type": "image", "name": "fiamma", "x": 4, "y": 4, "w": 8, "h": 8 } }
+    ]
+  }
+}
+```
+
+- `changes.template`: le proprietà del template che cambiano tra `bleed`, `safeMargin`, `cornerRadius`, `shape`, `shapePath`, `guides`, `labelField`. Le misure della carta (`width`, `height`) sono sempre quelle del base.
+- `changes.layers`: per nome del livello del base, le proprietà cambiate. Una proprietà composta (contorno, ombra, fonte del valore) si scrive per intero.
+- `changes.added`: livelli che esistono solo nel derivato, nell'ordine in cui si inseriscono. `side` è `front` o `back`; `parent` il nome del gruppo ereditato che li contiene (assente: primo livello del lato); `after` il livello dopo il quale vengono nell'elenco, cioè subito sotto (assente: in cima).
+- I livelli ereditati non si eliminano e non cambiano ordine: per toglierli dalla carta si scrive `"visible": false`. I loro nomi sono quelli del base, e quindi anche le colonne.
+- Rinominando un livello nel base, Naibi aggiorna le differenze dei derivati. Una differenza per un livello che il base non ha più si ignora e Naibi la segnala.
+- Naibi 1.1 e precedenti non leggono i template derivati.
+
+### Template per carta
+
+Una colonna facoltativa `template` nel foglio sceglie il template di una singola carta; vuota vale il template del set. Il template scelto deve avere le misure di quello del set, perché le carte di un set si stampano insieme; altrimenti la carta usa il template del set e Naibi lo segnala.
 
 L'analisi del formato di Tabletop Creator da cui deriva questa struttura è in [analisi-ttc.md](analisi-ttc.md).

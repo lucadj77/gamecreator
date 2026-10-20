@@ -119,7 +119,7 @@ export function boundsOf(all: Layer[]): Bounds {
   return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 }
 }
 
-function fitGroup(g: GroupLayer): GroupLayer {
+export function fitGroup(g: GroupLayer): GroupLayer {
   // con la disposizione automatica il riquadro resta e i figli vi si dispongono
   if (isArranged(g)) return arrangeModel(g)
   if (!g.children.some(isDrawn)) return g

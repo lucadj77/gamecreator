@@ -6,6 +6,7 @@ import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
+import { cardTemplate } from './inherit'
 import {
   combineFlip,
   imageVariable,
@@ -45,6 +46,22 @@ export function rowToCard(headers: string[], row: string[]): CardData {
   headers.forEach((h, i) => (fields[h] = row[i] ?? ''))
   const amount = parseInt(fields.amount ?? '', 10)
   return { fields, amount: Number.isFinite(amount) && amount >= 0 ? amount : 1 }
+}
+
+/**
+ * Una riga di un set applicata al suo template: quello del set, o quello scelto per la carta nella
+ * colonna `template`.
+ */
+export function bindRow(
+  headers: string[],
+  row: string[],
+  setTemplate: Template,
+  templates: Template[],
+  ctx: BindContext = {}
+): BoundCard {
+  const { template, problem } = cardTemplate(headers, row, setTemplate, templates)
+  const bound = bindCard(template, rowToCard(headers, row), ctx)
+  return problem ? { ...bound, problems: [problem, ...bound.problems] } : bound
 }
 
 /** Progetto aperto: per controllare stili, immagini e font richiamati dai testi */
@@ -247,6 +264,29 @@ export function cardFields(
     }
   }
   return fields
+}
+
+/**
+ * Valore principale dei livelli fissi e con formula per una carta: il valore del template o il
+ * risultato della formula. Si mostrano in tabella, senza poterli modificare.
+ */
+export function computedValues(
+  template: Template,
+  card: CardData,
+  variables?: Variables
+): Record<string, string> {
+  const fields = cardFields(template, card, variables)
+  const out: Record<string, string> = {}
+  for (const l of walkLayers([...template.front, ...template.back])) {
+    if (l.source.kind === 'column' || l.type === 'group') continue
+    out[l.name] =
+      l.type === 'value'
+        ? (fields[l.name] ?? '')
+        : l.source.kind === 'formula'
+          ? evaluateFormula(l.source.expr, fields).value
+          : (defaultValue(l) ?? '')
+  }
+  return out
 }
 
 /** {spada} o {spada tint=red} come valore di un campo: il riferimento senza le graffe */

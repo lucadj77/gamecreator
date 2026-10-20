@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { findParent, isNameTaken, moveLayerTo, patchLayer } from '../../../shared/model/edit'
 import { switchSource } from '../../../shared/model/bind'
-import type { Layer, ValueSource } from '../../../shared/model/template'
+import type { Layer, Template, ValueSource } from '../../../shared/model/template'
+import { layerStatus, revertLayer } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
-import { ColumnIcon, FixedIcon, ImageIcon } from '../components/icons'
+import { ColumnIcon, FixedIcon, ImageIcon, LinkIcon, RevertIcon } from '../components/icons'
 import type { Commands } from './commands'
 import type { EditorAction, EditorState } from './useEditor'
 import PanelSideButton from '../components/PanelSideButton'
@@ -16,6 +17,8 @@ interface Props {
   width: number
   side: PanelSide
   onToggleSide(): void
+  /** Template base già risolto, se il template è derivato */
+  base?: Template | null
 }
 
 type DropWhere = 'before' | 'after' | 'inside'
@@ -45,7 +48,8 @@ export default function LayersPanel({
   cmd,
   width,
   side: panelSide,
-  onToggleSide
+  onToggleSide,
+  base = null
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
@@ -125,6 +129,9 @@ export default function LayersPanel({
   const rows = (list: Layer[], depth: number): React.ReactNode =>
     list.map((l) => {
       const open = l.type === 'group' && !collapsed.has(l.id)
+      // in un derivato: livello del base, cambiato, o solo di questo template
+      const status = base ? layerStatus(base, l).status : null
+      const own = status === null || status === 'added'
       return (
         <li key={l.id}>
           <div
@@ -139,8 +146,8 @@ export default function LayersPanel({
               .join(' ')}
             style={{ paddingLeft: 6 + depth * 14 }}
             onClick={(e) => select(l, e)}
-            onDoubleClick={() => setRenaming(l.id)}
-            draggable={renaming !== l.id}
+            onDoubleClick={() => own && setRenaming(l.id)}
+            draggable={renaming !== l.id && own}
             onDragStart={(e) => {
               e.dataTransfer.effectAllowed = 'move'
               e.dataTransfer.setData('text/plain', l.name)
@@ -199,6 +206,28 @@ export default function LayersPanel({
               />
             ) : (
               <span className="layer-name">{l.name}</span>
+            )}
+            {status === 'inherited' && (
+              <span className="layer-inherit" title={t('inherit.layerFromBase')}>
+                <LinkIcon />
+              </span>
+            )}
+            {status === 'changed' && (
+              <button
+                className="layer-inherit changed"
+                title={`${t('inherit.layerChanged')}\n${t('inherit.revertLayer')}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  dispatch({ type: 'change', template: revertLayer(base!, tpl, l.id) })
+                }}
+              >
+                <RevertIcon />
+              </button>
+            )}
+            {status === 'added' && (
+              <span className="layer-inherit added" title={t('inherit.layerAdded')}>
+                +
+              </span>
             )}
             {l.type !== 'group' && (
               <span className="layer-source-wrap">
@@ -281,10 +310,10 @@ export default function LayersPanel({
       </div>
       <p className="muted small layers-hint">{t('layers.hint')}</p>
       <div className="layers-actions">
-        <button disabled={none} title={t('layers.up')} onClick={() => cmd.move('up')}>
+        <button disabled={!cmd.canMove} title={t('layers.up')} onClick={() => cmd.move('up')}>
           ↑
         </button>
-        <button disabled={none} title={t('layers.down')} onClick={() => cmd.move('down')}>
+        <button disabled={!cmd.canMove} title={t('layers.down')} onClick={() => cmd.move('down')}>
           ↓
         </button>
         <button disabled={!cmd.canGroup} title={t('layers.group')} onClick={cmd.group}>

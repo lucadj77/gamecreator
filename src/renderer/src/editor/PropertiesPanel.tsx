@@ -20,7 +20,14 @@ import type {
   TextLayer,
   ValueLayer
 } from '../../../shared/model/template'
-import { walkLayers } from '../../../shared/model/normalize'
+import { isArranged, walkLayers } from '../../../shared/model/normalize'
+import { baseLayer, baseTemplateValue, changedTemplateKeys } from '../../../shared/model/inherit'
+import {
+  INHERITABLE_TEMPLATE_KEYS,
+  type InheritableTemplateKey
+} from '../../../shared/model/template'
+import { Inherit } from './inheritance'
+import { InheritContext, type InheritCtx } from './inheritContext'
 import { lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
@@ -60,6 +67,8 @@ interface Props {
   onResize(width: number, height: number): void
   side: PanelSide
   onToggleSide(): void
+  /** Template base già risolto, se il template è derivato */
+  base?: Template | null
 }
 
 export default function PropertiesPanel({
@@ -70,7 +79,8 @@ export default function PropertiesPanel({
   width,
   onResize,
   side: panelSide,
-  onToggleSide
+  onToggleSide,
+  base = null
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const { template: tpl, side, selection } = state
@@ -86,7 +96,11 @@ export default function PropertiesPanel({
 
   return (
     <ColorFieldsContext.Provider value={valueLayers}>
-      <aside className="properties" data-side={panelSide} style={{ width }}>
+      <aside
+        className={base ? 'properties derived' : 'properties'}
+        data-side={panelSide}
+        style={{ width }}
+      >
         <PanelSideButton side={panelSide} onToggle={onToggleSide} className="corner" />
         {selection.length > 0 && <AlignSection state={state} dispatch={dispatch} />}
         {selection.length > 1 ? (
@@ -126,6 +140,7 @@ export default function PropertiesPanel({
               state={state}
               dispatch={dispatch}
               sheets={sheets}
+              base={base}
             />
             {layer.type === 'group' && (
               <div className="selection-actions">
@@ -138,6 +153,7 @@ export default function PropertiesPanel({
         ) : (
           <TemplateProperties
             template={tpl}
+            base={base}
             dispatch={dispatch}
             sheets={sheets}
             onResize={onResize}
@@ -150,11 +166,13 @@ export default function PropertiesPanel({
 
 function TemplateProperties({
   template: tpl,
+  base,
   dispatch,
   sheets,
   onResize
 }: {
   template: Template
+  base: Template | null
   dispatch: React.Dispatch<EditorAction>
   sheets: Props['sheets']
   onResize(width: number, height: number): void
@@ -163,78 +181,119 @@ function TemplateProperties({
   const [locked, setLocked] = useRatioLock('template')
   const set = (p: Partial<Template>, key: string): void =>
     dispatch({ type: 'change', template: { ...tpl, ...p }, key: `template.${key}` })
+  // in un derivato ogni proprietà mostra se viene dal base o è cambiata
+  const changed = base ? changedTemplateKeys(base, tpl) : []
+  const inherit: InheritCtx | null = base && {
+    status: (k) =>
+      (INHERITABLE_TEMPLATE_KEYS as readonly string[]).includes(k)
+        ? changed.includes(k as InheritableTemplateKey)
+          ? 'changed'
+          : 'inherited'
+        : null,
+    revert: (keys) =>
+      set(
+        Object.fromEntries(
+          keys.map((k) => [k, baseTemplateValue(base, k as InheritableTemplateKey) ?? undefined])
+        ),
+        'revert'
+      )
+  }
   return (
-    <>
+    <InheritContext.Provider value={inherit}>
       <h2>{t('editor.templateProperties')}</h2>
       <div className="field">
         <span className="field-label">{t('prop.name')}</span>
         <span className="field-control">{tpl.name}</span>
       </div>
-      <SizeFields
-        labels={[t('prop.width'), t('prop.height')]}
-        w={tpl.width}
-        h={tpl.height}
-        min={5}
-        unit="mm"
-        deferred
-        layout="column"
-        locked={locked}
-        onLock={setLocked}
-        // con il lucchetto l'altra misura si arrotonda al decimo di millimetro
-        onChange={(w, h) =>
-          locked ? onResize(Math.round(w * 10) / 10, Math.round(h * 10) / 10) : onResize(w, h)
-        }
-      />
-      <NumberField
-        label={t('prop.bleed')}
-        value={tpl.bleed}
-        min={0}
-        unit="mm"
-        onChange={(bleed) => set({ bleed }, 'bleed')}
-      />
-      <NumberField
-        label={t('prop.safeMargin')}
-        value={tpl.safeMargin}
-        min={0}
-        unit="mm"
-        onChange={(safeMargin) => set({ safeMargin }, 'safeMargin')}
-      />
-      <SelectField<CardShape>
-        label={t('prop.cardShape')}
-        hint={t('editor.cardShapeHint')}
-        value={tpl.shape ?? 'rect'}
-        options={options(t, 'cardShape', ['rect', 'ellipse', 'hexagon', 'path'] as const)}
-        onChange={(shape) => set({ shape }, 'shape')}
-      />
-      {(tpl.shape ?? 'rect') === 'rect' && (
+      {base ? (
+        // le misure della carta sono sempre quelle del base
+        <div className="field" title={t('inherit.sizeFromBase')}>
+          <span className="field-label">{t('prop.size')}</span>
+          <span className="field-control muted">
+            {tpl.width} × {tpl.height} mm
+          </span>
+        </div>
+      ) : (
+        <SizeFields
+          labels={[t('prop.width'), t('prop.height')]}
+          w={tpl.width}
+          h={tpl.height}
+          min={5}
+          unit="mm"
+          deferred
+          layout="column"
+          locked={locked}
+          onLock={setLocked}
+          // con il lucchetto l'altra misura si arrotonda al decimo di millimetro
+          onChange={(w, h) =>
+            locked ? onResize(Math.round(w * 10) / 10, Math.round(h * 10) / 10) : onResize(w, h)
+          }
+        />
+      )}
+      <Inherit keys={['bleed']}>
         <NumberField
-          label={t('prop.cornerRadius')}
-          value={tpl.cornerRadius}
+          label={t('prop.bleed')}
+          value={tpl.bleed}
           min={0}
           unit="mm"
-          onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
+          onChange={(bleed) => set({ bleed }, 'bleed')}
         />
+      </Inherit>
+      <Inherit keys={['safeMargin']}>
+        <NumberField
+          label={t('prop.safeMargin')}
+          value={tpl.safeMargin}
+          min={0}
+          unit="mm"
+          onChange={(safeMargin) => set({ safeMargin }, 'safeMargin')}
+        />
+      </Inherit>
+      <Inherit keys={['shape']}>
+        <SelectField<CardShape>
+          label={t('prop.cardShape')}
+          hint={t('editor.cardShapeHint')}
+          value={tpl.shape ?? 'rect'}
+          options={options(t, 'cardShape', ['rect', 'ellipse', 'hexagon', 'path'] as const)}
+          onChange={(shape) => set({ shape }, 'shape')}
+        />
+      </Inherit>
+      {(tpl.shape ?? 'rect') === 'rect' && (
+        <Inherit keys={['cornerRadius']}>
+          <NumberField
+            label={t('prop.cornerRadius')}
+            value={tpl.cornerRadius}
+            min={0}
+            unit="mm"
+            onChange={(cornerRadius) => set({ cornerRadius }, 'cornerRadius')}
+          />
+        </Inherit>
       )}
       {tpl.shape === 'path' && (
-        <OutlineField
-          hint={t('editor.cardOutlineHint')}
-          empty={!tpl.shapePath?.trim()}
-          onTraced={({ path }) => set({ shapePath: path }, 'shapePath')}
-        />
+        <Inherit keys={['shapePath']}>
+          <OutlineField
+            hint={t('editor.cardOutlineHint')}
+            empty={!tpl.shapePath?.trim()}
+            onTraced={({ path }) => set({ shapePath: path }, 'shapePath')}
+          />
+        </Inherit>
       )}
-      <GuideFields template={tpl} set={set} />
-      <SelectField<string>
-        label={t('prop.labelField')}
-        hint={t('editor.labelFieldHint')}
-        value={tpl.labelField ?? ''}
-        options={[
-          ['', t('editor.labelFieldAuto')],
-          ...labelChoices(tpl, sheets).map((f): [string, string] => [f, f])
-        ]}
-        onChange={(f) => set({ labelField: f || null }, 'labelField')}
-      />
+      <Inherit keys={['guides']}>
+        <GuideFields template={tpl} set={set} />
+      </Inherit>
+      <Inherit keys={['labelField']}>
+        <SelectField<string>
+          label={t('prop.labelField')}
+          hint={t('editor.labelFieldHint')}
+          value={tpl.labelField ?? ''}
+          options={[
+            ['', t('editor.labelFieldAuto')],
+            ...labelChoices(tpl, sheets).map((f): [string, string] => [f, f])
+          ]}
+          onChange={(f) => set({ labelField: f || null }, 'labelField')}
+        />
+      </Inherit>
       <p className="muted small">{t('editor.noSelectionHint')}</p>
-    </>
+    </InheritContext.Provider>
   )
 }
 
@@ -254,7 +313,8 @@ function LayerProperties({
   targets,
   state,
   dispatch,
-  sheets
+  sheets,
+  base = null
 }: {
   layer: Layer
   /** Livelli selezionati quando sono più di uno: le modifiche valgono per tutti */
@@ -262,6 +322,8 @@ function LayerProperties({
   state: EditorState
   dispatch: React.Dispatch<EditorAction>
   sheets: Props['sheets']
+  /** Base del template derivato */
+  base?: Template | null
 }): React.JSX.Element {
   const { t } = useI18n()
   const { template: tpl, side } = state
@@ -288,8 +350,27 @@ function LayerProperties({
   // con una formula il valore principale è calcolato: il campo del valore non serve
   const computed = l.source.kind === 'formula'
 
+  // livello ereditato da un base: ogni proprietà mostra se è del base o cambiata
+  const from = base && !multi ? baseLayer(base, l.id) : null
+  const inherit: InheritCtx | null = from && {
+    status: (k) => {
+      const a = (from as unknown as Record<string, unknown>)[k]
+      const b = (l as unknown as Record<string, unknown>)[k]
+      if (b === undefined) return null
+      // il riquadro di un gruppo normale segue i figli
+      if (l.type === 'group' && !isArranged(l) && ['x', 'y', 'w', 'h'].includes(k)) return null
+      return JSON.stringify(a) === JSON.stringify(b) ? 'inherited' : 'changed'
+    },
+    revert: (keys) =>
+      set(
+        Object.fromEntries(
+          keys.map((k) => [k, (from as unknown as Record<string, unknown>)[k]])
+        ) as Partial<Layer>
+      )
+  }
+
   return (
-    <>
+    <InheritContext.Provider value={inherit}>
       {!multi && (
         <>
           <h2>
@@ -298,12 +379,17 @@ function LayerProperties({
           </h2>
           <TextField
             label={t('prop.name')}
-            hint={t('editor.nameHint')}
+            // il nome di un livello ereditato è la sua colonna: si cambia nel base
+            hint={from ? t('inherit.nameFromBase') : t('editor.nameHint')}
+            disabled={!!from}
             value={l.name}
             validate={validateName}
             onChange={(name) => set({ name })}
           />
-          <ValueSource layer={l} template={tpl} sheets={sheets} set={set} />
+          {base && !from && <p className="muted small">{t('inherit.addedLayer')}</p>}
+          <Inherit keys={['source']}>
+            <ValueSource layer={l} template={tpl} sheets={sheets} set={set} />
+          </Inherit>
         </>
       )}
 
@@ -330,7 +416,7 @@ function LayerProperties({
       {layers.every((x) => x.type !== 'value') && (
         <DrawnProperties l={l} set={set} col={col} multi={multi} />
       )}
-    </>
+    </InheritContext.Provider>
   )
 }
 
@@ -454,41 +540,49 @@ function GroupProperties({
   const arranged = l.layout !== 'none' || l.repeat.trim() !== '1'
   return (
     <>
-      <CheckField
-        label={t('prop.clip')}
-        hint={t('editor.clipHint')}
-        value={l.clip}
-        onChange={(clip) => set({ clip })}
-      />
+      <Inherit keys={['clip']}>
+        <CheckField
+          label={t('prop.clip')}
+          hint={t('editor.clipHint')}
+          value={l.clip}
+          onChange={(clip) => set({ clip })}
+        />
+      </Inherit>
       <h3>{t('editor.layout')}</h3>
-      <SelectField<GroupLayout>
-        label={t('prop.layout')}
-        hint={t('editor.layoutHint')}
-        value={l.layout}
-        options={options(t, 'layout', ['none', 'row', 'column', 'grid'] as const)}
-        onChange={(layout) => set({ layout })}
-      />
-      <TextField
-        label={t('prop.repeat')}
-        hint={`${t('editor.repeatHint')} ${col('repeat')}`}
-        value={l.repeat}
-        placeholder="1"
-        validate={(v) =>
-          !v.trim() || /^\s*\d+\s*$/.test(v) || /\{[^}]+\}/.test(v)
-            ? null
-            : t('editor.repeatInvalid')
-        }
-        onChange={(repeat) => set({ repeat: repeat.trim() || '1' })}
-      />
+      <Inherit keys={['layout']}>
+        <SelectField<GroupLayout>
+          label={t('prop.layout')}
+          hint={t('editor.layoutHint')}
+          value={l.layout}
+          options={options(t, 'layout', ['none', 'row', 'column', 'grid'] as const)}
+          onChange={(layout) => set({ layout })}
+        />
+      </Inherit>
+      <Inherit keys={['repeat']}>
+        <TextField
+          label={t('prop.repeat')}
+          hint={`${t('editor.repeatHint')} ${col('repeat')}`}
+          value={l.repeat}
+          placeholder="1"
+          validate={(v) =>
+            !v.trim() || /^\s*\d+\s*$/.test(v) || /\{[^}]+\}/.test(v)
+              ? null
+              : t('editor.repeatInvalid')
+          }
+          onChange={(repeat) => set({ repeat: repeat.trim() || '1' })}
+        />
+      </Inherit>
       {arranged && (
         <>
-          <NumberField
-            label={t('prop.gap')}
-            value={l.gap}
-            unit="mm"
-            step={0.5}
-            onChange={(gap) => set({ gap })}
-          />
+          <Inherit keys={['gap']}>
+            <NumberField
+              label={t('prop.gap')}
+              value={l.gap}
+              unit="mm"
+              step={0.5}
+              onChange={(gap) => set({ gap })}
+            />
+          </Inherit>
           {l.layout === 'grid' && (
             <NumberField
               label={t('prop.columns')}
@@ -498,18 +592,22 @@ function GroupProperties({
               onChange={(columns) => set({ columns: Math.max(1, Math.round(columns)) })}
             />
           )}
-          <SelectField<LayoutAlign>
-            label={t('prop.justify')}
-            value={l.justify}
-            options={options(t, l.layout === 'column' ? 'justifyV' : 'justifyH', ALIGNS)}
-            onChange={(justify) => set({ justify })}
-          />
-          <SelectField<LayoutAlign>
-            label={t('prop.alignItems')}
-            value={l.alignItems}
-            options={options(t, l.layout === 'column' ? 'justifyH' : 'justifyV', ALIGNS)}
-            onChange={(alignItems) => set({ alignItems })}
-          />
+          <Inherit keys={['justify']}>
+            <SelectField<LayoutAlign>
+              label={t('prop.justify')}
+              value={l.justify}
+              options={options(t, l.layout === 'column' ? 'justifyV' : 'justifyH', ALIGNS)}
+              onChange={(justify) => set({ justify })}
+            />
+          </Inherit>
+          <Inherit keys={['alignItems']}>
+            <SelectField<LayoutAlign>
+              label={t('prop.alignItems')}
+              value={l.alignItems}
+              options={options(t, l.layout === 'column' ? 'justifyH' : 'justifyV', ALIGNS)}
+              onChange={(alignItems) => set({ alignItems })}
+            />
+          </Inherit>
           <p className="muted small">{t('editor.arrangedHint')}</p>
         </>
       )}
@@ -539,68 +637,72 @@ function DrawnProperties({
     <>
       <Section scope="geometry" title={t('editor.geometry')}>
         {multi ? null : line ? (
-          <div className="field-grid">
-            <NumberField
-              label="Ax"
-              value={r(a.x)}
-              unit="mm"
-              onChange={(x) => ends({ ...a, x }, b)}
-            />
-            <NumberField
-              label="Ay"
-              value={r(a.y)}
-              unit="mm"
-              onChange={(y) => ends({ ...a, y }, b)}
-            />
-            <NumberField
-              label="Bx"
-              value={r(b.x)}
-              unit="mm"
-              onChange={(x) => ends(a, { ...b, x })}
-            />
-            <NumberField
-              label="By"
-              value={r(b.y)}
-              unit="mm"
-              onChange={(y) => ends(a, { ...b, y })}
-            />
-            <NumberField
-              label="L"
-              hint={t('prop.length')}
-              value={r(l.w)}
-              min={0}
-              unit="mm"
-              onChange={(w) => set({ w })}
-            />
-          </div>
+          <Inherit keys={['x', 'y', 'w', 'rotation']}>
+            <div className="field-grid">
+              <NumberField
+                label="Ax"
+                value={r(a.x)}
+                unit="mm"
+                onChange={(x) => ends({ ...a, x }, b)}
+              />
+              <NumberField
+                label="Ay"
+                value={r(a.y)}
+                unit="mm"
+                onChange={(y) => ends({ ...a, y }, b)}
+              />
+              <NumberField
+                label="Bx"
+                value={r(b.x)}
+                unit="mm"
+                onChange={(x) => ends(a, { ...b, x })}
+              />
+              <NumberField
+                label="By"
+                value={r(b.y)}
+                unit="mm"
+                onChange={(y) => ends(a, { ...b, y })}
+              />
+              <NumberField
+                label="L"
+                hint={t('prop.length')}
+                value={r(l.w)}
+                min={0}
+                unit="mm"
+                onChange={(w) => set({ w })}
+              />
+            </div>
+          </Inherit>
         ) : (
-          <div className="field-grid">
-            <NumberField
-              label="X"
-              hint={col('x')}
-              value={l.x}
-              unit="mm"
-              onChange={(x) => set({ x })}
-            />
-            <NumberField
-              label="Y"
-              hint={col('y')}
-              value={l.y}
-              unit="mm"
-              onChange={(y) => set({ y })}
-            />
-            <SizeFields
-              labels={[t('prop.w'), t('prop.h')]}
-              hints={[col('w'), col('h')]}
-              w={l.w}
-              h={l.h}
-              min={0.5}
-              unit="mm"
-              locked={locked}
-              onLock={setLocked}
-              onChange={(w, h) => set({ w, h })}
-            />
-          </div>
+          <Inherit keys={['x', 'y', 'w', 'h']}>
+            <div className="field-grid">
+              <NumberField
+                label="X"
+                hint={col('x')}
+                value={l.x}
+                unit="mm"
+                onChange={(x) => set({ x })}
+              />
+              <NumberField
+                label="Y"
+                hint={col('y')}
+                value={l.y}
+                unit="mm"
+                onChange={(y) => set({ y })}
+              />
+              <SizeFields
+                labels={[t('prop.w'), t('prop.h')]}
+                hints={[col('w'), col('h')]}
+                w={l.w}
+                h={l.h}
+                min={0.5}
+                unit="mm"
+                locked={locked}
+                onLock={setLocked}
+                onChange={(w, h) => set({ w, h })}
+              />
+            </div>
+          </Inherit>
         )}
         {line && !multi && <p className="muted small">{t('editor.lineHint')}</p>}
         <P id="rotation">
@@ -759,14 +861,16 @@ function TextProperties({
     <>
       {/* con una formula il valore è il suo risultato: il campo non serve */}
       {!computed && (
-        <TextField
-          label={t('prop.text')}
-          hint={col()}
-          value={l.text}
-          multiline
-          markupFields={fields}
-          onChange={(text) => set({ text })}
-        />
+        <Inherit keys={['text']}>
+          <TextField
+            label={t('prop.text')}
+            hint={col()}
+            value={l.text}
+            multiline
+            markupFields={fields}
+            onChange={(text) => set({ text })}
+          />
+        </Inherit>
       )}
       <Section scope="text" title={t('editor.typography')}>
         <P id="font">
@@ -1001,23 +1105,25 @@ function ImageProperties({
     <>
       {/* con una formula il valore è il suo risultato: il campo non serve */}
       {!computed && (
-        <TextField
-          label={t('prop.src')}
-          hint={col()}
-          value={l.src}
-          list={listId}
-          placeholder={t('editor.srcPlaceholder')}
-          onChange={(src) => set({ src })}
-          action={
-            <button
-              className="pick-btn"
-              title={t('assetPicker.open')}
-              onClick={() => setPicking(true)}
-            >
-              <ImageIcon />
-            </button>
-          }
-        />
+        <Inherit keys={['src']}>
+          <TextField
+            label={t('prop.src')}
+            hint={col()}
+            value={l.src}
+            list={listId}
+            placeholder={t('editor.srcPlaceholder')}
+            onChange={(src) => set({ src })}
+            action={
+              <button
+                className="pick-btn"
+                title={t('assetPicker.open')}
+                onClick={() => setPicking(true)}
+              >
+                <ImageIcon />
+              </button>
+            }
+          />
+        </Inherit>
       )}
       {picking && (
         <AssetPicker
@@ -1224,12 +1330,14 @@ function ValueProperties({
     <>
       {/* con una formula il valore è il suo risultato: il campo non serve */}
       {!computed && (
-        <TextField
-          label={t('prop.value')}
-          hint={col()}
-          value={l.value}
-          onChange={(value) => set({ value })}
-        />
+        <Inherit keys={['value']}>
+          <TextField
+            label={t('prop.value')}
+            hint={col()}
+            value={l.value}
+            onChange={(value) => set({ value })}
+          />
+        </Inherit>
       )}
       <p className="small muted">{t('editor.valueHint', { name: l.name })}</p>
     </>
@@ -1320,12 +1428,16 @@ function ShapeProperties({
           </P>
         )}
         {l.shape === 'path' && (
-          <OutlineField
-            hint={t('editor.outlineHint')}
-            empty={!l.path.trim()}
-            // l'altezza segue le proporzioni dell'immagine
-            onTraced={({ path, ratio }) => set({ path, h: Math.round((l.w / ratio) * 100) / 100 })}
-          />
+          <Inherit keys={['path']}>
+            <OutlineField
+              hint={t('editor.outlineHint')}
+              empty={!l.path.trim()}
+              // l'altezza segue le proporzioni dell'immagine
+              onTraced={({ path, ratio }) =>
+                set({ path, h: Math.round((l.w / ratio) * 100) / 100 })
+              }
+            />
+          </Inherit>
         )}
       </Section>
     </>

@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.3
+
+### English
+
+- Naibi and an AI agent no longer overwrite each other's work. Before changing a project, the agent asks the app with the new `naibi begin` command: if the project has unsaved changes the agent stops and asks you to save; otherwise Naibi shows that an AI is working and stays locked until the agent runs `naibi end`, then reloads the project by itself. **Unlock now** frees the app if the agent stops without unlocking it. The skill in **AI tools…** explains this to the agent: copy it again into your agent to update it.
+
+### Italiano
+
+- Naibi e un agente IA non si sovrascrivono più il lavoro. Prima di modificare un progetto l'agente lo chiede all'app con il nuovo comando `naibi begin`: se il progetto ha modifiche non salvate l'agente si ferma e ti chiede di salvare; altrimenti Naibi mostra che un'IA sta lavorando e resta bloccato finché l'agente non esegue `naibi end`, poi ricarica il progetto da solo. **Sblocca ora** libera l'app se l'agente si ferma senza sbloccarla. La skill in **Strumenti IA…** lo spiega all'agente: copiala di nuovo nel tuo agente per aggiornarla.
+
 ## 1.2.0-beta.2
 
 ### English

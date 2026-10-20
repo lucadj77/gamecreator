@@ -488,7 +488,7 @@ Un agente IA che esegue comandi sul computer (per esempio Claude Code, Codex o C
 
 ![Gli strumenti per gli agenti IA](img/strumenti-ia.png)
 
-Se il progetto è aperto in Naibi mentre l'agente lavora, quando ha finito premi **Ricarica** senza salvare prima: altrimenti la copia dell'app sovrascrive le modifiche dell'agente.
+Il progetto può restare aperto in Naibi mentre l'agente lavora. Prima di modificarlo l'agente lo chiede all'app con `naibi begin`: se ci sono modifiche non salvate si ferma e ti chiede di salvare; altrimenti Naibi mostra che un'IA sta lavorando e non si usa finché l'agente non ha finito (`naibi end`), poi ricarica il progetto da solo. Se l'agente si interrompe senza sbloccare l'app, **Sblocca ora** la libera. Con una skill copiata prima della versione 1.2.0-beta.3 l'agente non lo sa fare: copiala di nuovo.
 
 Il comando `naibi` si può usare anche direttamente, per esempio in uno script: `info` descrive il progetto, `check` elenca i problemi delle carte, `rows` e `set-rows` leggono e scrivono le righe di un set, `render` disegna le carte in PNG, `export` esegue un profilo di esportazione. I dettagli sono in [docs/cli.md](../cli.md).
 

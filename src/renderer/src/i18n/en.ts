@@ -1157,6 +1157,14 @@ export const en = {
   'ai.save': 'Save as file…',
   'ai.copied': 'Skill copied. Paste it into your agent.',
   'ai.saved': 'Skill saved in {file}',
+  'agent.title': 'An AI is working on this project',
+  'agent.text':
+    'An AI agent started working on this project with the naibi command. Naibi stays locked until it finishes, then reloads the project by itself.',
+  'agent.since': 'Started at {time}',
+  'agent.unlock': 'Unlock now',
+  'agent.unlockHint': 'Use it if the AI has stopped without unlocking the project',
+  'agent.unlockConfirm':
+    'Unlock and reload the project? If the AI is still working, its changes and yours may get mixed up.',
   'app.backup': 'Backup…',
   'tip.backup': 'Safety copies of the project, to restore if something goes wrong',
   'dialog.close': 'Close',

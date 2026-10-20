@@ -33,6 +33,7 @@ import { saveData } from './project/save'
 import { setProjectFolder } from './protocol'
 import { systemFonts } from './library/systemFonts'
 import { createBackup } from './project/backup'
+import { beginAgent, endAgent, readAppState, UnsavedChangesError } from './project/agentLock'
 
 // Il comando naibi: lo stesso programma dell'app, avviato con --cli, senza finestre. Serve a chi
 // lavora su un progetto da terminale, in particolare a un'IA: legge, controlla, scrive i dati e
@@ -52,6 +53,10 @@ Commands:
          [--dpi 150] [--out folder]    Draw cards as PNG files (default folder: export/naibi-render)
   export <project> --profile NAME      Run a named export profile saved in the project
   new <name> <parent folder>           Create an empty project
+  begin <project> [--note TEXT]        Start working: fails (exit code 3) if the Naibi app has
+                                       unsaved changes in the project, otherwise the app locks
+                                       itself until 'end'
+  end <project>                        Finish working: the app unlocks and reloads the project
   help                                 This text
 
 <project> is the project folder (the one with naibi.json).
@@ -284,8 +289,12 @@ async function rows(p: Parsed): Promise<number> {
   return 0
 }
 
+const UNSAVED =
+  'the Naibi app has unsaved changes in this project: ask the user to save (or reload) in the app, then try again'
+
 async function setRows(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
+  if ((await readAppState(project.folder))?.dirty) throw new CliError(UNSAVED)
   const set = findSet(project, p.positional[1])
   const file = p.positional[2]
   if (!file) throw new CliError('missing .csv or .json file')
@@ -393,6 +402,32 @@ async function create(p: Parsed): Promise<number> {
   return 0
 }
 
+async function begin(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  const note = typeof p.flags.note === 'string' ? p.flags.note : undefined
+  try {
+    await beginAgent(project.folder, note)
+  } catch (e) {
+    if (!(e instanceof UnsavedChangesError)) throw e
+    process.stderr.write(`naibi: ${UNSAVED}\n`)
+    return 3
+  }
+  const app = await readAppState(project.folder)
+  print(
+    app
+      ? 'The Naibi app is now locked on this project. Run "end" when you have finished.'
+      : 'Ready. Run "end" when you have finished.'
+  )
+  return 0
+}
+
+async function end(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  await endAgent(project.folder)
+  print('Done: the Naibi app, if open, reloads the project.')
+  return 0
+}
+
 const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   info,
   check,
@@ -401,7 +436,9 @@ const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   'set-rows': setRows,
   render,
   export: exportProfile,
-  new: create
+  new: create,
+  begin,
+  end
 }
 
 /** Esegue il comando e restituisce il codice di uscita */

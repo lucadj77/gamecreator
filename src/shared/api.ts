@@ -2,6 +2,12 @@ import type { UpdateInfo } from './update'
 import type { LoadedProject, ProjectFile, Sheet } from './project'
 import type { Template } from './model/template'
 import type { Message } from './messages'
+
+/** Un'IA sta lavorando sul progetto: vedi main/project/agentLock.ts */
+export interface AgentLock {
+  since: string
+  note?: string
+}
 import type {
   ExportContext,
   ExportJob,
@@ -153,6 +159,12 @@ export interface Api {
   saveSkill(folder: string, text: string): Promise<string>
   /** Cartella proposta per salvare la skill: quella delle skill di Claude Code, se c'è */
   skillsFolder(): Promise<string>
+  /** Progetto aperto (null alla chiusura) e modifiche non salvate, per `naibi begin` */
+  setAppState(folder: string | null, dirty: boolean): Promise<void>
+  /** Chiamato quando un'IA inizia (con il blocco) o finisce (null) di lavorare sul progetto */
+  onAgentLock(cb: (lock: AgentLock | null) => void): () => void
+  /** Toglie il blocco lasciato da un'IA che non ha chiuso il lavoro */
+  unlockAgent(): Promise<void>
   /** Solo nella finestra nascosta che disegna le esportazioni */
   exportPage: ExportPageApi
 }

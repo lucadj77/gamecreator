@@ -3767,3 +3767,16 @@ select.from-template {
 .crop-summary {
   font-size: 12px;
 }
+
+/* Un'IA sta lavorando sul progetto: l'app resta visibile ma non si usa */
+.agent-lock {
+  z-index: 100;
+}
+
+.agent-lock .dialog {
+  max-width: 440px;
+}
+
+.agent-note {
+  font-style: italic;
+}

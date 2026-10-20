@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { changelogSection, compareVersions, notesForLanguage, updateFromRelease } from '../update'
+import {
+  changelogSection,
+  compareVersions,
+  isPrerelease,
+  notesForLanguage,
+  updateFromReleases
+} from '../update'
 
 const notes = `### Italiano
 
@@ -17,17 +23,33 @@ describe('aggiornamenti', () => {
     expect(compareVersions('2.0', '1.9.9')).toBeGreaterThan(0)
   })
 
-  it('segnala solo una release più recente e pubblicata', () => {
-    const release = { tag_name: 'v1.1.0', body: notes, html_url: 'https://x/v1.1.0' }
-    expect(updateFromRelease(release, '1.0.0')).toEqual({
-      version: '1.1.0',
-      notes,
-      url: 'https://x/v1.1.0'
+  it('mette le beta prima della versione ufficiale', () => {
+    expect(compareVersions('1.2.0-beta.1', '1.1.0')).toBeGreaterThan(0)
+    expect(compareVersions('1.2.0-beta.1', '1.2.0')).toBeLessThan(0)
+    expect(compareVersions('1.2.0-beta.2', '1.2.0-beta.1')).toBeGreaterThan(0)
+    expect(compareVersions('1.2.0-beta.10', '1.2.0-beta.9')).toBeGreaterThan(0)
+    expect(compareVersions('1.2.0-beta', '1.2.0-beta.1')).toBeLessThan(0)
+    expect(isPrerelease('v1.2.0-beta.1')).toBe(true)
+    expect(isPrerelease('1.2.0')).toBe(false)
+  })
+
+  it('propone la release più recente, con le beta solo a chi ha una beta', () => {
+    const rel = (tag: string, extra = {}): Record<string, unknown> => ({
+      tag_name: tag,
+      body: notes,
+      html_url: `https://x/${tag}`,
+      prerelease: tag.includes('-'),
+      ...extra
     })
-    expect(updateFromRelease(release, '1.1.0')).toBeNull()
-    expect(updateFromRelease({ ...release, draft: true }, '1.0.0')).toBeNull()
-    expect(updateFromRelease({ message: 'Not Found' }, '1.0.0')).toBeNull()
-    expect(updateFromRelease(null, '1.0.0')).toBeNull()
+    const list = [rel('v1.2.0-beta.2'), rel('v1.2.0-beta.1'), rel('v1.1.0'), rel('v1.0.0')]
+    expect(updateFromReleases(list, '1.0.0')?.version).toBe('1.1.0')
+    expect(updateFromReleases(list, '1.1.0')).toBeNull()
+    expect(updateFromReleases(list, '1.2.0-beta.1')?.version).toBe('1.2.0-beta.2')
+    expect(updateFromReleases(list, '1.2.0-beta.1')?.url).toBe('https://x/v1.2.0-beta.2')
+    // la versione ufficiale supera le sue beta
+    expect(updateFromReleases([rel('v1.2.0'), ...list], '1.2.0-beta.2')?.version).toBe('1.2.0')
+    expect(updateFromReleases([rel('v1.3.0', { draft: true })], '1.0.0')).toBeNull()
+    expect(updateFromReleases({ message: 'Not Found' }, '1.0.0')).toBeNull()
   })
 
   it('sceglie le note nella lingua dell interfaccia', () => {

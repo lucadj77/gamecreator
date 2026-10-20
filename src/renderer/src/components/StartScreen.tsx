@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { RecentProject } from '../../../shared/api'
 import { projectFolderName } from '../../../shared/model/projectName'
+import { isPrerelease } from '../../../shared/update'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
@@ -33,6 +34,11 @@ export default function StartScreen({
   const [creating, setCreating] = useState(false)
   const [about, setAbout] = useState(false)
   const [aiTools, setAiTools] = useState(false)
+  const [version, setVersion] = useState<string | null>(null)
+
+  useEffect(() => {
+    window.api.appVersion().then(setVersion, () => {})
+  }, [])
 
   useEffect(() => {
     let live = true
@@ -58,6 +64,12 @@ export default function StartScreen({
       <header className="start-header">
         <img className="start-logo" src={appIcon} alt="" draggable={false} />
         <h1>Naibi</h1>
+        {version && (
+          <span className="start-version">
+            {version}
+            {isPrerelease(version) && <span className="beta-badge">beta</span>}
+          </span>
+        )}
         <span className="spacer" />
         {settings}
       </header>

@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.8
+
+### English
+
+- Export dialog: many warnings (for example images not found and replaced with a placeholder) no longer push the buttons off the bottom of the screen. The warnings scroll in their own box, the dialog scrolls if the screen is low, and the buttons stay visible at the bottom.
+
+### Italiano
+
+- Finestra Esporta: molti avvisi (per esempio immagini non trovate e sostituite con un segnaposto) non spingono più i pulsanti fuori dallo schermo. Gli avvisi scorrono in un riquadro a sé, la finestra scorre se lo schermo è basso e i pulsanti restano visibili in fondo.
+
 ## 1.2.0-beta.7
 
 ### English

@@ -67,7 +67,7 @@ A new project is empty: the app suggests creating a template first, then a set t
 
 ![The project window, with numbered parts](img/progetto.png)
 
-1. **Top bar.** Project name and folder, undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), **Export…**, **Backup…**, **AI tools…**, **Save** (⌘S), **Reload** (reads the project from disk again, losing unsaved changes) and **Close**.
+1. **Top bar.** Project name and folder, undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), **Export…**, **Backup…**, **AI tools…**, **Help** (F1, [chapter 6](#6-text-and-markup)), **Save** (⌘S), **Reload** (reads the project from disk again, losing unsaved changes) and **Close**.
 2. **Sets.** A click opens the cards of the set; the number is the total of cards, copies included.
 3. **Templates.** A click opens the template in the editor; next to it is the format in millimeters.
 4. Project text **styles** ([chapter 7](#7-variables-and-styles)).
@@ -278,6 +278,11 @@ The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always ava
 Naibi knows some values by itself, the **system variables**, written like fields, also in formulas: `{project.name}` (the game), `{set.name}`, `{template.name}`, `{card.number}` (the card's row in the set), `{set.rows}`, `{set.cards}` (cards with copies), `{card.copies}`, `{card.copy}` (the printed copy, for example to write `{card.copy}/{card.copies}`), `{card.side}` (`front` or `back`) and `{date}`. A footer like `{set.name} {card.number}/{set.rows}` numbers the cards by itself.
 
 The **Help** button in the top bar and on the start screen, or the F1 key, opens a summary of markup, fields and variables, system variables, formulas and shortcuts.
+
+<table><tr>
+<td width="50%"><img src="img/aiuto.png" alt="The Help window, Text tab"></td>
+<td width="50%"><img src="img/aiuto-variabili.png" alt="System variables in the Help window"></td>
+</tr></table>
 
 ### 6.4 Writing help
 

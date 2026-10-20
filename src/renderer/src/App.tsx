@@ -105,7 +105,6 @@ import type { Theme } from '../../shared/api'
 
 const NO_STYLES: Record<string, string> = {}
 const NO_VARIABLES: Variables = {}
-const VIEW_KEY = 'setView'
 const UI_ZOOM_KEY = 'uiZoom'
 const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
 
@@ -1340,13 +1339,8 @@ function SetView({
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
   })
-  const [view, setViewState] = useState<View>(() =>
-    localStorage.getItem(VIEW_KEY) === 'grid' ? 'grid' : 'table'
-  )
-  const setView = (v: View): void => {
-    localStorage.setItem(VIEW_KEY, v)
-    setViewState(v)
-  }
+  // ogni set si apre nella griglia; la tabella si sceglie quando serve
+  const [view, setView] = useState<View>('grid')
 
   const template = templates.find((tpl) => tpl.name === set.template) ?? null
   const bindCtx = useBindContext()

@@ -167,6 +167,8 @@ Il + accanto a **Set** chiede il nome, il template e il foglio: un foglio nuovo,
 
 ### 5.2 Tabella e griglia
 
+Un set si apre nella **griglia**, con le carte disegnate; **Tabella** lo mostra come foglio di calcolo.
+
 La **tabella** funziona come un foglio di calcolo: doppio clic o digitazione per modificare una cella, Alt+Invio per andare a capo dentro la cella, trascinamento del numero di riga per spostare una carta. **+ Carta**, **Duplica** ed **Elimina** agiscono sulle righe selezionate (Maiuscolo o ⌘ per selezionarne più di una, anche nella griglia). Con più carte selezionate il modulo a destra le modifica in blocco: ciò che si scrive in un campo va in tutte, mentre i campi con valori diversi restano vuoti e non cambiano finché non li si tocca.
 
 La colonna `amount` indica quante copie stampare di ogni carta; vuota vale 1.

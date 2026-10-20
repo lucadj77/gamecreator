@@ -167,6 +167,8 @@ The + next to **Sets** asks for the name, the template and the sheet: a new shee
 
 ### 5.2 Table and grid
 
+A set opens in the **grid**, with the cards drawn; **Table** shows it as a spreadsheet.
+
 The **table** works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a card. **+ Card**, **Duplicate** and **Delete** act on the selected rows (Shift or ⌘ to select more than one, in the grid too). With several cards selected the form on the right edits them in bulk: what you type in a field goes into all of them, while fields with different values stay empty and do not change until you touch them.
 
 The `amount` column says how many copies of each card to print; empty means 1.

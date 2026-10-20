@@ -79,19 +79,31 @@ const STABLE = 20000
 /** Una pagina che non disegna fotogrammi per così tanto non verrà catturata */
 const FRAME_TIMEOUT = 10000
 
-const decoded = new Map<string, Promise<void>>()
+/**
+ * Oltre questo tempo non si aspetta più la decodifica di un'immagine già caricata: su Windows,
+ * nella finestra nascosta, decode() di immagini grandi può non rispondere mai. La carta si
+ * disegna lo stesso, decodificando l'immagine quando serve.
+ */
+const DECODE_WAIT = 2000
+
+const loaded = new Map<string, Promise<void>>()
 const ready = new Set<string>()
 
-function decode(src: string): Promise<void> {
-  let p = decoded.get(src)
+/** Carica l'immagine (e prova a decodificarla) prima della cattura */
+function load(src: string): Promise<void> {
+  let p = loaded.get(src)
   if (!p) {
-    const img = new Image()
-    img.src = src
-    p = img
-      .decode()
-      .catch(() => undefined)
-      .then(() => void ready.add(src))
-    decoded.set(src, p)
+    p = new Promise<void>((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        within(img.decode(), DECODE_WAIT, 'decode')
+          .catch(() => undefined)
+          .then(() => resolve())
+      }
+      img.onerror = () => resolve()
+      img.src = src
+    }).then(() => void ready.add(src))
+    loaded.set(src, p)
   }
   return p
 }
@@ -117,7 +129,7 @@ function loading(root: HTMLElement): Pending[] {
   root.querySelectorAll('img').forEach((el) => el.src && srcs.add(el.src))
   const items: Pending[] = [...srcs]
     .filter((src) => !ready.has(src))
-    .map((src) => ({ label: imageName(src), promise: decode(src) }))
+    .map((src) => ({ label: imageName(src), promise: load(src) }))
   document.fonts.forEach((f) => {
     if (f.status === 'loading') items.push({ label: `font ${f.family}`, promise: f.loaded })
   })

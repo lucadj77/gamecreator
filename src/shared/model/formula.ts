@@ -188,8 +188,14 @@ const FUNCTIONS: Record<string, Fn> = {
   AND: (a) => a.every((x) => toBool(x())),
   OR: (a) => a.some((x) => toBool(x())),
   NOT: (a) => !toBool(a[0]?.() ?? false),
-  MIN: (a) => Math.min(...a.map((x) => toNumber(x()))),
-  MAX: (a) => Math.max(...a.map((x) => toNumber(x()))),
+  MIN: (a) => {
+    if (!a.length) throw new FormulaError('MIN needs at least one argument')
+    return Math.min(...a.map((x) => toNumber(x())))
+  },
+  MAX: (a) => {
+    if (!a.length) throw new FormulaError('MAX needs at least one argument')
+    return Math.max(...a.map((x) => toNumber(x())))
+  },
   ABS: (a) => Math.abs(toNumber(a[0]())),
   ROUND: (a) => {
     const f = 10 ** (a[1] ? toNumber(a[1]()) : 0)

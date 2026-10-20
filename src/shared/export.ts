@@ -308,6 +308,8 @@ const UNSAFE = /[\\:*?"<>|\u0000-\u001f]/g
 /** Ripulisce un nome per il file system, senza uscire dalla cartella con .. */
 export function safeName(s: string): string {
   const v = s.replace(UNSAFE, '_').replace(/\//g, '_').trim().replace(/^\.+/, '_')
+  // nomi che Windows riserva ai dispositivi (con o senza estensione): con_1.png non si scrive
+  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.test(v)) return `_${v}`
   return v || '_'
 }
 

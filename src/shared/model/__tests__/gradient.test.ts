@@ -19,6 +19,8 @@ describe('sfumature', () => {
       ['black', 1]
     ])
     expect(parseGradient('radial-gradient(white, rosso)')?.kind).toBe('radial')
+    expect(parseGradient('linear-gradient(to top left, red, blue)')?.angle).toBe(315)
+    expect(parseGradient('linear-gradient(To  Right Bottom, red, blue)')?.angle).toBe(135)
     expect(isGradient('#FF0000')).toBe(false)
     expect(parseGradient('linear-gradient(red)')).toBeNull()
   })

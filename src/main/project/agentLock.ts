@@ -1,5 +1,6 @@
 import { readFileSync, rmSync } from 'fs'
 import { readFile, rm, writeFile } from 'fs/promises'
+import { hostname } from 'os'
 import { join } from 'path'
 import type { AgentLock } from '../../shared/api'
 
@@ -14,7 +15,16 @@ export const AGENT_LOCK_FILE = '.naibi-ai'
 export interface AppState {
   pid: number
   dirty: boolean
+  /** Computer su cui gira l'app: da un altro il processo non si può controllare */
+  host?: string
+  /** Quando lo stato è stato scritto l'ultima volta (ms); l'app lo riscrive a intervalli */
+  at?: number
 }
+
+/** Ogni quanto l'app riscrive il suo stato */
+export const APP_STATE_HEARTBEAT = 30 * 1000
+/** Uno stato scritto da un altro computer vale finché è più recente di questo */
+const APP_STATE_MAX_AGE = 5 * 60 * 1000
 
 function alive(pid: number): boolean {
   try {
@@ -37,12 +47,16 @@ async function readJson<T>(file: string): Promise<T | null> {
 /** Stato dell'app che ha aperto il progetto; null se nessuna app aperta lo ha */
 export async function readAppState(folder: string): Promise<AppState | null> {
   const state = await readJson<AppState>(join(folder, APP_STATE_FILE))
-  // un'app chiusa male lascia il file: conta solo se il processo c'è ancora
-  return state && typeof state.pid === 'number' && alive(state.pid) ? state : null
+  if (!state || typeof state.pid !== 'number') return null
+  // un'app chiusa male lascia il file: conta solo se il processo c'è ancora; da un altro
+  // computer (progetto su un disco condiviso) conta solo se il file è recente
+  if (state.host && state.host !== hostname())
+    return typeof state.at === 'number' && Date.now() - state.at < APP_STATE_MAX_AGE ? state : null
+  return alive(state.pid) ? state : null
 }
 
 export async function writeAppState(folder: string, dirty: boolean): Promise<void> {
-  const state: AppState = { pid: process.pid, dirty }
+  const state: AppState = { pid: process.pid, dirty, host: hostname(), at: Date.now() }
   await writeFile(join(folder, APP_STATE_FILE), JSON.stringify(state) + '\n')
 }
 

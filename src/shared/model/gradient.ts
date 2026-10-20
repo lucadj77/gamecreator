@@ -40,9 +40,17 @@ function splitArgs(s: string): string[] {
 
 const DIRECTIONS: Record<string, number> = {
   'to top': 0,
+  'to top right': 45,
+  'to right top': 45,
   'to right': 90,
+  'to bottom right': 135,
+  'to right bottom': 135,
   'to bottom': 180,
-  'to left': 270
+  'to bottom left': 225,
+  'to left bottom': 225,
+  'to left': 270,
+  'to top left': 315,
+  'to left top': 315
 }
 
 export function parseGradient(v: string): Gradient | null {
@@ -52,7 +60,7 @@ export function parseGradient(v: string): Gradient | null {
   const args = splitArgs(m[2])
   let angle = 180
   if (kind === 'linear' && args.length) {
-    const a = args[0].toLowerCase()
+    const a = args[0].toLowerCase().replace(/\s+/g, ' ')
     if (/^-?\d+(\.\d+)?deg$/.test(a)) {
       angle = parseFloat(a)
       args.shift()

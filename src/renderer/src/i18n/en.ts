@@ -769,6 +769,8 @@ export const en = {
   'load.missingTemplate': 'Set "{set}" uses template "{template}", which does not exist',
   'load.duplicateLayers': 'Template "{template}": repeated layer names ({names})',
   'load.unreadableTemplate': 'Template {file} cannot be read: {error}',
+  'load.duplicateTemplate':
+    'Template file {file} has the same name "{name}" as {kept} and was skipped: rename it',
   'template.unknownLayerType': 'Template {file}: layer "{layer}" has unknown type "{type}"',
   'bind.unknownProperty': 'Column {column}: no such property',
   'bind.formulaField':

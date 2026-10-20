@@ -1,6 +1,6 @@
 import { net } from 'electron'
 import JSZip from 'jszip'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, rename, writeFile } from 'fs/promises'
 import { join } from 'path'
 import type { CatalogUpdate, IconCatalog } from '../../shared/library'
 import { MessageError, msg } from '../../shared/messages'
@@ -28,7 +28,9 @@ async function get(url: string): Promise<Response> {
 
 async function save(file: string, data: unknown): Promise<void> {
   await mkdir(userCatalogDir(), { recursive: true })
-  await writeFile(join(userCatalogDir(), file), JSON.stringify(data))
+  const target = join(userCatalogDir(), file)
+  await writeFile(target + '.tmp', JSON.stringify(data))
+  await rename(target + '.tmp', target)
 }
 
 export async function updateGameIcons(): Promise<CatalogUpdate> {

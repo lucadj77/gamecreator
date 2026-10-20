@@ -779,6 +779,8 @@ export const it: Record<MessageKey, string> = {
   'load.missingSheet': 'Il set "{set}" non trova il foglio "{sheet}"',
   'load.missingTemplate': 'Il set "{set}" usa il template "{template}", che non esiste',
   'load.duplicateLayers': 'Template "{template}": nomi di livello ripetuti ({names})',
+  'load.duplicateTemplate':
+    'Il file del template {file} ha lo stesso nome "{name}" di {kept} ed è stato saltato: rinominalo',
   'load.unreadableTemplate': 'Il template {file} non è leggibile: {error}',
   'template.unknownLayerType':
     'Template {file}: il livello "{layer}" ha un tipo sconosciuto "{type}"',

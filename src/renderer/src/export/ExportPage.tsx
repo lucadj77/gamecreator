@@ -105,6 +105,8 @@ async function settle(root: HTMLElement): Promise<void> {
       if (Date.now() - last > 150) break
       await sleep(50)
     }
+    // la pagina non si ferma: meglio un errore che un'immagine a cui manca qualcosa
+    if (Date.now() >= deadline) throw new Error('the page did not finish drawing within 20 s')
   } finally {
     observer.disconnect()
   }

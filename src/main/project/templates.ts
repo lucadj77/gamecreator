@@ -1,4 +1,5 @@
-import { access, mkdir, rename, writeFile } from 'fs/promises'
+import { mkdir, rename, writeFile } from 'fs/promises'
+import { exists } from '../fs'
 import { join } from 'path'
 import {
   denormalizeTemplate,
@@ -8,15 +9,6 @@ import {
 import type { Template } from '../../shared/model/template'
 import { MessageError, msg } from '../../shared/messages'
 import { deletedPath } from './deleted'
-
-async function exists(path: string): Promise<boolean> {
-  try {
-    await access(path)
-    return true
-  } catch {
-    return false
-  }
-}
 
 /** Scrive templates/<file>.json con le sole proprietà diverse dai default */
 export async function saveTemplate(folder: string, template: Template): Promise<void> {
@@ -29,7 +21,12 @@ export async function saveTemplate(folder: string, template: Template): Promise<
   // template rinominato: il file vecchio si toglie, così non torna come template a sé
   if (template.origin && template.origin !== file && isValidTemplateName(template.origin)) {
     const old = join(dir, `${template.origin}.json`)
-    if ((await exists(old)) && !(await exists(target))) await rename(old, target)
+    if (await exists(old)) {
+      // un file con il nome nuovo che l'app non ha caricato (illeggibile): va in deleted/,
+      // non si sovrascrive e non resta il file vecchio a far tornare il template
+      if (await exists(target)) await rename(target, await deletedPath(folder, file, '.json'))
+      await rename(old, target)
+    }
   }
   // con file diverso dal nome il nome va scritto, altrimenti si ricava dal file
   const content: Partial<RawTemplate> = denormalizeTemplate(template)
@@ -48,12 +45,8 @@ export async function trashTemplate(folder: string, file: string): Promise<strin
   if (!isValidTemplateName(file))
     throw new MessageError(msg('template.invalidName', { name: file }))
   const target = join(folder, 'templates', `${file}.json`)
-  try {
-    await access(target)
-  } catch {
-    // mai salvato: non c'è nulla da spostare
-    return null
-  }
+  // mai salvato: non c'è nulla da spostare
+  if (!(await exists(target))) return null
   try {
     const moved = await deletedPath(folder, file, '.json')
     await rename(target, moved)

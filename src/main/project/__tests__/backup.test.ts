@@ -7,6 +7,7 @@ import {
   backupsSize,
   createBackup,
   listBackups,
+  projectBackupDir,
   pruneBackups,
   restoreBackup
 } from '../backup'
@@ -97,5 +98,22 @@ describe('backup', () => {
     ).toBeNull()
     await pruneBackups(dir, 1)
     expect((await listBackups(dir)).length).toBe(2)
+  })
+
+  it('due progetti con lo stesso nome hanno cartelle di backup distinte', async () => {
+    const a = await project()
+    const b = await project()
+    const root = await mkdtemp(join(tmpdir(), 'naibi-backup-root-'))
+    // elencare non crea cartelle
+    expect(await projectBackupDir(root, 'Assedio', a)).toBe(join(root, 'Assedio'))
+    expect(await readdir(root)).toEqual([])
+    const dirA = (await createBackup(a, 'Assedio', join(root, 'Assedio'), true)).file
+    expect(dirA.startsWith(join(root, 'Assedio'))).toBe(true)
+    expect(await projectBackupDir(root, 'Assedio', a)).toBe(join(root, 'Assedio'))
+    expect(await projectBackupDir(root, 'Assedio', b)).toBe(join(root, 'Assedio 2'))
+    await mkdir(join(root, 'Assedio 2'))
+    expect(await projectBackupDir(root, 'Assedio', b)).toBe(join(root, 'Assedio 2'))
+    // la cartella ora ha un proprietario: a non la prende
+    expect(await projectBackupDir(root, 'Assedio', a)).toBe(join(root, 'Assedio'))
   })
 })

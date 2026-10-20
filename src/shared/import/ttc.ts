@@ -139,7 +139,7 @@ interface Context {
 /** "Categoria/nome" della libreria interna, quando non è un file del progetto */
 function libraryRef(name: string, ctx: Context): string | null {
   const n = name.trim()
-  if (!/^[^/{}]+\/[^/{}]+$/.test(n)) return null
+  if (!/^[^/{}]+\/[^/{}]+$/.test(n) || n.split('/').some((s) => /^\.+$/.test(s))) return null
   if (resolveAsset(n, ctx.assets).ok) return null
   ctx.library.add(n)
   return `${LIBRARY_FOLDER}/${n}`

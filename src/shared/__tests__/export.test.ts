@@ -58,6 +58,18 @@ describe('nomi dei file', () => {
   it('non esce dalla cartella e toglie i caratteri non ammessi', () => {
     expect(fileName('../%set', parts)).toBe('_/Eroi')
     expect(safeName('a:b*c?')).toBe('a_b_c_')
+    // nomi riservati di Windows, con o senza estensione
+    expect(safeName('CON')).toBe('_CON')
+    expect(safeName('aux.png')).toBe('_aux.png')
+    expect(safeName('console')).toBe('console')
+  })
+  it('rende unici i nomi uguali a meno di maiuscole', () => {
+    expect(uniqueNames(['Eroi', 'eroi', 'Mostri', 'EROI'])).toEqual([
+      'Eroi',
+      'eroi_2',
+      'Mostri',
+      'EROI_3'
+    ])
   })
   it('aggiunge lato e copia quando servono', () => {
     expect(effectivePattern({ ...DEFAULT_IMAGE, sides: 'both', copies: true })).toBe(

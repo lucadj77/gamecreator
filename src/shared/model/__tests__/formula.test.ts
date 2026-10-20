@@ -45,6 +45,7 @@ describe('espressioni con =', () => {
     expect(ev('=UPPER({nome})')).toBe('DRAGO')
     expect(ev('=AND({forza}>1; NOT({tipo}="eroe"))')).toBe('true')
     expect(ev('=MAX({forza}; 7)')).toBe('7')
+    expect(evaluateFormula('=MIN()', {}).error).toContain('MIN')
   })
 
   it('IF non calcola il ramo scartato', () => {

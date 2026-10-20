@@ -37,8 +37,15 @@ import { isValidSheetName } from '../shared/model/sheet'
 import { isValidTemplateName, walkLayers } from '../shared/model/normalize'
 import { setProjectFolder } from './protocol'
 import { systemFonts } from './library/systemFonts'
-import { createBackup } from './project/backup'
-import { beginAgent, endAgent, readAppState, UnsavedChangesError } from './project/agentLock'
+import { createBackup, pruneBackups } from './project/backup'
+import { backupDirFor } from './project/backupPaths'
+import {
+  beginAgent,
+  endAgent,
+  readAgentLock,
+  readAppState,
+  UnsavedChangesError
+} from './project/agentLock'
 
 // Il comando naibi: lo stesso programma dell'app, avviato con --cli, senza finestre. Serve a chi
 // lavora su un progetto da terminale, in particolare a un'IA: legge, controlla, scrive i dati e
@@ -305,10 +312,22 @@ async function rows(p: Parsed): Promise<number> {
 
 const UNSAVED =
   'the Naibi app has unsaved changes in this project: ask the user to save (or reload) in the app, then try again'
+const NOT_BEGUN =
+  'the Naibi app is open on this project: run "begin" first, so that the app locks itself and reloads the project at "end"'
+
+/**
+ * Prima di scrivere nel progetto: con modifiche non salvate nell'app si rifiuta; con l'app
+ * aperta serve `begin`, altrimenti il prossimo salvataggio dell'app cancellerebbe le modifiche
+ */
+async function checkWritable(folder: string): Promise<void> {
+  const app = await readAppState(folder)
+  if (app?.dirty) throw new CliError(UNSAVED)
+  if (app && !(await readAgentLock(folder))) throw new CliError(NOT_BEGUN)
+}
 
 async function setRows(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
-  if ((await readAppState(project.folder))?.dirty) throw new CliError(UNSAVED)
+  await checkWritable(project.folder)
   const set = findSet(project, p.positional[1])
   const file = p.positional[2]
   if (!file) throw new CliError('missing .csv or .json file')
@@ -326,13 +345,17 @@ async function setRows(p: Parsed): Promise<number> {
   return 0
 }
 
-/** Copia del progetto prima di cambiarlo; la funzione restituita dice dove è finita */
+/**
+ * Copia del progetto prima di cambiarlo, nella stessa cartella dei backup dell'app e con le
+ * sue regole di pulizia (conta come backup automatico); la funzione restituita dice dove è finita
+ */
 async function backup(project: LoadedProject): Promise<() => void> {
-  const made = await createBackup(
-    project.folder,
-    project.file.name,
-    join(app.getPath('documents'), 'Naibi', 'Backup', project.file.name || 'project')
-  ).catch(() => null)
+  const made = await (async () => {
+    const { dir, settings } = await backupDirFor(project.folder, project.file.name)
+    const item = await createBackup(project.folder, project.file.name, dir, true)
+    await pruneBackups(dir, settings.keep)
+    return item
+  })().catch(() => null)
   return () => {
     if (made) print(`Backup of the previous state: ${made.file}`)
   }
@@ -340,7 +363,7 @@ async function backup(project: LoadedProject): Promise<() => void> {
 
 async function renameSetCommand(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
-  if ((await readAppState(project.folder))?.dirty) throw new CliError(UNSAVED)
+  await checkWritable(project.folder)
   const set = findSet(project, p.positional[1])
   const to = p.positional[2]?.trim()
   if (!to) throw new CliError('missing new name')
@@ -368,7 +391,7 @@ async function renameSetCommand(p: Parsed): Promise<number> {
 
 async function renameTemplateCommand(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
-  if ((await readAppState(project.folder))?.dirty) throw new CliError(UNSAVED)
+  await checkWritable(project.folder)
   const from = p.positional[1]
   const tpl = project.templates.find((t) => t.name === from)
   if (!tpl) {

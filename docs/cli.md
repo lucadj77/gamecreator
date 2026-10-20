@@ -35,7 +35,9 @@ L'app e un agente non devono modificare lo stesso progetto insieme, altrimenti u
 - finché c'è `.naibi-ai` l'app mostra un avviso e non si usa. Si controlla ogni secondo;
 - `end` cancella `.naibi-ai`: l'app si sblocca e ricarica il progetto da sola.
 
-Se l'agente si ferma senza `end`, nell'avviso c'è **Sblocca ora**. `set-rows`, `rename-set` e `rename-template` rifiutano anche da soli se l'app ha modifiche non salvate. I due file iniziano con il punto, quindi restano fuori dai backup; un `.naibi-app` lasciato da un'app chiusa male non conta, perché il suo processo non c'è più.
+Se l'agente si ferma senza `end`, nell'avviso c'è **Sblocca ora**. `set-rows`, `rename-set` e `rename-template` rifiutano anche da soli (codice di uscita 2) se l'app ha modifiche non salvate, e anche se l'app è aperta sul progetto senza che sia stato fatto `begin`: altrimenti il prossimo salvataggio dell'app cancellerebbe le loro modifiche. I due file iniziano con il punto, quindi restano fuori dai backup; un `.naibi-app` lasciato da un'app chiusa male non conta, perché il suo processo non c'è più. Su un disco condiviso tra più computer il file dell'app conta solo se è stato aggiornato negli ultimi 5 minuti (l'app lo riscrive ogni 30 secondi).
+
+Il backup fatto da `set-rows`, `rename-set` e `rename-template` va nella stessa cartella dei backup automatici dell'app, con le stesse impostazioni (cartella e numero di backup da tenere).
 
 ## Skill per gli agenti
 

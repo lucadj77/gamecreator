@@ -9,6 +9,7 @@ import {
   defaultTtsFolder,
   pageSize,
   safeName,
+  uniqueNames,
   ttsSavedObject,
   type ExportCard,
   type ExportContext,
@@ -282,7 +283,9 @@ async function exportTts(
   const plans = planTts(o, sets)
   ctx.progress.total = plans.reduce((n, p) => n + p.chunks.length * 2 + 1, 0)
 
-  for (const { set, chunks, uniqueBack: unique } of plans) {
+  // set con nomi che differiscono solo per caratteri non ammessi (a/b e a_b) non si sovrascrivono
+  const stems = uniqueNames(plans.map((p) => safeName(p.set.name)))
+  for (const [index, { set, chunks, uniqueBack: unique }] of plans.entries()) {
     if (!chunks.length) continue
     const t0 = chunks[0].cards[0].template
 
@@ -329,7 +332,7 @@ async function exportTts(
       })
     )
 
-    const stem = safeName(set.name)
+    const stem = stems[index]
     for (const target of targets) {
       const ttsSheets: TtsSheet[] = []
       for (let i = 0; i < sheets.length; i++) {

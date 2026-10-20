@@ -710,11 +710,9 @@ function App(): React.JSX.Element {
     const before = project.sets[index].data
     const csv = project.file.dataFile.toLowerCase().endsWith('.csv')
     const { file, sets } = renameSet(project.file, project.sets, index, name, csv)
-    setHistory((h) => ({
-      past: [...h.past, { sets: project.sets, file: project.file }],
-      future: [],
-      at: 0
-    }))
+    // come per i template: la cronologia riparte, perché i passi precedenti hanno il nome
+    // vecchio e, dopo un salvataggio, annullare ricreerebbe il foglio da capo
+    setHistory({ past: [], future: [], at: 0 })
     setProject({ ...project, file, sets })
     const after = sets[index].data
     if (before && after && before.name !== after.name)
@@ -1337,7 +1335,7 @@ function App(): React.JSX.Element {
                     />
                   ) : current ? (
                     <SetView
-                      key={current.name}
+                      key={project.sets.indexOf(current)}
                       set={current}
                       projectName={project.file.name}
                       templates={project.templates}
@@ -1523,7 +1521,7 @@ function App(): React.JSX.Element {
               )}
               {creating && project && (
                 <NewTemplateDialog
-                  existing={project.templates.map((x) => x.file ?? x.name)}
+                  existing={templateNames()}
                   onCreate={createTemplate}
                   onClose={() => setCreating(false)}
                 />
@@ -1811,7 +1809,9 @@ function SetView({
   }
   const duplicate = (): void => {
     onChange(duplicateRows(sheet, selection))
-    setSelection([Math.max(...selection) + 1])
+    // ogni copia sta subito sotto la sua riga: le righe prima di lei sono slittate di quante copie
+    const sorted = [...new Set(selection)].sort((a, b) => a - b)
+    setSelection(sorted.map((row, k) => row + k + 1))
   }
   const remove = (): void => {
     if (selection.length > 1 && !window.confirm(t('set.deleteConfirm', { n: selection.length })))

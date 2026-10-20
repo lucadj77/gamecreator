@@ -389,11 +389,18 @@ export default function FormatDialog({
               {t('format.saveStyle')}
             </button>
           )}
-          {mode === 'style' && onDelete && styleName && !(styleName in BUILTIN_STYLES) && (
-            <button className="spacer-right danger" onClick={onDelete} title={t('tip.deleteStyle')}>
-              {t('format.delete')}
-            </button>
-          )}
+          {mode === 'style' &&
+            onDelete &&
+            styleName &&
+            (!(styleName in BUILTIN_STYLES) || styleName in styles) && (
+              <button
+                className="spacer-right danger"
+                onClick={onDelete}
+                title={t('tip.deleteStyle')}
+              >
+                {t('format.delete')}
+              </button>
+            )}
           {mode === 'text' && (
             <button onClick={() => onApply({ styles: [] })} title={t('tip.clearFormat')}>
               {t('format.clear')}

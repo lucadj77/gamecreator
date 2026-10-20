@@ -35,9 +35,9 @@ import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
 import { runCli } from './cli'
 import { RELEASES_API, updateFromReleases } from '../shared/update'
+import { backupDirFor, backupSettingsFile, defaultBackupRoot } from './project/backupPaths'
 import {
   autoBackup,
-  backupDirName,
   backupsSize,
   createBackup,
   listBackups,
@@ -46,7 +46,13 @@ import {
   writeBackupSettings
 } from './project/backup'
 import { copySystemFont, systemFonts } from './library/systemFonts'
-import { clearAppState, endAgent, readAgentLock, writeAppState } from './project/agentLock'
+import {
+  APP_STATE_HEARTBEAT,
+  clearAppState,
+  endAgent,
+  readAgentLock,
+  writeAppState
+} from './project/agentLock'
 import type { FontVariant, IconCollection, IconImport } from '../shared/library'
 import {
   defaultTtsFolder,
@@ -59,6 +65,16 @@ import {
 let stateFolder: string | null = null
 /** Ultimo blocco inviato al renderer, per mandare solo i cambiamenti */
 let lockJson: string | undefined
+/** Se il progetto aperto ha modifiche non salvate, per riscrivere lo stato a intervalli */
+let stateDirty = false
+
+/**
+ * Lo stato dell'app si riscrive a intervalli: da un altro computer (progetto su un disco
+ * condiviso) il processo non si può controllare e conta solo quanto è recente il file
+ */
+async function touchAppState(): Promise<void> {
+  if (stateFolder) await writeAppState(stateFolder, stateDirty)
+}
 
 async function pollAgentLock(): Promise<void> {
   if (!stateFolder) return
@@ -121,8 +137,6 @@ function createWindow(): void {
   }
 }
 
-const backupSettingsFile = (): string => join(app.getPath('userData'), 'backup-settings.json')
-const defaultBackupRoot = (): string => join(app.getPath('documents'), 'Naibi', 'Backup')
 /** Nome del progetto aperto, per la cartella dei backup */
 let projectName = ''
 
@@ -135,8 +149,9 @@ function queued<T>(job: () => Promise<T>): Promise<T> {
 }
 
 async function backupDir(settings?: BackupSettings): Promise<string> {
-  const s = settings ?? (await readBackupSettings(backupSettingsFile()))
-  return join(s.folder || defaultBackupRoot(), backupDirName(projectName))
+  const folder = getProjectFolder()
+  if (!folder) throw new MessageError(msg('template.noProject'))
+  return (await backupDirFor(folder, projectName, settings)).dir
 }
 
 async function backupState(): Promise<BackupState> {
@@ -167,7 +182,7 @@ function registerIpc(): void {
     // il backup automatico non ritarda l'apertura, e un errore non la impedisce
     readBackupSettings(backupSettingsFile())
       .then(async (settings) => {
-        const dir = await backupDir(settings)
+        const { dir } = await backupDirFor(folder, projectName, settings)
         const name = projectName
         return queued(() => autoBackup(folder, name, dir, settings))
       })
@@ -373,6 +388,7 @@ function registerIpc(): void {
   ipcMain.handle('agent:app-state', async (_, folder: string | null, dirty: boolean) => {
     if (stateFolder && stateFolder !== folder) clearAppState(stateFolder)
     stateFolder = folder
+    stateDirty = dirty
     lockJson = undefined
     if (folder) await writeAppState(folder, dirty)
   })
@@ -398,6 +414,7 @@ if (!cliArgs)
     registerIpc()
     createWindow()
     setInterval(() => pollAgentLock().catch((e) => console.error(e)), 1000)
+    setInterval(() => touchAppState().catch((e) => console.error(e)), APP_STATE_HEARTBEAT)
     app.on('will-quit', () => stateFolder && clearAppState(stateFolder))
 
     app.on('activate', function () {

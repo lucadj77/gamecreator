@@ -7,6 +7,8 @@ import type { ExportContext, Scene } from '../../shared/export'
 // catturano le immagini e si stampa il PDF.
 
 let nextId = 1
+/** Oltre questo tempo la pagina non risponderà più: è andata in errore */
+const SHOW_TIMEOUT = 60 * 1000
 const waiting = new Map<number, { resolve(): void; reject(e: Error): void }>()
 
 ipcMain.on('export:shown', (_, id: number, error?: string) => {
@@ -39,7 +41,15 @@ export class ExportWindow {
       }
     })
     win.webContents.setFrameRate(60)
-    const ready = new Promise<void>((resolve) => ipcMain.once('export:page-ready', () => resolve()))
+    // solo la pagina di questa finestra: una miniatura e un'esportazione possono aprirne due insieme
+    const ready = new Promise<void>((resolve) => {
+      const onReady = (event: Electron.IpcMainEvent): void => {
+        if (event.sender.id !== win.webContents.id) return
+        ipcMain.removeListener('export:page-ready', onReady)
+        resolve()
+      }
+      ipcMain.on('export:page-ready', onReady)
+    })
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
       await win.loadURL(process.env['ELECTRON_RENDERER_URL'] + '#export')
     } else {
@@ -56,8 +66,19 @@ export class ExportWindow {
     this.win.setContentSize(Math.max(1, Math.ceil(width)), Math.max(1, Math.ceil(height)))
     const id = nextId++
     const done = new Promise<void>((resolve, reject) => waiting.set(id, { resolve, reject }))
+    // se la pagina va in errore prima di rispondere, l'esportazione non resta appesa
+    const timer = setTimeout(() => {
+      const w = waiting.get(id)
+      if (!w) return
+      waiting.delete(id)
+      w.reject(new Error('the export page did not answer within 60 s'))
+    }, SHOW_TIMEOUT)
     this.win.webContents.send('export:scene', id, scene)
-    await done
+    try {
+      await done
+    } finally {
+      clearTimeout(timer)
+    }
   }
 
   /** Immagine dell'angolo in alto a sinistra, nelle dimensioni chieste in pixel */

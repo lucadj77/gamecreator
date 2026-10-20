@@ -49,6 +49,17 @@ describe('blocco per gli agenti IA', () => {
     await beginAgent(folder)
   })
 
+  it('lo stato scritto da un altro computer conta solo se recente', async () => {
+    const other = { pid: process.pid, dirty: true, host: 'altro-mac' }
+    await writeFile(join(folder, APP_STATE_FILE), JSON.stringify({ ...other, at: Date.now() }))
+    expect(await readAppState(folder)).toMatchObject({ dirty: true })
+    await writeFile(
+      join(folder, APP_STATE_FILE),
+      JSON.stringify({ ...other, at: Date.now() - 10 * 60 * 1000 })
+    )
+    expect(await readAppState(folder)).toBeNull()
+  })
+
   it("l'app toglie solo il proprio stato", async () => {
     await writeFile(
       join(folder, APP_STATE_FILE),

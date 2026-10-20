@@ -3,6 +3,7 @@ import { createHash } from 'crypto'
 import { createWriteStream } from 'fs'
 import { copyFile, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'fs/promises'
 import { basename, dirname, extname, join, relative, resolve, sep } from 'path'
+import { exists } from '../fs'
 import type { BackupItem, BackupSettings } from '../../shared/api'
 
 // Copie di sicurezza del progetto: un file zip con la cartella del progetto, tranne export/ e i
@@ -23,6 +24,39 @@ const STORED = ['.png', '.jpg', '.jpeg', '.webp', '.zip', '.woff', '.woff2', '.g
 /** Nome della sottocartella dei backup di un progetto */
 export function backupDirName(projectName: string): string {
   return projectName.replace(/[\\/:*?"<>|]/g, '-').trim() || 'progetto'
+}
+
+/** File nella cartella dei backup che dice a quale progetto (cartella) appartiene */
+const OWNER = '.naibi-project'
+
+/**
+ * Cartella dei backup del progetto `folder` dentro `root`: `<nome>`, oppure `<nome> 2`, `<nome> 3`...
+ * se un altro progetto con lo stesso nome la usa già. Una cartella senza il file di proprietà
+ * (backup di versioni precedenti) viene presa dal primo progetto che la usa.
+ */
+export async function projectBackupDir(
+  root: string,
+  name: string,
+  folder: string
+): Promise<string> {
+  const mine = resolve(folder)
+  for (let n = 1; ; n++) {
+    const dir = join(root, n === 1 ? name : `${name} ${n}`)
+    const marker = join(dir, OWNER)
+    let owner: string | null = null
+    try {
+      owner = JSON.parse(await readFile(marker, 'utf8')).folder
+    } catch {
+      // cartella nuova o senza proprietario
+    }
+    if (owner === mine) return dir
+    if (owner === null) {
+      // il proprietario si scrive solo se la cartella esiste già (o al primo backup): elencare
+      // i backup di un progetto nuovo non deve creare cartelle
+      if (await exists(dir)) await writeFile(marker, JSON.stringify({ folder: mine }) + '\n')
+      return dir
+    }
+  }
 }
 
 function stamp(d: Date): string {
@@ -89,6 +123,8 @@ export async function createBackup(
   const zip = new JSZip()
   const manifest: Manifest = { version: 1, assets: {} }
   await mkdir(join(dir, STORE), { recursive: true })
+  if (!(await exists(join(dir, OWNER))))
+    await writeFile(join(dir, OWNER), JSON.stringify({ folder: root }) + '\n')
   for (const f of files) {
     const data = await readFile(join(root, f))
     if (f.startsWith('assets/')) {
@@ -223,15 +259,6 @@ export async function restoreBackup(file: string, parent: string): Promise<strin
   await mkdir(root, { recursive: true })
   if (missing.length) console.error('backup: missing assets', missing)
   return root
-}
-
-async function exists(path: string): Promise<boolean> {
-  try {
-    await stat(path)
-    return true
-  } catch {
-    return false
-  }
 }
 
 // --- impostazioni, nei dati dell'app come i progetti recenti ---

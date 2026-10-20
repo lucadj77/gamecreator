@@ -1,4 +1,5 @@
-import { access, readFile, readdir } from 'fs/promises'
+import { readFile, readdir } from 'fs/promises'
+import { exists } from '../fs'
 import { basename, join } from 'path'
 import {
   FORMAT_VERSION,
@@ -31,6 +32,10 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     )
   }
 
+  if (typeof file.dataFile !== 'string' || !Array.isArray(file.sets ?? []))
+    throw new MessageError(
+      msg('load.unreadableProjectFile', { file: basename(path), error: 'dataFile missing' })
+    )
   const warnings: Message[] = []
   if (file.formatVersion > FORMAT_VERSION) {
     warnings.push(msg('load.newerFormat', { version: file.formatVersion }))
@@ -86,6 +91,18 @@ async function loadTemplates(folder: string, warnings: Message[]): Promise<Templ
       const file = f.slice(0, -5)
       const t = normalizeTemplate({ ...raw, name: raw.name ?? file })
       if (t.name !== file) t.file = file
+      // due file con lo stesso "name" dentro: vale il primo, l'altro non entra nel progetto
+      const first = templates.find((x) => x.name === t.name)
+      if (first) {
+        warnings.push(
+          msg('load.duplicateTemplate', {
+            name: t.name,
+            file: f,
+            kept: `${first.file ?? first.name}.json`
+          })
+        )
+        continue
+      }
       templates.push(t)
     } catch (e) {
       const m = messageFromError(e)
@@ -105,13 +122,4 @@ async function loadTemplates(folder: string, warnings: Message[]): Promise<Templ
       warnings.push(msg('load.duplicateLayers', { template: t.name, names: dup.join(', ') }))
   }
   return resolved.templates
-}
-
-async function exists(path: string): Promise<boolean> {
-  try {
-    await access(path)
-    return true
-  } catch {
-    return false
-  }
 }

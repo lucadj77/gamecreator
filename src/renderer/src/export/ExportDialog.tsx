@@ -207,6 +207,9 @@ export default function ExportDialog({
     if (f) patch({ [key]: f })
   }
 
+  /** "Personalizzato" scelto nel menu: il campo resta anche se il valore è uno di quelli fissi */
+  const [customDpi, setCustomDpi] = useState(false)
+
   const num = (v: string, fallback: number): number => {
     const n = parseFloat(v.replace(',', '.'))
     return Number.isFinite(n) ? n : fallback
@@ -385,14 +388,17 @@ export default function ExportDialog({
                   'export.resolution',
                   <>
                     {select<number>(
-                      DPIS.includes(img.dpi) ? img.dpi : 0,
+                      customDpi || !DPIS.includes(img.dpi) ? 0 : img.dpi,
                       [
                         ...DPIS.map((d): [number, string] => [d, `${d} DPI`]),
                         [0, t('export.custom')]
                       ],
-                      (dpi) => patch({ dpi: dpi || img.dpi + 1 })
+                      (dpi) => {
+                        setCustomDpi(!dpi)
+                        if (dpi) patch({ dpi })
+                      }
                     )}
-                    {!DPIS.includes(img.dpi) && (
+                    {(customDpi || !DPIS.includes(img.dpi)) && (
                       <>
                         <input
                           className="num"

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   lineEnds,
   lineFromEnds,
+  constrainAxis,
+  HEXAGON_RATIO,
+  hexagonFit,
   hexagonPoints,
   anchorPoint,
   hitTest,
@@ -9,7 +12,8 @@ import {
   polygonVertices,
   resizeWithHandle,
   rotateAround,
-  roundedPolygonPath
+  roundedPolygonPath,
+  type Point
 } from '../geometry'
 import type { ShapeLayer } from '../template'
 import { normalizeLayer } from '../normalize'
@@ -109,10 +113,39 @@ describe('roundedPolygonPath', () => {
 })
 
 describe('esagono della carta', () => {
-  it('ha i lati piatti in alto se è più largo, le punte se è più alto', () => {
-    expect(hexagonPoints(0, 0, 40, 30)[0]).toEqual({ x: 10, y: 0 })
-    expect(hexagonPoints(0, 0, 30, 40)[0]).toEqual({ x: 15, y: 0 })
-    expect(hexagonPoints(0, 0, 30, 40)).toHaveLength(6)
+  const dist = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y)
+  it('è regolare: sei lati uguali, in qualunque riquadro', () => {
+    for (const [w, h] of [
+      [40, 30],
+      [30, 40],
+      [63, 88],
+      [50, 50]
+    ]) {
+      const pts = hexagonPoints(0, 0, w, h)
+      expect(pts).toHaveLength(6)
+      const sides = pts.map((p, i) => dist(p, pts[(i + 1) % 6]))
+      for (const s of sides) expect(s).toBeCloseTo(sides[0], 6)
+      // diagonali lunghe uguali: angoli tutti di 120°
+      expect(dist(pts[0], pts[3])).toBeCloseTo(2 * sides[0], 6)
+      expect(dist(pts[1], pts[4])).toBeCloseTo(2 * sides[0], 6)
+      for (const p of pts) {
+        expect(p.x).toBeGreaterThanOrEqual(-1e-9)
+        expect(p.x).toBeLessThanOrEqual(w + 1e-9)
+        expect(p.y).toBeGreaterThanOrEqual(-1e-9)
+        expect(p.y).toBeLessThanOrEqual(h + 1e-9)
+      }
+    }
+  })
+
+  it('lati piatti in alto se è più largo, punte se è più alto; riempie le misure adatte', () => {
+    expect(hexagonPoints(0, 0, 40, 30)[0].y).toBe(hexagonPoints(0, 0, 40, 30)[1].y)
+    expect(hexagonPoints(0, 0, 30, 40)[0].x).toBe(15)
+    const fit = hexagonFit(60, 40)
+    expect(fit).toEqual({ w: 60, h: 52 })
+    expect(hexagonFit(40, 60)).toEqual({ w: 52, h: 60 })
+    const pts = hexagonPoints(0, 0, 60, 60 * HEXAGON_RATIO)
+    expect(pts[5].x).toBeCloseTo(0, 9)
+    expect(pts[0].y).toBeCloseTo(0, 9)
   })
 })
 
@@ -132,5 +165,28 @@ describe('linea da A a B', () => {
     const corner = { ...l, anchor: 'top-left' as const, h: 4 }
     const [c, d] = lineEnds({ ...corner, ...lineFromEnds(corner, A, B) })
     expect([c.x, c.y, d.x, d.y].map((v) => Math.round(v * 1000) / 1000)).toEqual([10, 20, 40, 60])
+  })
+})
+
+describe('modificatori del trascinamento', () => {
+  it('Maiuscolo: l asse più vicino tra orizzontale, verticale e 45°', () => {
+    expect(constrainAxis(10, 2)).toBe('x')
+    expect(constrainAxis(-1, 9)).toBe('y')
+    expect(constrainAxis(5, -6)).toBe('diagonal')
+    expect(constrainAxis(0, 0)).toBe(null)
+  })
+
+  it('dal centro: il lato opposto si muove in modo simmetrico', () => {
+    const l = { x: 10, y: 10, w: 20, h: 10, rotation: 0 }
+    expect(resizeWithHandle(l as never, 'e', { x: 35, y: 0 }, { fromCenter: true })).toEqual({
+      x: 5,
+      y: 10,
+      w: 30,
+      h: 10
+    })
+    // angolo con le proporzioni: si allarga attorno al centro
+    expect(
+      resizeWithHandle(l as never, 'se', { x: 40, y: 15 }, { fromCenter: true, keepRatio: true })
+    ).toEqual({ x: 0, y: 5, w: 40, h: 20 })
   })
 })

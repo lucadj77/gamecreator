@@ -28,7 +28,7 @@ import {
 } from '../../../shared/model/template'
 import { Inherit } from './inheritance'
 import { InheritContext, type InheritCtx } from './inheritContext'
-import { lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
+import { hexagonFit, lineEnds, lineFromEnds, type Point } from '../../../shared/model/geometry'
 import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
 import { cardFields, rowToCard, substituteFields, switchSource } from '../../../shared/model/bind'
@@ -272,6 +272,23 @@ function TemplateProperties({
           />
         </Inherit>
       )}
+      {tpl.shape === 'hexagon' &&
+        !base &&
+        (() => {
+          const fit = hexagonFit(tpl.width, tpl.height)
+          if (fit.w === tpl.width && fit.h === tpl.height) return null
+          return (
+            <div className="field">
+              <span className="field-label" />
+              <div className="field-control">
+                <button type="button" onClick={() => onResize(fit.w, fit.h)}>
+                  {t('editor.hexagonFit', { w: fit.w, h: fit.h })}
+                </button>
+              </div>
+              <p className="field-note">{t('editor.hexagonFitHint')}</p>
+            </div>
+          )
+        })()}
       {tpl.shape === 'path' && (
         <Inherit keys={['shapePath']}>
           <OutlineField
@@ -1467,6 +1484,19 @@ function ShapeProperties({
               max={64}
               onChange={(sides) => set({ sides: Math.round(sides) })}
             />
+            {Math.abs(l.w - l.h) > 1e-6 && (
+              <button
+                type="button"
+                title={t('editor.regularHint')}
+                // poligono regolare: riquadro quadrato, con il lato più lungo, intorno allo stesso centro
+                onClick={() => {
+                  const s = Math.max(l.w, l.h)
+                  set({ x: l.x + (l.w - s) / 2, y: l.y + (l.h - s) / 2, w: s, h: s })
+                }}
+              >
+                {t('editor.regular')}
+              </button>
+            )}
           </P>
         )}
         {l.shape === 'star' && (

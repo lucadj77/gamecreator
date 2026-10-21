@@ -75,6 +75,72 @@ describe("piano dell'esportazione", () => {
   })
 })
 
+describe('PDF: set uno dopo l altro', () => {
+  const cards = (n: number, t = tpl): ExportCard[] =>
+    Array.from({ length: n }, (_, i) => ({ ...card(i + 1), template: t }))
+  const o = { ...DEFAULT_PDF, sides: 'front' as const, autoRotate: false }
+
+  it('stessa misura: 10 + 8 carte, 9 per pagina, stanno in 2 pagine invece di 3', () => {
+    const sets = [
+      { name: 'a', cards: cards(10) },
+      { name: 'b', cards: cards(8) }
+    ]
+    expect(planPdf(o, sets, 'g').docs[0].pages).toHaveLength(3)
+    const pages = planPdf({ ...o, continuous: true }, sets, 'g').docs[0].pages
+    expect(pages.map((p) => p.items.length)).toEqual([9, 9])
+    // con un PDF per set l'opzione non conta
+    const split = planPdf({ ...o, continuous: true, split: 'set' }, sets, 'g').docs
+    expect(split.map((d) => d.pages.length)).toEqual([2, 1])
+  })
+
+  it('misure diverse: il set seguente comincia su una riga nuova sotto il precedente', () => {
+    const small = normalizeTemplate({ name: 's', width: 40, height: 40, front: [], back: [] })
+    const sets = [
+      { name: 'a', cards: cards(4) },
+      { name: 'b', cards: cards(4, small) }
+    ]
+    const pages = planPdf({ ...o, continuous: true }, sets, 'g').docs[0].pages
+    expect(pages).toHaveLength(1)
+    const [page] = pages
+    expect(page.items).toHaveLength(8)
+    const big = page.items.filter((i) => i.template.width === 63)
+    const little = page.items.filter((i) => i.template.width === 40)
+    // le carte grandi in due righe, le piccole tutte in una riga sotto
+    expect(new Set(big.map((i) => i.y)).size).toBe(2)
+    expect(new Set(little.map((i) => i.y)).size).toBe(1)
+    expect(Math.min(...little.map((i) => i.y))).toBeGreaterThan(
+      Math.max(...big.map((i) => i.y)) + 88
+    )
+    for (const i of page.items) expect(i.y + i.template.height).toBeLessThanOrEqual(297 - 10)
+  })
+
+  it('misure diverse: due set uguali seguiti da uno diverso riempiono la stessa riga', () => {
+    const small = normalizeTemplate({ name: 's', width: 40, height: 40, front: [], back: [] })
+    const sets = [
+      { name: 'a', cards: cards(2) },
+      { name: 'b', cards: cards(1) },
+      { name: 'c', cards: cards(2, small) }
+    ]
+    const [page] = planPdf({ ...o, continuous: true }, sets, 'g').docs[0].pages
+    const big = page.items.filter((i) => i.template.width === 63)
+    expect(new Set(big.map((i) => i.y)).size).toBe(1)
+  })
+
+  it('misure diverse con fronte e retro: ogni pagina di fronti seguita dai suoi retri', () => {
+    const small = normalizeTemplate({ name: 's', width: 40, height: 40, front: [], back: [] })
+    const sets = [
+      { name: 'a', cards: cards(8) },
+      { name: 'b', cards: cards(20, small) }
+    ]
+    const pages = planPdf({ ...o, continuous: true, duplex: 'long' }, sets, 'g').docs[0].pages
+    expect(pages.length % 2).toBe(0)
+    expect(pages[1].items.every((i) => i.side === 'back')).toBe(true)
+    expect(pages[1].items).toHaveLength(pages[0].items.length)
+    const total = pages.filter((_, k) => k % 2 === 0).reduce((n, p) => n + p.items.length, 0)
+    expect(total).toBe(28)
+  })
+})
+
 describe('Tabletop Simulator: segnalini e tessere', () => {
   it('un set di segnalini non ha fogli: un pezzo per carta con le sue copie', () => {
     const o = {

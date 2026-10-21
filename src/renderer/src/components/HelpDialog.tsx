@@ -28,7 +28,8 @@ const MARKDOWN: [string, MessageKey][] = [
   ['> …', 'help.md.note'],
   ['- …  1. …', 'help.md.list'],
   ['---', 'help.md.rule'],
-  ['\\', 'help.md.break']
+  ['\\', 'help.md.break'],
+  ['_$_', 'help.md.nowrap']
 ]
 
 const FUNCTIONS = [
@@ -64,6 +65,7 @@ const KEYS: [string, MessageKey][] = [
   ['Del', 'help.keys.delete'],
   ['← → ↑ ↓  ⇧', 'help.keys.move'],
   ['⇧ / Alt', 'help.keys.drag'],
+  ['⌘', 'help.keys.dragCenter'],
   ['⌘ + wheel', 'help.keys.zoom'],
   ['F1', 'help.keys.help']
 ]

@@ -216,7 +216,7 @@ Image names: file name without path or extension is enough (`sword` finds `asset
 
 ## Text markup
 
-Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts a new paragraph (a cell written with Alt+Enter); `\` at the end of a line breaks without a new paragraph.
+Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts a new paragraph (a cell written with Alt+Enter); `\` at the end of a line breaks without a new paragraph. `_4{coin}_` keeps its content on one line (same as `[4{coin}]{nowrap}`; not italic, unlike Markdown); text and icons otherwise wrap freely. An underscore inside a word stays literal; escape a lone one as `\_`.
 
 | Write                                                                  | Get                                                                           |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -235,7 +235,7 @@ Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts 
 | `{cover}`, `{cover*3}`                                                 | the picture that image layer `cover` shows on this card                       |
 | `\{`, `\*`, `\[`                                                       | literal characters                                                            |
 
-Character attributes: `.style`, `color=`, `highlight=`, `size=` (14, +2, -1, 80%), `font=` (`Open_Sans`, underscores for spaces, or `{variable}`), `weight=`, `stroke=colour/width`, `spacing=` (‰), `raise=` (pt), `upper`, `lower`, `smallcaps`, `bold`, `italic`, `underline`, `strike`, `left`, `center`, `right`, `justify`.
+Character attributes: `.style`, `color=`, `highlight=`, `size=` (14, +2, -1, 80%), `font=` (`Open_Sans`, underscores for spaces, or `{variable}`), `weight=`, `stroke=colour/width`, `spacing=` (‰), `raise=` (pt), `upper`, `lower`, `smallcaps`, `nowrap` (the span never breaks across lines), `bold`, `italic`, `underline`, `strike`, `left`, `center`, `right`, `justify`.
 
 Box attributes turn the text into an inline box: `border=colour/width`, `fill=`, `radius=` (mm or `round`), `pad=` (mm, or vertical/horizontal `0.3/1`), `bg=` (a background image: `circle`, `square`, `rounded`, `hexagon`, `diamond`, an image variable or file), `bg-color=`, `bg-size=` (% of the line or mm). Example: `[{strength}]{bg=circle bg-color=red color=white weight=800}`.
 

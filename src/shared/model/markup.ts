@@ -38,6 +38,8 @@ export interface Attrs {
   bgColor?: string
   /** "140%" rispetto alla riga, oppure mm */
   bgSize?: string
+  /** pt: sposta solo il testo dentro il riquadro, non il riquadro */
+  textRaise?: number
   // solo per i paragrafi
   align?: HAlign
 }
@@ -103,6 +105,7 @@ export const ATTRIBUTES = {
   bg: 'image',
   'bg-color': 'color',
   'bg-size': 'size',
+  'text-raise': 'number',
   // parole senza valore
   bold: 'flag',
   italic: 'flag',
@@ -206,11 +209,13 @@ export function parseAttrs(src: string, offset = 0): { attrs: Attrs; problems: M
         break
       }
       case 'spacing':
-      case 'raise': {
+      case 'raise':
+      case 'text-raise': {
         const n = num(value)
         if (n === null) invalid()
         else if (key === 'spacing') attrs.spacing = n
-        else attrs.raise = n
+        else if (key === 'raise') attrs.raise = n
+        else attrs.textRaise = n
         break
       }
       case 'stroke':
@@ -655,6 +660,7 @@ export function serializeAttrs(a: Attrs): string {
   kv('bg', a.bg)
   kv('bg-color', a.bgColor)
   kv('bg-size', a.bgSize)
+  kv('text-raise', a.textRaise)
   if (a.align) out.push(a.align)
   return out.join(' ')
 }

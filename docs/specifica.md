@@ -105,15 +105,16 @@ Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come forma
 
 Trasformano la porzione di testo in un riquadro in linea, che segue la riga come un'icona.
 
-| Attributo   | Esempio                             | Effetto                                                                                  |
-| ----------- | ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| `border=`   | `[Rapido]{border=red/0.3}`          | bordo attorno al testo, colore/spessore in mm                                            |
-| `fill=`     | `[Rapido]{fill=#EDE4D3}`            | colore di sfondo del riquadro                                                            |
-| `radius=`   | `{radius=1}` · `{radius=round}`     | raggio degli angoli in mm, `round` per una pillola o un cerchio                          |
-| `pad=`      | `{pad=0.5}` · `{pad=0.5/1}`         | margine interno in mm (verticale/orizzontale)                                            |
-| `bg=`       | `[7]{bg=square}` · `[3]{bg=shield}` | immagine di sfondo: una variabile immagine o un file; il testo è centrato sopra          |
-| `bg-color=` | `{bg=shield bg-color=blue}`         | tinta dell'immagine di sfondo                                                            |
-| `bg-size=`  | `{bg-size=140%}` · `{bg-size=4}`    | dimensione dello sfondo rispetto alla riga o in mm; di base si adatta al testo più `pad` |
+| Attributo     | Esempio                             | Effetto                                                                                  |
+| ------------- | ----------------------------------- | ---------------------------------------------------------------------------------------- |
+| `border=`     | `[Rapido]{border=red/0.3}`          | bordo attorno al testo, colore/spessore in mm                                            |
+| `fill=`       | `[Rapido]{fill=#EDE4D3}`            | colore di sfondo del riquadro                                                            |
+| `radius=`     | `{radius=1}` · `{radius=round}`     | raggio degli angoli in mm, `round` per una pillola o un cerchio                          |
+| `pad=`        | `{pad=0.5}` · `{pad=0.5/1}`         | margine interno in mm (verticale/orizzontale)                                            |
+| `bg=`         | `[7]{bg=square}` · `[3]{bg=shield}` | immagine di sfondo: una variabile immagine o un file; il testo è centrato sopra          |
+| `bg-color=`   | `{bg=shield bg-color=blue}`         | tinta dell'immagine di sfondo                                                            |
+| `bg-size=`    | `{bg-size=140%}` · `{bg-size=4}`    | dimensione dello sfondo rispetto alla riga o in mm; di base si adatta al testo più `pad` |
+| `text-raise=` | `[-1]{bg=cuore text-raise=1}`       | sposta in su (in pt, negativo in giù) solo il testo dentro il riquadro, non il riquadro  |
 
 Esempi:
 

@@ -81,6 +81,24 @@ export interface LoadedProject {
   warnings: Message[]
 }
 
+/** Un elemento del cestino del progetto (deleted/) */
+export interface DeletedItem {
+  /** Nome del file in deleted/ */
+  file: string
+  kind: 'template' | 'note' | 'sheet'
+  /** Nome del template, della nota o del foglio */
+  name: string
+  /** Quando è stato eliminato, ISO */
+  date: string
+  /** Colonne di un foglio */
+  columns?: string[]
+}
+
+export type DeletedContent =
+  | { kind: 'template'; template: Template }
+  | { kind: 'note'; name: string; text: string }
+  | { kind: 'sheet'; sheet: Sheet }
+
 /** Una nota del progetto: notes/<name>.md */
 export interface ProjectNote {
   name: string

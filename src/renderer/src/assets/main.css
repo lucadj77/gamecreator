@@ -4130,3 +4130,48 @@ details.usages button.link {
   opacity: 0;
   pointer-events: none;
 }
+
+/* cestino del progetto */
+.trash-dialog {
+  min-width: 440px;
+}
+
+.trash-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.trash-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.trash-kind {
+  font-size: 11px;
+  color: var(--muted);
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.trash-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.trash-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trash-list select {
+  max-width: 130px;
+}

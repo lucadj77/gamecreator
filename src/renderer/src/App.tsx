@@ -6,9 +6,11 @@ import HelpDialog from './components/HelpDialog'
 import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import StatsDialog from './components/StatsDialog'
+import TrashDialog from './components/TrashDialog'
 import TextCheckDialog from './components/TextCheckDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
+  DeletedItem,
   LoadedProject,
   LoadedSet,
   ProjectFile,
@@ -214,6 +216,11 @@ function App(): React.JSX.Element {
   const [creatingSet, setCreatingSet] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [backingUp, setBackingUp] = useState(false)
+  const [trashOpen, setTrashOpen] = useState(false)
+  /** Elementi ripristinati dal cestino: escono da deleted/ quando il progetto si salva */
+  const [restored, setRestored] = useState<
+    { file: string; kind: 'template' | 'set'; name: string }[]
+  >([])
   const [aiTools, setAiTools] = useState(false)
   const [help, setHelp] = useState(false)
   // F1 apre l'aiuto da qualsiasi schermata
@@ -270,6 +277,7 @@ function App(): React.JSX.Element {
       setDirty(new Set())
       setDirtySheets(new Set())
       setTrashedSheets(new Set())
+      setRestored([])
       setFileDirty(false)
       setHistory({ past: [], future: [], at: 0 })
       setSelected((s) =>
@@ -729,6 +737,14 @@ function App(): React.JSX.Element {
               })
             }
         )
+      // i ripristinati ora sono nel progetto; quelli tolti di nuovo (annulla) restano nel cestino
+      const kept = restored.filter((r) =>
+        r.kind === 'template'
+          ? project.templates.some((x) => x.name === r.name)
+          : project.sets.some((x) => x.data?.name === r.name)
+      )
+      if (kept.length) await window.api.dropDeleted(kept.map((r) => r.file))
+      setRestored([])
       setDirtySheets(new Set())
       setTrashedSheets(new Set())
       setFileDirty(false)
@@ -926,6 +942,67 @@ function App(): React.JSX.Element {
     })
     if (selected.kind === 'template' && selected.name === name)
       setSelected({ kind: 'set', index: 0 })
+  }
+
+  /** Rimette nel progetto un elemento del cestino; un foglio diventa un set con il template scelto */
+  const restoreDeleted = async (item: DeletedItem, template: string): Promise<void> => {
+    if (!project) return
+    const free = (base: string, taken: string[]): string => {
+      let name = base
+      for (let i = 2; taken.includes(name); i++) name = `${base} ${i}`
+      return name
+    }
+    try {
+      const c = await window.api.readDeleted(item.file)
+      if (c.kind === 'note') {
+        const name = free(
+          c.name,
+          (project.notes ?? []).map((n) => n.name)
+        )
+        await window.api.saveNote(name, c.text)
+        await window.api.dropDeleted([item.file])
+        setNotes((notes) =>
+          [...notes, { name, text: c.text }].sort((a, b) => a.name.localeCompare(b.name))
+        )
+        setOpenNote(name)
+      } else if (c.kind === 'template') {
+        const name = free(c.template.name, templateNames())
+        const tpl: Template = { ...c.template, name }
+        delete tpl.file
+        // un derivato si completa dal suo base, come al caricamento
+        setProject(
+          (p) => p && { ...p, templates: resolveTemplates([...p.templates, tpl]).templates }
+        )
+        setDirty((d) => new Set(d).add(name))
+        setRestored((r) => [...r, { file: item.file, kind: 'template', name }])
+        setSelected({ kind: 'template', name })
+      } else {
+        if (project.file.dataFile.toLowerCase().endsWith('.csv')) {
+          setError({ key: 'save.csvOneSheet' })
+          return
+        }
+        const name = free(c.sheet.name, setNames())
+        const data: Sheet = { ...c.sheet, name }
+        const def = { name, template }
+        setHistory((h) => ({
+          past: [...h.past, { sets: project.sets, file: project.file }],
+          future: [],
+          at: 0
+        }))
+        setProject({
+          ...project,
+          file: { ...project.file, sets: [...project.file.sets, def] },
+          sets: [...project.sets, { ...def, data }]
+        })
+        setDirtySheets((d) => new Set(d).add(name))
+        setFileDirty(true)
+        setRestored((r) => [...r, { file: item.file, kind: 'set', name }])
+        setSelected({ kind: 'set', index: project.sets.length })
+      }
+      setTrashOpen(false)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
   }
 
   const duplicateTemplate = (from: string, name: string): void => {
@@ -1514,6 +1591,9 @@ function App(): React.JSX.Element {
                   <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
                     {t('app.backup')}
                   </button>
+                  <button onClick={() => setTrashOpen(true)} title={t('tip.trash')}>
+                    {t('app.trash')}
+                  </button>
                   {!window.api.isWeb && (
                     <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
                       {t('app.aiTools')}
@@ -1806,6 +1886,13 @@ function App(): React.JSX.Element {
                 onUnlock={() =>
                   window.api.unlockAgent().catch((e) => setError(messageFromError(e)))
                 }
+              />
+            )}
+            {trashOpen && project && (
+              <TrashDialog
+                templates={project.templates}
+                onRestore={restoreDeleted}
+                onClose={() => setTrashOpen(false)}
               />
             )}
             {backingUp && project && (

@@ -1,5 +1,5 @@
 import type { UpdateInfo } from './update'
-import type { LoadedProject, ProjectFile, Sheet } from './project'
+import type { DeletedContent, DeletedItem, LoadedProject, ProjectFile, Sheet } from './project'
 import type { Template } from './model/template'
 import type { Message } from './messages'
 
@@ -100,6 +100,10 @@ export interface Api {
   saveNote(name: string, text: string, oldName?: string): Promise<void>
   /** Sposta la nota in deleted/ */
   deleteNote(name: string): Promise<void>
+  /** Cestino del progetto: elementi in deleted/, il contenuto di uno, e togliere i ripristinati */
+  listDeleted(): Promise<DeletedItem[]>
+  readDeleted(file: string): Promise<DeletedContent>
+  dropDeleted(files: string[]): Promise<void>
   /** Salva i fogli modificati e, se cambiati i set, il file di progetto */
   saveData(changes: { file?: ProjectFile; sheets: Sheet[]; removed?: string[] }): Promise<void>
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */

@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { safeName, type ExportJob, type Scene, type ScenePage } from '../../../shared/export'
+import {
+  safeName,
+  type ExportJob,
+  type Scene,
+  type ScenePage,
+  type TtsPieceKind
+} from '../../../shared/export'
 import {
   cardPage,
+  diePage,
   imageExtension,
   planImages,
   planPdf,
@@ -74,9 +81,21 @@ function previewItems(job: ExportJob): { items: PreviewItem[]; files: number; no
     }
   }
   const items: PreviewItem[] = []
-  for (const { set, chunks, pieces, object, uniqueBack } of planTts(job.options, sets)) {
+  const notes: Message[] = []
+  for (const { set, chunks, pieces, dice, object, uniqueBack } of planTts(job.options, sets)) {
     const stem = safeName(set.name)
-    const kind = object.type === 'tile' ? 'tile' : 'token'
+    const kind = object.type as TtsPieceKind
+    const dieDigits = String(dice.length).length
+    dice.forEach((d, i) => {
+      items.push({
+        file: `${stem}_die_${String(i + 1).padStart(dieDigits, '0')}.png`,
+        detail: d.count > 1 ? { key: 'export.previewCopies', params: { n: d.count } } : undefined,
+        page: diePage(d),
+        scene: WHITE
+      })
+    })
+    if (dice.some((d) => d.padded))
+      notes.push({ key: 'export.ttsDicePadded', params: { set: set.name } })
     const digits = String(pieces.length).length
     pieces.forEach((p, i) => {
       const n = String(i + 1).padStart(digits, '0')
@@ -86,9 +105,9 @@ function previewItems(job: ExportJob): { items: PreviewItem[]; files: number; no
         file: `${stem}_${n}.png`,
         detail,
         page: piecePage(p.card.template, 'front', kind),
-        scene: kind === 'tile' ? WHITE : { ...WHITE, background: null }
+        scene: kind === 'token' ? { ...WHITE, background: null } : WHITE
       })
-      if (kind === 'tile')
+      if (kind !== 'token')
         items.push({
           file: `${stem}_${n}_back.png`,
           detail,
@@ -116,7 +135,7 @@ function previewItems(job: ExportJob): { items: PreviewItem[]; files: number; no
         })
     })
   }
-  return { files: items.length, notes: [], items }
+  return { files: items.length, notes, items }
 }
 
 export default function ExportPreview({

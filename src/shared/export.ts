@@ -100,14 +100,17 @@ export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
   objects?: Record<string, TtsSetObject>
 }
 
-/** Carte in un mazzo, segnalini ritagliati sulla sagoma o tessere con fronte, retro e bordo */
-export type TtsObjectType = 'card' | 'token' | 'tile'
+/**
+ * Carte in un mazzo, segnalini ritagliati sulla sagoma, tessere con fronte, retro e bordo, plance
+ * (tessere grandi, non impilabili) o dadi a sei facce (sei carte per dado)
+ */
+export type TtsObjectType = 'card' | 'token' | 'tile' | 'board' | 'die'
 
 export interface TtsSetObject {
   type: TtsObjectType
-  /** Spessore di segnalini e tessere, in mm */
+  /** Spessore di segnalini, tessere e plance, in mm */
   thickness: number
-  /** Colore del bordo (lo spessore) delle tessere */
+  /** Colore del bordo (lo spessore) di tessere e plance */
   edgeColor: string
 }
 
@@ -657,15 +660,15 @@ export function ttsCardScale(w: number): number {
 }
 
 /** Scala di un segnalino o di una tessera la cui immagine misura w × h mm */
-export function ttsPieceScale(kind: 'token' | 'tile', w: number, h: number): number {
+export function ttsPieceScale(kind: TtsPieceKind, w: number, h: number): number {
   const base = kind === 'token' ? TTS_TOKEN_SIZE : TTS_TILE_SIZE
   return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / base)
 }
 
 /** Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su */
-function transform(y = 1, faceDown = true, scale = 1): Record<string, number> {
+function transform(y = 1, faceDown = true, scale = 1, x = 0): Record<string, number> {
   return {
-    posX: 0,
+    posX: x,
     posY: y,
     posZ: 0,
     rotX: 0,
@@ -732,7 +735,9 @@ export function ttsSavedObject(
   return savedFile(object)
 }
 
-function savedFile(object: Record<string, unknown>): Record<string, unknown> {
+function savedFile(
+  object: Record<string, unknown> | Record<string, unknown>[]
+): Record<string, unknown> {
   return {
     SaveName: '',
     GameMode: '',
@@ -746,7 +751,7 @@ function savedFile(object: Record<string, unknown>): Record<string, unknown> {
     XmlUI: '',
     LuaScript: '',
     LuaScriptState: '',
-    ObjectStates: [object],
+    ObjectStates: Array.isArray(object) ? object : [object],
     TabStates: {},
     VersionNumber: ''
   }
@@ -785,13 +790,18 @@ export function ttsColor(hex: string): { r: number; g: number; b: number } {
   return { r: c((v >> 16) & 255), g: c((v >> 8) & 255), b: c(v & 255) }
 }
 
+/** Oggetti fatti da un'immagine per carta: segnalini, tessere e plance */
+export type TtsPieceKind = 'token' | 'tile' | 'board'
+
 /**
- * Oggetto salvato con segnalini o tessere: uno solo se il set ne ha uno, altrimenti un sacchetto
- * che li contiene tutti, copie comprese. Le copie usano le stesse immagini, quindi si impilano.
+ * Oggetto salvato con segnalini, tessere o plance. Segnalini e tessere: uno solo se il set ne ha
+ * uno, altrimenti un sacchetto che li contiene tutti, copie comprese (le copie usano le stesse
+ * immagini, quindi si impilano). Le plance non vanno in un sacchetto: si mettono una accanto
+ * all'altra sul tavolo e non si impilano.
  */
 export function ttsSavedPieces(
   name: string,
-  kind: 'token' | 'tile',
+  kind: TtsPieceKind,
   settings: Pick<TtsSetObject, 'thickness' | 'edgeColor'>,
   tileType: 0 | 1 | 2 | 3,
   pieces: TtsPiece[],
@@ -800,20 +810,20 @@ export function ttsSavedPieces(
 ): Record<string, unknown> {
   const thickness = round3(Math.max(0.1, settings.thickness) * TTS_UNITS_PER_MM)
   const scale = ttsPieceScale(kind, size.w, size.h)
-  const pieceObject = (p: TtsPiece): Record<string, unknown> => ({
+  const pieceObject = (p: TtsPiece, x = 0): Record<string, unknown> => ({
     Name: kind === 'token' ? 'Custom_Token' : 'Custom_Tile',
-    Transform: transform(1, false, scale),
+    Transform: transform(1, false, scale, x),
     Nickname: p.nickname,
     Description: p.description,
-    // nelle tessere la tinta colora solo i lati, non le immagini
-    ColorDiffuse: kind === 'tile' ? ttsColor(settings.edgeColor) : { r: 1, g: 1, b: 1 },
+    // nelle tessere e nelle plance la tinta colora solo i lati, non le immagini
+    ColorDiffuse: kind === 'token' ? { r: 1, g: 1, b: 1 } : ttsColor(settings.edgeColor),
     Locked: false,
     Grid: true,
     Snap: true,
     Hands: false,
     CustomImage: {
       ImageURL: p.faceUrl,
-      ImageSecondaryURL: kind === 'tile' ? p.backUrl : '',
+      ImageSecondaryURL: kind === 'token' ? '' : p.backUrl,
       ImageScalar: 1,
       WidthScale: 0,
       ...(kind === 'token'
@@ -827,26 +837,194 @@ export function ttsSavedPieces(
           }
         : {
             // Stretch false: la tessera prende le proporzioni dell'immagine, cioè della carta
-            CustomTile: { Type: tileType, Thickness: thickness, Stackable: true, Stretch: false }
+            CustomTile: {
+              Type: tileType,
+              Thickness: thickness,
+              Stackable: kind === 'tile',
+              Stretch: false
+            }
           })
     }
   })
   const all = pieces.flatMap((p) => Array.from({ length: Math.max(1, p.count) }, () => p))
+  if (kind === 'board') {
+    // una accanto all'altra, con un po' di spazio in mezzo
+    const step = Math.max(size.w, size.h) * TTS_UNITS_PER_MM + 1
+    return savedFile(
+      all.map((p, i) => ({
+        ...pieceObject(p, round3(i * step)),
+        Nickname: p.nickname || (all.length === 1 ? name : `${name} ${i + 1}`)
+      }))
+    )
+  }
   const object =
     all.length === 1
       ? { ...pieceObject(all[0]), Nickname: all[0].nickname || name }
-      : {
-          Name: 'Bag',
-          Transform: transform(1, false),
-          Nickname: name,
-          Description: '',
-          ColorDiffuse: { r: 0.7, g: 0.7, b: 0.7 },
-          Locked: false,
-          Grid: true,
-          Snap: true,
-          Hands: false,
-          ContainedObjects: all.map(pieceObject)
-        }
+      : bag(
+          name,
+          all.map((p) => pieceObject(p))
+        )
+  return savedFile(object)
+}
+
+function bag(name: string, contained: Record<string, unknown>[]): Record<string, unknown> {
+  return {
+    Name: 'Bag',
+    Transform: transform(1, false),
+    Nickname: name,
+    Description: '',
+    ColorDiffuse: { r: 0.7, g: 0.7, b: 0.7 },
+    Locked: false,
+    Grid: true,
+    Snap: true,
+    Hands: false,
+    ContainedObjects: contained
+  }
+}
+
+// Un dado a sei facce è un modello 3D fatto da Naibi: un cubo (file .obj) con la sua immagine,
+// sei carte in un foglio 3 × 2. La carta k (da 0) va sulla faccia del valore k + 1; le facce
+// opposte fanno 7 come nei dadi veri. Il modello è scritto in coordinate destrorse con Y in alto,
+// come tutti i file .obj; Tabletop Simulator (Unity) lo carica specchiando l'asse X, quindi nelle
+// rotazioni la faccia +X del file diventa la −X del tavolo.
+
+type Vec = [number, number, number]
+
+/** Faccia di ogni valore nel file .obj: direzione verso fuori e "in alto" dell'immagine */
+const DIE_FACES: { value: number; normal: Vec; up: Vec }[] = [
+  { value: 1, normal: [0, 1, 0], up: [0, 0, -1] },
+  { value: 2, normal: [0, 0, 1], up: [0, 1, 0] },
+  { value: 3, normal: [1, 0, 0], up: [0, 1, 0] },
+  { value: 4, normal: [-1, 0, 0], up: [0, 1, 0] },
+  { value: 5, normal: [0, 0, -1], up: [0, 1, 0] },
+  { value: 6, normal: [0, -1, 0], up: [0, 0, 1] }
+]
+
+/** Rotazione (gradi, come in Unity) che porta in alto la faccia di ogni valore */
+const DIE_ROTATIONS: Record<number, Vec> = {
+  1: [0, 0, 0],
+  6: [180, 0, 0],
+  2: [270, 0, 0],
+  5: [90, 0, 0],
+  // la +X del file è la −X del tavolo
+  3: [0, 0, 270],
+  4: [0, 0, 90]
+}
+
+const cross = (a: Vec, b: Vec): Vec => [
+  a[1] * b[2] - a[2] * b[1],
+  a[2] * b[0] - a[0] * b[2],
+  a[0] * b[1] - a[1] * b[0]
+]
+
+/** Celle del foglio delle facce di un dado */
+export const TTS_DIE_COLS = 3
+export const TTS_DIE_ROWS = 2
+
+/**
+ * Cubo di lato `side` (unità di Tabletop Simulator) centrato nell'origine, con le coordinate
+ * dell'immagine: la carta k nella cella (k % 3, k / 3) del foglio, dritta guardandola da fuori.
+ */
+export function ttsDieObj(side: number): string {
+  const h = side / 2
+  const f = (n: number): string => String(Math.round(n * 1e5) / 1e5 || 0)
+  const vs: string[] = []
+  const vts: string[] = []
+  const fs: string[] = []
+  // un filo di margine dentro la cella, perché il filtro non prenda la carta vicina
+  const inset = 0.004
+  for (const [i, face] of DIE_FACES.entries()) {
+    const n = face.normal
+    const u = face.up
+    const r = cross(u, n)
+    const at = (a: number, b: number): Vec =>
+      [0, 1, 2].map((j) => (n[j] + a * r[j] + b * u[j]) * h) as Vec
+    // in basso a sinistra, in basso a destra, in alto a destra, in alto a sinistra: antiorario
+    for (const [a, b] of [
+      [-1, -1],
+      [1, -1],
+      [1, 1],
+      [-1, 1]
+    ])
+      vs.push(`v ${at(a, b).map(f).join(' ')}`)
+    const k = face.value - 1
+    const col = k % TTS_DIE_COLS
+    const row = Math.floor(k / TTS_DIE_COLS)
+    const u0 = col / TTS_DIE_COLS + inset
+    const u1 = (col + 1) / TTS_DIE_COLS - inset
+    // v cresce dal basso dell'immagine
+    const v1 = 1 - row / TTS_DIE_ROWS - inset
+    const v0 = 1 - (row + 1) / TTS_DIE_ROWS + inset
+    vts.push(
+      `vt ${f(u0)} ${f(v0)}`,
+      `vt ${f(u1)} ${f(v0)}`,
+      `vt ${f(u1)} ${f(v1)}`,
+      `vt ${f(u0)} ${f(v1)}`
+    )
+    const c = (j: number): string => `${i * 4 + j}/${i * 4 + j}`
+    fs.push(`f ${c(1)} ${c(2)} ${c(3)}`, `f ${c(1)} ${c(3)} ${c(4)}`)
+  }
+  return ['# Naibi: dado a sei facce', 'o die', ...vs, ...vts, ...fs].join('\n') + '\n'
+}
+
+/** Un dado: l'immagine delle sei facce e i valori */
+export interface TtsDie {
+  imageUrl: string
+  /** Valore mostrato da Tabletop Simulator per ogni faccia, dalla 1 alla 6 */
+  values: string[]
+  nickname: string
+  description: string
+  count: number
+}
+
+/** Per ogni faccia del dado, il valore e la rotazione che la porta in alto */
+export function ttsDieRotations(values: string[]): Record<string, unknown>[] {
+  return DIE_FACES.map((face) => {
+    const [x, y, z] = DIE_ROTATIONS[face.value]
+    return { Value: values[face.value - 1] || String(face.value), Rotation: { x, y, z } }
+  })
+}
+
+/** Oggetto salvato con i dadi del set: uno solo, o un sacchetto con tutti, copie comprese */
+export function ttsSavedDice(
+  name: string,
+  dice: TtsDie[],
+  meshUrl: string
+): Record<string, unknown> {
+  const dieObject = (d: TtsDie): Record<string, unknown> => ({
+    Name: 'Custom_Model',
+    Transform: transform(1, false),
+    Nickname: d.nickname,
+    Description: d.description,
+    ColorDiffuse: { r: 1, g: 1, b: 1 },
+    Locked: false,
+    Grid: true,
+    Snap: true,
+    Hands: true,
+    RotationValues: ttsDieRotations(d.values),
+    CustomMesh: {
+      MeshURL: meshUrl,
+      DiffuseURL: d.imageUrl,
+      NormalURL: '',
+      ColliderURL: '',
+      Convex: true,
+      MaterialIndex: 0,
+      // 2: dado, si tira e mostra il valore della faccia in alto
+      TypeIndex: 2,
+      CustomShader: {
+        SpecularColor: { r: 1, g: 1, b: 1 },
+        SpecularIntensity: 0,
+        SpecularSharpness: 2,
+        FresnelStrength: 0
+      },
+      CastShadows: true
+    }
+  })
+  const all = dice.flatMap((d) => Array.from({ length: Math.max(1, d.count) }, () => d))
+  const object =
+    all.length === 1
+      ? { ...dieObject(all[0]), Nickname: all[0].nickname || name }
+      : bag(name, all.map(dieObject))
   return savedFile(object)
 }
 

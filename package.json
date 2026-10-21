@@ -5,6 +5,7 @@
   "description": "Create cards and other game components",
   "main": "./out/main/index.js",
   "author": "Luca",
+  "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/lucadj77/naibi",
   "scripts": {
     "format": "prettier --write .",

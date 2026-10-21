@@ -4175,3 +4175,45 @@ details.usages button.link {
 .trash-list select {
   max-width: 130px;
 }
+
+/* confronto con un backup o con l'ultima esportazione */
+.compare-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.compare-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--accent-soft);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.compare-bar label.check {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.compare-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.dialog-form label.compare-choice {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  padding: 3px 0;
+}

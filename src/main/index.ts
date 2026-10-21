@@ -8,6 +8,7 @@ import { loadProject } from './project/load'
 import { saveTemplate, trashTemplate } from './project/templates'
 import { saveNote, trashNote } from './project/notes'
 import { dropDeleted, listDeleted, readDeleted } from './project/trash'
+import { readBackupVersion, readPrinted, savePrinted } from './project/versions'
 import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
@@ -20,6 +21,7 @@ import {
 import { MessageError, msg } from '../shared/messages'
 import type { Template } from '../shared/model/template'
 import type { BackupSettings, BackupState, Theme, TtcImportOptions } from '../shared/api'
+import type { PrintedState } from '../shared/project'
 import { defaultTarget, importTtc } from './import/ttc'
 import { runExport } from './export/run'
 import { ExportWindow } from './export/window'
@@ -434,6 +436,19 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     if (dirname(resolve(file)) !== resolve(await backupDir())) throw new Error('not a backup')
     return restoreBackup(file, dirname(folder))
+  })
+
+  ipcMain.handle('backup:version', async (_, file: string) => {
+    if (dirname(resolve(file)) !== resolve(await backupDir())) throw new Error('not a backup')
+    return readBackupVersion(file)
+  })
+  ipcMain.handle('printed:read', async () => {
+    const folder = getProjectFolder()
+    return folder ? readPrinted(folder) : null
+  })
+  ipcMain.handle('printed:save', async (_, state: PrintedState) => {
+    const folder = getProjectFolder()
+    if (folder) await savePrinted(folder, state)
   })
 
   ipcMain.handle('ttc:default-target', (_, source: string) => defaultTarget(source))

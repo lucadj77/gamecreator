@@ -66,7 +66,7 @@ function stamp(d: Date): string {
 /** Cartella comune dei file di assets/, dentro la cartella dei backup del progetto */
 const STORE = 'assets'
 /** Elenco dei file di assets/ nello zip: percorso nel progetto → file nella cartella comune */
-const MANIFEST = 'naibi-backup.json'
+export const MANIFEST = 'naibi-backup.json'
 
 interface Manifest {
   version: 1

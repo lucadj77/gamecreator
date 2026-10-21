@@ -7,6 +7,8 @@ import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import StatsDialog from './components/StatsDialog'
 import TrashDialog from './components/TrashDialog'
+import CompareDialog, { type CompareBase } from './components/CompareDialog'
+import { cardFingerprints, changedCards } from '../../shared/model/compare'
 import TextCheckDialog from './components/TextCheckDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
@@ -217,6 +219,9 @@ function App(): React.JSX.Element {
   const [exporting, setExporting] = useState(false)
   const [backingUp, setBackingUp] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
+  /** Confronto con un backup o con l'ultima esportazione: le carte cambiate da allora */
+  const [comparing, setComparing] = useState(false)
+  const [compareBase, setCompareBase] = useState<CompareBase | null>(null)
   /** Elementi ripristinati dal cestino: escono da deleted/ quando il progetto si salva */
   const [restored, setRestored] = useState<
     { file: string; kind: 'template' | 'set'; name: string }[]
@@ -278,6 +283,7 @@ function App(): React.JSX.Element {
       setDirtySheets(new Set())
       setTrashedSheets(new Set())
       setRestored([])
+      setCompareBase(null)
       setFileDirty(false)
       setHistory({ past: [], future: [], at: 0 })
       setSelected((s) =>
@@ -943,6 +949,15 @@ function App(): React.JSX.Element {
     if (selected.kind === 'template' && selected.name === name)
       setSelected({ kind: 'set', index: 0 })
   }
+
+  /** Carte nuove o cambiate rispetto alla versione del confronto, per set; si aggiornano a ogni modifica */
+  const changed = useMemo(
+    () =>
+      compareBase && project
+        ? changedCards(cardFingerprints(project, project.assets), compareBase.before)
+        : null,
+    [compareBase, project]
+  )
 
   /** Rimette nel progetto un elemento del cestino; un foglio diventa un set con il template scelto */
   const restoreDeleted = async (item: DeletedItem, template: string): Promise<void> => {
@@ -1690,6 +1705,13 @@ function App(): React.JSX.Element {
                       onChangeColumns={(view) =>
                         setColumnsView(selected.kind === 'set' ? selected.index : 0, view)
                       }
+                      compare={
+                        compareBase && changed
+                          ? { label: compareBase.label, rows: changed[current.name] ?? [] }
+                          : null
+                      }
+                      onCompare={() => setComparing(true)}
+                      onEndCompare={() => setCompareBase(null)}
                     />
                   ) : (
                     <section className="content">
@@ -1888,6 +1910,16 @@ function App(): React.JSX.Element {
                 }
               />
             )}
+            {comparing && project && (
+              <CompareDialog
+                project={project}
+                onCompare={(base) => {
+                  setCompareBase(base)
+                  setComparing(false)
+                }}
+                onClose={() => setComparing(false)}
+              />
+            )}
             {trashOpen && project && (
               <TrashDialog
                 templates={project.templates}
@@ -1909,6 +1941,7 @@ function App(): React.JSX.Element {
             {exporting && project && (
               <ExportDialog
                 project={project}
+                changed={changed}
                 // le opzioni sono già scritte su disco: il progetto non risulta modificato
                 onProfiles={(profiles) =>
                   setProject((p) => p && { ...p, file: { ...p.file, export: profiles } })
@@ -1974,7 +2007,10 @@ function SetView({
   onDeleteSet,
   onRenameSet,
   onChangeTemplate,
-  onChangeColumns
+  onChangeColumns,
+  compare,
+  onCompare,
+  onEndCompare
 }: {
   set: LoadedSet
   /** Nome del progetto, per {project.name} */
@@ -1991,6 +2027,10 @@ function SetView({
   onDuplicateSet(): void
   onDeleteSet(): void
   onRenameSet(): void
+  /** Confronto attivo: con che cosa e quali righe sono nuove o cambiate */
+  compare: { label: string; rows: number[] } | null
+  onCompare(): void
+  onEndCompare(): void
 }): React.JSX.Element {
   const { t } = useI18n()
   const [selection, setSelection] = useState<number[]>([0])
@@ -2055,7 +2095,13 @@ function SetView({
     [template, templates, set.data]
   )
 
-  const order = useMemo(() => (set.data ? viewRows(set.data, rowView) : []), [set.data, rowView])
+  const [onlyChanged, setOnlyChanged] = useState(false)
+  const order = useMemo(() => {
+    const rows = set.data ? viewRows(set.data, rowView) : []
+    if (!compare || !onlyChanged) return rows
+    const marked = new Set(compare.rows)
+    return rows.filter((r) => marked.has(r))
+  }, [set.data, rowView, compare, onlyChanged])
 
   // colonne mostrate: tutte quelle modificabili, tranne le nascoste; i livelli fissi e con
   // formula solo a richiesta
@@ -2474,6 +2520,9 @@ function SetView({
           <button onClick={() => setShowStats(true)} title={t('tip.stats')}>
             {t('set.stats')}
           </button>
+          <button onClick={onCompare} title={t('tip.compare')}>
+            {t('set.compare')}
+          </button>
           <button
             disabled={!template}
             onClick={() => setCheckingText(true)}
@@ -2565,6 +2614,21 @@ function SetView({
             </button>
           )}
         </div>
+        {compare && (
+          <div className="compare-bar set-hint">
+            <span className="compare-dot" />
+            <span>{t('compare.result', { n: compare.rows.length, since: compare.label })}</span>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={onlyChanged}
+                onChange={(e) => setOnlyChanged(e.target.checked)}
+              />
+              {t('compare.onlyChanged')}
+            </label>
+            <button onClick={onEndCompare}>{t('compare.end')}</button>
+          </div>
+        )}
         {selection.length > 1 ? (
           <div className="selection-bar set-hint">
             <strong title={t('set.selectedHint')}>
@@ -2639,6 +2703,7 @@ function SetView({
             }
             scale={thumb}
             order={order}
+            marked={compare ? new Set(compare.rows) : undefined}
           />
         )}
       </section>

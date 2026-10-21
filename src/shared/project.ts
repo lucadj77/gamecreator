@@ -81,6 +81,15 @@ export interface LoadedProject {
   warnings: Message[]
 }
 
+/** Una versione del progetto da confrontare con quella di adesso */
+export type ProjectVersion = Pick<LoadedProject, 'file' | 'sets' | 'templates'>
+
+/** Impronte delle carte esportate, per set (vedi model/compare.ts); date in millisecondi */
+export interface PrintedState {
+  date: number
+  sets: Record<string, string[]>
+}
+
 /** Un elemento del cestino del progetto (deleted/) */
 export interface DeletedItem {
   /** Nome del file in deleted/ */

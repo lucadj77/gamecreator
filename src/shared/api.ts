@@ -1,5 +1,13 @@
 import type { UpdateInfo } from './update'
-import type { DeletedContent, DeletedItem, LoadedProject, ProjectFile, Sheet } from './project'
+import type {
+  DeletedContent,
+  DeletedItem,
+  LoadedProject,
+  PrintedState,
+  ProjectFile,
+  ProjectVersion,
+  Sheet
+} from './project'
 import type { Template } from './model/template'
 import type { Message } from './messages'
 
@@ -162,6 +170,11 @@ export interface Api {
    * web la cartella in cui estrarlo (parent) la sceglie l'utente.
    */
   restoreBackup(file: string, parent?: string): Promise<string>
+  /** Il progetto com'era in un backup del progetto aperto, per confrontarlo */
+  backupVersion(file: string): Promise<ProjectVersion>
+  /** Impronte delle carte dell'ultima esportazione, se ce n'è una */
+  readPrinted(): Promise<PrintedState | null>
+  savePrinted(state: PrintedState): Promise<void>
   /** Cartella proposta per un progetto Tabletop Creator convertito */
   defaultTtcTarget(source: string): Promise<string>
   /** Converte un progetto Tabletop Creator in un progetto nuovo; l'originale non si modifica */

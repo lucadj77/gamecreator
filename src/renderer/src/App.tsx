@@ -73,6 +73,11 @@ import {
   moveItem,
   orderNames,
   renameInOrder,
+  groupList,
+  groupNames,
+  groupOf,
+  setGroup,
+  type GroupKind,
   type OrderKind
 } from '../../shared/model/order'
 import {
@@ -121,6 +126,8 @@ import { THEMES, applyTheme, loadTheme } from './theme/theme'
 import type { AgentLock, Theme } from '../../shared/api'
 
 const NO_STYLES: Record<string, string> = {}
+/** Da quante voci stili e variabili hanno il campo per filtrarle */
+const FILTER_FROM = 12
 const NO_VARIABLES: Variables = {}
 const UI_ZOOM_KEY = 'uiZoom'
 const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
@@ -237,6 +244,8 @@ function App(): React.JSX.Element {
   const [sidebarSide, toggleSidebarSide] = usePanelSide('sidebar', 'left')
   const [sidebarCompact, setSidebarCompact] = usePanelCompact('sidebar')
   const [closedSections, setSectionClosed] = useClosedSections('sidebar')
+  /** Testo per filtrare stili e variabili nella barra laterale */
+  const [listFilter, setListFilter] = useState<Partial<Record<GroupKind, string>>>({})
   const sidebarPreview = useSidebarPreview()
 
   const load = useCallback(async (folder: string) => {
@@ -500,34 +509,44 @@ function App(): React.JSX.Element {
   }
 
   /** Crea, modifica, rinomina (con `oldName`) o elimina (def null) uno stile del progetto */
-  const saveStyle = useCallback((name: string, def: string | null, oldName?: string): void => {
-    setProject((p) => {
-      if (!p) return p
-      const renaming = !!oldName && oldName !== name && def !== null
-      const base = renaming ? renameReferences(p, 'style', oldName, name) : p
-      const styles = { ...base.file.styles }
-      if (renaming) delete styles[oldName]
-      if (def === null) delete styles[name]
-      else styles[name] = def
-      setHistory((h) => ({
-        past: [
-          ...h.past.slice(-99),
-          { sets: p.sets, file: p.file, templates: renaming ? p.templates : undefined }
-        ],
-        future: [],
-        at: 0
-      }))
-      if (renaming) markRenamed(p, base)
-      const order = renaming
-        ? renameInOrder(base.file.order, 'styles', oldName, name)
-        : base.file.order
-      return { ...base, file: { ...base.file, styles, order } }
-    })
-    setFileDirty(true)
-  }, [])
+  const saveStyle = useCallback(
+    (name: string, def: string | null, oldName?: string, group?: string): void => {
+      setProject((p) => {
+        if (!p) return p
+        const renaming = !!oldName && oldName !== name && def !== null
+        const base = renaming ? renameReferences(p, 'style', oldName, name) : p
+        const styles = { ...base.file.styles }
+        if (renaming) delete styles[oldName]
+        if (def === null) delete styles[name]
+        else styles[name] = def
+        setHistory((h) => ({
+          past: [
+            ...h.past.slice(-99),
+            { sets: p.sets, file: p.file, templates: renaming ? p.templates : undefined }
+          ],
+          future: [],
+          at: 0
+        }))
+        if (renaming) markRenamed(p, base)
+        let order = renaming
+          ? renameInOrder(base.file.order, 'styles', oldName, name)
+          : base.file.order
+        if (def === null) order = setGroup(order, 'styles', name, '')
+        else if (group !== undefined) order = setGroup(order, 'styles', name, group)
+        return { ...base, file: { ...base.file, styles, order } }
+      })
+      setFileDirty(true)
+    },
+    []
+  )
 
   /** Crea, modifica, rinomina (con `oldName`) o elimina (v null) una variabile del progetto */
-  const saveVariable = (name: string, v: Variable | null, oldName?: string): void => {
+  const saveVariable = (
+    name: string,
+    v: Variable | null,
+    oldName?: string,
+    group?: string
+  ): void => {
     setProject((p) => {
       if (!p) return p
       const renaming = !!oldName && oldName !== name && v !== null
@@ -545,9 +564,11 @@ function App(): React.JSX.Element {
         at: 0
       }))
       if (renaming) markRenamed(p, base)
-      const order = renaming
+      let order = renaming
         ? renameInOrder(base.file.order, 'variables', oldName, name)
         : base.file.order
+      if (v === null) order = setGroup(order, 'variables', name, '')
+      else if (group !== undefined) order = setGroup(order, 'variables', name, group)
       return { ...base, file: { ...base.file, variables, order } }
     })
     setFileDirty(true)
@@ -920,6 +941,56 @@ function App(): React.JSX.Element {
       )
     )
   )
+  /**
+   * Stili o variabili nella barra laterale: con molte voci un campo per filtrarle per nome, e le
+   * voci con un gruppo sotto il titolo del gruppo, che si chiude con un clic
+   */
+  const groupedItems = (
+    kind: GroupKind,
+    names: string[],
+    item: (name: string, index: number) => React.ReactNode
+  ): React.ReactNode => {
+    const query = listFilter[kind]?.trim().toLowerCase() ?? ''
+    const groups = groupList(names, order, kind)
+    const shown = (name: string): boolean => !query || name.toLowerCase().includes(query)
+    return (
+      <>
+        {names.length > FILTER_FROM && (
+          <input
+            className="sidebar-filter"
+            type="search"
+            placeholder={t('sidebar.filter')}
+            value={listFilter[kind] ?? ''}
+            onChange={(e) => setListFilter((f) => ({ ...f, [kind]: e.target.value }))}
+          />
+        )}
+        {groups.map(({ group, items }) => {
+          const visible = items.filter((x) => shown(x.name))
+          if (group && !visible.length) return null
+          const id = `${kind}:${group}`
+          // con un filtro i gruppi si aprono, per vedere ciò che si cerca
+          const open = !group || !!query || !closedSections.has(id)
+          return (
+            <div key={id} className={group ? 'sidebar-group' : undefined}>
+              {group && (
+                <button
+                  className="sidebar-group-title"
+                  aria-expanded={open}
+                  onClick={() => setSectionClosed(id, open)}
+                >
+                  <span className="caret">{open ? '▾' : '▸'}</span>
+                  {group}
+                  <span className="muted small">{items.length}</span>
+                </button>
+              )}
+              {open && <ul>{visible.map((x) => item(x.name, x.index))}</ul>}
+            </div>
+          )
+        })}
+      </>
+    )
+  }
+
   /** Pulsante "A–Z" accanto al +, solo quando l'elenco non è già alfabetico */
   const sortButton = (names: string[], onSort: () => void): React.ReactNode =>
     !isAlphabetical(names) && (
@@ -1121,21 +1192,19 @@ function App(): React.JSX.Element {
               </>
             }
           >
-            <ul>
-              {styleList.map((name, i) => (
-                <li key={name} {...dragStyles.itemProps(i)}>
-                  <button
-                    onClick={() => setEditingStyle(name)}
-                    {...sidebarPreview.bind({ kind: 'style', name })}
-                  >
-                    <span>.{name}</span>
-                    {!(name in (project.file.styles ?? {})) && (
-                      <span className="muted small">{t('sidebar.builtinStyle')}</span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {groupedItems('styles', styleList, (name, i) => (
+              <li key={name} {...dragStyles.itemProps(i)}>
+                <button
+                  onClick={() => setEditingStyle(name)}
+                  {...sidebarPreview.bind({ kind: 'style', name })}
+                >
+                  <span>.{name}</span>
+                  {!(name in (project.file.styles ?? {})) && (
+                    <span className="muted small">{t('sidebar.builtinStyle')}</span>
+                  )}
+                </button>
+              </li>
+            ))}
           </SidebarSection>
           <SidebarSection
             id="variables"
@@ -1159,19 +1228,21 @@ function App(): React.JSX.Element {
               </>
             }
           >
-            <ul>
-              {variableList.map(([name, v], i) => (
+            {groupedItems(
+              'variables',
+              variableList.map(([n]) => n),
+              (name, i) => (
                 <li key={name} {...dragVariables.itemProps(i)}>
                   <button
                     onClick={() => setEditingVariable(name)}
                     {...sidebarPreview.bind({ kind: 'variable', name })}
                   >
                     <span>{`{${name}}`}</span>
-                    <VariableSwatch v={v} variables={variables} />
+                    <VariableSwatch v={variables[name]} variables={variables} />
                   </button>
                 </li>
-              ))}
-            </ul>
+              )
+            )}
           </SidebarSection>
           {project.unusedSheets.length > 0 && (
             <p className="muted small">
@@ -1576,10 +1647,12 @@ function App(): React.JSX.Element {
               <FormatDialog
                 mode="style"
                 styleName={editingStyle || undefined}
+                group={groupOf(order, 'styles', editingStyle)}
+                groups={groupNames(order, 'styles', styleList)}
                 initial={parseAttrs(allStyles[editingStyle] ?? '').attrs}
                 sample={editingStyle || 'Aa'}
-                onApply={(attrs, name) => {
-                  if (name) saveStyle(name, serializeAttrs(attrs), editingStyle || undefined)
+                onApply={(attrs, name, group) => {
+                  if (name) saveStyle(name, serializeAttrs(attrs), editingStyle || undefined, group)
                   setEditingStyle(null)
                 }}
                 onDelete={() => {
@@ -1592,8 +1665,14 @@ function App(): React.JSX.Element {
             {editingVariable !== null && project && (
               <VariableDialog
                 name={editingVariable}
-                onSave={(name, v) => {
-                  saveVariable(name, v, editingVariable || undefined)
+                group={groupOf(order, 'variables', editingVariable)}
+                groups={groupNames(
+                  order,
+                  'variables',
+                  variableList.map(([n]) => n)
+                )}
+                onSave={(name, v, group) => {
+                  saveVariable(name, v, editingVariable || undefined, group)
                   setEditingVariable(null)
                 }}
                 onDelete={() => {

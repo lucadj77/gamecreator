@@ -861,6 +861,11 @@ export const it: Record<MessageKey, string> = {
   'markupHelp.attr.center': 'Paragrafo centrato',
   'markupHelp.attr.right': 'Paragrafo allineato a destra',
   'markupHelp.attr.justify': 'Paragrafo giustificato',
+  'group.label': 'Gruppo',
+  'group.none': 'Nessun gruppo',
+  'group.hint':
+    'Raggruppa le voci nella barra laterale. Scrivi un nome nuovo o scegline uno già usato.',
+  'sidebar.filter': 'Filtra',
   'sidebar.styles': 'Stili',
   'sidebar.newStyle': 'Nuovo stile di testo',
   'sidebar.builtinStyle': 'predefinito',

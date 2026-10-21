@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react'
+import GroupField from './GroupField'
 import {
   BUILTIN_SHAPES,
   BUILTIN_STYLES,
@@ -36,7 +37,10 @@ interface Props {
   mode: 'text' | 'style'
   /** Nome dello stile modificato (mode 'style'); vuoto per uno stile nuovo */
   styleName?: string
-  onApply(attrs: Attrs, name?: string): void
+  /** Gruppo dello stile nella barra laterale e gruppi già usati (mode 'style') */
+  group?: string
+  groups?: string[]
+  onApply(attrs: Attrs, name?: string, group?: string): void
   /** Salva gli attributi come nuovo stile del progetto */
   onSaveStyle?(name: string, attrs: Attrs): void
   onDelete?(): void
@@ -48,6 +52,8 @@ export default function FormatDialog({
   sample,
   mode,
   styleName,
+  group: initialGroup = '',
+  groups = [],
   onApply,
   onSaveStyle,
   onDelete,
@@ -59,6 +65,7 @@ export default function FormatDialog({
   const [a, setA] = useState<Attrs>(initial)
   const [raw, setRaw] = useState<string | null>(null)
   const [name, setName] = useState(styleName ?? '')
+  const [group, setGroup] = useState(initialGroup)
   const [saving, setSaving] = useState<string | null>(null)
   const [pickingBg, setPickingBg] = useState(false)
   const variables = useContext(VariablesContext)
@@ -123,6 +130,7 @@ export default function FormatDialog({
               onChange={setName}
             />
           )}
+          {mode === 'style' && <GroupField value={group} groups={groups} onChange={setGroup} />}
           <SelectField<string>
             label={mode === 'style' ? t('format.basedOn') : t('format.style')}
             value={a.styles[0] ?? ''}
@@ -410,7 +418,7 @@ export default function FormatDialog({
           <button
             className="primary"
             disabled={mode === 'style' && (!name || !!nameError)}
-            onClick={() => onApply(a, name)}
+            onClick={() => onApply(a, name, group)}
           >
             {mode === 'style' ? t('format.saveStyleConfirm') : t('format.apply')}
           </button>

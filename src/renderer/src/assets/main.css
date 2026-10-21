@@ -3881,3 +3881,34 @@ select.from-template {
 .tts-object input.num {
   width: 64px;
 }
+
+.sidebar-filter {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 2px 0 6px;
+}
+
+.sidebar-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-group-title .caret {
+  width: 10px;
+}
+
+.sidebar-group-title .muted {
+  margin-left: auto;
+}
+
+.sidebar-group > ul {
+  padding-left: 10px;
+}

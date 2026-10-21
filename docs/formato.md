@@ -74,7 +74,7 @@ Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 
 `export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`. La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. Sotto `named` stanno i profili con nome, ciascuno con `name`, `kind` e `options`. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
 
-`order` (facoltativo) ricorda l'ordine scelto a mano trascinando le voci della barra laterale, con una chiave per elenco: `templates`, `styles`, `variables`. Senza la chiave l'elenco è in ordine alfabetico; i nomi che non compaiono vanno in fondo, in ordine alfabetico. L'ordine dei set è quello di `sets`.
+`order` (facoltativo) ricorda l'ordine scelto a mano trascinando le voci della barra laterale, con una chiave per elenco: `templates`, `styles`, `variables`. Senza la chiave l'elenco è in ordine alfabetico; i nomi che non compaiono vanno in fondo, in ordine alfabetico. L'ordine dei set è quello di `sets`. Sotto `groups` stanno i gruppi di stili e variabili nella barra laterale, per nome: `"groups": { "variables": { "oro": "Risorse" } }`; una voce assente non ha gruppo.
 
 ```json
 "order": { "variables": ["spada", "scudo", "rosso"] }
@@ -156,7 +156,11 @@ Un template derivato ha `extends` con il nome del template base e in `changes` s
       "stemma": { "visible": false }
     },
     "added": [
-      { "side": "front", "after": "nome", "layer": { "type": "image", "name": "fiamma", "x": 4, "y": 4, "w": 8, "h": 8 } }
+      {
+        "side": "front",
+        "after": "nome",
+        "layer": { "type": "image", "name": "fiamma", "x": 4, "y": 4, "w": 8, "h": 8 }
+      }
     ]
   }
 }

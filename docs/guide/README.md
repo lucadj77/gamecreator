@@ -76,7 +76,7 @@ A new project is empty: the app suggests creating a template first, then a set t
 7. **Preview** of the selected card, front or back. **Edit template** opens the card's template, that is the set's or the one chosen for the card; **Enlarge** opens the card large with the form next to it.
 8. **Fields of the selected card**, editable like the table cells.
 
-Next to the name of the open set or template are the buttons to rename it, duplicate it, delete it and, for a template, create a derived one. Renaming a set also renames its sheet in the data file; renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the cards that use it. Files are renamed when you save. A deleted template goes to the project's `deleted` folder, from which you get it back by putting the file back in `templates`. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again; to get it back, copy the sheet into the data file and link it with **New set**. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
+Next to the name of the open set or template are the buttons to rename it, duplicate it, delete it and, for a template, create a derived one. Renaming a set also renames its sheet in the data file; renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the cards that use it. Files are renamed when you save. A deleted template goes to the project's `deleted` folder, from which you get it back by putting the file back in `templates`. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again; to get it back, copy the sheet into the data file and link it with **New set**. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Styles and variables can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with card numbers) and the other variables and styles that refer to it; clicking a template or set opens it. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The **Notes** section holds notes about the project: the + creates a note, a click opens it in a panel beside any screen, where you write in Markdown (**Preview** shows it formatted) and rename it from its title. Notes save themselves as you type, as `notes/<name>.md` files of the project; the bin moves them to `deleted`. An AI working on the project reads them with `naibi notes`. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
 
 Changes stay in memory until you save. The **Save** button reads **Saved** when there is nothing to write.
 
@@ -99,7 +99,7 @@ The + next to **Templates** opens the new template window: name, format (poker, 
 5. **Canvas bar**: shows or hides bleed, safe area and grid, chooses what to snap to (grid, objects) and sets the zoom.
 6. **Data**: draws the canvas with the values of a card from a set, instead of the template values.
 
-On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
+On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). Holding Shift while moving, the layer moves only horizontally, vertically or at 45°, whichever direction is closest. While resizing, Shift switches the proportion lock (keeps proportions when they are free, frees them when they are locked) and ⌘ (Ctrl on Windows) resizes from the center; the two can be combined. While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
 
 In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ selects several layers; ⌘G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
@@ -107,7 +107,7 @@ Selected layers are copied with ⌘C (⌘X to cut them) and pasted with ⌘V int
 
 ### 4.3 Template properties
 
-With no layer selected, the panel shows the template properties: size, bleed (3 mm by default), safe margin, card shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), manual guides and **Card name**, the field shown under each card in the grid.
+With no layer selected, the panel shows the template properties: size, bleed (3 mm by default), safe margin, card shape (rectangle with rounded corners, circle or ellipse, hexagon, outline taken from an image), manual guides and **Card name**, the field shown under each card in the grid. The hexagon is always regular, the largest that fits in the card: to fill it, the short side must be the long side × 0.866, and the **Fit the card to the hexagon** button changes the short side that way. In polygon and star shapes, **Make regular** turns the frame into a square around the same center, so all sides and angles are equal.
 
 When you change the size of a template that already has layers, the app asks whether to scale the layers in proportion or leave them where they are. In the second case each layer follows its **constraints** (stay left, follow the right edge, stretch with the card and so on).
 
@@ -188,7 +188,7 @@ The **table** works like a spreadsheet: double-click or type to edit a cell, Alt
 
 The `amount` column says how many copies of each card to print; empty means 1.
 
-The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Columns** button chooses which ones to hide. In the card form the eye next to a layer's field shows or hides that layer on the card. The sliders icon opens the layer's properties for the card (color, italic, shape, position...), with menus for fixed sets of values, number fields and a color picker: a value typed there applies to that card only and creates the `layer.property` column, while an empty field shows the template value in grey. The number on the icon tells how many properties the card changes. Columns of fixed or formula layers do not reach the card and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each card.
+The table and the form show every column you can edit: the sheet's columns and the ones the template reads but the sheet does not have yet (with an italic heading), which are created when you type a value. The **Columns** button chooses which ones to hide; **Reset** goes back to the basic view, with only the columns read by layers linked to a column (columns left in the sheet without a layer, for example from an imported TTC project, are hidden) and the field details closed. In the card form the eye next to a layer's field shows or hides that layer on the card. The sliders icon opens the layer's properties for the card (color, italic, shape, position...), with menus for fixed sets of values, number fields and a color picker: a value typed there applies to that card only and creates the `layer.property` column, while an empty field shows the template value in grey. The number on the icon tells how many properties the card changes. Columns of fixed or formula layers do not reach the card and stay hidden; **Show fixed and formula layers** adds them read only, with the ƒ sign and the value they have on each card.
 
 True/false columns (properties such as `crest.visible` or `name.italic`, and columns where every cell is `true` or `false`) have a checkbox: a click, or the space bar on the cell, ticks or clears it. A faded checkbox means an empty cell: the template value applies.
 
@@ -243,8 +243,9 @@ Card text is written with a simple markup, the same in the app and in the sheet 
 | `- item` / `1. item`     | bulleted / numbered list                          |
 | `---`                    | divider line                                      |
 | `\` at the end of a line | line break without a new paragraph                |
+| `_4{coin}_`              | never breaks across lines                         |
 
-Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter.
+Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. To keep a piece of text on one line, so that `4` and its icon never end up on different lines, wrap it in underscores: `_4{coin}_`. It is the same as `[4{coin}]{nowrap}`. An underscore inside a word (`file_name`) stays as it is; write `\_` for a lone one.
 
 ### 6.2 Attributes
 
@@ -258,11 +259,12 @@ Square brackets mark the text and the braces that follow say how to format it: `
 | `font=`, `weight=`                    | `{font=Open_Sans weight=800}`                  | family (with `_` instead of spaces) and weight |
 | `stroke=`                             | `{stroke=white/8%}`                            | letter outline                                 |
 | `upper`, `lower`, `smallcaps`         | `[Phase]{smallcaps}`                           | uppercase, lowercase, small caps               |
+| `nowrap`                              | `[4 coins]{nowrap}`                            | the span never breaks across lines             |
 | `left`, `center`, `right`, `justify`  | `{.flavor center}` at the start of a paragraph | paragraph alignment                            |
 | `border=`, `fill=`, `radius=`, `pad=` | `[Quick]{border=red/0.3 radius=round}`         | box around the text                            |
 | `bg=`, `bg-color=`, `bg-size=`        | `[3]{bg=circle bg-color=blue color=white}`     | shape or image behind the text                 |
 
-The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always available for `bg=`.
+The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always available for `bg=`. To move the text inside the box up or down without moving the box, use `text-raise=` in pt, also in a style: `.heart = bg=heart color=white text-raise=1` (`raise=` moves the whole box instead).
 
 ### 6.3 Fields, variables and icons
 
@@ -438,6 +440,7 @@ The PDF is vector, with embedded fonts. You choose page size and orientation, ma
 - **Fold**: front and back side by side, to fold.
 - **Crop marks**: at the corners or as full lines, with length, width and color.
 - **Duplex**: backs on alternate pages, flipping on the long or short edge, with an offset for printers that do not align the two sides.
+- **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with cards of another size starts on a new row, if there is room on the page.
 - **Proof sheet**: a separate PDF with every card small.
 - **Convert to CMYK**: needs Ghostscript installed on the computer.
 
@@ -452,6 +455,16 @@ The PDF is vector, with embedded fonts. You choose page size and orientation, ma
 ### 11.4 Tabletop Simulator
 
 For each set it creates the card sheets (up to 10 × 7, with the grid chosen automatically to reduce empty slots) and the deck file to load in Tabletop Simulator. Files go to the project folder, to Tabletop Simulator's saved objects folder, or both. Card nickname and description can come from a field.
+
+With **Copies** on, **Copies on the sheet** decides where a card's copies go: once on the sheet, with the deck file multiplying it (the default, which keeps sheets small), or repeated on the sheet as many times as `amount` says. The second is for loading the sheets into Tabletop Simulator by hand, without the deck file: each slot of the sheet is one card.
+
+**Objects** chooses, for each set, what to create in Tabletop Simulator:
+
+- **Cards**: the deck from the sheets, as above.
+- **Tokens**: one image per card, cut out along the card shape (rectangle, rounded corners, circle, hexagon or silhouette). Tabletop Simulator turns it into a thick piece whose edge takes the image color; underneath it shows the front mirrored, so the card back is not used.
+- **Tiles**: front and back of the card. The shape (square, rounded, hexagonal or round) comes from the card shape; a silhouette becomes a square. **Edge** is the color of the thickness.
+
+For tokens and tiles, **Thickness** is in mm. The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Cards, tokens and tiles reach Tabletop Simulator in their true proportions: a 63 mm card has Tabletop Simulator's default size, and everything else is larger or smaller in proportion.
 
 Sheets are referenced by local addresses, so the deck works on the computer that exported it. To play online, upload the images to a web service and change the addresses in Tabletop Simulator.
 
@@ -521,22 +534,23 @@ A project is self-contained: copying the folder to another computer gives the sa
 
 On Windows and Linux ⌘ is Ctrl.
 
-| Where        | Keys                 | Action                                  |
-| ------------ | -------------------- | --------------------------------------- |
-| anywhere     | ⌘S                   | save templates, data and settings       |
-| set          | ⌘Z, ⇧⌘Z              | undo and redo data changes              |
-| set          | ⌘A, Esc              | select all cards, go back to one        |
-| table        | Alt+Enter            | new line inside a cell                  |
-| text         | `{`, then ↑ ↓, Enter | field and variable suggestions          |
-| editor       | ⌘Z, ⇧⌘Z (or ⌘Y)      | undo and redo                           |
-| editor       | T, R, E              | new text, rectangle, ellipse            |
-| editor       | ⌘D                   | duplicate the selected layers           |
-| editor       | ⌘C, ⌘X, ⌘V           | copy, cut and paste layers              |
-| editor       | ⌘G, ⇧⌘G              | group and ungroup                       |
-| editor       | ⌘A                   | select all layers                       |
-| editor       | Delete               | delete the selected layers              |
-| editor       | arrows, ⇧ + arrows   | move by 0.5 mm or 5 mm                  |
-| editor       | Esc                  | clear the selection or leave the group  |
-| canvas       | Shift while dragging | keep proportions or rotate in 15° steps |
-| canvas       | Alt while dragging   | move without snapping                   |
-| canvas, grid | ⌘ + mouse wheel      | zoom                                    |
+| Where        | Keys                 | Action                                                                                        |
+| ------------ | -------------------- | --------------------------------------------------------------------------------------------- |
+| anywhere     | ⌘S                   | save templates, data and settings                                                             |
+| set          | ⌘Z, ⇧⌘Z              | undo and redo data changes                                                                    |
+| set          | ⌘A, Esc              | select all cards, go back to one                                                              |
+| table        | Alt+Enter            | new line inside a cell                                                                        |
+| text         | `{`, then ↑ ↓, Enter | field and variable suggestions                                                                |
+| editor       | ⌘Z, ⇧⌘Z (or ⌘Y)      | undo and redo                                                                                 |
+| editor       | T, R, E              | new text, rectangle, ellipse                                                                  |
+| editor       | ⌘D                   | duplicate the selected layers                                                                 |
+| editor       | ⌘C, ⌘X, ⌘V           | copy, cut and paste layers                                                                    |
+| editor       | ⌘G, ⇧⌘G              | group and ungroup                                                                             |
+| editor       | ⌘A                   | select all layers                                                                             |
+| editor       | Delete               | delete the selected layers                                                                    |
+| editor       | arrows, ⇧ + arrows   | move by 0.5 mm or 5 mm                                                                        |
+| editor       | Esc                  | clear the selection or leave the group                                                        |
+| canvas       | Shift while dragging | move only horizontally, vertically or at 45°; switch the proportion lock; rotate in 15° steps |
+| canvas       | ⌘ while resizing     | resize from the center                                                                        |
+| canvas       | Alt while dragging   | move without snapping                                                                         |
+| canvas, grid | ⌘ + mouse wheel      | zoom                                                                                          |

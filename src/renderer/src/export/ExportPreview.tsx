@@ -5,6 +5,7 @@ import {
   imageExtension,
   planImages,
   planPdf,
+  piecePage,
   planTts,
   sheetPage
 } from '../../../shared/exportPlan'
@@ -73,8 +74,28 @@ function previewItems(job: ExportJob): { items: PreviewItem[]; files: number; no
     }
   }
   const items: PreviewItem[] = []
-  for (const { set, chunks, uniqueBack } of planTts(job.options, sets)) {
+  for (const { set, chunks, pieces, object, uniqueBack } of planTts(job.options, sets)) {
     const stem = safeName(set.name)
+    const kind = object.type === 'tile' ? 'tile' : 'token'
+    const digits = String(pieces.length).length
+    pieces.forEach((p, i) => {
+      const n = String(i + 1).padStart(digits, '0')
+      const detail: Message | undefined =
+        p.count > 1 ? { key: 'export.previewCopies', params: { n: p.count } } : undefined
+      items.push({
+        file: `${stem}_${n}.png`,
+        detail,
+        page: piecePage(p.card.template, 'front', kind),
+        scene: kind === 'tile' ? WHITE : { ...WHITE, background: null }
+      })
+      if (kind === 'tile')
+        items.push({
+          file: `${stem}_${n}_back.png`,
+          detail,
+          page: piecePage(p.card.template, 'back', kind),
+          scene: WHITE
+        })
+    })
     chunks.forEach((chunk, i) => {
       items.push({
         file: `${stem}_faces_${i + 1}.png`,

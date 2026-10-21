@@ -152,6 +152,14 @@ describe('markup: stili', () => {
     expect(resolveStyles({ styles: ['heading1'] }, {})).toMatchObject({ weight: 800 })
   })
 
+  it('text-raise vale anche dentro uno stile', () => {
+    const a = resolveStyles(parseAttrs('.cuore').attrs, {
+      cuore: 'bg=cuore color=white text-raise=1'
+    })
+    expect(a).toMatchObject({ bg: 'cuore', color: 'white', textRaise: 1 })
+    expect(parseAttrs('text-raise=alto').problems).toHaveLength(1)
+  })
+
   it('segnala gli stili che non esistono', () => {
     expect(markupProblems('[a]{.nessuno}').map((p) => p.message)).toEqual([
       { key: 'markup.unknownStyle', params: { name: 'nessuno' } }
@@ -162,7 +170,7 @@ describe('markup: stili', () => {
 describe('markup: scrittura degli attributi', () => {
   it('scrive gli attributi in modo che si rileggano uguali', () => {
     const src =
-      '.keyword color=red size=+2 font=Open_Sans bold italic smallcaps stroke=white/8% border=red/0.3 radius=round pad=0.3/1 bg=circle bg-color=blue'
+      '.keyword color=red size=+2 font=Open_Sans bold italic smallcaps stroke=white/8% border=red/0.3 radius=round pad=0.3/1 bg=circle bg-color=blue text-raise=1.5'
     const a = parseAttrs(src).attrs
     expect(serializeAttrs(a)).toBe(src)
     expect(parseAttrs(serializeAttrs(a)).attrs).toEqual(a)
@@ -183,5 +191,45 @@ describe('markupProblems con i campi', () => {
     expect(markupProblems('{spada*x}', {}, ['forza']).map((p) => p.message.key)).toEqual([
       'markup.badRepeat'
     ])
+  })
+})
+
+describe('porzioni da non spezzare', () => {
+  it('_..._ è una porzione nowrap, anche con icone e spazi', () => {
+    expect(parseMarkup('Paga _4{pp}_ e _2 {oro}_.').blocks[0].children).toMatchObject([
+      { t: 'text', text: 'Paga ' },
+      {
+        t: 'span',
+        attrs: { nowrap: true },
+        children: [
+          { t: 'text', text: '4' },
+          { t: 'ref', name: 'pp' }
+        ]
+      },
+      { t: 'text', text: ' e ' },
+      { t: 'span', attrs: { nowrap: true } },
+      { t: 'text', text: '.' }
+    ])
+    expect(parseMarkup('7{p} x _{ma}{mb}{mc}_{md}').blocks[0].children).toMatchObject([
+      { t: 'text' },
+      { t: 'ref', name: 'p' },
+      { t: 'text', text: ' x ' },
+      { t: 'span', attrs: { nowrap: true } },
+      { t: 'ref', name: 'md' }
+    ])
+  })
+
+  it('un _ dentro una parola resta testo', () => {
+    expect(parseMarkup('nome_del_file e a_b').blocks[0].children).toEqual([
+      { t: 'text', text: 'nome_del_file e a_b' }
+    ])
+    expect(parseMarkup('\\_4_').blocks[0].children).toEqual([{ t: 'text', text: '_4_' }])
+  })
+
+  it('nowrap tiene insieme una porzione intera', () => {
+    expect(parseMarkup('[4 punti]{nowrap}').blocks[0].children[0]).toMatchObject({
+      t: 'span',
+      attrs: { nowrap: true }
+    })
   })
 })

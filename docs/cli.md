@@ -16,14 +16,17 @@ Il comando `naibi` permette a un agente IA (Claude Code, Codex, Cursor…) o a u
 | `render <progetto> [--set S] [--card 1,3,5-7] [--side front\|back\|both] [--dpi 150] [--out cartella]` | disegna le carte in PNG, di base in `export/naibi-render/<set>/<n>.png`                                                        |
 | `export <progetto> --profile NOME`                                                                     | esegue un profilo di esportazione salvato nel progetto                                                                         |
 | `new <nome> <cartella>`                                                                                | crea un progetto vuoto                                                                                                         |
+| `notes <progetto> [<nome>]`                                                                            | note del progetto (`notes/*.md`), tutte o una; l'agente le scrive come file Markdown in `notes/`                               |
 | `begin <progetto> [--note testo]`                                                                      | inizio del lavoro di un'IA: esce con 3 se l'app ha modifiche non salvate nel progetto, altrimenti l'app si blocca              |
 | `end <progetto>`                                                                                       | fine del lavoro: l'app si sblocca e ricarica il progetto                                                                       |
 
-`info`, `check` e `template` accettano `--json`. `naibi --help` elenca i comandi.
+`info`, `check`, `template` e `notes` accettano `--json`. `naibi --help` elenca i comandi.
 
 ## Come si lancia
 
 - App installata: `"<percorso del programma>" --cli <comando>`. Su Mac il programma è dentro il pacchetto, per esempio `"/Applications/Naibi.app/Contents/MacOS/Naibi" --cli info ~/Documents/Naibi/Prova`.
+- Su Windows, con l'app installata, si usa `naibi-cli.cmd`, che sta accanto a `naibi.exe` (di solito in `%LOCALAPPDATA%\Programs\naibi`): per esempio `& "$env:LOCALAPPDATA\Programs\naibi\naibi-cli.cmd" info "D:\Giochi\Prova"` in PowerShell. `naibi.exe` è un programma a finestre: lanciato direttamente il terminale non ne aspetta la fine, l'output arriva dopo il prompt e il codice di uscita si perde. Il file `.cmd` aspetta, restituisce il codice e avvia Chromium senza la sua sandbox, che non parte dentro quella di alcuni agenti IA (Codex). **Strumenti IA…** nell'app mostra già questo comando. La versione portable non ha il file `.cmd`.
+- Codex su Windows esegue i comandi in una sandbox che legge solo le cartelle aperte alle app in sandbox. Dalla 1.2.0-beta.9 l'installer apre la cartella di Naibi in sola lettura ed esecuzione, quindi non serve fare niente. Con una versione precedente, o se compare ancora l'errore _Sandboxed processes cannot read …_, si approva l'esecuzione fuori dalla sandbox quando Codex la chiede, oppure si dà il permesso a mano, da una PowerShell normale: `icacls "$env:LOCALAPPDATA\Programs\naibi" /grant "*S-1-15-2-1:(OI)(CI)(RX)" /T` (`*S-1-15-2-1` è il gruppo ALL APPLICATION PACKAGES, con un nome diverso nelle versioni tradotte di Windows).
 - Dal codice: una volta `npm run build`, poi `npm run naibi -- info <progetto>` oppure `node bin/naibi.mjs info <progetto>`. Con `npm link` il comando diventa `naibi` in ogni cartella.
 
 ## Lavorare con l'app aperta

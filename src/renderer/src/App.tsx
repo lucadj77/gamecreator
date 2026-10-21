@@ -1,4 +1,6 @@
 import AiToolsDialog from './components/AiToolsDialog'
+import { findUsages } from '../../shared/model/usages'
+import type { UsagesNav } from './components/UsagesSection'
 import AgentLockOverlay from './components/AgentLockOverlay'
 import HelpDialog from './components/HelpDialog'
 import BackupDialog from './components/BackupDialog'
@@ -9,6 +11,7 @@ import type {
   LoadedSet,
   ProjectFile,
   SetDefinition,
+  ProjectNote,
   Sheet
 } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
@@ -37,6 +40,7 @@ import {
   removeRows,
   applyOrder,
   setColumns,
+  defaultHiddenColumns,
   viewRows,
   writeCells,
   NO_VIEW,
@@ -73,6 +77,12 @@ import {
   moveItem,
   orderNames,
   renameInOrder,
+  groupList,
+  groupNames,
+  groupOf,
+  setGroup,
+  type GroupKind,
+  type ListOrder,
   type OrderKind
 } from '../../shared/model/order'
 import {
@@ -82,7 +92,8 @@ import {
   TemplateIcon,
   PencilIcon,
   TrashIcon,
-  VariablesIcon
+  VariablesIcon,
+  NotesIcon
 } from './components/icons'
 import TemplateEditor, { EDITOR_UNDO } from './editor/TemplateEditor'
 import { Dialog, NewTemplateDialog } from './editor/dialogs'
@@ -115,12 +126,15 @@ import UpdateNotice from './components/UpdateNotice'
 import Tooltip from './components/Tooltip'
 import SidebarPreview from './components/SidebarPreview'
 import { useSidebarPreview } from './components/useSidebarPreview'
+import NotePanel from './components/NotePanel'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
 import type { AgentLock, Theme } from '../../shared/api'
 
 const NO_STYLES: Record<string, string> = {}
+/** Da quante voci stili e variabili hanno il campo per filtrarle */
+const FILTER_FROM = 12
 const NO_VARIABLES: Variables = {}
 const UI_ZOOM_KEY = 'uiZoom'
 const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
@@ -182,6 +196,8 @@ function App(): React.JSX.Element {
   // icone e font importati: gli asset cambiano senza ricaricare il progetto
   useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [])
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
+  /** Nota aperta nel pannello accanto alla schermata */
+  const [openNote, setOpenNote] = useState<string | null>(null)
   const [error, setError] = useState<Message | null>(null)
   const [loading, setLoading] = useState(false)
   /** Template modificati e non ancora salvati */
@@ -237,6 +253,10 @@ function App(): React.JSX.Element {
   const [sidebarSide, toggleSidebarSide] = usePanelSide('sidebar', 'left')
   const [sidebarCompact, setSidebarCompact] = usePanelCompact('sidebar')
   const [closedSections, setSectionClosed] = useClosedSections('sidebar')
+  /** Testo per filtrare stili e variabili nella barra laterale */
+  const [listFilter, setListFilter] = useState<Partial<Record<GroupKind, string>>>({})
+  /** Titolo del gruppo su cui si sta trascinando una voce */
+  const [groupDrop, setGroupDrop] = useState<string | null>(null)
   const sidebarPreview = useSidebarPreview()
 
   const load = useCallback(async (folder: string) => {
@@ -424,11 +444,36 @@ function App(): React.JSX.Element {
   }
 
   /** Ordine scelto a mano di template, stili o variabili; `null` torna all'ordine alfabetico */
-  const setListOrder = (kind: OrderKind, names: string[] | null): void => {
+  const setListOrder = (kind: OrderKind, names: string[] | null): void =>
+    changeOrder((o) => {
+      const order = { ...o }
+      if (names) order[kind] = names
+      else delete order[kind]
+      return order
+    })
+
+  /**
+   * Sposta una voce di stili o variabili trascinandola: nell'elenco da `from` a `to` e nel gruppo
+   * `group`, o in quello della voce `target` su cui è stata lasciata
+   */
+  const dropInGroups = (
+    kind: GroupKind,
+    names: string[],
+    from: number,
+    to: number,
+    target: { item: number } | { group: string }
+  ): void => {
+    const current = project?.file.order
+    const group = 'group' in target ? target.group : groupOf(current, kind, names[target.item])
+    if (from === to && groupOf(current, kind, names[from]) === group) return
+    changeOrder((o) =>
+      setGroup({ ...o, [kind]: moveItem(names, from, to) }, kind, names[from], group)
+    )
+  }
+
+  const changeOrder = (change: (order: ListOrder) => ListOrder | undefined): void => {
     if (!project) return
-    const order = { ...project.file.order }
-    if (names) order[kind] = names
-    else delete order[kind]
+    const order = change({ ...project.file.order }) ?? {}
     setHistory((h) => ({
       past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
       future: [],
@@ -500,34 +545,104 @@ function App(): React.JSX.Element {
   }
 
   /** Crea, modifica, rinomina (con `oldName`) o elimina (def null) uno stile del progetto */
-  const saveStyle = useCallback((name: string, def: string | null, oldName?: string): void => {
-    setProject((p) => {
-      if (!p) return p
-      const renaming = !!oldName && oldName !== name && def !== null
-      const base = renaming ? renameReferences(p, 'style', oldName, name) : p
-      const styles = { ...base.file.styles }
-      if (renaming) delete styles[oldName]
-      if (def === null) delete styles[name]
-      else styles[name] = def
-      setHistory((h) => ({
-        past: [
-          ...h.past.slice(-99),
-          { sets: p.sets, file: p.file, templates: renaming ? p.templates : undefined }
-        ],
-        future: [],
-        at: 0
-      }))
-      if (renaming) markRenamed(p, base)
-      const order = renaming
-        ? renameInOrder(base.file.order, 'styles', oldName, name)
-        : base.file.order
-      return { ...base, file: { ...base.file, styles, order } }
-    })
-    setFileDirty(true)
-  }, [])
+  const saveStyle = useCallback(
+    (name: string, def: string | null, oldName?: string, group?: string): void => {
+      setProject((p) => {
+        if (!p) return p
+        const renaming = !!oldName && oldName !== name && def !== null
+        const base = renaming ? renameReferences(p, 'style', oldName, name) : p
+        const styles = { ...base.file.styles }
+        if (renaming) delete styles[oldName]
+        if (def === null) delete styles[name]
+        else styles[name] = def
+        setHistory((h) => ({
+          past: [
+            ...h.past.slice(-99),
+            { sets: p.sets, file: p.file, templates: renaming ? p.templates : undefined }
+          ],
+          future: [],
+          at: 0
+        }))
+        if (renaming) markRenamed(p, base)
+        let order = renaming
+          ? renameInOrder(base.file.order, 'styles', oldName, name)
+          : base.file.order
+        if (def === null) order = setGroup(order, 'styles', name, '')
+        else if (group !== undefined) order = setGroup(order, 'styles', name, group)
+        return { ...base, file: { ...base.file, styles, order } }
+      })
+      setFileDirty(true)
+    },
+    []
+  )
+
+  // Note del progetto: si scrivono subito su disco, poco dopo l'ultima modifica, senza passare dal
+  // salvataggio del progetto né dall'annulla
+  const noteTimers = useRef(new Map<string, { timer: number; text: string }>())
+  const writeNote = (name: string, text: string, oldName?: string): Promise<void> =>
+    window.api.saveNote(name, text, oldName).catch((e) => setError(messageFromError(e)))
+  const flushNote = (name: string): void => {
+    const pending = noteTimers.current.get(name)
+    if (!pending) return
+    window.clearTimeout(pending.timer)
+    noteTimers.current.delete(name)
+    void writeNote(name, pending.text)
+  }
+  const setNotes = (change: (notes: ProjectNote[]) => ProjectNote[]): void =>
+    setProject((p) => p && { ...p, notes: change(p.notes ?? []) })
+  const changeNote = (name: string, text: string): void => {
+    setNotes((notes) => notes.map((n) => (n.name === name ? { ...n, text } : n)))
+    const old = noteTimers.current.get(name)
+    if (old) window.clearTimeout(old.timer)
+    noteTimers.current.set(name, { text, timer: window.setTimeout(() => flushNote(name), 600) })
+  }
+  const newNote = async (): Promise<void> => {
+    const names = new Set((project?.notes ?? []).map((n) => n.name))
+    const base = t('notes.newName')
+    let name = base
+    for (let i = 2; names.has(name); i++) name = `${base} ${i}`
+    await writeNote(name, '')
+    setNotes((notes) => [...notes, { name, text: '' }].sort((a, b) => a.name.localeCompare(b.name)))
+    setOpenNote(name)
+  }
+  const renameNote = async (from: string, to: string): Promise<void> => {
+    const pending = noteTimers.current.get(from)
+    if (pending) window.clearTimeout(pending.timer)
+    noteTimers.current.delete(from)
+    const text = pending?.text ?? project?.notes?.find((n) => n.name === from)?.text ?? ''
+    try {
+      await window.api.saveNote(to, text, from)
+    } catch (e) {
+      setError(messageFromError(e))
+      return
+    }
+    setNotes((notes) =>
+      notes
+        .map((n) => (n.name === from ? { name: to, text } : n))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    )
+    setOpenNote(to)
+  }
+  const deleteNote = async (name: string): Promise<void> => {
+    const pending = noteTimers.current.get(name)
+    if (pending) window.clearTimeout(pending.timer)
+    noteTimers.current.delete(name)
+    await window.api.deleteNote(name).catch((e) => setError(messageFromError(e)))
+    setNotes((notes) => notes.filter((n) => n.name !== name))
+    setOpenNote((o) => (o === name ? null : o))
+  }
+  const closeNote = (): void => {
+    if (openNote) flushNote(openNote)
+    setOpenNote(null)
+  }
 
   /** Crea, modifica, rinomina (con `oldName`) o elimina (v null) una variabile del progetto */
-  const saveVariable = (name: string, v: Variable | null, oldName?: string): void => {
+  const saveVariable = (
+    name: string,
+    v: Variable | null,
+    oldName?: string,
+    group?: string
+  ): void => {
     setProject((p) => {
       if (!p) return p
       const renaming = !!oldName && oldName !== name && v !== null
@@ -545,9 +660,11 @@ function App(): React.JSX.Element {
         at: 0
       }))
       if (renaming) markRenamed(p, base)
-      const order = renaming
+      let order = renaming
         ? renameInOrder(base.file.order, 'variables', oldName, name)
         : base.file.order
+      if (v === null) order = setGroup(order, 'variables', name, '')
+      else if (group !== undefined) order = setGroup(order, 'variables', name, group)
       return { ...base, file: { ...base.file, variables, order } }
     })
     setFileDirty(true)
@@ -909,17 +1026,108 @@ function App(): React.JSX.Element {
       )
     )
   )
-  const dragStyles = useDragReorder((a, b) => setListOrder('styles', moveItem(styleList, a, b)))
-  const dragVariables = useDragReorder((a, b) =>
-    setListOrder(
+  const dragStyles = useDragReorder((a, b, item) =>
+    dropInGroups('styles', styleList, a, b, { item })
+  )
+  const dragVariables = useDragReorder((a, b, item) =>
+    dropInGroups(
       'variables',
-      moveItem(
-        variableList.map(([n]) => n),
-        a,
-        b
-      )
+      variableList.map(([n]) => n),
+      a,
+      b,
+      { item }
     )
   )
+  /**
+   * Stili o variabili nella barra laterale: con molte voci un campo per filtrarle per nome, e le
+   * voci con un gruppo sotto il titolo del gruppo, che si chiude con un clic
+   */
+  const groupedItems = (
+    kind: GroupKind,
+    names: string[],
+    dragging: number | null,
+    item: (name: string, index: number) => React.ReactNode
+  ): React.ReactNode => {
+    const query = listFilter[kind]?.trim().toLowerCase() ?? ''
+    const groups = groupList(names, order, kind)
+    const shown = (name: string): boolean => !query || name.toLowerCase().includes(query)
+    return (
+      <>
+        {names.length > FILTER_FROM && (
+          <input
+            className="sidebar-filter"
+            type="search"
+            placeholder={t('sidebar.filter')}
+            value={listFilter[kind] ?? ''}
+            onChange={(e) => setListFilter((f) => ({ ...f, [kind]: e.target.value }))}
+          />
+        )}
+        {groups.map(({ group, items }) => {
+          const visible = items.filter((x) => shown(x.name))
+          if (group && !visible.length) return null
+          const id = `${kind}:${group}`
+          // con un filtro i gruppi si aprono, per vedere ciò che si cerca
+          const open = !group || !!query || !closedSections.has(id)
+          return (
+            <div key={id} className={group ? 'sidebar-group' : undefined}>
+              {group && (
+                <button
+                  className={`sidebar-group-title${groupDrop === id ? ' drop-into' : ''}`}
+                  aria-expanded={open}
+                  onClick={() => setSectionClosed(id, open)}
+                  // una voce lasciata sul titolo entra nel gruppo
+                  onDragOver={(e) => {
+                    if (dragging === null) return
+                    e.preventDefault()
+                    setGroupDrop(id)
+                  }}
+                  onDragLeave={() => setGroupDrop(null)}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    setGroupDrop(null)
+                    if (dragging !== null) dropInGroups(kind, names, dragging, dragging, { group })
+                  }}
+                >
+                  <span className="caret">{open ? '▾' : '▸'}</span>
+                  {group}
+                  <span className="muted small">{items.length}</span>
+                </button>
+              )}
+              {open && <ul>{visible.map((x) => item(x.name, x.index))}</ul>}
+            </div>
+          )
+        })}
+      </>
+    )
+  }
+
+  /** Dove sono usati uno stile o una variabile; un clic apre il template o il set e chiude la finestra */
+  const usagesNav = (kind: RefKind, name: string): UsagesNav | undefined =>
+    project
+      ? {
+          usages: findUsages(
+            {
+              templates: project.templates,
+              sets: project.sets,
+              variables: project.file.variables ?? {},
+              styles: project.file.styles ?? {}
+            },
+            kind,
+            name
+          ),
+          openTemplate: (n) => {
+            setEditingStyle(null)
+            setEditingVariable(null)
+            setSelected({ kind: 'template', name: n })
+          },
+          openSet: (index) => {
+            setEditingStyle(null)
+            setEditingVariable(null)
+            setSelected({ kind: 'set', index })
+          }
+        }
+      : undefined
+
   /** Pulsante "A–Z" accanto al +, solo quando l'elenco non è già alfabetico */
   const sortButton = (names: string[], onSort: () => void): React.ReactNode =>
     !isAlphabetical(names) && (
@@ -932,7 +1140,8 @@ function App(): React.JSX.Element {
     ['sets', <SetsIcon key="sets" />, t('sidebar.sets')],
     ['templates', <TemplateIcon key="templates" />, t('sidebar.templates')],
     ['styles', <StylesIcon key="styles" />, t('sidebar.styles')],
-    ['variables', <VariablesIcon key="variables" />, t('sidebar.variables')]
+    ['variables', <VariablesIcon key="variables" />, t('sidebar.variables')],
+    ['notes', <NotesIcon key="notes" />, t('sidebar.notes')]
   ]
   const sidebar =
     project && sidebarCompact ? (
@@ -1121,21 +1330,19 @@ function App(): React.JSX.Element {
               </>
             }
           >
-            <ul>
-              {styleList.map((name, i) => (
-                <li key={name} {...dragStyles.itemProps(i)}>
-                  <button
-                    onClick={() => setEditingStyle(name)}
-                    {...sidebarPreview.bind({ kind: 'style', name })}
-                  >
-                    <span>.{name}</span>
-                    {!(name in (project.file.styles ?? {})) && (
-                      <span className="muted small">{t('sidebar.builtinStyle')}</span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {groupedItems('styles', styleList, dragStyles.dragging, (name, i) => (
+              <li key={name} {...dragStyles.itemProps(i)}>
+                <button
+                  onClick={() => setEditingStyle(name)}
+                  {...sidebarPreview.bind({ kind: 'style', name })}
+                >
+                  <span>.{name}</span>
+                  {!(name in (project.file.styles ?? {})) && (
+                    <span className="muted small">{t('sidebar.builtinStyle')}</span>
+                  )}
+                </button>
+              </li>
+            ))}
           </SidebarSection>
           <SidebarSection
             id="variables"
@@ -1159,19 +1366,55 @@ function App(): React.JSX.Element {
               </>
             }
           >
-            <ul>
-              {variableList.map(([name, v], i) => (
+            {groupedItems(
+              'variables',
+              variableList.map(([n]) => n),
+              dragVariables.dragging,
+              (name, i) => (
                 <li key={name} {...dragVariables.itemProps(i)}>
                   <button
                     onClick={() => setEditingVariable(name)}
                     {...sidebarPreview.bind({ kind: 'variable', name })}
                   >
                     <span>{`{${name}}`}</span>
-                    <VariableSwatch v={v} variables={variables} />
+                    <VariableSwatch v={variables[name]} variables={variables} />
+                  </button>
+                </li>
+              )
+            )}
+          </SidebarSection>
+          <SidebarSection
+            id="notes"
+            icon={<NotesIcon />}
+            title={t('sidebar.notes')}
+            open={!closedSections.has('notes')}
+            onToggle={(open) => setSectionClosed('notes', !open)}
+            actions={
+              <button
+                className="icon-btn"
+                title={t('sidebar.newNote')}
+                onClick={() => void newNote()}
+              >
+                +
+              </button>
+            }
+          >
+            <ul>
+              {(project.notes ?? []).map((n) => (
+                <li key={n.name}>
+                  <button
+                    className={openNote === n.name ? 'active' : ''}
+                    onClick={() => {
+                      if (openNote && openNote !== n.name) flushNote(openNote)
+                      setOpenNote(openNote === n.name ? null : n.name)
+                    }}
+                  >
+                    <span>{n.name}</span>
                   </button>
                 </li>
               ))}
             </ul>
+            {!project.notes?.length && <p className="muted small">{t('sidebar.noNotes')}</p>}
           </SidebarSection>
           {project.unusedSheets.length > 0 && (
             <p className="muted small">
@@ -1185,16 +1428,19 @@ function App(): React.JSX.Element {
   /** Dimensione dell'interfaccia, tema e lingua: nella schermata di ingresso e nel progetto */
   const settings = (
     <span className="app-settings">
-      <label className="muted" title={t('app.uiSizeHint')}>
-        {t('app.uiSize')}{' '}
-        <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
-          {UI_ZOOMS.map((z) => (
-            <option key={z} value={z}>
-              {Math.round(z * 100)}%
-            </option>
-          ))}
-        </select>
-      </label>
+      {/* nel browser l'ingrandimento è quello del browser stesso */}
+      {!window.api.isWeb && (
+        <label className="muted" title={t('app.uiSizeHint')}>
+          {t('app.uiSize')}{' '}
+          <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
+            {UI_ZOOMS.map((z) => (
+              <option key={z} value={z}>
+                {Math.round(z * 100)}%
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="muted">
         {t('app.theme')}{' '}
         <select value={theme} onChange={(e) => changeTheme(e.target.value as Theme)}>
@@ -1225,7 +1471,7 @@ function App(): React.JSX.Element {
           <SaveStyleContext.Provider value={project ? saveStyle : null}>
             <div className="app">
               <Tooltip />
-              <UpdateNotice />
+              {!window.api.isWeb && <UpdateNotice />}
               {help && <HelpDialog onClose={() => setHelp(false)} />}
               {project && !sidebarCompact && (
                 <SidebarPreview
@@ -1266,9 +1512,11 @@ function App(): React.JSX.Element {
                   <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
                     {t('app.backup')}
                   </button>
-                  <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
-                    {t('app.aiTools')}
-                  </button>
+                  {!window.api.isWeb && (
+                    <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
+                      {t('app.aiTools')}
+                    </button>
+                  )}
                   <button onClick={() => setHelp(true)} title={t('tip.help')}>
                     {t('app.help')}
                   </button>
@@ -1385,6 +1633,18 @@ function App(): React.JSX.Element {
                         </div>
                       )}
                     </section>
+                  )}
+                  {openNote && project.notes?.some((n) => n.name === openNote) && (
+                    <NotePanel
+                      key={openNote}
+                      name={openNote}
+                      text={project.notes.find((n) => n.name === openNote)?.text ?? ''}
+                      others={project.notes.map((n) => n.name).filter((n) => n !== openNote)}
+                      onChange={(text) => changeNote(openNote, text)}
+                      onRename={(to) => void renameNote(openNote, to)}
+                      onDelete={() => void deleteNote(openNote)}
+                      onClose={closeNote}
+                    />
                   )}
                   {sidebarSide === 'right' && (
                     <>
@@ -1571,10 +1831,13 @@ function App(): React.JSX.Element {
               <FormatDialog
                 mode="style"
                 styleName={editingStyle || undefined}
+                group={groupOf(order, 'styles', editingStyle)}
+                usages={editingStyle ? usagesNav('style', editingStyle) : undefined}
+                groups={groupNames(order, 'styles', styleList)}
                 initial={parseAttrs(allStyles[editingStyle] ?? '').attrs}
                 sample={editingStyle || 'Aa'}
-                onApply={(attrs, name) => {
-                  if (name) saveStyle(name, serializeAttrs(attrs), editingStyle || undefined)
+                onApply={(attrs, name, group) => {
+                  if (name) saveStyle(name, serializeAttrs(attrs), editingStyle || undefined, group)
                   setEditingStyle(null)
                 }}
                 onDelete={() => {
@@ -1587,8 +1850,15 @@ function App(): React.JSX.Element {
             {editingVariable !== null && project && (
               <VariableDialog
                 name={editingVariable}
-                onSave={(name, v) => {
-                  saveVariable(name, v, editingVariable || undefined)
+                group={groupOf(order, 'variables', editingVariable)}
+                usages={editingVariable ? usagesNav('variable', editingVariable) : undefined}
+                groups={groupNames(
+                  order,
+                  'variables',
+                  variableList.map(([n]) => n)
+                )}
+                onSave={(name, v, group) => {
+                  saveVariable(name, v, editingVariable || undefined, group)
                   setEditingVariable(null)
                 }}
                 onDelete={() => {
@@ -2115,6 +2385,15 @@ function SetView({
             hidden={hidden}
             showComputed={!!set.showComputed}
             onChange={onChangeColumns}
+            onReset={() => {
+              onChangeColumns({
+                hiddenColumns: defaultHiddenColumns(allColumns, template, [
+                  ...new Set(rowTemplates)
+                ]),
+                showComputed: false
+              })
+              setDetails(new Set())
+            }}
           />
           <span className="sep" />
           <input

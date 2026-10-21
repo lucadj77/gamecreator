@@ -58,9 +58,17 @@ export default function BackupDialog({
     run(async () => setState(await window.api.saveBackupSettings({ ...state.settings, ...patch })))
   }
 
-  const restore = (file: string): void => {
-    if (!window.confirm(t('backup.restoreConfirm'))) return
-    run(async () => onRestored(await window.api.restoreBackup(file)))
+  const restore = async (file: string): Promise<void> => {
+    // nel web la cartella si sceglie prima di tutto: il browser apre la finestra solo subito
+    // dopo il clic
+    let parent: string | undefined
+    if (window.api.isWeb) {
+      parent = (await window.api.chooseFolder()) ?? undefined
+      if (!parent) return
+    }
+    if (!window.confirm(t(window.api.isWeb ? 'web.restoreConfirm' : 'backup.restoreConfirm')))
+      return
+    run(async () => onRestored(await window.api.restoreBackup(file, parent)))
   }
 
   return (
@@ -72,7 +80,7 @@ export default function BackupDialog({
           <button className="primary" disabled={busy || !state} onClick={create}>
             {dirty ? t('backup.saveAndCreate') : t('backup.create')}
           </button>
-          {state && (
+          {state && !window.api.isWeb && (
             <button
               onClick={() => window.api.showFolder(state.folder)}
               disabled={!state.items.length}
@@ -133,7 +141,12 @@ export default function BackupDialog({
               </label>
               <div className="backup-folder">
                 <span>{t('backup.folder')}</span>
-                <code>{state.settings.folder || state.defaultFolder}</code>
+                {/* nel web la cartella di base è lo spazio del sito nel browser, senza percorso */}
+                {state.settings.folder || state.defaultFolder ? (
+                  <code>{state.settings.folder || state.defaultFolder}</code>
+                ) : (
+                  <span className="muted">{t('web.backupInSite')}</span>
+                )}
                 <button
                   disabled={busy}
                   onClick={async () => {
@@ -151,6 +164,9 @@ export default function BackupDialog({
                   </button>
                 )}
               </div>
+              {window.api.isWeb && !state.settings.folder && (
+                <p className="muted small">{t('web.backupInSiteHint')}</p>
+              )}
             </fieldset>
           </>
         )}

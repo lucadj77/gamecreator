@@ -6,6 +6,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
 import { saveTemplate, trashTemplate } from './project/templates'
+import { saveNote, trashNote } from './project/notes'
 import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
@@ -20,6 +21,8 @@ import type { Template } from '../shared/model/template'
 import type { BackupSettings, BackupState, Theme, TtcImportOptions } from '../shared/api'
 import { defaultTarget, importTtc } from './import/ttc'
 import { runExport } from './export/run'
+import { ExportWindow } from './export/window'
+import { toCmyk } from './export/cmyk'
 import { saveExportProfiles } from './project/exportProfiles'
 import { fontCatalog, iconCatalog } from './library/catalogs'
 import { updateGameIcons, updateGoogleFonts } from './library/catalogUpdate'
@@ -31,6 +34,9 @@ import {
   importIconifyIcons
 } from './library/iconify'
 import { importIcons } from './library/icons'
+import { copyImages } from './library/images'
+import { assetsUpdate } from './library/sources'
+import { IMAGE_EXTENSIONS } from '../shared/model/assets'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
 import { runCli } from './cli'
@@ -223,6 +229,18 @@ function registerIpc(): void {
     return trashTemplate(folder, file)
   })
 
+  ipcMain.handle('note:save', async (_, name: string, text: string, oldName?: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await saveNote(folder, name, text, oldName)
+  })
+
+  ipcMain.handle('note:delete', async (_, name: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await trashNote(folder, name)
+  })
+
   ipcMain.handle('data:save', async (_, changes: DataChanges) => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
@@ -235,6 +253,8 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     cancelExport = false
     return runExport(job, {
+      openWindow: (context) => ExportWindow.open(context),
+      toCmyk,
       projectFolder: folder,
       platform: process.platform,
       home: app.getPath('home'),
@@ -309,6 +329,18 @@ function registerIpc(): void {
     return copySystemFont(folder, family)
   })
 
+  ipcMain.handle('library:add-images', async () => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Images', extensions: IMAGE_EXTENSIONS.map((e) => e.slice(1)) }]
+    })
+    if (result.canceled || !result.filePaths.length) return null
+    await copyImages(folder, result.filePaths)
+    return assetsUpdate(folder)
+  })
+
   ipcMain.handle('library:save-credits', async (_, text: string) => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
@@ -328,7 +360,14 @@ function registerIpc(): void {
   // Strumenti per gli agenti IA: il comando naibi di questa installazione e la skill da salvare.
   // Vedi docs/cli.md.
   ipcMain.handle('ai:command', () => {
-    if (app.isPackaged) return { command: `"${process.execPath}" --cli`, ready: true }
+    if (app.isPackaged) {
+      // su Windows naibi.exe è un programma a finestre: il terminale non ne aspetterebbe la fine
+      // né il codice di uscita. naibi-cli.cmd, installato accanto, lo avvia nel modo giusto
+      const cmd = join(dirname(process.execPath), 'naibi-cli.cmd')
+      if (process.platform === 'win32' && existsSync(cmd))
+        return { command: `"${cmd}"`, ready: true }
+      return { command: `"${process.execPath}" --cli`, ready: true }
+    }
     const root = app.getAppPath()
     return {
       command: `node "${join(root, 'bin', 'naibi.mjs')}"`,

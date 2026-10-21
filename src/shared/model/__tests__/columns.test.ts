@@ -3,7 +3,14 @@ import type { Sheet } from '../../project'
 import { computedValues, rowToCard } from '../bind'
 import { hitTest } from '../geometry'
 import { normalizeTemplate } from '../normalize'
-import { booleanColumns, boolText, parseBool, setColumns, writeCells } from '../sheet'
+import {
+  booleanColumns,
+  boolText,
+  defaultHiddenColumns,
+  parseBool,
+  setColumns,
+  writeCells
+} from '../sheet'
 
 const t = normalizeTemplate({
   name: 't',
@@ -39,6 +46,11 @@ describe('colonne del set', () => {
       ['eroe', -1, false],
       ['doppio', -1, true]
     ])
+  })
+
+  it('la vista di base nasconde le colonne che nessun livello legge', () => {
+    const s = { ...sheet, headers: [...sheet.headers, 'vecchio.color'] }
+    expect(defaultHiddenColumns(setColumns(s, t), t)).toEqual(['raro', 'vecchio.color'])
   })
 
   it('crea la colonna scrivendoci un valore, non per un valore vuoto', () => {

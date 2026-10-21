@@ -19,9 +19,13 @@ import {
   type ExportSet,
   type ImageOptions,
   type PdfOptions,
-  type TtsOptions
+  ttsSetObject,
+  type TtsObjectType,
+  type TtsOptions,
+  type TtsSetObject
 } from '../../../shared/export'
 import { messageFromError, type Message } from '../../../shared/messages'
+import { readRealPath, writeRealPath } from '../../../shared/realPath'
 import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
 import ExportPreview from './ExportPreview'
@@ -62,8 +66,14 @@ export default function ExportDialog({
   const [tts, setTts] = useState<TtsOptions>(() => ({
     ...DEFAULT_TTS,
     nickname: defaultNickname(project),
-    ...saved.tts
+    ...saved.tts,
+    // nel web i file vanno solo nella cartella di Tabletop Simulator: il mazzo ha bisogno del
+    // percorso vero delle immagini, che si conosce solo per quella (vedi shared/realPath.ts)
+    ...(window.api.isWeb ? { destination: 'tts' as const } : {})
   }))
+  const [realPath, setRealPath] = useState(() =>
+    window.api.isWeb && tts.ttsFolder ? readRealPath(tts.ttsFolder) : ''
+  )
   const [defaults, setDefaults] = useState({ export: '', tts: '' })
   const [progress, setProgress] = useState<ExportProgress | null>(null)
   const [result, setResult] = useState<ExportResult | null>(null)
@@ -98,6 +108,9 @@ export default function ExportDialog({
     const next = selected.includes(name) ? selected.filter((s) => s !== name) : [...selected, name]
     patch({ sets: next.length === setNames.length ? [] : next })
   }
+
+  /** Almeno un set scelto esce come mazzo di carte: servono le opzioni dei fogli */
+  const hasCards = selected.some((name) => ttsSetObject(tts, name).type === 'card')
 
   const firstTemplate = useMemo(() => {
     const set = project.sets.find((s) => selected.includes(s.name))
@@ -204,7 +217,9 @@ export default function ExportDialog({
 
   const chooseFolder = async (current: string, key: 'folder' | 'ttsFolder'): Promise<void> => {
     const f = await window.api.chooseExportFolder(current)
-    if (f) patch({ [key]: f })
+    if (!f) return
+    patch({ [key]: f })
+    if (key === 'ttsFolder' && window.api.isWeb) setRealPath(readRealPath(f))
   }
 
   /** "Personalizzato" scelto nel menu: il campo resta anche se il valore è uno di quelli fissi */
@@ -279,6 +294,8 @@ export default function ExportDialog({
         value={value}
         placeholder={placeholder}
         title={value || placeholder}
+        // nel web una cartella si sceglie solo con il pulsante
+        readOnly={window.api.isWeb}
         onChange={(e) => patch({ [key]: e.target.value })}
       />
       <button
@@ -317,7 +334,7 @@ export default function ExportDialog({
           options={[
             ['images', t('export.images')],
             ['pdf', t('export.pdf')],
-            ['tts', t('export.tts')]
+            ['tts', t('export.tts')] as [ExportKind, string]
           ]}
           onChange={(k) => {
             setKind(k)
@@ -664,13 +681,23 @@ export default function ExportDialog({
                   (split) => patch({ split })
                 )
               )}
+              {pdf.split !== 'set' &&
+                field(
+                  'export.continuous',
+                  check(
+                    pdf.continuous,
+                    (continuous) => patch({ continuous }),
+                    'export.continuousCheck'
+                  ),
+                  t('export.continuousHint')
+                )}
               {field(
                 'export.extras',
                 <>
                   {check(pdf.proof, (proof) => patch({ proof }), 'export.proof')}
-                  {check(pdf.cmyk, (cmyk) => patch({ cmyk }), 'export.cmyk')}
+                  {!window.api.isWeb && check(pdf.cmyk, (cmyk) => patch({ cmyk }), 'export.cmyk')}
                 </>,
-                pdf.cmyk ? t('export.cmykHint') : undefined
+                window.api.isWeb ? t('web.pdfHint') : pdf.cmyk ? t('export.cmykHint') : undefined
               )}
               {field('export.folder', folderField(pdf.folder, defaults.export, 'folder'))}
             </>
@@ -679,54 +706,128 @@ export default function ExportDialog({
           {kind === 'tts' && (
             <>
               {field(
-                'export.grid',
-                <>
-                  {select(
-                    tts.grid,
-                    [
-                      ['auto', t('export.gridAuto')],
-                      ['fixed', t('export.layoutFixed')]
-                    ],
-                    (grid) => patch({ grid })
-                  )}
-                  {tts.grid === 'fixed' && (
-                    <>
-                      <input
-                        className="num narrow"
-                        type="number"
-                        min={2}
-                        max={10}
-                        value={tts.cols}
-                        onChange={(e) =>
-                          patch({
-                            cols: Math.max(
-                              2,
-                              Math.min(10, Math.round(num(e.target.value, tts.cols)))
-                            )
-                          })
-                        }
-                      />
-                      <span className="unit">×</span>
-                      <input
-                        className="num narrow"
-                        type="number"
-                        min={2}
-                        max={7}
-                        value={tts.rows}
-                        onChange={(e) =>
-                          patch({
-                            rows: Math.max(
-                              2,
-                              Math.min(7, Math.round(num(e.target.value, tts.rows)))
-                            )
-                          })
-                        }
-                      />
-                    </>
-                  )}
-                </>,
-                t('export.gridHint')
+                'export.ttsObjects',
+                <div className="tts-objects">
+                  {selected.map((name) => {
+                    const obj = ttsSetObject(tts, name)
+                    const set = (p: Partial<TtsSetObject>): void =>
+                      patch({ objects: { ...tts.objects, [name]: { ...obj, ...p } } })
+                    return (
+                      <div key={name} className="tts-object">
+                        <span className="tts-object-name" title={name}>
+                          {name}
+                        </span>
+                        {select<TtsObjectType>(
+                          obj.type,
+                          [
+                            ['card', t('export.ttsCard')],
+                            ['token', t('export.ttsToken')],
+                            ['tile', t('export.ttsTile')]
+                          ],
+                          (type) => set({ type })
+                        )}
+                        {obj.type !== 'card' && (
+                          <>
+                            <span className="unit">{t('export.ttsThickness')}</span>
+                            <input
+                              className="num narrow"
+                              type="number"
+                              step={0.5}
+                              min={0.1}
+                              max={50}
+                              value={obj.thickness}
+                              title={t('export.ttsThicknessHint')}
+                              onChange={(e) =>
+                                set({
+                                  thickness: Math.max(
+                                    0.1,
+                                    Math.min(50, num(e.target.value, obj.thickness))
+                                  )
+                                })
+                              }
+                            />
+                            <span className="unit">mm</span>
+                          </>
+                        )}
+                        {obj.type === 'tile' && (
+                          <>
+                            <span className="unit">{t('export.ttsEdge')}</span>
+                            <ColorSwatch
+                              value={obj.edgeColor}
+                              title={t('export.ttsEdge')}
+                              onChange={(edgeColor) => set({ edgeColor })}
+                            />
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>,
+                t('export.ttsObjectsHint')
               )}
+              {hasCards &&
+                tts.copies &&
+                field(
+                  'export.copiesIn',
+                  select(
+                    tts.copiesIn,
+                    [
+                      ['deck', t('export.copiesInDeck')],
+                      ['sheet', t('export.copiesInSheet')]
+                    ],
+                    (copiesIn) => patch({ copiesIn })
+                  )
+                )}
+              {hasCards &&
+                field(
+                  'export.grid',
+                  <>
+                    {select(
+                      tts.grid,
+                      [
+                        ['auto', t('export.gridAuto')],
+                        ['fixed', t('export.layoutFixed')]
+                      ],
+                      (grid) => patch({ grid })
+                    )}
+                    {tts.grid === 'fixed' && (
+                      <>
+                        <input
+                          className="num narrow"
+                          type="number"
+                          min={2}
+                          max={10}
+                          value={tts.cols}
+                          onChange={(e) =>
+                            patch({
+                              cols: Math.max(
+                                2,
+                                Math.min(10, Math.round(num(e.target.value, tts.cols)))
+                              )
+                            })
+                          }
+                        />
+                        <span className="unit">×</span>
+                        <input
+                          className="num narrow"
+                          type="number"
+                          min={2}
+                          max={7}
+                          value={tts.rows}
+                          onChange={(e) =>
+                            patch({
+                              rows: Math.max(
+                                2,
+                                Math.min(7, Math.round(num(e.target.value, tts.rows)))
+                              )
+                            })
+                          }
+                        />
+                      </>
+                    )}
+                  </>,
+                  t('export.gridHint')
+                )}
               {field(
                 'export.maxSize',
                 select<number>(
@@ -738,32 +839,52 @@ export default function ExportDialog({
                   (v) => patch({ maxSize: v === 8192 ? 8192 : 4096 })
                 )
               )}
-              {field(
-                'export.ttsBack',
-                select(
-                  tts.back,
-                  [
-                    ['auto', t('export.backAuto')],
-                    ['single', t('export.backSingle')],
-                    ['sheet', t('export.backSheet')]
-                  ],
-                  (back) => patch({ back })
-                )
-              )}
-              {field(
-                'export.destination',
-                select(
-                  tts.destination,
-                  [
-                    ['project', t('export.destProject')],
-                    ['tts', t('export.destTts')],
-                    ['both', t('export.destBoth')]
-                  ],
-                  (destination) => patch({ destination })
-                )
-              )}
+              {hasCards &&
+                field(
+                  'export.ttsBack',
+                  select(
+                    tts.back,
+                    [
+                      ['auto', t('export.backAuto')],
+                      ['single', t('export.backSingle')],
+                      ['sheet', t('export.backSheet')]
+                    ],
+                    (back) => patch({ back })
+                  )
+                )}
+              {!window.api.isWeb &&
+                field(
+                  'export.destination',
+                  select(
+                    tts.destination,
+                    [
+                      ['project', t('export.destProject')],
+                      ['tts', t('export.destTts')],
+                      ['both', t('export.destBoth')]
+                    ],
+                    (destination) => patch({ destination })
+                  )
+                )}
               {tts.destination !== 'project' &&
-                field('export.ttsFolder', folderField(tts.ttsFolder, defaults.tts, 'ttsFolder'))}
+                field(
+                  window.api.isWeb ? 'web.ttsFolder' : 'export.ttsFolder',
+                  folderField(tts.ttsFolder, defaults.tts, 'ttsFolder'),
+                  window.api.isWeb ? t('web.ttsFolderHint') : undefined
+                )}
+              {window.api.isWeb &&
+                tts.ttsFolder &&
+                field(
+                  'web.ttsRealPath',
+                  <input
+                    value={realPath}
+                    placeholder={t('web.ttsRealPathPlaceholder')}
+                    onChange={(e) => {
+                      setRealPath(e.target.value)
+                      writeRealPath(tts.ttsFolder, e.target.value)
+                    }}
+                  />,
+                  t('web.ttsRealPathHint')
+                )}
               {field(
                 'export.nickname',
                 select(
@@ -797,16 +918,23 @@ export default function ExportDialog({
                 {t(w)}
               </p>
             ))}
-            {result.folders.map((f) => (
-              <button
-                key={f}
-                type="button"
-                className="link"
-                onClick={() => window.api.showFolder(f)}
-              >
-                {t('export.openFolder', { folder: f })}
-              </button>
-            ))}
+            {result.folders.map((f) =>
+              // il browser non apre le cartelle: si dice solo dove sono i file
+              window.api.isWeb ? (
+                <p key={f} className="muted small">
+                  {f}
+                </p>
+              ) : (
+                <button
+                  key={f}
+                  type="button"
+                  className="link"
+                  onClick={() => window.api.showFolder(f)}
+                >
+                  {t('export.openFolder', { folder: f })}
+                </button>
+              )
+            )}
           </div>
         )}
         <div className="dialog-buttons">

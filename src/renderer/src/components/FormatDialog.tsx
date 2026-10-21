@@ -1,7 +1,10 @@
 import { useContext, useState } from 'react'
+import UsagesSection, { type UsagesNav } from './UsagesSection'
+import GroupField from './GroupField'
 import {
   BUILTIN_SHAPES,
   BUILTIN_STYLES,
+  isBox,
   parseAttrs,
   serializeAttrs,
   type Attrs
@@ -36,7 +39,12 @@ interface Props {
   mode: 'text' | 'style'
   /** Nome dello stile modificato (mode 'style'); vuoto per uno stile nuovo */
   styleName?: string
-  onApply(attrs: Attrs, name?: string): void
+  /** Gruppo dello stile nella barra laterale e gruppi già usati (mode 'style') */
+  group?: string
+  groups?: string[]
+  /** Dove è usato lo stile, per uno stile che esiste già */
+  usages?: UsagesNav
+  onApply(attrs: Attrs, name?: string, group?: string): void
   /** Salva gli attributi come nuovo stile del progetto */
   onSaveStyle?(name: string, attrs: Attrs): void
   onDelete?(): void
@@ -48,6 +56,9 @@ export default function FormatDialog({
   sample,
   mode,
   styleName,
+  group: initialGroup = '',
+  groups = [],
+  usages,
   onApply,
   onSaveStyle,
   onDelete,
@@ -59,6 +70,7 @@ export default function FormatDialog({
   const [a, setA] = useState<Attrs>(initial)
   const [raw, setRaw] = useState<string | null>(null)
   const [name, setName] = useState(styleName ?? '')
+  const [group, setGroup] = useState(initialGroup)
   const [saving, setSaving] = useState<string | null>(null)
   const [pickingBg, setPickingBg] = useState(false)
   const variables = useContext(VariablesContext)
@@ -123,6 +135,8 @@ export default function FormatDialog({
               onChange={setName}
             />
           )}
+          {mode === 'style' && <GroupField value={group} groups={groups} onChange={setGroup} />}
+          {mode === 'style' && usages && <UsagesSection {...usages} />}
           <SelectField<string>
             label={mode === 'style' ? t('format.basedOn') : t('format.style')}
             value={a.styles[0] ?? ''}
@@ -322,6 +336,19 @@ export default function FormatDialog({
               />
             </>
           )}
+          {(isBox(a) || a.textRaise !== undefined) && (
+            <TextField
+              label={t('format.textRaise')}
+              hint={t('format.textRaiseHint')}
+              value={a.textRaise === undefined ? '' : String(a.textRaise)}
+              validate={(v) =>
+                !v.trim() || Number.isFinite(Number(v.replace(',', '.'))) ? null : '✕'
+              }
+              onChange={(v) =>
+                set({ textRaise: v.trim() ? Number(v.replace(',', '.')) : undefined })
+              }
+            />
+          )}
           {mode === 'style' && (
             <>
               <h3>{t('format.paragraph')}</h3>
@@ -410,7 +437,7 @@ export default function FormatDialog({
           <button
             className="primary"
             disabled={mode === 'style' && (!name || !!nameError)}
-            onClick={() => onApply(a, name)}
+            onClick={() => onApply(a, name, group)}
           >
             {mode === 'style' ? t('format.saveStyleConfirm') : t('format.apply')}
           </button>

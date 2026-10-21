@@ -76,7 +76,7 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 7. **Anteprima** della carta selezionata, fronte o retro. **Modifica template** apre il template della carta, cioè quello del set o quello scelto per la carta; **Ingrandisci** apre la carta grande con il modulo accanto.
 8. **Campi della carta** selezionata, modificabili come le celle della tabella.
 
-Accanto al nome del set o del template aperto ci sono i pulsanti per rinominarlo, duplicarlo, eliminarlo e, per un template, crearne un derivato. Rinominando un set cambia nome anche il suo foglio nel file dei dati; rinominando un template cambia nome il suo file, e il nome nuovo va nei set, nei derivati e nella colonna `template` delle carte che lo usano. I file cambiano nome quando si salva. Un template eliminato va nella cartella `deleted` del progetto, da cui si recupera rimettendo il file in `templates`. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero; per recuperarlo si copia il foglio nel file dei dati e lo si collega con **Nuovo set**. Le voci della barra laterale si riordinano trascinandole; il + accanto a ciascun titolo crea un elemento nuovo. Soffermando il mouse su una voce compare un'anteprima: le prime carte di un set, fronte e retro di un template, una frase con lo stile, l'icona o il colore di una variabile. Il pulsante in alto a sinistra riduce la barra a sole icone, e le frecce accanto ai titoli dei pannelli li spostano dall'altro lato della finestra.
+Accanto al nome del set o del template aperto ci sono i pulsanti per rinominarlo, duplicarlo, eliminarlo e, per un template, crearne un derivato. Rinominando un set cambia nome anche il suo foglio nel file dei dati; rinominando un template cambia nome il suo file, e il nome nuovo va nei set, nei derivati e nella colonna `template` delle carte che lo usano. I file cambiano nome quando si salva. Un template eliminato va nella cartella `deleted` del progetto, da cui si recupera rimettendo il file in `templates`. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero; per recuperarlo si copia il foglio nel file dei dati e lo si collega con **Nuovo set**. Le voci della barra laterale si riordinano trascinandole; il + accanto a ciascun titolo crea un elemento nuovo. Stili e variabili si dividono in gruppi con il campo **Gruppo** della loro finestra: le voci di un gruppo stanno sotto il suo titolo, che si chiude e si apre con un clic, dopo quelle senza gruppo. Una voce trascinata sul titolo di un gruppo entra nel gruppo; trascinata su un'altra voce prende il gruppo di quella voce (anche nessuno). Con più di 12 voci compare sopra l'elenco un campo per filtrarle per nome. Nella finestra di uno stile o di una variabile, **Dove si usa** elenca i template (con i livelli), i set (con i numeri delle carte) e le altre variabili e stili che lo richiamano; un clic su un template o su un set lo apre. Soffermando il mouse su una voce compare un'anteprima: le prime carte di un set, fronte e retro di un template, una frase con lo stile, l'icona o il colore di una variabile. Nella sezione **Note** si tengono appunti sul progetto: il + crea una nota, un clic la apre in un pannello accanto a qualsiasi schermata, dove si scrive in Markdown (con **Anteprima** per vederla formattata) e si rinomina dal titolo. Le note si salvano da sole mentre si scrive, come file `notes/<nome>.md` del progetto; il cestino le sposta in `deleted`. Un'IA che lavora sul progetto le legge con `naibi notes`. Il pulsante in alto a sinistra riduce la barra a sole icone, e le frecce accanto ai titoli dei pannelli li spostano dall'altro lato della finestra.
 
 Le modifiche restano in memoria finché non si salva. Il pulsante **Salva** diventa **Salvato** quando non c'è nulla da scrivere.
 
@@ -99,7 +99,7 @@ Il + accanto a **Template** apre la finestra del nuovo template: nome, formato (
 5. **Barra della tela**: mostra o nasconde abbondanza, area sicura e griglia, sceglie a cosa agganciarsi (griglia, oggetti) e regola lo zoom.
 6. **Dati**: disegna la tela con i valori di una carta di un set, invece dei valori del template.
 
-Sulla tela i livelli si spostano trascinandoli, si ridimensionano con le maniglie e si ruotano con la maniglia rotonda in alto (Maiuscolo per scatti di 15°). Durante il trascinamento i bordi si agganciano alla griglia, agli altri livelli e alle guide; tenendo premuto Alt si trascina liberamente. Alt+clic seleziona il livello che sta sotto quello selezionato, nello stesso punto: serve quando un livello più grande ne copre altri. Le frecce della tastiera spostano il livello di 0,5 mm, con Maiuscolo di 5 mm.
+Sulla tela i livelli si spostano trascinandoli, si ridimensionano con le maniglie e si ruotano con la maniglia rotonda in alto (Maiuscolo per scatti di 15°). Tenendo premuto Maiuscolo mentre si sposta, il livello si muove solo in orizzontale, in verticale o a 45°, secondo la direzione più vicina. Ridimensionando, Maiuscolo inverte il blocco delle proporzioni (le mantiene se sono libere, le libera se sono bloccate) e ⌘ (Ctrl su Windows) ridimensiona dal centro; i due si possono combinare. Durante il trascinamento i bordi si agganciano alla griglia, agli altri livelli e alle guide; tenendo premuto Alt si trascina liberamente. Alt+clic seleziona il livello che sta sotto quello selezionato, nello stesso punto: serve quando un livello più grande ne copre altri. Le frecce della tastiera spostano il livello di 0,5 mm, con Maiuscolo di 5 mm.
 
 Nell'elenco dei livelli si trascina un livello per cambiarne l'ordine, o sul centro di un gruppo per metterlo dentro. Con Maiuscolo o ⌘ si selezionano più livelli; ⌘G li raggruppa. Con più livelli selezionati il pannello delle proprietà mostra le voci che hanno in comune (opacità, rotazione, visibilità, e quelle del tipo se sono tutti dello stesso tipo, per esempio colore e dimensione del testo): una modifica vale per tutti. I campi mostrano i valori del primo livello selezionato.
 
@@ -107,7 +107,7 @@ I livelli selezionati si copiano con ⌘C (⌘X per tagliarli) e si incollano co
 
 ### 4.3 Le proprietà del template
 
-Senza livelli selezionati, il pannello mostra le proprietà del template: misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia.
+Senza livelli selezionati, il pannello mostra le proprietà del template: misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia. L'esagono è sempre regolare, il più grande che sta nella carta: per riempirla il lato corto deve essere il lato lungo × 0,866, e il pulsante **Adatta la carta all'esagono** cambia così il lato corto. Nelle forme poligono e stella, **Rendi regolare** porta il riquadro a un quadrato attorno allo stesso centro, così lati e angoli sono tutti uguali.
 
 Quando si cambiano le misure di un template che ha già dei livelli, l'app chiede se scalare i livelli in proporzione o lasciarli dove sono. Nel secondo caso ogni livello segue i suoi **vincoli** (resta a sinistra, segue il bordo destro, si allarga con la carta e così via).
 
@@ -188,7 +188,7 @@ La **tabella** funziona come un foglio di calcolo: doppio clic o digitazione per
 
 La colonna `amount` indica quante copie stampare di ogni carta; vuota vale 1.
 
-Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Colonne** sceglie quali nascondere. Nel modulo della carta l'occhio accanto al campo di un livello lo mostra o lo nasconde su quella carta. L'icona con i cursori apre le proprietà del livello per la carta (colore, corsivo, forma, posizione...), con menu per i valori prestabiliti, campi numerici e selettore del colore: un valore scritto lì vale solo per quella carta e crea la colonna `livello.proprietà`, mentre un campo vuoto mostra in grigio il valore del template. Il numero sull'icona dice quante proprietà la carta cambia. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
+Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del foglio e quelle che il template legge ma il foglio non ha ancora (con l'intestazione in corsivo), che si creano scrivendoci un valore. Il pulsante **Colonne** sceglie quali nascondere; **Ripristina** torna alla vista di base, con le sole colonne lette dai livelli collegati a una colonna (le colonne rimaste nel foglio senza un livello, per esempio da un progetto TTC importato, si nascondono) e i dettagli dei campi chiusi. Nel modulo della carta l'occhio accanto al campo di un livello lo mostra o lo nasconde su quella carta. L'icona con i cursori apre le proprietà del livello per la carta (colore, corsivo, forma, posizione...), con menu per i valori prestabiliti, campi numerici e selettore del colore: un valore scritto lì vale solo per quella carta e crea la colonna `livello.proprietà`, mentre un campo vuoto mostra in grigio il valore del template. Il numero sull'icona dice quante proprietà la carta cambia. Le colonne dei livelli fissi o con formula non arrivano alla carta e restano nascoste; **Mostra i livelli fissi e con formula** le aggiunge in sola lettura, con il simbolo ƒ e il valore che hanno su ogni carta.
 
 Le colonne vero/falso (le proprietà come `stemma.visible` o `nome.italic`, e le colonne in cui ogni cella vale `true` o `false`) hanno una casella: un clic, o la barra spaziatrice sulla cella, la spunta o la toglie. Una casella chiara vuol dire cella vuota: vale il valore del template.
 
@@ -243,8 +243,9 @@ Il testo delle carte si scrive con un markup semplice, uguale nell'app e nelle c
 | `- voce` / `1. voce`         | elenco puntato / numerato                      |
 | `---`                        | linea separatrice                              |
 | `\` a fine riga              | a capo senza nuovo paragrafo                   |
+| `_4{moneta}_`                | non va mai a capo                              |
 
-Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio.
+Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio. Per tenere un pezzo di testo sulla stessa riga, così che `4` e la sua icona non finiscano su righe diverse, lo si chiude tra due trattini bassi: `_4{moneta}_`. È lo stesso di `[4{moneta}]{nowrap}`. Un trattino basso dentro una parola (`nome_file`) resta com'è; per scriverne uno isolato si usa `\_`.
 
 ### 6.2 Attributi
 
@@ -258,11 +259,12 @@ Le parentesi quadre delimitano il testo e le graffe che seguono dicono come form
 | `font=`, `weight=`                    | `{font=Open_Sans weight=800}`              | famiglia (con `_` al posto degli spazi) e peso |
 | `stroke=`                             | `{stroke=white/8%}`                        | contorno delle lettere                         |
 | `upper`, `lower`, `smallcaps`         | `[Fase]{smallcaps}`                        | maiuscole, minuscole, maiuscoletto             |
+| `nowrap`                              | `[4 monete]{nowrap}`                       | la porzione non va a capo                      |
 | `left`, `center`, `right`, `justify`  | `{.flavor center}` a inizio paragrafo      | allineamento del paragrafo                     |
 | `border=`, `fill=`, `radius=`, `pad=` | `[Rapida]{border=red/0.3 radius=round}`    | riquadro attorno al testo                      |
 | `bg=`, `bg-color=`, `bg-size=`        | `[3]{bg=circle bg-color=blue color=white}` | forma o immagine dietro il testo               |
 
-Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre disponibili per `bg=`.
+Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre disponibili per `bg=`. Per alzare o abbassare il testo dentro il riquadro senza spostare il riquadro si usa `text-raise=` in pt, anche in uno stile: `.cuore = bg=cuore color=white text-raise=1` (`raise=` invece sposta tutto il riquadro).
 
 ### 6.3 Campi, variabili e icone
 
@@ -438,6 +440,7 @@ Il PDF è vettoriale, con i font incorporati. Si scelgono pagina e orientamento,
 - **Piegatura**: fronte e retro affiancati, da piegare.
 - **Segni di taglio**: agli angoli o a linee intere, con lunghezza, spessore e colore.
 - **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati.
+- **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con carte di un'altra misura comincia su una riga nuova, se nella pagina c'è posto.
 - **Foglio di prova**: un PDF a parte con tutte le carte in piccolo.
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
 
@@ -452,6 +455,16 @@ Il PDF è vettoriale, con i font incorporati. Si scelgono pagina e orientamento,
 ### 11.4 Tabletop Simulator
 
 Crea per ogni set i fogli di carte (fino a 10 × 7, con la griglia scelta in automatico per ridurre gli spazi vuoti) e il file del mazzo da caricare in Tabletop Simulator. I file vanno nella cartella del progetto, in quella degli oggetti salvati di Tabletop Simulator o in entrambe. Nickname e descrizione delle carte possono venire da un campo.
+
+Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una carta: una volta sola nel foglio, e il file del mazzo la moltiplica (è la scelta predefinita e tiene i fogli piccoli), oppure ripetute nel foglio quante volte dice `amount`. La seconda serve quando si caricano i fogli a mano in Tabletop Simulator, senza il file del mazzo: ogni posizione del foglio è una carta.
+
+**Oggetti** sceglie per ogni set cosa creare in Tabletop Simulator:
+
+- **Carte**: il mazzo dai fogli, come sopra.
+- **Segnalini**: un'immagine per carta, ritagliata sulla forma della carta (rettangolo, angoli arrotondati, cerchio, esagono o sagoma). Tabletop Simulator ne fa un pezzo spesso con il bordo del colore dell'immagine; sotto mostra il fronte specchiato, quindi il retro della carta non si usa.
+- **Tessere**: fronte e retro della carta. La forma (quadrata, arrotondata, esagonale o rotonda) viene dalla forma della carta; una sagoma diventa un quadrato. **Bordo** è il colore dello spessore.
+
+Per segnalini e tessere **Spessore** è in mm. I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Carte, segnalini e tessere arrivano in Tabletop Simulator nelle proporzioni vere: una carta da 63 mm ha la misura predefinita di Tabletop Simulator, e tutto il resto è più grande o più piccolo in proporzione.
 
 I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online bisogna caricare le immagini su un servizio web e cambiare gli indirizzi in Tabletop Simulator.
 
@@ -521,22 +534,23 @@ Il progetto è autonomo: copiando la cartella su un altro computer si vede ugual
 
 Su Windows e Linux ⌘ è Ctrl.
 
-| Dove          | Tasti                 | Azione                                          |
-| ------------- | --------------------- | ----------------------------------------------- |
-| ovunque       | ⌘S                    | salva template, dati e impostazioni             |
-| set           | ⌘Z, ⇧⌘Z               | annulla e ripete le modifiche ai dati           |
-| set           | ⌘A, Esc               | seleziona tutte le carte, torna a una sola      |
-| tabella       | Alt+Invio             | a capo dentro una cella                         |
-| testo         | `{`, poi ↑ ↓, Invio   | suggerimenti di campi e variabili               |
-| editor        | ⌘Z, ⇧⌘Z (o ⌘Y)        | annulla e ripete                                |
-| editor        | T, R, E               | nuovo testo, rettangolo, ellisse                |
-| editor        | ⌘D                    | duplica i livelli selezionati                   |
-| editor        | ⌘C, ⌘X, ⌘V            | copia, taglia e incolla livelli tra template    |
-| editor        | ⌘G, ⇧⌘G               | raggruppa e separa                              |
-| editor        | ⌘A                    | seleziona tutti i livelli                       |
-| editor        | Canc                  | elimina i livelli selezionati                   |
-| editor        | frecce, ⇧ + frecce    | sposta di 0,5 mm o di 5 mm                      |
-| editor        | Esc                   | toglie la selezione o esce dal gruppo           |
-| tela          | Maiuscolo trascinando | mantiene le proporzioni o ruota a scatti di 15° |
-| tela          | Alt trascinando       | sposta senza agganciarsi                        |
-| tela, griglia | ⌘ + rotella           | zoom                                            |
+| Dove          | Tasti                 | Azione                                                                                                       |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| ovunque       | ⌘S                    | salva template, dati e impostazioni                                                                          |
+| set           | ⌘Z, ⇧⌘Z               | annulla e ripete le modifiche ai dati                                                                        |
+| set           | ⌘A, Esc               | seleziona tutte le carte, torna a una sola                                                                   |
+| tabella       | Alt+Invio             | a capo dentro una cella                                                                                      |
+| testo         | `{`, poi ↑ ↓, Invio   | suggerimenti di campi e variabili                                                                            |
+| editor        | ⌘Z, ⇧⌘Z (o ⌘Y)        | annulla e ripete                                                                                             |
+| editor        | T, R, E               | nuovo testo, rettangolo, ellisse                                                                             |
+| editor        | ⌘D                    | duplica i livelli selezionati                                                                                |
+| editor        | ⌘C, ⌘X, ⌘V            | copia, taglia e incolla livelli tra template                                                                 |
+| editor        | ⌘G, ⇧⌘G               | raggruppa e separa                                                                                           |
+| editor        | ⌘A                    | seleziona tutti i livelli                                                                                    |
+| editor        | Canc                  | elimina i livelli selezionati                                                                                |
+| editor        | frecce, ⇧ + frecce    | sposta di 0,5 mm o di 5 mm                                                                                   |
+| editor        | Esc                   | toglie la selezione o esce dal gruppo                                                                        |
+| tela          | Maiuscolo trascinando | sposta solo in orizzontale, in verticale o a 45°; inverte il blocco delle proporzioni; ruota a scatti di 15° |
+| tela          | ⌘ ridimensionando     | ridimensiona dal centro                                                                                      |
+| tela          | Alt trascinando       | sposta senza agganciarsi                                                                                     |
+| tela, griglia | ⌘ + rotella           | zoom                                                                                                         |

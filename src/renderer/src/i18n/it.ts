@@ -90,6 +90,9 @@ export const it: Record<MessageKey, string> = {
   'columns.hint': 'Colonne mostrate nella tabella e nei campi della carta.',
   'columns.showComputed': 'Mostra i livelli fissi e con formula (sola lettura)',
   'columns.showAll': 'Mostra tutte',
+  'columns.reset': 'Ripristina',
+  'columns.resetHint':
+    'Mostra solo le colonne dei livelli collegati a una colonna e chiude i dettagli dei campi',
   'tip.columns':
     'Scegli le colonne da mostrare; si possono mostrare anche i livelli fissi e con formula',
   'table.removeColumn': 'Elimina colonna',
@@ -316,6 +319,8 @@ export const it: Record<MessageKey, string> = {
   'icons.import': 'Importa {n}',
   'icons.unknown': "L'icona {id} non è nel catalogo",
   'icons.invalidName': "Nome dell'icona non valido: {name}",
+  'assetPicker.addImages': 'Aggiungi immagini…',
+  'assetPicker.addImagesHint': 'Copia immagini dal computer in assets/images del progetto',
   'assetPicker.importIcons': 'Importa icone…',
   'assetPicker.title': "Scegli un'immagine",
   'assetPicker.search': 'Cerca per nome o cartella',
@@ -492,6 +497,11 @@ export const it: Record<MessageKey, string> = {
   'prop.bleed': 'Abbondanza',
   'prop.safeMargin': 'Margine di sicurezza',
   'prop.cardShape': 'Forma della carta',
+  'editor.hexagonFit': "Adatta la carta all'esagono ({w} × {h} mm)",
+  'editor.hexagonFitHint':
+    "L'esagono è sempre regolare e grande quanto la carta permette. Per riempire la carta il lato corto deve essere il lato lungo × 0,866.",
+  'editor.regular': 'Rendi regolare',
+  'editor.regularHint': 'Riquadro quadrato attorno allo stesso centro: lati e angoli tutti uguali',
   'editor.cardShapeHint':
     "Forma della carta rifilata. L'abbondanza resta rettangolare: la tipografia ritaglia la forma al suo interno.",
   'cardShape.rect': 'Rettangolo',
@@ -734,6 +744,9 @@ export const it: Record<MessageKey, string> = {
   'resize.keep': 'Lascia i livelli',
   'save.csvOneSheet': 'Un file dati CSV contiene un solo set. Per avere più set usa un file .xlsx.',
   'template.noProject': 'Nessun progetto aperto',
+  'note.invalidName':
+    'Nome di nota non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
+  'note.exists': 'Esiste già una nota "{name}"',
   'template.deleteFailed':
     'Non è stato possibile eliminare il template "{name}": {text}. Controlla di poter modificare i file nella cartella templates del progetto.',
   'template.invalidName': '"{name}" non si può usare come nome di file',
@@ -833,6 +846,7 @@ export const it: Record<MessageKey, string> = {
     'Immagine o forma di sfondo, con il testo centrato sopra: bg=circle, bg=shield',
   'markupHelp.attr.bg-color': "Tinta dell'immagine o della forma di sfondo: bg-color=blue",
   'markupHelp.attr.bg-size': 'Dimensione dello sfondo, in % della riga o in mm: bg-size=140%',
+  'markupHelp.attr.text-raise': 'Sposta solo il testo dentro il riquadro, in pt: text-raise=1',
   'markupHelp.attr.image.tint':
     "Ricolora l'immagine; none tiene i suoi colori, currentColor usa il colore del testo",
   'markupHelp.attr.image.size': "Dimensione rispetto all'altezza normale delle icone: size=150%",
@@ -849,10 +863,23 @@ export const it: Record<MessageKey, string> = {
   'markupHelp.attr.upper': 'TUTTO MAIUSCOLO',
   'markupHelp.attr.lower': 'tutto minuscolo',
   'markupHelp.attr.smallcaps': 'Maiuscoletto',
+  'markupHelp.attr.nowrap': 'Non va mai a capo',
   'markupHelp.attr.left': 'Paragrafo allineato a sinistra',
   'markupHelp.attr.center': 'Paragrafo centrato',
   'markupHelp.attr.right': 'Paragrafo allineato a destra',
   'markupHelp.attr.justify': 'Paragrafo giustificato',
+  'usages.none': 'Non si usa da nessuna parte',
+  'usages.summary': 'Dove si usa: template {templates}, carte {cards}',
+  'usages.template': 'Template {name}',
+  'usages.set': 'Set {name}',
+  'usages.cards': 'carte:',
+  'usages.variables': 'Variabili: {names}',
+  'usages.styles': 'Stili: {names}',
+  'group.label': 'Gruppo',
+  'group.none': 'Nessun gruppo',
+  'group.hint':
+    'Raggruppa le voci nella barra laterale. Scrivi un nome nuovo o scegline uno già usato.',
+  'sidebar.filter': 'Filtra',
   'sidebar.styles': 'Stili',
   'sidebar.newStyle': 'Nuovo stile di testo',
   'sidebar.builtinStyle': 'predefinito',
@@ -900,6 +927,8 @@ export const it: Record<MessageKey, string> = {
   'format.bgColor': 'Colore dello sfondo',
   'format.bgSize': 'Dimensione dello sfondo',
   'format.bgSizeHint': '% della riga o mm',
+  'format.textRaise': 'Spostamento del testo',
+  'format.textRaiseHint': 'pt: sposta il testo, non il riquadro',
   'format.shape.circle': 'Cerchio',
   'format.shape.square': 'Quadrato',
   'format.shape.rounded': 'Quadrato arrotondato',
@@ -981,6 +1010,8 @@ export const it: Record<MessageKey, string> = {
   'export.cmyk': 'Converti in CMYK',
   'export.cmykHint':
     'Serve Ghostscript installato sul computer (per esempio con Homebrew: brew install ghostscript). Senza, il PDF resta in RGB e un avviso lo segnala.',
+  'export.printed':
+    "Le pagine del PDF sono andate alla finestra di stampa del browser: se l'hai chiusa senza salvare, esporta di nuovo.",
   'export.cmykUnavailable':
     'Il PDF è rimasto in RGB: Ghostscript non è installato, o la conversione in CMYK non è riuscita.',
   'export.posterSplit': 'Dividi su più pagine le carte più grandi della pagina',
@@ -1008,11 +1039,27 @@ export const it: Record<MessageKey, string> = {
   'export.splitSingle': 'Un file',
   'export.splitSet': 'Uno per set',
   'export.splitSide': 'Fronti e retri separati',
+  'export.continuous': 'Pagine',
+  'export.continuousCheck': "Uno dopo l'altro sulla stessa pagina",
+  'export.continuousHint':
+    'Un set comincia subito dopo il precedente invece che su una pagina nuova. I set di misura diversa cominciano su una riga nuova.',
   'export.grid': 'Griglia',
   'export.gridAuto': 'Automatica per ogni set',
   'export.gridHint':
     "Fino a 10 × 7; l'ultima posizione è per la carta nascosta. I set più grandi usano più fogli.",
+  'export.copiesIn': 'Copie nel foglio',
+  'export.copiesInDeck': 'Una volta: il mazzo (file JSON) le moltiplica',
+  'export.copiesInSheet': 'Ripetute nel foglio, per caricarlo a mano',
   'export.maxSize': 'Dimensione massima',
+  'export.ttsObjects': 'Oggetti',
+  'export.ttsObjectsHint':
+    "Carte: un mazzo dai fogli. Segnalini: un'immagine per carta, ritagliata sulla forma della carta; sotto mostra il fronte specchiato. Tessere: fronte e retro, quadrate, arrotondate, esagonali o rotonde come la carta, con il bordo del colore scelto. Segnalini e tessere di un set vanno in un sacchetto, copie comprese.",
+  'export.ttsCard': 'Carte',
+  'export.ttsToken': 'Segnalini',
+  'export.ttsTile': 'Tessere',
+  'export.ttsThickness': 'Spessore',
+  'export.ttsThicknessHint': 'In mm',
+  'export.ttsEdge': 'Bordo',
   'export.ttsBack': 'Retro',
   'export.backAuto': "Automatico: un'immagine se i retri sono tutti uguali",
   'export.backSingle': "Un'immagine per tutte le carte",
@@ -1052,6 +1099,19 @@ export const it: Record<MessageKey, string> = {
   'export.gridOverflow':
     'Set «{set}»: le carte non stanno nella pagina, cambia margini, pagina o disposizione.',
   'sidebar.variables': 'Variabili',
+  'sidebar.notes': 'Note',
+  'sidebar.newNote': 'Nuova nota',
+  'sidebar.noNotes': "Appunti sul progetto, per te e per un'IA che ci lavora.",
+  'notes.newName': 'Nota',
+  'notes.panel': 'Nota del progetto',
+  'notes.nameHint': 'Nome della nota: è anche il nome del suo file',
+  'notes.delete': 'Elimina la nota (va nella cartella deleted)',
+  'notes.close': 'Chiudi la nota',
+  'notes.edit': 'Scrivi',
+  'notes.preview': 'Anteprima',
+  'notes.placeholder': 'Scrivi qui in Markdown: # titolo, - elenco, **grassetto**…',
+  'notes.empty': 'La nota è vuota.',
+  'notes.hint': 'Si salva mentre scrivi in {file}.',
   'sidebar.compact': 'Riduci il pannello a icone',
   'sidebar.expand': 'Mostra il pannello',
   'sidebar.newVariable': 'Nuova variabile',
@@ -1159,6 +1219,52 @@ export const it: Record<MessageKey, string> = {
     'Ancora nessun progetto recente. Creane uno nuovo, apri la cartella di un progetto o importane uno da Tabletop Creator.',
   'start.missing': 'Cartella non trovata',
   'start.remove': "Togli dall'elenco (la cartella non viene cancellata)",
+  'web.desktopLink': 'Cosa ha in più la versione desktop',
+  'web.desktopTitle': 'Cosa ha in più la versione desktop',
+  'web.desktopIntro':
+    "Questa è la versione web di Naibi: si apre nel browser senza installare nulla e lavora sulle cartelle dei progetti del tuo computer, come l'app desktop. Alcune cose ci sono solo nella versione desktop (Windows, macOS, Linux):",
+  'web.desktop.pdf':
+    'PDF salvato direttamente, senza la finestra di stampa, e conversione in CMYK per le tipografie',
+  'web.desktop.tts':
+    'Esportazione per Tabletop Simulator senza scrivere il percorso della cartella; su macOS anche direttamente nella cartella Saved Objects, che il browser non può aprire',
+  'web.desktop.fonts':
+    'Font Google con tutti gli alfabeti: la versione web salva solo quello latino (lettere accentate comprese)',
+  'web.desktop.catalogs':
+    "Aggiornamento dall'app dei cataloghi di game-icons.net e dei font Google",
+  'web.desktop.ai': 'Il comando naibi e la skill per gli agenti IA (Claude, Codex…)',
+  'web.desktop.browser':
+    'Indipendente dal browser: la versione web funziona solo con Chrome, Edge e Opera (in Brave dopo aver attivato brave://flags/#file-system-access-api), e chiede di nuovo il permesso sulla cartella ogni volta che riapri il sito',
+  'web.desktopOutro':
+    "I progetti sono gli stessi file: un progetto fatto qui si apre nell'app desktop e viceversa.",
+  'web.download': 'Scarica la versione desktop',
+  'web.desktopOnly': "Questa funzione c'è solo nella versione desktop.",
+  'web.permissionDenied':
+    "Naibi ha bisogno del permesso di leggere e scrivere nella cartella del progetto. Riaprilo e consenti l'accesso.",
+  'web.chooseParent': 'Scegli la cartella in cui creare il progetto.',
+  'web.noLocalFonts':
+    'Questo browser non permette al sito di leggere i font installati sul computer (Chrome ed Edge sì, dopo averlo consentito).',
+  'web.backupInSite': 'in questo browser (dati del sito)',
+  'web.backupInSiteHint':
+    'I backup tenuti nel browser si perdono se cancelli i dati del sito. Scegli una cartella per tenerli sul disco.',
+  'web.restoreCancelled': 'Ripristino annullato: nessuna cartella scelta.',
+  'web.ttcTargetHint':
+    "Scegli (o crea nella finestra) una cartella vuota; se l'originale sta dentro una cartella scelta, la nuova si propone accanto",
+  'web.ttsFolder': 'Cartella di destinazione',
+  'web.ttsFolderHint':
+    'Il browser scrive qui fogli, immagini e file del mazzo (.json). Su Windows scegli Documenti\\My Games\\Tabletop Simulator\\Saves\\Saved Objects. Su macOS il browser non può aprire la cartella di Tabletop Simulator: scegli una cartella in Documenti e vedi la guida.',
+  'web.ttsRealPath': 'Percorso completo della stessa cartella',
+  'web.ttsRealPathPlaceholder': 'C:\\Users\\…\\Saved Objects',
+  'web.ttsRealPathHint':
+    'Il browser non rivela il percorso completo della cartella scelta, ma il file del mazzo deve contenerlo: Tabletop Simulator lo usa per trovare le immagini delle carte. Incollalo una volta (Esplora file: clic sulla barra dell\'indirizzo e copia; Finder: tasto destro con Opzione, "Copia come nome percorso"); questo browser lo ricorda.',
+  'web.ttsRealPathMissing':
+    'Scrivi il percorso completo della cartella di destinazione: il file del mazzo ne ha bisogno per trovare le immagini.',
+  'web.ttsRealPathMismatch':
+    'Il percorso scritto non finisce con la cartella scelta ({folder}): controlla di aver copiato il percorso della stessa cartella.',
+  'web.ttsChooseFolder': 'Scegli la cartella di destinazione.',
+  'web.restoreConfirm':
+    "Il backup verrà estratto in una nuova cartella dentro quella scelta, e si aprirà al posto di questo progetto. Il progetto attuale resta com'è. Continuare?",
+  'web.pdfHint':
+    'Nella versione web le pagine vanno alla finestra di stampa del browser: scegli "Salva come PDF", margini "Nessuno" e attiva "Grafica di sfondo". Una finestra per ogni PDF.',
   'about.link': 'Cosa vuol dire Naibi?',
   'about.title': 'Cosa vuol dire Naibi?',
   'about.p1':
@@ -1177,6 +1283,7 @@ export const it: Record<MessageKey, string> = {
   'app.help': 'Aiuto',
   'tip.help': 'Markup del testo, variabili di sistema, formule e scorciatoie da tastiera (F1)',
   'help.title': 'Aiuto',
+  'help.guide': 'Apri la guida completa (online)',
   'help.tab.text': 'Testo',
   'help.tab.variables': 'Campi e variabili',
   'help.tab.formulas': 'Formule',
@@ -1196,6 +1303,7 @@ export const it: Record<MessageKey, string> = {
   'help.md.list': 'Elenco puntato o numerato',
   'help.md.rule': 'Linea separatrice',
   'help.md.break': 'A fine riga: a capo senza nuovo paragrafo',
+  'help.md.nowrap': 'Non va mai a capo, per esempio un numero e la sua icona',
   'help.attributes': 'Attributi',
   'help.attributesIntro':
     'Le parentesi quadre delimitano il testo e le graffe che seguono dicono come formattarlo: [Attenzione]{color=red weight=800}. Uno stile si applica con .nome: [pino]{.keyword}. A inizio paragrafo {center} e gli altri allineamenti valgono per tutto il paragrafo.',
@@ -1220,7 +1328,7 @@ export const it: Record<MessageKey, string> = {
   'system.set.cards': 'Quante carte ha il set, copie comprese (somma di amount)',
   'system.card.copies': 'Copie della carta (il suo amount)',
   'system.card.copy':
-    'Copia che si sta disegnando, da 1: esportando PDF e immagini con le copie ogni copia ha il suo numero; altrove vale 1',
+    'Copia che si sta disegnando, da 1: esportando PDF, immagini e fogli TTS con le copie ripetute ogni copia ha il suo numero; altrove vale 1',
   'system.card.side': 'front o back, secondo il lato che si disegna',
   'system.date': 'Data di oggi, AAAA-MM-GG',
   'help.formulasIntro':
@@ -1260,7 +1368,8 @@ export const it: Record<MessageKey, string> = {
   'help.keys.delete': 'Editor: elimina i livelli selezionati',
   'help.keys.move': 'Editor: sposta di 0,5 mm, con ⇧ di 5 mm',
   'help.keys.drag':
-    'Tela, trascinando: mantiene le proporzioni o ruota a scatti di 15°; sposta senza agganciarsi',
+    'Tela, trascinando: sposta solo in orizzontale, in verticale o a 45°, inverte il blocco delle proporzioni, ruota a scatti di 15°; sposta senza agganciarsi',
+  'help.keys.dragCenter': 'Tela, ridimensionando: dal centro',
   'help.keys.zoom': 'Tela e griglia: zoom',
   'help.keys.help': 'Questo aiuto',
   'ai.title': 'Strumenti per gli agenti IA',

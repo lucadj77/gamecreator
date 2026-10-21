@@ -16,6 +16,10 @@ asarUnpack:
   - resources/**
 win:
   executableName: naibi
+  # comando naibi da terminale e per gli agenti IA, accanto a naibi.exe (vedi docs/cli.md)
+  extraFiles:
+    - from: build/win/naibi-cli.cmd
+      to: naibi-cli.cmd
   target:
     - target: nsis
       arch: x64
@@ -30,6 +34,8 @@ nsis:
   createDesktopShortcut: always
   oneClick: false
   allowToChangeInstallationDirectory: true
+  # apre la cartella di installazione agli agenti IA in sandbox (vedi build/win/installer.nsh)
+  include: build/win/installer.nsh
 mac:
   category: public.app-category.graphics-design
   target:

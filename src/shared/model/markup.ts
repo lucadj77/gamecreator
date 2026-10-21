@@ -25,6 +25,8 @@ export interface Attrs {
   /** pt sopra la linea di base */
   raise?: number
   transform?: 'upper' | 'lower' | 'smallcaps'
+  /** Il testo non va a capo dentro questa porzione */
+  nowrap?: boolean
   // riquadro in linea
   border?: { color: string; width: number }
   fill?: string
@@ -36,6 +38,8 @@ export interface Attrs {
   bgColor?: string
   /** "140%" rispetto alla riga, oppure mm */
   bgSize?: string
+  /** pt: sposta solo il testo dentro il riquadro, non il riquadro */
+  textRaise?: number
   // solo per i paragrafi
   align?: HAlign
 }
@@ -101,6 +105,7 @@ export const ATTRIBUTES = {
   bg: 'image',
   'bg-color': 'color',
   'bg-size': 'size',
+  'text-raise': 'number',
   // parole senza valore
   bold: 'flag',
   italic: 'flag',
@@ -109,6 +114,7 @@ export const ATTRIBUTES = {
   upper: 'flag',
   lower: 'flag',
   smallcaps: 'flag',
+  nowrap: 'flag',
   left: 'flag',
   center: 'flag',
   right: 'flag',
@@ -161,6 +167,7 @@ export function parseAttrs(src: string, offset = 0): { attrs: Attrs; problems: M
       else if (key === 'underline') attrs.underline = true
       else if (key === 'strike') attrs.strike = true
       else if (key === 'upper' || key === 'lower' || key === 'smallcaps') attrs.transform = key
+      else if (key === 'nowrap') attrs.nowrap = true
       else attrs.align = key as HAlign
       continue
     }
@@ -202,11 +209,13 @@ export function parseAttrs(src: string, offset = 0): { attrs: Attrs; problems: M
         break
       }
       case 'spacing':
-      case 'raise': {
+      case 'raise':
+      case 'text-raise': {
         const n = num(value)
         if (n === null) invalid()
         else if (key === 'spacing') attrs.spacing = n
-        else attrs.raise = n
+        else if (key === 'raise') attrs.raise = n
+        else attrs.textRaise = n
         break
       }
       case 'stroke':
@@ -259,13 +268,18 @@ const DELIMS: { d: string; apply: Partial<Attrs>; tight?: boolean }[] = [
   { d: '==', apply: {} },
   { d: '*', apply: { italic: true } },
   { d: '^', apply: { script: 'sup' }, tight: true },
-  { d: '~', apply: { script: 'sub' }, tight: true }
+  { d: '~', apply: { script: 'sub' }, tight: true },
+  // _4{pp}_: una porzione che non va mai a capo, come [4{pp}]{nowrap}
+  { d: '_', apply: { nowrap: true } }
 ]
 
 /** Colore di evidenziazione del progetto per ==testo== */
 export const DEFAULT_HIGHLIGHT = '#FFE58F'
 
-const ESCAPABLE = '\\{}[]*~^=+#>-.'
+/** Un _ dentro una parola (nome_file) resta testo */
+const WORD = /[\p{L}\p{N}]/u
+
+const ESCAPABLE = '\\{}[]*~^=+#>-._'
 
 class InlineParser {
   problems: MarkupProblem[] = []
@@ -324,7 +338,9 @@ class InlineParser {
         }
         this.problems.push({ message: msg('markup.unclosedBrace'), from: i, to: i + 1 })
       }
-      const delim = DELIMS.find((d) => s.startsWith(d.d, i))
+      const delim = DELIMS.find(
+        (d) => s.startsWith(d.d, i) && !(d.d === '_' && WORD.test(s[i - 1] ?? ''))
+      )
       if (delim) {
         const close = this.closer(delim.d, i + delim.d.length, to, !!delim.tight)
         if (close > 0) {
@@ -419,7 +435,12 @@ class InlineParser {
           continue
         }
       }
-      if (s.startsWith(d, i) && i > start && !/\s/.test(s[i - 1])) {
+      if (
+        s.startsWith(d, i) &&
+        i > start &&
+        !/\s/.test(s[i - 1]) &&
+        !(d === '_' && WORD.test(s[i + 1] ?? ''))
+      ) {
         // un * singolo non chiude su un ** (che è un grassetto interno)
         if (d.length === 1 && (s[i + 1] === d || s[i - 1] === d)) {
           if (s[i + 1] === d) i++
@@ -639,6 +660,7 @@ export function serializeAttrs(a: Attrs): string {
   kv('bg', a.bg)
   kv('bg-color', a.bgColor)
   kv('bg-size', a.bgSize)
+  kv('text-raise', a.textRaise)
   if (a.align) out.push(a.align)
   return out.join(' ')
 }

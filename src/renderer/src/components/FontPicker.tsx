@@ -255,14 +255,17 @@ export default function FontPicker({
               </button>
             ))}
             <span className="spacer" />
-            <button
-              className="small-btn"
-              title={t('catalog.updateHint')}
-              disabled={updating === 'running'}
-              onClick={updateCatalog}
-            >
-              {updating === 'running' ? t('catalog.updating') : t('catalog.update')}
-            </button>
+            {/* nel web il catalogo è quello della versione pubblicata */}
+            {!window.api.isWeb && (
+              <button
+                className="small-btn"
+                title={t('catalog.updateHint')}
+                disabled={updating === 'running'}
+                onClick={updateCatalog}
+              >
+                {updating === 'running' ? t('catalog.updating') : t('catalog.update')}
+              </button>
+            )}
           </div>
         )}
         {tab === 'google' && updating && updating !== 'running' && (

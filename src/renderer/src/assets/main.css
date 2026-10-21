@@ -100,7 +100,8 @@ body {
     sans-serif;
 }
 
-button {
+button,
+a.button {
   font: inherit;
   color: inherit;
   background: var(--panel);
@@ -108,6 +109,11 @@ button {
   border-radius: 6px;
   padding: 4px 12px;
   cursor: pointer;
+}
+
+a.button {
+  text-decoration: none;
+  display: inline-block;
 }
 
 .app {
@@ -1698,6 +1704,9 @@ button.danger {
 .dialog:has(.export-dialog) {
   max-width: 600px;
   width: 600px;
+  /* più alta dello schermo scorre, invece di nascondere i pulsanti in basso */
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
 }
 
 .export-dialog {
@@ -1757,8 +1766,25 @@ label.check {
   gap: 4px;
 }
 
+/* molti avvisi (immagini mancanti, font) scorrono qui dentro: i pulsanti restano visibili */
+.export-result,
+.export-dialog > .field-error {
+  max-height: 30vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
 .export-result p {
   margin: 0 0 4px;
+}
+
+/* se la finestra scorre lo stesso (schermo basso), i pulsanti restano attaccati in fondo */
+.export-dialog .dialog-buttons {
+  position: sticky;
+  bottom: -18px;
+  margin-bottom: -18px;
+  padding: 8px 0 18px;
+  background: var(--panel);
 }
 
 .export-result button.link {
@@ -2129,6 +2155,7 @@ label.check {
   overflow: visible;
 }
 
+.asset-grid.dark .asset-thumb,
 .icon-grid.dark .asset-thumb {
   background: #2a2a2e;
 }
@@ -2616,12 +2643,40 @@ div.font-row {
   padding: 3px 4px;
 }
 
+/* titolo della sezione come fascia, per distinguere set, template, stili e variabili */
 .sidebar-section h2 {
-  margin-bottom: 6px;
+  margin: 0 -4px 6px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.sidebar-section + .sidebar-section {
+  margin-top: 14px;
 }
 
 .sidebar-section.closed h2 {
-  margin-bottom: 10px;
+  margin-bottom: 0;
+}
+
+.sidebar-section h2 .icon-btn {
+  font-size: 16px;
+  padding: 2px 5px;
+  color: var(--text);
+}
+
+.sidebar-section h2 .icon-btn.sort-alpha {
+  font-size: 11px;
+}
+
+.sidebar-section h2 .section-icon {
+  font-size: 17px;
+  color: var(--accent);
+  margin-right: 2px;
 }
 
 .section-toggle {
@@ -3034,7 +3089,9 @@ details.advanced > button.link {
   border-top: 1px solid var(--border);
 }
 
-.columns-menu-all {
+.columns-menu-actions {
+  display: flex;
+  gap: 6px;
   margin-top: 8px;
 }
 
@@ -3787,6 +3844,11 @@ select.from-template {
   width: 760px;
 }
 
+.help-guide {
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
 .help-body {
   max-height: 62vh;
   overflow-y: auto;
@@ -3824,4 +3886,146 @@ select.from-template {
   white-space: nowrap;
   width: 1%;
   padding-right: 16px;
+}
+
+.tts-objects {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tts-object {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.tts-object-name {
+  width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tts-object input.num {
+  width: 64px;
+}
+
+.sidebar-filter {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 2px 0 6px;
+}
+
+.sidebar-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-group-title.drop-into {
+  box-shadow: inset 0 0 0 2px var(--accent);
+  border-radius: 4px;
+}
+
+.sidebar-group-title .caret {
+  width: 10px;
+}
+
+.sidebar-group-title .muted {
+  margin-left: auto;
+}
+
+.sidebar-group > ul {
+  padding-left: 10px;
+}
+
+details.usages {
+  margin: 4px 0 8px;
+}
+
+details.usages summary {
+  cursor: pointer;
+  color: var(--muted, inherit);
+}
+
+details.usages ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+details.usages li {
+  margin: 2px 0;
+}
+
+details.usages button.link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* nota del progetto, accanto alla schermata */
+.note-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 380px;
+  flex-shrink: 0;
+  padding: 12px;
+  border-left: 1px solid var(--border);
+  background: var(--panel);
+  min-height: 0;
+}
+
+.note-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-panel .note-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.note-panel .note-name.invalid {
+  border-color: #e5484d;
+}
+
+.note-panel .icon-btn {
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+.note-panel .note-close {
+  font-size: 20px;
+}
+
+.note-text {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px;
+}
+
+.note-preview {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 2px;
 }

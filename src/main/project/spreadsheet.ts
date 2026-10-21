@@ -18,8 +18,7 @@ export async function readSpreadsheet(path: string): Promise<Sheet[]> {
 }
 
 async function readXlsx(path: string): Promise<Sheet[]> {
-  const workbook = new ExcelJS.Workbook()
-  await workbook.xlsx.readFile(path)
+  const workbook = await readWorkbook(path)
   return workbook.worksheets.map((ws) => {
     const width = ws.columnCount
     const table: string[][] = []
@@ -106,14 +105,13 @@ export async function keepDeletedSheets(
   if (!names.length || ext === '.csv' || !(await exists(path))) return []
   const out: string[] = []
   if (ext === '.xlsx') {
-    const probe = new ExcelJS.Workbook()
-    await probe.xlsx.readFile(path)
+    const data = await readFile(path)
+    const probe = await readWorkbook(data)
     for (const name of names.filter((n) => probe.getWorksheet(n))) {
-      const copy = new ExcelJS.Workbook()
-      await copy.xlsx.readFile(path)
+      const copy = await readWorkbook(data)
       for (const ws of [...copy.worksheets]) if (ws.name !== name) copy.removeWorksheet(ws.id)
       const target = await deletedPath(folder, name, ext)
-      await copy.xlsx.writeFile(target)
+      await writeFile(target, await workbookBuffer(copy))
       out.push(target)
     }
   } else if (ext === '.ods') {
@@ -129,8 +127,7 @@ export async function keepDeletedSheets(
 }
 
 async function writeXlsx(path: string, sheets: Sheet[], removed: string[]): Promise<void> {
-  const workbook = new ExcelJS.Workbook()
-  if (await exists(path)) await workbook.xlsx.readFile(path)
+  const workbook = (await exists(path)) ? await readWorkbook(path) : new ExcelJS.Workbook()
   // prima si tolgono i fogli dei set eliminati: un set può prenderne il nome
   for (const name of removed) {
     const ws = workbook.getWorksheet(name)
@@ -148,8 +145,23 @@ async function writeXlsx(path: string, sheets: Sheet[], removed: string[]): Prom
   if (!workbook.worksheets.length) workbook.addWorksheet('Sheet1')
   // scrittura in un file temporaneo e rinomina: un errore a metà non rovina il file
   const tmp = path + '.tmp'
-  await workbook.xlsx.writeFile(tmp)
+  await writeFile(tmp, await workbookBuffer(workbook))
   await rename(tmp, path)
+}
+
+/**
+ * Si legge e si scrive l'xlsx come dati, non con readFile/writeFile di exceljs: così lo stesso
+ * codice funziona anche nella versione web, dove i file passano dal browser
+ */
+async function readWorkbook(source: string | Buffer): Promise<ExcelJS.Workbook> {
+  const workbook = new ExcelJS.Workbook()
+  const data = typeof source === 'string' ? await readFile(source) : source
+  await workbook.xlsx.load(data as unknown as ArrayBuffer)
+  return workbook
+}
+
+async function workbookBuffer(workbook: ExcelJS.Workbook): Promise<Buffer> {
+  return Buffer.from(await workbook.xlsx.writeBuffer())
 }
 
 function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {

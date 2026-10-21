@@ -4,6 +4,7 @@
 
 import {
   TTS_MAX_COLS,
+  TTS_MAX_DPI,
   TTS_MAX_ROWS,
   cropMarks,
   effectivePattern,
@@ -18,9 +19,12 @@ import {
   sidesOf,
   ttsAutoGrid,
   ttsScale,
+  ttsSetObject,
   uniqueNames,
+  cellPosition,
   type CardMode,
   type ExportCard,
+  type Instance,
   type ExportSet,
   type ImageOptions,
   type Grid,
@@ -30,7 +34,8 @@ import {
   type SceneLabel,
   type SceneLine,
   type ScenePage,
-  type TtsOptions
+  type TtsOptions,
+  type TtsSetObject
 } from './export'
 import type { Side, Template } from './model/template'
 
@@ -104,37 +109,58 @@ export interface PdfPlan {
 export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfPlan {
   const page = pageSize(o)
   const overflow: string[] = []
-  const bySet = sets.map((set) => {
+  const mode = o.bleed ? ('bleed' as const) : o.rounded ? ('trim' as const) : ('cut' as const)
+  const gridPages = (grid: Grid, instances: Instance[]): { side: Side; page: ScenePage }[] =>
+    planPdfPages(o, grid, instances).map((plan) => ({
+      side: plan.side,
+      page: {
+        width: page.width,
+        height: page.height,
+        items: plan.cards.map((c) => placedItem(o, grid, c, mode)),
+        lines: cropMarks(o, grid, plan.cards)
+      }
+    }))
+  // set dopo set; con continuous i set vicini che non sono poster si uniscono in un gruppo
+  type Entry = { set: ExportSet; grid: Grid; kind: 'grid' | 'fold' | 'poster' }
+  const entries: Entry[] = sets.map((set) => {
     const grid = pdfGrid(o, set.cards[0].template)
     // margini oltre metà pagina: nessuna area utile, né per la griglia né per un poster
     const noRoom = page.width <= 2 * o.margin || page.height <= 2 * o.margin
     const poster = gridOverflows(grid) && o.poster && !o.fold
     if (noRoom || (gridOverflows(grid) && !poster)) overflow.push(set.name)
-    if (poster) return { set, pages: posterPages(o, set) }
-    if (o.fold) return { set, pages: foldPages(o, set, grid) }
-    const plans = planPdfPages(o, grid, expandCopies(set.cards, o.copies))
-    const pages = plans.map((plan) => ({
-      side: plan.side,
-      page: {
-        width: page.width,
-        height: page.height,
-        items: plan.cards.map((c) => ({
-          x: c.x,
-          y: c.y,
-          template: c.instance.card.template,
-          side: c.side,
-          mode: o.bleed ? ('bleed' as const) : o.rounded ? ('trim' as const) : ('cut' as const),
-          // girando il foglio sul lato verticale la carta si capovolge: il retro ruota al contrario
-          rotate: !grid.rotated
-            ? (0 as const)
-            : c.side === 'back' && o.duplex !== 'none' && mirrorsX(o)
-              ? (270 as const)
-              : (90 as const)
-        })),
-        lines: cropMarks(o, grid, plan.cards)
-      }
-    }))
-    return { set, pages }
+    return { set, grid, kind: poster ? 'poster' : o.fold ? 'fold' : 'grid' }
+  })
+  const continuous = o.continuous && o.split !== 'set'
+  const groups: Entry[][] = []
+  for (const e of entries) {
+    const last = groups[groups.length - 1]
+    const prev = last?.[last.length - 1]
+    const joins =
+      continuous &&
+      prev &&
+      e.kind !== 'poster' &&
+      prev.kind === e.kind &&
+      // nella piegatura solo set con la stessa griglia; nella griglia anche misure diverse
+      (e.kind === 'grid' || sameGrid(prev.grid, e.grid))
+    if (joins) last.push(e)
+    else groups.push([e])
+  }
+  const bySet = groups.map((group) => {
+    const { set, grid, kind } = group[0]
+    if (kind === 'poster') return { set, pages: posterPages(o, set) }
+    const merged: ExportSet = { name: set.name, cards: group.flatMap((e) => e.set.cards) }
+    if (kind === 'fold') return { set, pages: foldPages(o, merged, grid) }
+    if (group.every((e) => sameGrid(e.grid, grid)))
+      return { set, pages: gridPages(grid, expandCopies(merged.cards, o.copies)) }
+    // set vicini con la stessa griglia continuano sulla stessa riga
+    const runs: { grid: Grid; instances: Instance[] }[] = []
+    for (const e of group) {
+      const run = runs[runs.length - 1]
+      const instances = expandCopies(e.set.cards, o.copies)
+      if (run && sameGrid(run.grid, e.grid)) run.instances.push(...instances)
+      else runs.push({ grid: e.grid, instances })
+    }
+    return { set, pages: shelfPages(o, runs, mode) }
   })
   const docs: PdfDocument[] = []
   const base = safeName(project || 'cards')
@@ -153,6 +179,107 @@ export function planPdf(o: PdfOptions, sets: ExportSet[], project: string): PdfP
     docs: docs.map((d, i) => ({ ...d, name: names[i] })).filter((d) => d.pages.length),
     overflow
   }
+}
+
+function sameGrid(a: Grid, b: Grid): boolean {
+  const eq = (x: number, y: number): boolean => Math.abs(x - y) < 1e-6
+  return (
+    a.cols === b.cols &&
+    a.rows === b.rows &&
+    a.rotated === b.rotated &&
+    eq(a.cellW, b.cellW) &&
+    eq(a.cellH, b.cellH) &&
+    eq(a.bleed, b.bleed)
+  )
+}
+
+/** Una carta della griglia come elemento della pagina */
+function placedItem(o: PdfOptions, grid: Grid, c: PlacedCard, mode: CardMode): SceneItem {
+  return {
+    x: c.x,
+    y: c.y,
+    template: c.instance.card.template,
+    side: c.side,
+    mode,
+    // girando il foglio sul lato verticale la carta si capovolge: il retro ruota al contrario
+    rotate: !grid.rotated ? 0 : c.side === 'back' && o.duplex !== 'none' && mirrorsX(o) ? 270 : 90
+  }
+}
+
+// ——— Set uno dopo l'altro ———
+
+/**
+ * Pagine con set di misure diverse, uno dopo l'altro: ogni set tiene la sua griglia (colonne,
+ * rotazione, centratura orizzontale) e comincia su una riga nuova sotto il set precedente, se
+ * nella pagina c'è ancora posto. Le righe della pagina si centrano in verticale. Ogni gruppo di
+ * set vicini con la stessa griglia arriva qui come un solo gruppo di carte.
+ */
+export function shelfPages(
+  o: PdfOptions,
+  runs: { grid: Grid; instances: Instance[] }[],
+  mode: CardMode
+): { side: Side; page: ScenePage }[] {
+  const page = pageSize(o)
+  const availH = page.height - 2 * o.margin
+  // tra un set e l'altro c'è spazio per i segni di taglio, anche quando le carte si toccano
+  const marks = o.marks === 'corners' ? 2 * o.markLength + 1 : 0
+  type Block = { grid: Grid; rows: Instance[][]; y: number }
+  const sheets: Block[][] = [[]]
+  let used = 0
+  for (const run of runs) {
+    const g = run.grid
+    const blockGap = Math.max(g.gap, marks, 2)
+    let block: Block | null = null
+    for (let i = 0; i < run.instances.length; i += g.cols) {
+      const row = run.instances.slice(i, i + g.cols)
+      const sheet = sheets[sheets.length - 1]
+      const before = block ? g.gap : sheet.length ? blockGap : 0
+      if (sheet.length && used + before + g.cellH > availH + 1e-6) {
+        sheets.push([])
+        used = 0
+        block = null
+      }
+      const current = sheets[sheets.length - 1]
+      if (!block) {
+        used += current.length ? blockGap : 0
+        block = { grid: g, rows: [], y: used }
+        current.push(block)
+      } else used += g.gap
+      block.rows.push(row)
+      used += g.cellH
+    }
+  }
+  const out: { side: Side; page: ScenePage }[] = []
+  for (const sheet of sheets) {
+    if (!sheet.length) continue
+    const last = sheet[sheet.length - 1]
+    const height =
+      last.y + last.rows.length * last.grid.cellH + (last.rows.length - 1) * last.grid.gap
+    const top = o.margin + Math.max(0, (availH - height) / 2)
+    const sidePage = (side: Side): { side: Side; page: ScenePage } => {
+      const items: SceneItem[] = []
+      const lines: SceneLine[] = []
+      for (const b of sheet) {
+        const g = { ...b.grid, y0: top + b.y }
+        const cards: PlacedCard[] = b.rows.flatMap((row, r) =>
+          row.map((instance, c) => ({
+            ...cellPosition(o, g, r * g.cols + c, side === 'back'),
+            instance,
+            side
+          }))
+        )
+        items.push(...cards.map((c) => placedItem(o, g, c, mode)))
+        lines.push(...cropMarks(o, g, cards, true))
+      }
+      return { side, page: { width: page.width, height: page.height, items, lines } }
+    }
+    if (o.duplex !== 'none') out.push(sidePage('front'), sidePage('back'))
+    else for (const side of sidesOf(o.sides)) out.push(sidePage(side))
+  }
+  // senza fronte-retro tutti i fronti, poi tutti i retri, come nelle altre pagine
+  if (o.duplex === 'none' && o.sides === 'both')
+    return [...out.filter((p) => p.side === 'front'), ...out.filter((p) => p.side === 'back')]
+  return out
 }
 
 // ——— Piegatura ———
@@ -424,15 +551,29 @@ function posterPages(o: PdfOptions, set: ExportSet): { side: Side; page: ScenePa
 
 export interface TtsChunk {
   cards: ExportCard[]
+  /** Quante carte del mazzo usano ogni posizione del foglio */
+  counts: number[]
   cols: number
   rows: number
   /** Pixel per mm del foglio */
   scale: number
 }
 
+/** Segnalino o tessera: un'immagine per lato, le copie nel sacchetto */
+export interface TtsPiecePlan {
+  card: ExportCard
+  count: number
+  /** Pixel per mm */
+  scale: number
+}
+
 export interface TtsSetPlan {
   set: ExportSet
+  object: TtsSetObject
+  /** Fogli del mazzo; vuoto per segnalini e tessere */
   chunks: TtsChunk[]
+  /** Segnalini o tessere; vuoto per le carte */
+  pieces: TtsPiecePlan[]
   /** Un foglio dei retri per ogni foglio di fronti, invece di un retro unico */
   uniqueBack: boolean
 }
@@ -445,7 +586,20 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
   const perSheet = fixed ? cols * rows - 1 : TTS_MAX_COLS * TTS_MAX_ROWS - 1
   return sets.map((set) => {
     // senza copie ogni riga è una carta; con le copie le righe a 0 non entrano nel mazzo
-    const cards = set.cards.filter((c) => !o.copies || c.amount > 0)
+    const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
+    const object = ttsSetObject(o, set.name)
+    if (object.type !== 'card') {
+      const pieces = kept.map((card) => ({
+        card,
+        count: o.copies ? card.amount : 1,
+        scale: pieceScale(card.template, o.maxSize)
+      }))
+      return { set, object, chunks: [], pieces, uniqueBack: false }
+    }
+    // copie nel foglio: ogni copia ha la sua posizione e nel mazzo compare una volta
+    const inSheet = o.copies && o.copiesIn === 'sheet'
+    const cards = inSheet ? expandCopies(kept, true).map((i) => i.card) : kept
+    const counts = cards.map((c) => (o.copies && !inSheet ? c.amount : 1))
     const chunks: TtsChunk[] = []
     for (let i = 0; i < cards.length; i += perSheet) {
       const chunk = cards.slice(i, i + perSheet)
@@ -453,13 +607,20 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
       const g = fixed ? { cols, rows } : ttsAutoGrid(chunk.length, t0.width, t0.height)
       chunks.push({
         cards: chunk,
+        counts: counts.slice(i, i + perSheet),
         ...g,
         scale: ttsScale(g.cols, g.rows, t0.width, t0.height, o.maxSize)
       })
     }
     const backs = cards.map((c) => JSON.stringify(c.template.back))
     const sameBacks = backs.every((b) => b === backs[0])
-    return { set, chunks, uniqueBack: o.back === 'sheet' || (o.back === 'auto' && !sameBacks) }
+    return {
+      set,
+      object,
+      chunks,
+      pieces: [],
+      uniqueBack: o.back === 'sheet' || (o.back === 'auto' && !sameBacks)
+    }
   })
 }
 
@@ -483,4 +644,28 @@ export function sheetPage(chunk: TtsChunk, side: Side): ScenePage {
     mode: 'cut'
   })
   return { width: cols * t0.width, height: rows * t0.height, items, lines: [] }
+}
+
+/** Pixel per mm di un segnalino o di una tessera: entro la dimensione massima e 300 DPI */
+function pieceScale(t: Template, maxSize: number): number {
+  return Math.min(TTS_MAX_DPI / 25.4, maxSize / Math.max(t.width, t.height))
+}
+
+/** Margine trasparente attorno ai segnalini: Tabletop Simulator ne ritaglia meglio la sagoma */
+export const TOKEN_MARGIN = 1
+
+/**
+ * Immagine di un segnalino o di una tessera. Il segnalino è la carta ritagliata sulla sua forma,
+ * su fondo trasparente con un piccolo margine; la tessera è il rettangolo della carta, perché la
+ * forma (esagono, cerchio, angoli arrotondati) la dà Tabletop Simulator.
+ */
+export function piecePage(t: Template, side: Side, kind: 'token' | 'tile'): ScenePage {
+  if (kind === 'tile') return cardPage(t, side, false, 'cut')
+  const m = TOKEN_MARGIN
+  return {
+    width: t.width + 2 * m,
+    height: t.height + 2 * m,
+    items: [{ x: m, y: m, template: t, side, mode: 'trim' }],
+    lines: []
+  }
 }

@@ -11,6 +11,7 @@ import {
   ancestorsOf,
   anchorPoint,
   angleFrom,
+  constrainAxis,
   handlePosition,
   hitTest,
   lineEnds,
@@ -354,15 +355,37 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       const all = g.start.guides ?? { x: [], y: [] }
       next = { ...g.start, guides: { ...all, [g.axis]: list } }
     } else if (g.kind === 'move') {
-      const rx = q.x - g.p0.x
-      const ry = q.y - g.p0.y
+      let rx = q.x - g.p0.x
+      let ry = q.y - g.p0.y
+      // Maiuscolo: solo in orizzontale, in verticale o a 45°, nella direzione più vicina
+      const axis = e.shiftKey ? constrainAxis(rx, ry) : null
+      if (axis === 'x') ry = 0
+      else if (axis === 'y') rx = 0
+      else if (axis === 'diagonal') {
+        // la distanza sulla diagonale va a passi della griglia
+        const d = snap((Math.abs(rx) + Math.abs(ry)) / 2, step)
+        rx = Math.sign(rx) * d
+        ry = Math.sign(ry) * d
+      }
       // un lato o il centro vicino a un altro oggetto ha la precedenza sulla griglia
       const hit = magnet
         ? snapBox({ ...g.box, x: g.box.x + rx, y: g.box.y + ry }, g.lines, threshold)
         : { x: null, y: null }
+      // l'asse bloccato non si aggancia; in diagonale nessun aggancio, per restare a 45°
+      if (axis === 'y' || axis === 'diagonal') hit.x = null
+      if (axis === 'x' || axis === 'diagonal') hit.y = null
+      const free = axis === 'diagonal'
       // sulla griglia si aggancia l'angolo del livello preso, gli altri lo seguono
-      const dx = hit.x ? rx + hit.x.delta : snap(g.ref.x + rx, step) - g.ref.x
-      const dy = hit.y ? ry + hit.y.delta : snap(g.ref.y + ry, step) - g.ref.y
+      const dx = hit.x
+        ? rx + hit.x.delta
+        : axis === 'y' || free
+          ? rx
+          : snap(g.ref.x + rx, step) - g.ref.x
+      const dy = hit.y
+        ? ry + hit.y.delta
+        : axis === 'x' || free
+          ? ry
+          : snap(g.ref.y + ry, step) - g.ref.y
       setSnapped({ x: hit.x?.line ?? null, y: hit.y?.line ?? null })
       next = updateLayers(g.start, side, (l) =>
         g.ids.includes(l.id) ? translateLayer(l, dx, dy) : l
@@ -385,8 +408,10 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
         setSnapped({ x: hx?.line ?? null, y: hy?.line ?? null })
       }
       const box = resizeWithHandle(g.layer, g.handle, local, {
-        keepRatio: e.shiftKey || isRatioLocked(g.layer.type),
-        step: resizeStep
+        // Maiuscolo inverte il blocco delle proporzioni; Cmd (Ctrl su Windows) dal centro
+        keepRatio: e.shiftKey !== isRatioLocked(g.layer.type),
+        step: resizeStep,
+        fromCenter: e.metaKey || e.ctrlKey
       })
       next = replace(g.start, side, g.layer.id, applyBounds(g.layer, box))
     } else {

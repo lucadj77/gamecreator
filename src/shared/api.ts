@@ -73,6 +73,10 @@ export interface BackupState {
 }
 
 export interface Api {
+  /** Versione web (src/web): alcune funzioni ci sono solo nell'app desktop */
+  readonly isWeb: boolean
+  /** Solo nel web: URL di un file sotto assets/; nell'app desktop c'è il protocollo gc-asset:// */
+  assetUrl?(path: string): string
   chooseProjectFolder(): Promise<string | null>
   /** Progetti aperti di recente, dal più recente */
   recentProjects(): Promise<RecentProject[]>
@@ -92,6 +96,10 @@ export interface Api {
   saveTemplate(template: Template): Promise<void>
   /** Sposta il file del template in deleted/ nel progetto; restituisce il nuovo percorso */
   deleteTemplate(file: string): Promise<string | null>
+  /** Scrive la nota notes/<name>.md; con oldName diverso la rinomina */
+  saveNote(name: string, text: string, oldName?: string): Promise<void>
+  /** Sposta la nota in deleted/ */
+  deleteNote(name: string): Promise<void>
   /** Salva i fogli modificati e, se cambiati i set, il file di progetto */
   saveData(changes: { file?: ProjectFile; sheets: Sheet[]; removed?: string[] }): Promise<void>
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */
@@ -134,6 +142,8 @@ export interface Api {
   systemFonts(): Promise<SystemFontFamily[]>
   /** Copia i file di un font installato in assets/fonts/<famiglia>/ */
   copySystemFont(family: string): Promise<AssetsUpdate>
+  /** Copia in assets/images/ immagini scelte dal computer; null se l'utente annulla */
+  addImages(): Promise<AssetsUpdate | null>
   /** Scrive i crediti in export/credits.txt e restituisce il percorso */
   saveCredits(text: string): Promise<string>
   /** Sceglie una cartella qualsiasi, partendo da current */
@@ -143,8 +153,11 @@ export interface Api {
   /** Crea subito un backup del progetto aperto (dei file salvati) */
   createBackup(): Promise<BackupItem>
   saveBackupSettings(settings: BackupSettings): Promise<BackupState>
-  /** Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso */
-  restoreBackup(file: string): Promise<string>
+  /**
+   * Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso. Nel
+   * web la cartella in cui estrarlo (parent) la sceglie l'utente.
+   */
+  restoreBackup(file: string, parent?: string): Promise<string>
   /** Cartella proposta per un progetto Tabletop Creator convertito */
   defaultTtcTarget(source: string): Promise<string>
   /** Converte un progetto Tabletop Creator in un progetto nuovo; l'originale non si modifica */
@@ -176,6 +189,8 @@ export interface ExportPageApi {
   ready(): void
   /** Scena disegnata, o errore */
   shown(id: number, error?: string): void
+  /** La pagina sta ancora lavorando alla scena */
+  alive(id: number): void
 }
 
 export interface TtcImportOptions {

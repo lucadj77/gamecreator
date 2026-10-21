@@ -87,6 +87,9 @@ export const en = {
   'columns.hint': 'Columns shown in the table and in the card fields.',
   'columns.showComputed': 'Show fixed and formula layers (read only)',
   'columns.showAll': 'Show all',
+  'columns.reset': 'Reset',
+  'columns.resetHint':
+    'Show only the columns of layers linked to a column and close the field details',
   'tip.columns': 'Choose which columns to show; fixed and formula layers can be shown too',
   'table.removeColumn': 'Remove column',
   'table.removeColumnConfirm': 'Remove the column “{column}” and its values?',
@@ -312,6 +315,8 @@ export const en = {
   'icons.import': 'Import {n}',
   'icons.unknown': 'Icon {id} is not in the catalog',
   'icons.invalidName': 'Invalid icon name: {name}',
+  'assetPicker.addImages': 'Add images…',
+  'assetPicker.addImagesHint': 'Copy images from the computer into assets/images of the project',
   'assetPicker.importIcons': 'Import icons…',
   'assetPicker.title': 'Choose an image',
   'assetPicker.search': 'Search by name or folder',
@@ -485,6 +490,11 @@ export const en = {
   'prop.bleed': 'Bleed',
   'prop.safeMargin': 'Safe margin',
   'prop.cardShape': 'Card shape',
+  'editor.hexagonFit': 'Fit the card to the hexagon ({w} × {h} mm)',
+  'editor.hexagonFitHint':
+    'The hexagon is always regular and as large as the card allows. To fill the card, its short side must be the long side × 0.866.',
+  'editor.regular': 'Make regular',
+  'editor.regularHint': 'Square frame around the same center: all sides and angles equal',
   'editor.cardShapeHint':
     'Shape of the trimmed card. The bleed stays rectangular: printers cut the shape out of it.',
   'cardShape.rect': 'Rectangle',
@@ -725,6 +735,9 @@ export const en = {
   'resize.keep': 'Keep layers',
   'save.csvOneSheet': 'A CSV data file holds a single set. To have more sets, use an .xlsx file.',
   'template.noProject': 'No project is open',
+  'note.invalidName':
+    'Invalid note name: "{name}". It cannot start with a dot or contain \\ / : * ? " < > |',
+  'note.exists': 'A note named "{name}" already exists',
   'template.deleteFailed':
     'Could not delete the template "{name}": {text}. Check that you can change the files in the project\'s templates folder.',
   'template.invalidName': '"{name}" cannot be used as a file name',
@@ -820,6 +833,7 @@ export const en = {
   'markupHelp.attr.bg': 'Background image or shape, text centered on it: bg=circle, bg=shield',
   'markupHelp.attr.bg-color': 'Tint of the background image or shape: bg-color=blue',
   'markupHelp.attr.bg-size': 'Size of the background, % of the line or mm: bg-size=140%',
+  'markupHelp.attr.text-raise': 'Moves only the text inside a box, in pt: text-raise=1',
   'markupHelp.attr.image.tint':
     'Recolors the image; none keeps its colors, currentColor uses the text color',
   'markupHelp.attr.image.size': 'Size relative to the normal icon height: size=150%',
@@ -834,10 +848,22 @@ export const en = {
   'markupHelp.attr.upper': 'ALL CAPS',
   'markupHelp.attr.lower': 'lowercase',
   'markupHelp.attr.smallcaps': 'Small capitals',
+  'markupHelp.attr.nowrap': 'Never breaks across lines',
   'markupHelp.attr.left': 'Paragraph aligned left',
   'markupHelp.attr.center': 'Paragraph centered',
   'markupHelp.attr.right': 'Paragraph aligned right',
   'markupHelp.attr.justify': 'Paragraph justified',
+  'usages.none': 'Not used anywhere',
+  'usages.summary': 'Where it is used: templates {templates}, cards {cards}',
+  'usages.template': 'Template {name}',
+  'usages.set': 'Set {name}',
+  'usages.cards': 'cards:',
+  'usages.variables': 'Variables: {names}',
+  'usages.styles': 'Styles: {names}',
+  'group.label': 'Group',
+  'group.none': 'No group',
+  'group.hint': 'Groups in the sidebar. Type a new name or pick one already used.',
+  'sidebar.filter': 'Filter',
   'sidebar.styles': 'Styles',
   'sidebar.newStyle': 'New text style',
   'sidebar.builtinStyle': 'built-in',
@@ -885,6 +911,8 @@ export const en = {
   'format.bgColor': 'Background color',
   'format.bgSize': 'Background size',
   'format.bgSizeHint': '% of the line or mm',
+  'format.textRaise': 'Text raise',
+  'format.textRaiseHint': 'pt: moves the text, not the box',
   'format.shape.circle': 'Circle',
   'format.shape.square': 'Square',
   'format.shape.rounded': 'Rounded square',
@@ -965,6 +993,8 @@ export const en = {
   'export.cmyk': 'Convert to CMYK',
   'export.cmykHint':
     'Needs Ghostscript installed on the computer (for example with Homebrew: brew install ghostscript). Without it the PDF stays RGB and a warning says so.',
+  'export.printed':
+    'The PDF pages went to the browser print window: if you closed it without saving, export again.',
   'export.cmykUnavailable':
     'The PDF stayed in RGB: Ghostscript is not installed, or the CMYK conversion failed.',
   'export.posterSplit': 'Split cards larger than the page over several pages',
@@ -992,11 +1022,27 @@ export const en = {
   'export.splitSingle': 'One file',
   'export.splitSet': 'One per set',
   'export.splitSide': 'Fronts and backs apart',
+  'export.continuous': 'Pages',
+  'export.continuousCheck': 'One after another on the same page',
+  'export.continuousHint':
+    'A set starts right after the previous one instead of on a new page. Sets of a different size start on a new row.',
   'export.grid': 'Grid',
   'export.gridAuto': 'Automatic for each set',
   'export.gridHint':
     'Up to 10 × 7; the last slot is kept for the hidden card. Larger sets use more sheets.',
+  'export.copiesIn': 'Copies on the sheet',
+  'export.copiesInDeck': 'Once: the deck (JSON file) multiplies them',
+  'export.copiesInSheet': 'Repeated on the sheet, to load it by hand',
   'export.maxSize': 'Max sheet size',
+  'export.ttsObjects': 'Objects',
+  'export.ttsObjectsHint':
+    'Card: a deck from sheets. Token: one image per card, cut out along the card shape; underneath it shows the front mirrored. Tile: front and back, square, rounded, hexagonal or round like the card, with the edge in the chosen color. Tokens and tiles of a set go into a bag, copies included.',
+  'export.ttsCard': 'Cards',
+  'export.ttsToken': 'Tokens',
+  'export.ttsTile': 'Tiles',
+  'export.ttsThickness': 'Thickness',
+  'export.ttsThicknessHint': 'In mm',
+  'export.ttsEdge': 'Edge',
   'export.ttsBack': 'Back',
   'export.backAuto': 'Automatic: one image if all backs are equal',
   'export.backSingle': 'One image for all cards',
@@ -1036,6 +1082,19 @@ export const en = {
   'export.gridOverflow':
     'Set “{set}”: the cards do not fit on the page, change margins, page or layout.',
   'sidebar.variables': 'Variables',
+  'sidebar.notes': 'Notes',
+  'sidebar.newNote': 'New note',
+  'sidebar.noNotes': 'Notes about the project, for you and for an AI working on it.',
+  'notes.newName': 'Note',
+  'notes.panel': 'Project note',
+  'notes.nameHint': 'Name of the note: it is also the name of its file',
+  'notes.delete': 'Delete the note (it goes to the deleted folder)',
+  'notes.close': 'Close the note',
+  'notes.edit': 'Write',
+  'notes.preview': 'Preview',
+  'notes.placeholder': 'Write here in Markdown: # heading, - list, **bold**…',
+  'notes.empty': 'The note is empty.',
+  'notes.hint': 'Saved as you type in {file}.',
   'sidebar.compact': 'Collapse panel to icons',
   'sidebar.expand': 'Expand panel',
   'sidebar.newVariable': 'New variable',
@@ -1141,6 +1200,51 @@ export const en = {
     'No recent projects yet. Create a new one, open a project folder or import one from Tabletop Creator.',
   'start.missing': 'Folder not found',
   'start.remove': 'Remove from the list (the folder is not deleted)',
+  'web.desktopLink': 'What the desktop app adds',
+  'web.desktopTitle': 'What the desktop app adds',
+  'web.desktopIntro':
+    'This is the web version of Naibi: it opens in the browser without installing anything and works on the project folders of your computer, like the desktop app. Some things are only in the desktop app (Windows, macOS, Linux):',
+  'web.desktop.pdf':
+    'PDF saved directly, without the print window, and conversion to CMYK for printers',
+  'web.desktop.tts':
+    'Tabletop Simulator export without writing the folder path; on macOS also straight into the Saved Objects folder, which the browser cannot open',
+  'web.desktop.fonts':
+    'Google Fonts with every alphabet: the web version saves only the Latin one (accented letters included)',
+  'web.desktop.catalogs': 'Updating the game-icons.net and Google Fonts catalogs from the app',
+  'web.desktop.ai': 'The naibi command and the skill for AI agents (Claude, Codex…)',
+  'web.desktop.browser':
+    'Independent of the browser: the web version works only in Chrome, Edge and Opera (in Brave after turning on brave://flags/#file-system-access-api), and asks again for permission on the folder each time you open the site',
+  'web.desktopOutro':
+    'Projects are the same files: a project made here opens in the desktop app and the other way round.',
+  'web.download': 'Download the desktop app',
+  'web.desktopOnly': 'This is available only in the desktop app.',
+  'web.permissionDenied':
+    'Naibi needs permission to read and write the project folder. Open it again and allow access.',
+  'web.chooseParent': 'Choose the folder in which to create the project.',
+  'web.noLocalFonts':
+    'This browser does not let the site read the fonts installed on the computer (Chrome and Edge do, after you allow it).',
+  'web.backupInSite': 'in this browser (site data)',
+  'web.backupInSiteHint':
+    'Backups kept in the browser are lost if you clear the site data. Choose a folder to keep them on disk.',
+  'web.restoreCancelled': 'Restore cancelled: no folder chosen.',
+  'web.ttcTargetHint':
+    'Choose (or create in the window) an empty folder; if the original is inside a folder you chose, the new one is proposed next to it',
+  'web.ttsFolder': 'Destination folder',
+  'web.ttsFolderHint':
+    'The browser writes the sheets, images and deck file (.json) here. On Windows choose Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects. On macOS the browser cannot open the Tabletop Simulator folder: choose a folder in Documents and see the guide.',
+  'web.ttsRealPath': 'Full path of the same folder',
+  'web.ttsRealPathPlaceholder': 'C:\\Users\\…\\Saved Objects',
+  'web.ttsRealPathHint':
+    'The browser does not reveal the full path of the chosen folder, but the deck file must contain it: Tabletop Simulator uses it to find the card images. Paste it once (Explorer: click the address bar and copy; Finder: right click with Option, "Copy as pathname"); this browser remembers it.',
+  'web.ttsRealPathMissing':
+    'Write the full path of the destination folder: the deck file needs it to find the images.',
+  'web.ttsRealPathMismatch':
+    'The path does not end with the chosen folder ({folder}): check that you copied the path of the same folder.',
+  'web.ttsChooseFolder': 'Choose the destination folder.',
+  'web.restoreConfirm':
+    'The backup will be extracted into a new folder inside the chosen one, and it will open in place of this project. The current project stays as it is. Continue?',
+  'web.pdfHint':
+    'In the web version the pages go to the browser print window: choose "Save as PDF", margins "None" and turn on "Background graphics". One window for each PDF.',
   'about.link': 'What does Naibi mean?',
   'about.title': 'What does Naibi mean?',
   'about.p1':
@@ -1159,6 +1263,7 @@ export const en = {
   'app.help': 'Help',
   'tip.help': 'Text markup, system variables, formulas and keyboard shortcuts (F1)',
   'help.title': 'Help',
+  'help.guide': 'Open the complete user guide (online)',
   'help.tab.text': 'Text',
   'help.tab.variables': 'Fields and variables',
   'help.tab.formulas': 'Formulas',
@@ -1178,6 +1283,7 @@ export const en = {
   'help.md.list': 'Bulleted or numbered list',
   'help.md.rule': 'Separator line',
   'help.md.break': 'At the end of a line: line break without a new paragraph',
+  'help.md.nowrap': 'Never breaks across lines, e.g. a number and its icon',
   'help.attributes': 'Attributes',
   'help.attributesIntro':
     'Square brackets enclose the text and the braces after them say how to format it: [Warning]{color=red weight=800}. A style is applied with .name: [pine]{.keyword}. At the start of a paragraph, {center} and the other alignments apply to the whole paragraph.',
@@ -1202,7 +1308,7 @@ export const en = {
   'system.set.cards': 'How many cards the set has, copies included (sum of amount)',
   'system.card.copies': 'Copies of the card (its amount)',
   'system.card.copy':
-    'Copy being drawn, from 1: with copies in PDF and image exports each copy has its own number; elsewhere it is 1',
+    'Copy being drawn, from 1: with copies in PDF, image and TTS exports with copies repeated on the sheet each copy has its own number; elsewhere it is 1',
   'system.card.side': 'front or back, depending on the side being drawn',
   'system.date': "Today's date, YYYY-MM-DD",
   'help.formulasIntro':
@@ -1242,7 +1348,8 @@ export const en = {
   'help.keys.delete': 'Editor: delete the selected layers',
   'help.keys.move': 'Editor: move by 0.5 mm, with ⇧ by 5 mm',
   'help.keys.drag':
-    'Canvas, while dragging: keep proportions or rotate by 15°; move without snapping',
+    'Canvas, while dragging: move only horizontally, vertically or at 45°, switch the proportion lock, rotate by 15°; move without snapping',
+  'help.keys.dragCenter': 'Canvas, resizing: from the center',
   'help.keys.zoom': 'Canvas and grid: zoom',
   'help.keys.help': 'This help',
   'ai.title': 'Tools for AI agents',

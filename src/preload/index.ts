@@ -3,6 +3,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 import type { Api } from '../shared/api'
 
 const api: Api = {
+  isWeb: false,
   chooseProjectFolder: () => ipcRenderer.invoke('project:choose-folder'),
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
   recentProjects: () => ipcRenderer.invoke('recent:list'),
@@ -13,6 +14,8 @@ const api: Api = {
   createProject: (name, parent, data) => ipcRenderer.invoke('project:create', name, parent, data),
   saveTemplate: (template) => ipcRenderer.invoke('template:save', template),
   deleteTemplate: (file) => ipcRenderer.invoke('template:delete', file),
+  saveNote: (name, text, oldName) => ipcRenderer.invoke('note:save', name, text, oldName),
+  deleteNote: (name) => ipcRenderer.invoke('note:delete', name),
   saveData: (changes) => ipcRenderer.invoke('data:save', changes),
   setUiZoom: (factor) => webFrame.setZoomFactor(factor),
   setTheme: (theme) => ipcRenderer.send('theme:set', theme),
@@ -39,6 +42,7 @@ const api: Api = {
   downloadFont: (family, variants) => ipcRenderer.invoke('library:download-font', family, variants),
   systemFonts: () => ipcRenderer.invoke('library:system-fonts'),
   copySystemFont: (family) => ipcRenderer.invoke('library:copy-system-font', family),
+  addImages: () => ipcRenderer.invoke('library:add-images'),
   saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),
   chooseFolder: (current) => ipcRenderer.invoke('folder:choose', current),
   backups: () => ipcRenderer.invoke('backup:list'),
@@ -63,7 +67,8 @@ const api: Api = {
     onContext: (cb) => ipcRenderer.on('export:context', (_, c) => cb(c)),
     onScene: (cb) => ipcRenderer.on('export:scene', (_, id, scene) => cb(id, scene)),
     ready: () => ipcRenderer.send('export:page-ready'),
-    shown: (id, error) => ipcRenderer.send('export:shown', id, error)
+    shown: (id, error) => ipcRenderer.send('export:shown', id, error),
+    alive: (id) => ipcRenderer.send('export:alive', id)
   }
 }
 

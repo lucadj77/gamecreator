@@ -27,6 +27,8 @@ import {
 } from '../shared/export'
 import { buildSets } from '../shared/exportJob'
 import { runExport } from './export/run'
+import { ExportWindow } from './export/window'
+import { toCmyk } from './export/cmyk'
 import { loadProject } from './project/load'
 import { createProject } from './project/create'
 import { saveData } from './project/save'
@@ -70,6 +72,8 @@ Commands:
          [--dpi 150] [--out folder]    Draw cards as PNG files (default folder: export/naibi-render)
   export <project> --profile NAME      Run a named export profile saved in the project
   new <name> <parent folder>           Create an empty project
+  notes <project> [<name>]             The project notes (notes/*.md), all or one: the user's
+                                       reminders, also for you; write them as Markdown files there
   begin <project> [--note TEXT]        Start working: fails (exit code 3) if the Naibi app has
                                        unsaved changes in the project, otherwise the app locks
                                        itself until 'end'
@@ -77,7 +81,7 @@ Commands:
   help                                 This text
 
 <project> is the project folder (the one with naibi.json).
-Add --json to info, check and template for machine-readable output.`
+Add --json to info, check, template and notes for machine-readable output.`
 
 const print = (s = ''): void => {
   process.stdout.write(s + '\n')
@@ -176,6 +180,7 @@ async function info(p: Parsed): Promise<number> {
     exportProfiles: (f.export?.named ?? []).map((n) => `${n.name} (${n.kind})`),
     assets: project.assets,
     fonts: [...new Set(project.fonts.map((x) => x.family))],
+    notes: (project.notes ?? []).map((n) => n.name),
     unusedSheets: project.unusedSheets,
     warnings: project.warnings.map(messageText)
   }
@@ -206,6 +211,7 @@ async function info(p: Parsed): Promise<number> {
   print(
     `Assets: ${data.assets.length} files (${project.assets.filter((a) => /\.(svg|png|jpe?g|webp)$/i.test(a)).length} images); fonts: ${data.fonts.join(', ') || 'none'}`
   )
+  if (data.notes.length) print(`Notes (notes/*.md): ${data.notes.join(', ')}`)
   if (data.unusedSheets.length) print(`Sheets not linked to a set: ${data.unusedSheets.join(', ')}`)
   for (const w of data.warnings) print(`Warning: ${w}`)
   return 0
@@ -433,6 +439,8 @@ function selectCards(sets: ExportSet[], spec: string | true | undefined): Export
 
 async function exportJob(project: LoadedProject, job: ExportJob): Promise<number> {
   const r = await runExport(job, {
+    openWindow: (context) => ExportWindow.open(context),
+    toCmyk,
     projectFolder: project.folder,
     platform: process.platform,
     home: app.getPath('home'),
@@ -530,6 +538,25 @@ async function begin(p: Parsed): Promise<number> {
   return 0
 }
 
+/** Note del progetto (notes/*.md), tutte o una sola */
+async function notes(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  const name = p.positional[1]
+  const list = (project.notes ?? []).filter((n) => !name || n.name === name)
+  if (name && !list.length) throw new CliError(`no note named "${name}"`)
+  if (p.flags.json) {
+    print(JSON.stringify(list, null, 2))
+    return 0
+  }
+  if (!list.length) print('No notes. Write them as Markdown files in notes/ (notes/<name>.md).')
+  for (const n of list) {
+    print(`=== ${n.name} (notes/${n.name}.md) ===`)
+    print(n.text.trimEnd())
+    print()
+  }
+  return 0
+}
+
 async function end(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
   await endAgent(project.folder)
@@ -548,6 +575,7 @@ const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   render,
   export: exportProfile,
   new: create,
+  notes,
   begin,
   end
 }

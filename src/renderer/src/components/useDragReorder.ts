@@ -3,9 +3,10 @@ import { useState } from 'react'
 /**
  * Riordino a trascinamento di un elenco verticale: `itemProps(i)` va sull'elemento della voce.
  * Metà superiore della voce: prima; metà inferiore: dopo. `onMove` riceve la posizione che la voce
- * avrà dopo lo spostamento.
+ * avrà dopo lo spostamento e la voce su cui è stata lasciata; `dragging` è la voce trascinata.
  */
-export function useDragReorder(onMove: (from: number, to: number) => void): {
+export function useDragReorder(onMove: (from: number, to: number, target: number) => void): {
+  dragging: number | null
   itemProps(i: number): React.LiHTMLAttributes<HTMLLIElement> & { draggable: boolean }
 } {
   const [dragging, setDragging] = useState<number | null>(null)
@@ -15,6 +16,7 @@ export function useDragReorder(onMove: (from: number, to: number) => void): {
     setDrop(null)
   }
   return {
+    dragging,
     itemProps: (i) => ({
       draggable: true,
       className:
@@ -43,7 +45,7 @@ export function useDragReorder(onMove: (from: number, to: number) => void): {
         if (dragging !== null && drop) {
           let to = drop.index + (drop.after ? 1 : 0)
           if (dragging < to) to -= 1
-          if (to !== dragging) onMove(dragging, to)
+          if (to !== dragging || drop.index !== dragging) onMove(dragging, to, drop.index)
         }
         reset()
       }

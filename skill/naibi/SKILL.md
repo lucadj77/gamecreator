@@ -17,6 +17,9 @@ Run it as:
 
 followed by a command. `<project>` is the project folder (the one with `naibi.json`).
 
+On Windows, in PowerShell, put `&` before a quoted command: `& "C:\...\naibi-cli.cmd" info "D:\Games\My game"`. Wait for the command to finish and check its exit code before going on.
+The Windows installer (1.2.0-beta.9 and later) already lets sandboxed agents read Naibi's folder. If your sandbox still cannot read it, do not change permissions yourself: ask the user to run the command outside the sandbox, or to grant read and execute once from a normal PowerShell, as explained in Naibi's docs/cli.md (`icacls "<Naibi folder>" /grant "*S-1-15-2-1:(OI)(CI)(RX)" /T`).
+
 | Command                                                                                             | What it does                                                                                                                               |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `info <project>`                                                                                    | Sets (template, rows, cards, columns), templates and their layers, variables, styles, assets, export profiles                              |
@@ -29,19 +32,22 @@ followed by a command. `<project>` is the project folder (the one with `naibi.js
 | `render <project> [--set S] [--card 1,3,5-7] [--side front\|back\|both] [--dpi 150] [--out folder]` | Draws cards as PNG files, by default in `<project>/export/naibi-render/<set>/<n>.png`. Open the images to check your work                  |
 | `export <project> --profile NAME`                                                                   | Runs an export profile saved in the project (PDF, images or Tabletop Simulator)                                                            |
 | `new <name> <parent folder>`                                                                        | Creates an empty project                                                                                                                   |
+| `notes <project> [<name>]`                                                                          | The project notes (`notes/*.md`): the user's reminders and decisions about the project. Read them before working                           |
 | `begin <project> [--note TEXT]`                                                                     | Start of your work. Fails with exit code 3 if the Naibi app has unsaved changes in the project; otherwise the app locks itself             |
 | `end <project>`                                                                                     | End of your work: the app unlocks and reloads the project                                                                                  |
 
-`info`, `check` and `template` accept `--json`.
+`info`, `check`, `template` and `notes` accept `--json`.
 
 ## Workflow
 
 1. Run `begin` before changing anything in the project, with `--note` saying in a few words what you are doing. If it fails because the app has unsaved changes, stop: tell the user to save (or reload) in the Naibi app, and start again only when they say so. Reading commands (`info`, `check`, `template`, `rows`, `render`) do not need `begin`.
-2. Run `info` to learn the project before changing anything. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
+2. Run `info` and `notes` to learn the project before changing anything; the notes hold what the user wants remembered. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
 3. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets and the cells you do not change (formulas, dates, formatting) intact; a changed cell becomes plain text, or a number when it reads back the same.
 4. Rename sets and templates only with `rename-set` and `rename-template`: renaming files by hand breaks the references to them. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are. `set-rows`, `rename-set` and `rename-template` also refuse on their own (exit code 2) when the app has unsaved changes, or when the app is open on the project and you did not run `begin`.
 5. After every change run `check`, then `render` the cards you touched and look at the images. Fix what is wrong before reporting.
 6. Always run `end` when you have finished, also when you stop because of an error or a question for the user: until then the app stays locked. The app reloads the project by itself.
+
+To leave a note for the user or for your next session, write a Markdown file in `notes/` (between `begin` and `end`, so the open app picks it up); change an existing note only when asked.
 
 Ask before deleting sets, templates, layers or assets, and before replacing many rows the user did not ask to change.
 
@@ -52,6 +58,7 @@ project/
   naibi.json             # name, data file, sets, styles, variables, export profiles
   data/cards.xlsx        # one sheet per set (.xlsx, .ods, or .csv for a single set)
   templates/<name>.json  # one file per template
+  notes/<name>.md        # project notes in Markdown, written by the user in the app
   assets/                # images (svg, png, webp, jpg), any subfolder
   assets/fonts/          # project fonts (ttf, otf, woff, woff2)
   assets/sources.json    # origin and license of imported icons and fonts (written by the app)
@@ -82,7 +89,7 @@ Older projects have `gamecreator.json` instead of `naibi.json`; the format is th
 - `sets[].sheet` is optional (default: the set's name). `sets[].hiddenColumns` (columns hidden in the app's table) and `sets[].showComputed` (also show fixed and formula layers, read only) are view preferences only; they never change the cards. A set's template is `templates/<template>.json`.
 - `styles`: name → markup attributes. `heading1`, `heading2` and `note` always exist and can be redefined.
 - `variables`: `image` (`src` file name; optional `tint`, `scale` (height relative to the line, 1 = normal), `raise` (% of the line), `rotate` (degrees), `flip` (`h`, `v`, `hv`), `opacity` 0-1), `text` (markup that replaces `{name}`), `color` (usable by name in every colour property, which also accepts `{field}` to take a card field such as a value layer; redefining a CSS colour name such as `red` changes it everywhere), `value` (constant text or number, also usable in formulas).
-- `export` holds export options and named profiles (`export.named`), written by the app. `order` holds the sidebar order. Leave both alone unless asked.
+- `export` holds export options and named profiles (`export.named`), written by the app. `order` holds the sidebar order. Leave both alone unless asked. In Tabletop Simulator options (`export.tts` or a named profile of kind `tts`), `objects` maps a set name to what it becomes: `{ "type": "card" | "token" | "tile", "thickness": 2, "edgeColor": "#FFFFFF" }` (thickness in mm, edge color for tiles only); a set not listed is a deck of cards.
 
 ## Data sheets
 
@@ -213,7 +220,7 @@ Image names: file name without path or extension is enough (`sword` finds `asset
 
 ## Text markup
 
-Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts a new paragraph (a cell written with Alt+Enter); `\` at the end of a line breaks without a new paragraph.
+Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts a new paragraph (a cell written with Alt+Enter); `\` at the end of a line breaks without a new paragraph. `_4{coin}_` keeps its content on one line (same as `[4{coin}]{nowrap}`; not italic, unlike Markdown); text and icons otherwise wrap freely. An underscore inside a word stays literal; escape a lone one as `\_`.
 
 | Write                                                                  | Get                                                                           |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -232,15 +239,15 @@ Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts 
 | `{cover}`, `{cover*3}`                                                 | the picture that image layer `cover` shows on this card                       |
 | `\{`, `\*`, `\[`                                                       | literal characters                                                            |
 
-Character attributes: `.style`, `color=`, `highlight=`, `size=` (14, +2, -1, 80%), `font=` (`Open_Sans`, underscores for spaces, or `{variable}`), `weight=`, `stroke=colour/width`, `spacing=` (‰), `raise=` (pt), `upper`, `lower`, `smallcaps`, `bold`, `italic`, `underline`, `strike`, `left`, `center`, `right`, `justify`.
+Character attributes: `.style`, `color=`, `highlight=`, `size=` (14, +2, -1, 80%), `font=` (`Open_Sans`, underscores for spaces, or `{variable}`), `weight=`, `stroke=colour/width`, `spacing=` (‰), `raise=` (pt), `upper`, `lower`, `smallcaps`, `nowrap` (the span never breaks across lines), `bold`, `italic`, `underline`, `strike`, `left`, `center`, `right`, `justify`.
 
-Box attributes turn the text into an inline box: `border=colour/width`, `fill=`, `radius=` (mm or `round`), `pad=` (mm, or vertical/horizontal `0.3/1`), `bg=` (a background image: `circle`, `square`, `rounded`, `hexagon`, `diamond`, an image variable or file), `bg-color=`, `bg-size=` (% of the line or mm). Example: `[{strength}]{bg=circle bg-color=red color=white weight=800}`.
+Box attributes turn the text into an inline box: `border=colour/width`, `fill=`, `radius=` (mm or `round`), `pad=` (mm, or vertical/horizontal `0.3/1`), `bg=` (a background image: `circle`, `square`, `rounded`, `hexagon`, `diamond`, an image variable or file), `bg-color=`, `bg-size=` (% of the line or mm), `text-raise=` (pt; moves only the text inside the box, while `raise=` moves the whole box). Example: `[{strength}]{bg=circle bg-color=red color=white weight=800}`.
 
 Colours: hex (`#A33A2A`), the 148 CSS colour names, colour variables (`red` or `{red}`). A field and a variable with the same name: the field wins. An unknown `{name}` that is neither a field, a variable nor an image is reported by `check`.
 
 ### System variables
 
-Naibi fills these by itself; write them like fields, in text and in formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}` (row in the set, from 1), `{set.rows}`, `{set.cards}` (cards with copies, sum of `amount`), `{card.copies}` (the card's `amount`), `{card.copy}` (copy being drawn, from 1; different per copy only in PDF and image exports with copies), `{card.side}` (`front` or `back`), `{date}` (today, `YYYY-MM-DD`). A field or project variable with the same name wins. Example footer: `{set.name} {card.number}/{set.rows}`.
+Naibi fills these by itself; write them like fields, in text and in formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}` (row in the set, from 1), `{set.rows}`, `{set.cards}` (cards with copies, sum of `amount`), `{card.copies}` (the card's `amount`), `{card.copy}` (copy being drawn, from 1; different per copy only in PDF and image exports with copies, and in TTS exports with `copiesIn: "sheet"`), `{card.side}` (`front` or `back`), `{date}` (today, `YYYY-MM-DD`). A field or project variable with the same name wins. Example footer: `{set.name} {card.number}/{set.rows}`.
 
 ## Formulas
 

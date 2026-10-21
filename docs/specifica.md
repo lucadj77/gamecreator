@@ -73,6 +73,7 @@ Il testo si salva, nel progetto e nel foglio, con un unico markup: Markdown per 
 | a capo                       | nuovo paragrafo                                          |
 | riga vuota                   | paragrafo vuoto (spazio verticale)                       |
 | `\` a fine riga              | a capo senza nuovo paragrafo                             |
+| `_testo_`                    | non va mai a capo, come `[testo]{nowrap}`                |
 
 Gli stili `heading1`, `heading2` e `note` esistono in ogni progetto e si modificano come gli altri.
 
@@ -96,6 +97,7 @@ Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come forma
 | `spacing=`                              | `{spacing=50}`                                | spaziatura caratteri in ‰, vale anche per le immagini nel testo                 |
 | `raise=`                                | `{raise=1}`                                   | spostamento dalla linea di base in pt                                           |
 | `upper`, `lower`, `smallcaps`           | `[Fase]{smallcaps}`                           | trasformazione                                                                  |
+| `nowrap`                                | `[4 monete]{nowrap}`                          | la porzione non va a capo                                                       |
 | `bold`, `italic`, `underline`, `strike` | `{.flavor italic}`                            | come i segni Markdown, utili negli stili                                        |
 | `left`, `center`, `right`, `justify`    | `{.flavor center}`                            | allineamento, solo per un paragrafo o in uno stile                              |
 
@@ -103,15 +105,16 @@ Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come forma
 
 Trasformano la porzione di testo in un riquadro in linea, che segue la riga come un'icona.
 
-| Attributo   | Esempio                             | Effetto                                                                                  |
-| ----------- | ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| `border=`   | `[Rapido]{border=red/0.3}`          | bordo attorno al testo, colore/spessore in mm                                            |
-| `fill=`     | `[Rapido]{fill=#EDE4D3}`            | colore di sfondo del riquadro                                                            |
-| `radius=`   | `{radius=1}` · `{radius=round}`     | raggio degli angoli in mm, `round` per una pillola o un cerchio                          |
-| `pad=`      | `{pad=0.5}` · `{pad=0.5/1}`         | margine interno in mm (verticale/orizzontale)                                            |
-| `bg=`       | `[7]{bg=square}` · `[3]{bg=shield}` | immagine di sfondo: una variabile immagine o un file; il testo è centrato sopra          |
-| `bg-color=` | `{bg=shield bg-color=blue}`         | tinta dell'immagine di sfondo                                                            |
-| `bg-size=`  | `{bg-size=140%}` · `{bg-size=4}`    | dimensione dello sfondo rispetto alla riga o in mm; di base si adatta al testo più `pad` |
+| Attributo     | Esempio                             | Effetto                                                                                  |
+| ------------- | ----------------------------------- | ---------------------------------------------------------------------------------------- |
+| `border=`     | `[Rapido]{border=red/0.3}`          | bordo attorno al testo, colore/spessore in mm                                            |
+| `fill=`       | `[Rapido]{fill=#EDE4D3}`            | colore di sfondo del riquadro                                                            |
+| `radius=`     | `{radius=1}` · `{radius=round}`     | raggio degli angoli in mm, `round` per una pillola o un cerchio                          |
+| `pad=`        | `{pad=0.5}` · `{pad=0.5/1}`         | margine interno in mm (verticale/orizzontale)                                            |
+| `bg=`         | `[7]{bg=square}` · `[3]{bg=shield}` | immagine di sfondo: una variabile immagine o un file; il testo è centrato sopra          |
+| `bg-color=`   | `{bg=shield bg-color=blue}`         | tinta dell'immagine di sfondo                                                            |
+| `bg-size=`    | `{bg-size=140%}` · `{bg-size=4}`    | dimensione dello sfondo rispetto alla riga o in mm; di base si adatta al testo più `pad` |
+| `text-raise=` | `[-1]{bg=cuore text-raise=1}`       | sposta in su (in pt, negativo in giù) solo il testo dentro il riquadro, non il riquadro  |
 
 Esempi:
 
@@ -264,18 +267,18 @@ Se il nome è un campo, il suo valore diventa il nome dell'immagine: con `icona`
 
 Valori che Naibi conosce da sé, scritti come i campi nei testi e nelle formule. Il punto nel nome li distingue dalle variabili del progetto, che non lo ammettono; un campo o una variabile con lo stesso nome ha comunque la precedenza.
 
-| Variabile         | Valore                                                                                         |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| `{project.name}`  | nome del progetto                                                                              |
-| `{set.name}`      | nome del set                                                                                   |
-| `{template.name}` | nome del template della carta (anche quello scelto nella colonna `template`)                   |
-| `{card.number}`   | riga della carta nel set, da 1                                                                 |
-| `{set.rows}`      | righe del set                                                                                  |
-| `{set.cards}`     | carte del set con le copie: somma di `amount` (vuoto vale 1)                                   |
-| `{card.copies}`   | `amount` della carta                                                                           |
-| `{card.copy}`     | copia disegnata, da 1; diversa per ogni copia solo esportando PDF e immagini con le copie      |
-| `{card.side}`     | `front` o `back`                                                                               |
-| `{date}`          | data di oggi, AAAA-MM-GG                                                                       |
+| Variabile         | Valore                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| `{project.name}`  | nome del progetto                                                                         |
+| `{set.name}`      | nome del set                                                                              |
+| `{template.name}` | nome del template della carta (anche quello scelto nella colonna `template`)              |
+| `{card.number}`   | riga della carta nel set, da 1                                                            |
+| `{set.rows}`      | righe del set                                                                             |
+| `{set.cards}`     | carte del set con le copie: somma di `amount` (vuoto vale 1)                              |
+| `{card.copies}`   | `amount` della carta                                                                      |
+| `{card.copy}`     | copia disegnata, da 1; diversa per ogni copia solo esportando PDF e immagini con le copie |
+| `{card.side}`     | `front` o `back`                                                                          |
+| `{date}`          | data di oggi, AAAA-MM-GG                                                                  |
 
 Dove manca il contesto (l'editor senza carta in anteprima, la miniatura di un template senza set) i valori del set e della carta sono vuoti. In Tabletop Simulator tutte le copie mostrano `{card.copy}` = 1, perché il mazzo ripete la stessa immagine.
 
@@ -329,7 +332,7 @@ Quando si cambiano le dimensioni di un template che contiene già livelli, l'app
 
 Accanto a larghezza e altezza, sia del template (nel pannello proprietà e nella finestra del nuovo template) sia dei livelli, un lucchetto mantiene le proporzioni: chiuso, cambiando una misura l'altra segue. Sul livello vale anche per le maniglie sulla carta, comprese quelle sui lati (l'altra misura cresce centrata); senza lucchetto Maiuscolo tiene le proporzioni solo per il trascinamento in corso. Lo stato del lucchetto è una preferenza dell'interfaccia, ricordata per tipo di livello e per i template.
 
-Stato (ottobre 2026): la forma della carta può essere rettangolo con raggio, cerchio o ellisse, esagono (con i lati piatti in alto se la carta è più larga che alta, con le punte in alto altrimenti) o la sagoma di un'immagine del progetto (PNG con trasparenza o SVG), salvata come tracciato SVG in coordinate 0–1. La forma ritaglia la carta nell'editor, nelle anteprime, nelle immagini e nel PDF senza abbondanza; con l'abbondanza la carta resta rettangolare e la forma compare come linea di taglio, perché la tipografia la ritaglia da lì. L'area sicura segue la forma. In Tabletop Simulator il mazzo resta di carte rettangolari, con la forma disegnata all'interno. Le guide manuali si aggiungono dal pannello del template (verticali e orizzontali), si spostano trascinandole sulla carta e si tolgono trascinandole fuori; i livelli vi si agganciano quando è attivo l'aggancio agli oggetti, e una guida trascinata si aggancia ai lati e al centro della carta e dell'area sicura.
+Stato (ottobre 2026): la forma della carta può essere rettangolo con raggio, cerchio o ellisse, esagono regolare (il più grande che sta nella carta, al centro, con i lati piatti in alto se la carta è più larga che alta, con le punte in alto altrimenti; riempie la carta quando il lato corto è il lato lungo × √3/2, e **Adatta la carta all'esagono** cambia il lato corto in questo modo) o la sagoma di un'immagine del progetto (PNG con trasparenza o SVG), salvata come tracciato SVG in coordinate 0–1. La forma ritaglia la carta nell'editor, nelle anteprime, nelle immagini e nel PDF senza abbondanza; con l'abbondanza la carta resta rettangolare e la forma compare come linea di taglio, perché la tipografia la ritaglia da lì. L'area sicura segue la forma. In Tabletop Simulator il mazzo resta di carte rettangolari, con la forma disegnata all'interno. Le guide manuali si aggiungono dal pannello del template (verticali e orizzontali), si spostano trascinandole sulla carta e si tolgono trascinandole fuori; i livelli vi si agganciano quando è attivo l'aggancio agli oggetti, e una guida trascinata si aggancia ai lati e al centro della carta e dell'area sicura.
 
 Le voci della barra laterale (set, template, stili, variabili) si riordinano trascinandole; ⌘Z annulla. Quando un elenco non è in ordine alfabetico, accanto al + compare **A–Z**, che lo riporta in ordine alfabetico. L'ordine si salva nel progetto (docs/formato.md).
 
@@ -409,11 +412,14 @@ Con fronte e retro senza `%side` nel modello, il lato si aggiunge in fondo al no
 | poster               | le carte più grandi della pagina si dividono su più pagine che si sovrappongono (mm), con il nome di ogni parte (A1, B1…) |
 | piegatura            | fronte e retro affiancati sulla stessa pagina, con linea di piegatura                                                     |
 | file                 | unico, uno per set, uno per lato                                                                                          |
+| set di seguito       | i set uno dopo l'altro sulla stessa pagina invece che ciascuno da una pagina nuova (non con un file per set)              |
 | fogli di prova       | PDF a parte con tutte le carte in piccolo, con set e numero                                                               |
 
 Il poster vale con la disposizione automatica: una carta che non entra nella pagina, nemmeno ruotata, si divide in parti uguali che si sovrappongono almeno quanto indicato (di base 10 mm), scegliendo l'orientamento con meno pagine. Ogni pagina porta i segni di taglio della carta dove cadono, dei trattini corti nei margini dove comincia la parte accanto e, sotto, il nome della parte con set e numero della carta. I retri seguono come pagine a parte, senza fronte-retro. Le carte ruotate girano in senso orario; nel fronte-retro i retri ruotano in modo da combaciare con i fronti quando si gira il foglio. Senza abbondanza gli angoli sono arrotondati come nel template; togliendo l'opzione la carta resta un rettangolo. Con l'abbondanza le carte sono sempre rettangolari. Nel fronte-retro i retri si specchiano sulle colonne quando si gira il foglio sul lato lungo di una pagina verticale (o sul lato corto di una orizzontale), altrimenti sulle righe.
 
 Con la piegatura ogni carta occupa una cella larga il doppio, con il fronte a sinistra e il retro a destra, entrambi dritti: piegando lungo i trattini (sopra e sotto la coppia) il retro finisce dietro il fronte. Con l'abbondanza la coppia la ha solo all'esterno; senza, le carte sono rettangoli di taglio. Fronte-retro, scelta dei lati, rotazione e poster non valgono.
+
+Con **Uno dopo l'altro sulla stessa pagina** (`continuous`) i set vicini nel PDF non cominciano su una pagina nuova. Set con la stessa griglia (stessa misura della carta, stessa rotazione) diventano una sola sequenza di carte: 10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3. Un set con un'altra griglia comincia su una riga nuova sotto il precedente, se nella pagina c'è posto in altezza; ogni set tiene le sue colonne, la sua rotazione e la sua centratura orizzontale, le righe della pagina si centrano in verticale e tra un set e l'altro resta lo spazio dei segni di taglio. Con i segni a linee intere le linee verticali restano all'altezza del loro set, perché non attraversino gli altri: si taglia prima tra un set e l'altro. I set divisi a poster restano su pagine loro; nella piegatura si uniscono solo set con la stessa griglia. Con un file per set l'opzione non vale.
 
 Il foglio di prova è un PDF in più (`nome_proof.pdf`) con tutte le carte del set in piccolo, una per riga del foglio senza copie, con set e numero sotto; i retri compaiono se si esportano.
 
@@ -430,8 +436,13 @@ Il PDF è vettoriale, con i font incorporati e in RGB. **Converti in CMYK** pass
 | oggetto salvato    | file JSON del mazzo pronto da caricare                                                                                                                                            |
 | Nickname           | vuoto oppure da un campo a scelta (di base il primo campo di testo, per esempio `nome`)                                                                                           |
 | Description        | vuota oppure da un campo a scelta                                                                                                                                                 |
+| oggetti            | per set: carte (mazzo), segnalini (`Custom_Token`) o tessere (`Custom_Tile`), con spessore e, per le tessere, colore del bordo                                                    |
 
 La griglia automatica sceglie, tra 2 × 2 e 10 × 7, quella con meno posizioni vuote e, a parità, il foglio più vicino al quadrato. Le carte non superano 300 DPI. Le copie non si ripetono sul foglio: il mazzo richiama più volte la stessa posizione. Si scrivono `<set>.json` (oggetto salvato), `<set>.png` (miniatura) e i fogli in `images/`; i fogli si richiamano con indirizzi `file:///`, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online le immagini vanno caricate su un servizio web e gli indirizzi cambiati in Tabletop Simulator. La cartella predefinita di Tabletop Simulator è `~/Library/Tabletop Simulator/Saves/Saved Objects` su macOS, `Documenti/My Games/Tabletop Simulator/Saves/Saved Objects` su Windows; dentro si crea una cartella con il nome del progetto.
+
+Le opzioni per set stanno in `objects`, per nome del set: `{ "type": "card" | "token" | "tile", "thickness": 2, "edgeColor": "#FFFFFF" }`; un set assente è un mazzo di carte. Rinominando un set la sua voce segue. Segnalini e tessere non usano i fogli: ogni carta è un'immagine (`<set>_<n>.png`, e `<set>_<n>_back.png` per il retro delle tessere) fino a 300 DPI e alla dimensione massima scelta. Il segnalino è la carta ritagliata sulla sua forma, su fondo trasparente con 1 mm di margine, perché Tabletop Simulator ritaglia il pezzo seguendo la trasparenza; il retro della carta non si usa, perché sotto il segnalino mostra il fronte specchiato. La tessera è il rettangolo della carta su fondo bianco e la sua forma viene dalla carta: rettangolo (Type 0), rettangolo con raggio (3), esagono (1), cerchio o ellisse (2); una sagoma diventa un rettangolo. Il colore del bordo è la tinta della tessera (`ColorDiffuse`), che in Tabletop Simulator colora solo i lati; può essere un colore del progetto, scritto per nome. Lo spessore è in mm. Più pezzi vanno in un sacchetto (`Bag`), una voce per copia; un pezzo solo è l'oggetto salvato.
+
+Tabletop Simulator non ha una scala assoluta: a scala 1 ogni tipo di oggetto ha una misura fissa, qualunque sia l'immagine. Misurate con il righello di TTS (in unità, che mostra come pollici): una carta è larga 2,25 (una carta da 63 mm), una tessera 2 sul lato lungo, un segnalino circa 3,2 sul lato lungo dell'immagine. Naibi prende 2,25 unità = 63 mm (`TTS_UNITS_PER_MM` in `src/shared/export.ts`) e dà a carte, segnalini e tessere la scala (X e Z) che li porta alla loro misura in mm; la scala Y resta 1 e lo spessore in mm diventa `Thickness` in unità. Le carte da 63 mm restano a scala 1. Le misure di base sono stime prese a occhio: se un tipo risulta sproporzionato si correggono le costanti.
 
 ### 9.4 Preset per tipografie
 

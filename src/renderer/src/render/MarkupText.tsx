@@ -158,13 +158,19 @@ function SpanView({
   children: Inline[]
 }): React.JSX.Element {
   const inner = <Inlines list={children} k={k} styles={styles} />
-  if (!isBox(a)) return <span style={textStyle(a, k)}>{inner}</span>
+  // fuori da un riquadro text-raise sposta il testo come raise
+  if (!isBox(a))
+    return (
+      <span style={textStyle({ ...a, raise: (a.raise ?? 0) + (a.textRaise ?? 0) }, k)}>
+        {inner}
+      </span>
+    )
 
   // riquadro: la dimensione va sul contenitore, così le misure in em valgono per entrambi;
   // il colore va sul testo, così lo sfondo prende di base il colore del testo intorno
-  const { color, highlight, ...rest } = a
+  const { color, highlight, textRaise, ...rest } = a
   const outer = textStyle({ ...rest, styles: [] }, k)
-  const textOnly = textStyle({ styles: [], color, highlight }, k)
+  const textOnly = textStyle({ styles: [], color, highlight, raise: textRaise }, k)
   const [pv, ph] = a.pad ?? (a.bg ? [0, 0.4] : [0.2, 0.6])
   const fill = resolveColor(a.fill, k.pal)
   const radius =
@@ -220,7 +226,7 @@ function SpanView({
         border={a.border && { ...a.border, color: resolveColor(a.border.color, k.pal) }}
         unit={k.unit}
       />
-      <span style={{ ...textOnly, position: 'relative' }}>{inner}</span>
+      <span style={{ position: 'relative', ...textOnly }}>{inner}</span>
     </span>
   )
 }
@@ -235,7 +241,8 @@ const SHAPES: Record<string, (p: React.SVGProps<SVGElement>) => React.JSX.Elemen
   ),
   hexagon: (p) => (
     <polygon
-      points="25,0 75,0 100,50 75,100 25,100 0,50"
+      // esagono regolare: alto √3 / 2 della larghezza, al centro del quadrato
+      points="25,6.7 75,6.7 100,50 75,93.3 25,93.3 0,50"
       {...(p as React.SVGProps<SVGPolygonElement>)}
     />
   ),
@@ -429,5 +436,6 @@ function textStyle(a: Attrs, k: Scale): CSSProperties {
   if (a.transform === 'upper') s.textTransform = 'uppercase'
   if (a.transform === 'lower') s.textTransform = 'lowercase'
   if (a.transform === 'smallcaps') s.fontVariant = 'small-caps'
+  if (a.nowrap) s.whiteSpace = 'nowrap'
   return s
 }

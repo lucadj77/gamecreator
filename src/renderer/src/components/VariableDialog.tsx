@@ -1,4 +1,6 @@
 import { useContext, useMemo, useState } from 'react'
+import UsagesSection, { type UsagesNav } from './UsagesSection'
+import GroupField from './GroupField'
 import { substituteFields } from '../../../shared/model/bind'
 import {
   VARIABLE_TYPES,
@@ -28,13 +30,21 @@ const IMAGE_LIST = 'variable-images'
 
 export default function VariableDialog({
   name: initialName,
+  group: initialGroup = '',
+  groups = [],
+  usages,
   onSave,
   onDelete,
   onClose
 }: {
   /** '' per una variabile nuova */
   name: string
-  onSave(name: string, v: Variable): void
+  /** Gruppo nella barra laterale e gruppi già usati */
+  group?: string
+  groups?: string[]
+  /** Dove è usata la variabile, per una variabile che esiste già */
+  usages?: UsagesNav
+  onSave(name: string, v: Variable, group: string): void
   onDelete(): void
   onClose(): void
 }): React.JSX.Element {
@@ -42,6 +52,7 @@ export default function VariableDialog({
   const variables = useContext(VariablesContext)
   const assets = useContext(AssetsContext)
   const [name, setName] = useState(initialName)
+  const [group, setGroup] = useState(initialGroup)
   const [v, setV] = useState<Variable>(variables[initialName] ?? emptyVariable('image'))
   // si tiene il contenuto di ogni tipo, così cambiare tipo per prova non lo perde
   const [byType, setByType] = useState<Partial<Record<VariableType, Variable>>>({})
@@ -105,6 +116,8 @@ export default function VariableDialog({
             validate={(x) => (!x || isValidVariableName(x) ? null : t('variable.invalidName'))}
             onChange={setName}
           />
+          <GroupField value={group} groups={groups} onChange={setGroup} />
+          {usages && <UsagesSection {...usages} />}
           <div className="field">
             <span className="field-label">{t('variable.type')}</span>
             <span className="field-control">
@@ -249,7 +262,7 @@ export default function VariableDialog({
           <button
             className="primary"
             disabled={!name || !!nameError}
-            onClick={() => onSave(name, clean(v))}
+            onClick={() => onSave(name, clean(v), group)}
           >
             {t('variable.save')}
           </button>

@@ -5,6 +5,168 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.16
+
+### English
+
+- New box attribute `text-raise=`: moves only the text inside a box (`bg=`, `fill=`, `border=`) up by the given pt, or down with a negative value, without moving the box. It also works in a style, for example `.heart = bg=heart color=white text-raise=1`, and appears in the Format dialog under the box settings.
+
+### Italiano
+
+- Nuovo attributo dei riquadri `text-raise=`: sposta in su dei pt indicati, o in giù con un valore negativo, solo il testo dentro un riquadro (`bg=`, `fill=`, `border=`) senza spostare il riquadro. Vale anche in uno stile, per esempio `.cuore = bg=cuore color=white text-raise=1`, e compare nella finestra Formato tra le impostazioni del riquadro.
+
+## 1.2.0-beta.15
+
+### English
+
+- Project notes: a new **Notes** section at the bottom of the sidebar. The + creates a note, a click opens it in a panel beside any screen (sets, templates). Notes are written in Markdown, with a **Preview**, are renamed from their title and save themselves as you type, as `notes/<name>.md` files in the project. Deleted notes go to the `deleted` folder.
+- An AI working on the project reads the notes with the new `naibi notes` command (also listed by `naibi info`); the skill asks it to read them before working.
+
+### Italiano
+
+- Note del progetto: una nuova sezione **Note** in fondo alla barra laterale. Il + crea una nota, un clic la apre in un pannello accanto a qualsiasi schermata (set, template). Le note si scrivono in Markdown, con un'**Anteprima**, si rinominano dal titolo e si salvano da sole mentre si scrive, come file `notes/<nome>.md` del progetto. Le note eliminate vanno nella cartella `deleted`.
+- Un'IA che lavora sul progetto legge le note con il nuovo comando `naibi notes` (le elenca anche `naibi info`); la skill le chiede di leggerle prima di lavorare.
+
+## 1.2.0-beta.14
+
+### English
+
+- Set view: **Reset** in the **Columns** menu goes back to the basic view. Only the columns read by layers linked to a column stay visible, with their properties in the field details, which close. Sheet columns no layer reads, for example left over from an imported TTC project, are hidden; nothing is deleted.
+
+### Italiano
+
+- Vista del set: **Ripristina** nel menu **Colonne** torna alla vista di base. Restano visibili solo le colonne lette dai livelli collegati a una colonna, con le loro proprietà nei dettagli dei campi, che si chiudono. Le colonne del foglio che nessun livello legge, per esempio rimaste da un progetto TTC importato, si nascondono; non si cancella niente.
+
+## 1.2.0-beta.13
+
+### English
+
+- Editor, like Affinity: holding Shift while moving a layer keeps it horizontal, vertical or at 45°. While resizing, Shift switches the proportion lock (before, it could only turn it on) and ⌘ (Ctrl on Windows) resizes from the center.
+- The hexagon is now regular (all sides and angles equal): as card shape, where it is the largest that fits in the card (**Fit the card to the hexagon** adjusts the short side so it fills the card), and as text background (`bg=hexagon`). Before, it was stretched to the card size. Polygon and star layers get a **Make regular** button.
+- Text: underscores keep a piece of text on one line, so a number and its icon never get separated: `_4{coin}_`. The same as the new `nowrap` attribute: `[4{coin}]{nowrap}`.
+- Styles and variables can be split into groups (**Group** field in their window, or by dragging an item onto a group heading or next to an item of another group). In the sidebar each group has a heading that closes with a click; with more than 12 items a field filters them by name.
+- Sidebar: the Sets, Templates, Styles and Variables headings stand out as colored bands, with larger icons and buttons.
+- The style and variable windows show **Where it is used**: templates with their layers, sets with card numbers, other variables and styles. Clicking a template or set opens it.
+- PDF export: new **One after another on the same page** option. A set starts right after the previous one instead of on a new page, so 10 + 8 cards with 9 per page take 2 pages, not 3. A set with cards of another size starts on a new row of the same page, if there is room.
+
+### Italiano
+
+- Editor, come in Affinity: tenendo premuto Maiuscolo mentre si sposta un livello, questo resta in orizzontale, in verticale o a 45°. Ridimensionando, Maiuscolo inverte il blocco delle proporzioni (prima poteva solo attivarlo) e ⌘ (Ctrl su Windows) ridimensiona dal centro.
+- L'esagono ora è regolare (lati e angoli tutti uguali): come forma della carta, dove è il più grande che sta nella carta (**Adatta la carta all'esagono** cambia il lato corto perché la riempia), e come sfondo nel testo (`bg=hexagon`). Prima si allungava sulle misure della carta. I livelli poligono e stella hanno un pulsante **Rendi regolare**.
+- Testo: i trattini bassi tengono un pezzo di testo sulla stessa riga, così un numero e la sua icona non si separano: `_4{moneta}_`. È lo stesso del nuovo attributo `nowrap`: `[4{moneta}]{nowrap}`.
+- Stili e variabili si possono dividere in gruppi (campo **Gruppo** nella loro finestra, oppure trascinando una voce sul titolo di un gruppo o accanto a una voce di un altro gruppo). Nella barra laterale ogni gruppo ha un titolo che si chiude con un clic; con più di 12 voci un campo le filtra per nome.
+- Barra laterale: i titoli Set, Template, Stili e Variabili risaltano come fasce colorate, con icone e pulsanti più grandi.
+- Le finestre di stili e variabili mostrano **Dove si usa**: template con i livelli, set con i numeri delle carte, altre variabili e stili. Un clic su un template o su un set lo apre.
+- Esportazione in PDF: nuova opzione **Uno dopo l'altro sulla stessa pagina**. Un set comincia subito dopo il precedente invece che su una pagina nuova, quindi 10 + 8 carte con 9 per pagina occupano 2 pagine e non 3. Un set con carte di un'altra misura comincia su una riga nuova della stessa pagina, se c'è posto.
+
+## 1.2.0-beta.12
+
+### English
+
+- Tabletop Simulator export: new **Objects** option, set by set. Besides **Cards** (the deck, as before), a set can become **Tokens** or **Tiles**.
+  - A token is the card cut out along its shape, with a thickness; underneath, Tabletop Simulator shows the front mirrored.
+  - A tile has the card front and back, the card shape (square, rounded, hexagonal or round), a thickness and an **Edge** color.
+  - Thickness is in mm. The pieces of a set go into a bag, copies included.
+  - Cards, tokens and tiles keep their true proportions in Tabletop Simulator: a 63 mm card keeps the usual size, smaller or larger cards and pieces are scaled to match.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator: nuova opzione **Oggetti**, set per set. Oltre a **Carte** (il mazzo, come prima), un set può diventare **Segnalini** o **Tessere**.
+  - Un segnalino è la carta ritagliata sulla sua forma, con uno spessore; sotto, Tabletop Simulator mostra il fronte specchiato.
+  - Una tessera ha fronte e retro della carta, la forma della carta (quadrata, arrotondata, esagonale o rotonda), uno spessore e un colore del **Bordo**.
+  - Lo spessore è in mm. I pezzi di un set vanno in un sacchetto, copie comprese.
+  - Carte, segnalini e tessere mantengono in Tabletop Simulator le proporzioni vere: una carta da 63 mm resta della misura solita, carte e pezzi più piccoli o più grandi si scalano di conseguenza.
+
+## 1.2.0-beta.11
+
+### English
+
+- Web version: most of what was desktop-only now works in the browser too.
+  - **Icon libraries** (game-icons.net, Kenney, Iconify) and **Google Fonts** (the Latin alphabet, accented letters included).
+  - **Fonts installed on the computer**, in Chrome and Edge after you allow it.
+  - **Backups**. Without a chosen folder they stay in the browser, and clearing the site data deletes them.
+  - **Tabletop Creator import**.
+  - **Tabletop Simulator export**. Choose the Tabletop Simulator folder, then paste its full path the first time. The browser does not give the path, and the deck needs it to find the images; the site remembers it. On macOS the browser cannot open the Saved Objects folder: docs/web.md explains how to work around it.
+- New **Add images…** button in the image picker, in the desktop app and in the web version. It copies images from the computer into `assets/images` of the project. A file with the same name is not overwritten: the copy gets a number.
+- The **Help** window has a link to the complete user guide at the top.
+- Image picker: new **Dark background** button, to see white icons. The choice is remembered.
+
+### Italiano
+
+- Versione web: gran parte di ciò che c'era solo nell'app desktop ora funziona anche nel browser.
+  - **Librerie di icone** (game-icons.net, Kenney, Iconify) e **Google Fonts** (alfabeto latino, lettere accentate comprese).
+  - **Font installati sul computer**, in Chrome ed Edge dopo averlo consentito.
+  - **Backup**. Senza una cartella scelta restano nel browser, e cancellando i dati del sito si perdono.
+  - **Importazione da Tabletop Creator**.
+  - **Esportazione per Tabletop Simulator**. Si sceglie la cartella di Tabletop Simulator e la prima volta si incolla il suo percorso completo. Il browser non lo fornisce, e al mazzo serve per trovare le immagini; il sito lo ricorda. Su macOS il browser non può aprire la cartella Saved Objects: docs/web.md spiega come aggirarlo.
+- Nuovo pulsante **Aggiungi immagini…** nella scelta delle immagini, nell'app desktop e nella versione web. Copia immagini dal computer in `assets/images` del progetto. Un file con lo stesso nome non si sovrascrive: la copia prende un numero.
+- La finestra **Aiuto** ha in cima un link alla guida completa.
+- Scelta delle immagini: nuovo pulsante **Sfondo scuro**, per vedere le icone bianche. La scelta viene ricordata.
+
+## 1.2.0-beta.10
+
+### English
+
+- New **web version**: Naibi in the browser, with nothing to install, at https://lucadj77.github.io/naibi/. It is meant for computers where the app cannot be installed or started, for example office PCs that block unsigned programs. It works on the project folders of your computer and the projects are the same files as in the desktop app. It needs Chrome, Edge or Opera (Brave only after turning on brave://flags/#file-system-access-api), and the browser asks for permission on the project folder each time. Editing, data, templates, image export and PDF export (through the browser print window) are there; Tabletop Simulator, icon libraries, Google Fonts, backups, Tabletop Creator import and the tools for AI agents stay in the desktop app. **What the desktop app adds**, at the bottom of the start screen, lists the differences.
+
+### Italiano
+
+- Nuova **versione web**: Naibi nel browser, senza installare nulla, all'indirizzo https://lucadj77.github.io/naibi/. Serve sui computer dove l'app non si può installare o avviare, per esempio i PC aziendali che bloccano i programmi non firmati. Lavora sulle cartelle dei progetti del tuo computer e i progetti sono gli stessi file dell'app desktop. Richiede Chrome, Edge o Opera (Brave solo dopo aver attivato brave://flags/#file-system-access-api), e il browser chiede ogni volta il permesso sulla cartella del progetto. Ci sono modifica, dati, template, esportazione delle immagini ed esportazione PDF (dalla finestra di stampa del browser); Tabletop Simulator, librerie di icone, Google Fonts, backup, importazione da Tabletop Creator e strumenti per gli agenti IA restano nell'app desktop. **Cosa ha in più la versione desktop**, in fondo alla schermata iniziale, elenca le differenze.
+
+## 1.2.0-beta.9
+
+### English
+
+- Tabletop Simulator export: new **Copies on the sheet** option, shown when Copies is on. "Once" works as before: each card appears once on the sheet and the deck file multiplies it. "Repeated on the sheet" draws each copy in its own slot, as many times as `amount` says, so the sheets can be loaded into Tabletop Simulator by hand without the deck file. With this choice `{card.copy}` numbers the copies on the sheet too.
+- `naibi` command on Windows: the installed app now has `naibi-cli.cmd` next to `naibi.exe`, and **AI tools…** gives that command. Launched directly, `naibi.exe` returned to the prompt before finishing, without its exit code, and inside the sandbox of some AI agents (Codex) it closed at once. The `.cmd` waits for the end, returns the exit code and starts without Chromium's sandbox. The installer also lets sandboxed agents (Codex) read and run Naibi's folder, read-only, so no permission needs changing by hand. Copy the skill again into your agent to update it.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator: nuova opzione **Copie nel foglio**, visibile quando Copie è attivo. "Una volta" funziona come prima: ogni carta compare una volta nel foglio e il file del mazzo la moltiplica. "Ripetute nel foglio" disegna ogni copia in una sua posizione, quante volte dice `amount`, così i fogli si possono caricare a mano in Tabletop Simulator senza il file del mazzo. Con questa scelta anche `{card.copy}` numera le copie nel foglio.
+- Comando `naibi` su Windows: l'app installata ha ora `naibi-cli.cmd` accanto a `naibi.exe`, e **Strumenti IA…** indica questo comando. Lanciato direttamente, `naibi.exe` tornava al prompt prima di finire, senza codice di uscita, e dentro la sandbox di alcuni agenti IA (Codex) si chiudeva subito. Il `.cmd` aspetta la fine, restituisce il codice di uscita e parte senza la sandbox di Chromium. L'installer inoltre permette agli agenti in sandbox (Codex) di leggere ed eseguire la cartella di Naibi, senza poterla modificare, così non serve cambiare permessi a mano. Copia di nuovo la skill nel tuo agente per aggiornarla.
+
+## 1.2.0-beta.8
+
+### English
+
+- Export dialog: many warnings (for example images not found and replaced with a placeholder) no longer push the buttons off the bottom of the screen. The warnings scroll in their own box, the dialog scrolls if the screen is low, and the buttons stay visible at the bottom.
+
+### Italiano
+
+- Finestra Esporta: molti avvisi (per esempio immagini non trovate e sostituite con un segnaposto) non spingono più i pulsanti fuori dallo schermo. Gli avvisi scorrono in un riquadro a sé, la finestra scorre se lo schermo è basso e i pulsanti restano visibili in fondo.
+
+## 1.2.0-beta.7
+
+### English
+
+- Tabletop Simulator export on Windows: the saved objects now load in TTS. The image addresses in the JSON were written as standard file URLs (`/` and `%20`), which TTS on Windows does not read; they are now written as TTS writes them itself, `file:///C:\...` with backslashes. Export again to update the files.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator su Windows: gli oggetti salvati ora si caricano in TTS. Gli indirizzi delle immagini nel JSON erano scritti come URL di file standard (`/` e `%20`), che TTS su Windows non legge; ora sono scritti come li scrive TTS stesso, `file:///C:\...` con le barre rovesciate. Esporta di nuovo per aggiornare i file.
+
+## 1.2.0-beta.6
+
+### English
+
+- Tabletop Simulator export on Windows: card images could stay "still waiting" until the export stopped, even if they show in the app. The export no longer waits for Chromium to pre-decode each image, which in the hidden export window may never answer; it waits for the image to load and then draws it.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator su Windows: le immagini delle carte potevano restare "in attesa" fino all'arresto dell'esportazione, anche se nell'app si vedono. L'esportazione non aspetta più che Chromium decodifichi in anticipo ogni immagine, cosa che nella finestra nascosta di esportazione può non rispondere mai; aspetta che l'immagine sia caricata e poi la disegna.
+
+## 1.2.0-beta.5
+
+### English
+
+- Exports to Tabletop Simulator with large sheets (many cards, big images, 4096 px or more) no longer stop with "the export page did not answer within 60 s". The 60 s limit introduced in 1.2.0-beta.4 counted the whole sheet; now an export can take as long as it needs while it keeps working, and stops only when nothing moves for 60 s.
+- When an export does get stuck, the error now says what it was waiting for: the names of the images or fonts that did not load, a page that stopped drawing, or a page that closed.
+
+### Italiano
+
+- Le esportazioni per Tabletop Simulator con fogli grandi (molte carte, immagini pesanti, 4096 px o più) non si fermano più con "the export page did not answer within 60 s". Il limite di 60 s introdotto nella 1.2.0-beta.4 contava tutto il foglio; ora un'esportazione può durare quanto serve finché procede, e si ferma solo se per 60 s non succede niente.
+- Quando un'esportazione si blocca davvero, l'errore dice cosa stava aspettando: i nomi delle immagini o dei font che non si sono caricati, una pagina che ha smesso di disegnare o una pagina che si è chiusa.
+
 ## 1.2.0-beta.4
 
 ### English

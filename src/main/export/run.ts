@@ -1,16 +1,15 @@
-import { execFile } from 'child_process'
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises'
-import { tmpdir } from 'os'
+import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
-import { promisify } from 'util'
 import { pathToFileURL } from 'url'
-import type { NativeImage } from 'electron'
 import {
   defaultTtsFolder,
+  ttsImageUrl,
   pageSize,
   safeName,
   uniqueNames,
   ttsSavedObject,
+  ttsSavedPieces,
+  ttsTileType,
   type ExportCard,
   type ExportContext,
   type ExportJob,
@@ -22,6 +21,7 @@ import {
   type Scene,
   type TtsDeckCard,
   type TtsOptions,
+  type TtsPiece,
   type TtsSheet
 } from '../../shared/export'
 import {
@@ -29,23 +29,52 @@ import {
   imageExtension,
   planImages,
   planPdf,
+  piecePage,
   planTts,
   sheetPage,
-  type TtsChunk
+  type TtsChunk,
+  type TtsPiecePlan,
+  type TtsSetPlan
 } from '../../shared/exportPlan'
 import { plainText } from '../../shared/model/markup'
+import { palette, resolveColor } from '../../shared/model/variables'
 import { msg } from '../../shared/messages'
 import type { Side, Template } from '../../shared/model/template'
-import { ExportWindow } from './window'
 
 // Esegue un'esportazione: prepara le scene, le fa disegnare alla finestra nascosta e scrive i file.
-
-const execFileAsync = promisify(execFile)
+// La finestra arriva da chi chiama (window.ts nell'app, un iframe nella versione web), così questo
+// file non dipende da Electron.
 
 /** 96 pixel CSS per pollice: le pagine del PDF si misurano così */
 const PDF_SCALE = 96 / 25.4
 
+/** Immagine catturata, come NativeImage di Electron */
+export interface CapturedImage {
+  toPNG(): Buffer
+  toJPEG(quality: number): Buffer
+}
+
+/** Ciò che disegna le scene: la finestra nascosta di Electron o, nel browser, un iframe */
+export interface RenderWindow {
+  /** Disegna la scena e aspetta che immagini, font e adattamenti del testo siano finiti */
+  show(scene: Scene, width: number, height: number): Promise<void>
+  capture(width: number, height: number): Promise<CapturedImage>
+  toWebp(png: Buffer, quality: number): Promise<Buffer>
+  toSvg(background: string | null): Promise<Buffer>
+  /** PDF delle pagine; null se le pagine sono andate alla stampa del browser e non c'è un file */
+  printToPdf(): Promise<Buffer | null>
+  close(): void
+}
+
 export interface RunEnv {
+  openWindow(context: ExportContext): Promise<RenderWindow>
+  /** Conversione del PDF in CMYK; null se non riesce, assente dove non si può fare */
+  toCmyk?(pdf: Buffer): Promise<Buffer | null>
+  /**
+   * Versione web: il percorso vero di un file sul computer (il browser ne conosce uno virtuale),
+   * per gli indirizzi delle immagini di Tabletop Simulator, e il sistema a cui appartiene
+   */
+  realPath?(file: string): { path: string; platform: string }
   projectFolder: string
   platform: string
   home: string
@@ -57,7 +86,7 @@ export interface RunEnv {
 
 interface Ctx {
   env: RunEnv
-  win: ExportWindow
+  win: RenderWindow
   result: ExportResult
   progress: ExportProgress
 }
@@ -66,7 +95,7 @@ export async function runExport(job: ExportJob, env: RunEnv): Promise<ExportResu
   const result: ExportResult = { files: 0, folders: [], warnings: [], cancelled: false }
   const sets = job.sets.filter((s) => s.cards.length)
   if (!sets.length) return result
-  const win = await ExportWindow.open(env.context)
+  const win = await env.openWindow(env.context)
   const ctx: Ctx = { env, win, result, progress: { done: 0, total: 0 } }
   try {
     if (job.kind === 'images') await exportImages(ctx, job.options, sets)
@@ -108,7 +137,7 @@ async function renderCard(
   side: Side,
   scale: number,
   opts: { bleed: boolean; mode: 'trim' | 'cut'; background: string | null }
-): Promise<NativeImage> {
+): Promise<CapturedImage> {
   const page = cardPage(t, side, opts.bleed, opts.mode)
   const w = Math.round(page.width * scale)
   const h = Math.round(page.height * scale)
@@ -186,6 +215,7 @@ async function exportPdf(
   const page = pageSize(o)
   const { docs, overflow } = planPdf(o, sets, project)
   let cmykWarned = false
+  let printed = false
   for (const set of overflow) ctx.result.warnings.push(msg('export.gridOverflow', { set }))
   ctx.progress.total = docs.length
   for (const doc of docs) {
@@ -199,8 +229,13 @@ async function exportPdf(
     }
     await ctx.win.show(scene, page.width * PDF_SCALE, page.height * PDF_SCALE)
     let pdf = await ctx.win.printToPdf()
+    if (!pdf) {
+      printed = true
+      step(ctx)
+      continue
+    }
     if (o.cmyk) {
-      const converted = await toCmyk(pdf)
+      const converted = ctx.env.toCmyk ? await ctx.env.toCmyk(pdf) : null
       if (converted) pdf = converted
       else if (!cmykWarned) {
         ctx.result.warnings.push(msg('export.cmykUnavailable'))
@@ -210,49 +245,7 @@ async function exportPdf(
     await write(ctx, join(folder, `${doc.name}.pdf`), pdf)
     step(ctx)
   }
-}
-
-/** Ghostscript, se installato: dalle app aperte dal Finder il PATH non comprende Homebrew */
-async function findGhostscript(): Promise<string | null> {
-  const names = process.platform === 'win32' ? ['gswin64c', 'gswin32c', 'gs'] : ['gs']
-  const dirs = ['', '/opt/homebrew/bin/', '/usr/local/bin/', '/usr/bin/']
-  for (const dir of dirs)
-    for (const name of names)
-      try {
-        await execFileAsync(dir + name, ['--version'])
-        return dir + name
-      } catch {
-        // si prova il prossimo
-      }
-  return null
-}
-
-/** Il PDF convertito in CMYK, o null se Ghostscript non c'è o la conversione non riesce */
-async function toCmyk(pdf: Buffer): Promise<Buffer | null> {
-  const gs = await findGhostscript()
-  if (!gs) return null
-  const dir = await mkdtemp(join(tmpdir(), 'naibi-cmyk-'))
-  try {
-    const input = join(dir, 'rgb.pdf')
-    const output = join(dir, 'cmyk.pdf')
-    await writeFile(input, pdf)
-    await execFileAsync(gs, [
-      '-q',
-      '-dNOPAUSE',
-      '-dBATCH',
-      '-dSAFER',
-      '-sDEVICE=pdfwrite',
-      '-sColorConversionStrategy=CMYK',
-      '-sProcessColorModel=DeviceCMYK',
-      `-sOutputFile=${output}`,
-      input
-    ])
-    return await readFile(output)
-  } catch {
-    return null
-  } finally {
-    await rm(dir, { recursive: true, force: true })
-  }
+  if (printed) ctx.result.warnings.push(msg('export.printed'))
 }
 
 // ——— Tabletop Simulator ———
@@ -281,11 +274,19 @@ async function exportTts(
   for (const t of targets) if (!ctx.result.folders.includes(t)) ctx.result.folders.push(t)
 
   const plans = planTts(o, sets)
-  ctx.progress.total = plans.reduce((n, p) => n + p.chunks.length * 2 + 1, 0)
+  ctx.progress.total = plans.reduce(
+    (n, p) => n + p.chunks.length * 2 + p.pieces.length * (p.object.type === 'tile' ? 2 : 1) + 1,
+    0
+  )
 
   // set con nomi che differiscono solo per caratteri non ammessi (a/b e a_b) non si sovrascrivono
   const stems = uniqueNames(plans.map((p) => safeName(p.set.name)))
-  for (const [index, { set, chunks, uniqueBack: unique }] of plans.entries()) {
+  for (const [index, plan] of plans.entries()) {
+    if (plan.pieces.length) {
+      await exportPieces(ctx, o, plan, stems[index], targets)
+      continue
+    }
+    const { set, chunks, uniqueBack: unique } = plan
     if (!chunks.length) continue
     const t0 = chunks[0].cards[0].template
 
@@ -321,8 +322,7 @@ async function exportTts(
     const deck: TtsDeckCard[] = []
     chunks.forEach((chunk, sheet) =>
       chunk.cards.forEach((card, slot) => {
-        const n = o.copies ? card.amount : 1
-        for (let i = 0; i < n; i++)
+        for (let i = 0; i < chunk.counts[slot]; i++)
           deck.push({
             sheet,
             slot,
@@ -348,19 +348,115 @@ async function exportTts(
           if (i === 0) await write(ctx, backFile, s.back)
         }
         ttsSheets.push({
-          faceUrl: pathToFileURL(faceFile).href,
-          backUrl: pathToFileURL(backFile).href,
+          faceUrl: imageUrl(env, faceFile),
+          backUrl: imageUrl(env, backFile),
           cols: s.cols,
           rows: s.rows,
           uniqueBack: s.uniqueBack
         })
       }
-      const object = ttsSavedObject(set.name, ttsSheets, deck)
+      const object = ttsSavedObject(set.name, ttsSheets, deck, t0.width)
       await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
       // miniatura mostrata da Tabletop Simulator tra gli oggetti salvati
       await write(ctx, join(target, `${stem}.png`), thumb)
     }
   }
+}
+
+/** Segnalini o tessere di un set: un'immagine per lato di ogni carta, un sacchetto con le copie */
+async function exportPieces(
+  ctx: Ctx,
+  o: TtsOptions,
+  plan: TtsSetPlan,
+  stem: string,
+  targets: string[]
+): Promise<void> {
+  const kind = plan.object.type === 'tile' ? 'tile' : 'token'
+  const images: { face: Buffer; back: Buffer | null }[] = []
+  for (const p of plan.pieces) {
+    const face = await renderPiece(ctx, p, 'front', kind)
+    step(ctx)
+    let back: Buffer | null = null
+    if (kind === 'tile') {
+      back = await renderPiece(ctx, p, 'back', kind)
+      step(ctx)
+    }
+    images.push({ face, back })
+  }
+  const t0 = plan.pieces[0].card.template
+  const thumb = (
+    await renderCard(ctx, t0, 'front', 256 / Math.max(t0.width, t0.height), {
+      bleed: false,
+      mode: 'trim',
+      background: null
+    })
+  ).toPNG()
+  step(ctx)
+
+  const env = ctx.env
+  // numeri con gli zeri davanti: i file restano in ordine anche nelle cartelle
+  const digits = String(plan.pieces.length).length
+  for (const target of targets) {
+    const pieces: TtsPiece[] = []
+    for (const [i, p] of plan.pieces.entries()) {
+      const n = String(i + 1).padStart(digits, '0')
+      const faceFile = join(target, 'images', `${stem}_${n}.png`)
+      await write(ctx, faceFile, images[i].face)
+      let backUrl = ''
+      if (images[i].back) {
+        const backFile = join(target, 'images', `${stem}_${n}_back.png`)
+        await write(ctx, backFile, images[i].back as Buffer)
+        backUrl = imageUrl(env, backFile)
+      }
+      pieces.push({
+        faceUrl: imageUrl(env, faceFile),
+        backUrl,
+        nickname: fieldText(p.card, o.nickname),
+        description: fieldText(p.card, o.description),
+        count: p.count
+      })
+    }
+    // il colore del bordo può essere un colore del progetto, scritto per nome
+    const edgeColor = resolveColor(plan.object.edgeColor, palette(env.context.variables))
+    const settings = { ...plan.object, edgeColor }
+    const size = piecePage(t0, 'front', kind)
+    const object = ttsSavedPieces(plan.set.name, kind, settings, ttsTileType(t0), pieces, {
+      w: size.width,
+      h: size.height
+    })
+    await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
+    await write(ctx, join(target, `${stem}.png`), thumb)
+  }
+}
+
+async function renderPiece(
+  ctx: Ctx,
+  p: TtsPiecePlan,
+  side: Side,
+  kind: 'token' | 'tile'
+): Promise<Buffer> {
+  const page = piecePage(p.card.template, side, kind)
+  const w = Math.round(page.width * p.scale)
+  const h = Math.round(page.height * p.scale)
+  const scene: Scene = {
+    pages: [page],
+    scale: w / page.width,
+    // le tessere hanno il fondo bianco; i segnalini trasparente, perché TTS li ritaglia lì
+    background: kind === 'tile' ? '#FFFFFF' : null,
+    lineColor: '#000',
+    lineWidth: 0,
+    linesOver: false
+  }
+  await ctx.win.show(scene, w, h)
+  return (await ctx.win.capture(w, h)).toPNG()
+}
+
+/** Indirizzo di un'immagine scritta per Tabletop Simulator, come lo legge TTS */
+function imageUrl(env: RunEnv, file: string): string {
+  const real = env.realPath?.(file) ?? { path: file, platform: env.platform }
+  // un percorso di Windows scritto a mano nel web non diventa un URL standard: non serve
+  const standard = real.platform === 'win32' ? '' : pathToFileURL(real.path).href
+  return ttsImageUrl(real.path, real.platform, standard)
 }
 
 function fieldText(card: ExportCard, field: string): string {

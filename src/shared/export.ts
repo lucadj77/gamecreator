@@ -74,6 +74,8 @@ export interface PdfOptions extends CommonOptions {
   proof: boolean
   /** Conversione in CMYK con Ghostscript, se installato */
   cmyk: boolean
+  /** Set uno dopo l'altro sulla stessa pagina, invece di cominciare ogni set su una pagina nuova */
+  continuous: boolean
 }
 
 export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
@@ -81,6 +83,11 @@ export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
   cols: number
   rows: number
   maxSize: 4096 | 8192
+  /**
+   * Con le copie: ogni carta una volta nel foglio e le copie nel mazzo del JSON (deck), oppure
+   * ripetuta nel foglio quante volte dice amount (sheet), utile per caricare i fogli a mano
+   */
+  copiesIn: 'deck' | 'sheet'
   /** Retro unico, foglio dei retri o scelta automatica (unico se tutti i retri sono uguali) */
   back: 'auto' | 'single' | 'sheet'
   destination: 'project' | 'tts' | 'both'
@@ -89,6 +96,30 @@ export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
   /** Campo per Nickname e Description; vuoto per lasciarli vuoti */
   nickname: string
   description: string
+  /** Oggetto da creare per ogni set, per nome del set; un set assente diventa un mazzo di carte */
+  objects?: Record<string, TtsSetObject>
+}
+
+/** Carte in un mazzo, segnalini ritagliati sulla sagoma o tessere con fronte, retro e bordo */
+export type TtsObjectType = 'card' | 'token' | 'tile'
+
+export interface TtsSetObject {
+  type: TtsObjectType
+  /** Spessore di segnalini e tessere, in mm */
+  thickness: number
+  /** Colore del bordo (lo spessore) delle tessere */
+  edgeColor: string
+}
+
+export const DEFAULT_TTS_OBJECT: TtsSetObject = {
+  type: 'card',
+  thickness: 2,
+  edgeColor: '#FFFFFF'
+}
+
+/** Oggetto scelto per un set, con i valori mancanti presi da quelli predefiniti */
+export function ttsSetObject(o: Pick<TtsOptions, 'objects'>, set: string): TtsSetObject {
+  return { ...DEFAULT_TTS_OBJECT, ...o.objects?.[set] }
 }
 
 /** Opzioni salvate con un nome, per rilanciare un'esportazione o partire da un servizio di stampa */
@@ -148,7 +179,8 @@ export const DEFAULT_PDF: PdfOptions = {
   posterOverlap: 10,
   fold: false,
   proof: false,
-  cmyk: false
+  cmyk: false,
+  continuous: false
 }
 
 export const DEFAULT_TTS: TtsOptions = {
@@ -158,6 +190,7 @@ export const DEFAULT_TTS: TtsOptions = {
   cols: 10,
   rows: 7,
   maxSize: 4096,
+  copiesIn: 'deck',
   back: 'auto',
   destination: 'project',
   ttsFolder: '',
@@ -503,8 +536,12 @@ export function planPdfPages(o: PdfOptions, g: Grid, instances: Instance[]): Pdf
   return sidesOf(o.sides).flatMap((side) => chunks.map((c) => page(c, side)))
 }
 
-/** Segni di taglio di una pagina, sulle linee di rifilo delle carte */
-export function cropMarks(o: PdfOptions, g: Grid, cards: PlacedCard[]): SceneLine[] {
+/**
+ * Segni di taglio di una pagina, sulle linee di rifilo delle carte. Con `local` (più set di
+ * misure diverse sulla pagina) le linee verticali restano all'altezza delle carte che tagliano,
+ * per non attraversare gli altri set: si taglia prima tra un set e l'altro, poi le carte.
+ */
+export function cropMarks(o: PdfOptions, g: Grid, cards: PlacedCard[], local = false): SceneLine[] {
   if (o.marks === 'none' || !cards.length) return []
   const page = pageSize(o)
   const trims = cards.map((c) => ({
@@ -517,8 +554,10 @@ export function cropMarks(o: PdfOptions, g: Grid, cards: PlacedCard[]): SceneLin
   if (o.marks === 'lines') {
     const xs = [...new Set(trims.flatMap((t) => [round(t.l), round(t.r)]))]
     const ys = [...new Set(trims.flatMap((t) => [round(t.t), round(t.b)]))]
+    const y1 = local ? Math.min(...cards.map((c) => c.y)) : 0
+    const y2 = local ? Math.max(...cards.map((c) => c.y + g.cellH)) : page.height
     return [
-      ...xs.map((x) => ({ x1: x, y1: 0, x2: x, y2: page.height })),
+      ...xs.map((x) => ({ x1: x, y1, x2: x, y2 })),
       ...ys.map((y) => ({ x1: 0, y1: y, x2: page.width, y2: y }))
     ]
   }
@@ -598,17 +637,44 @@ export interface TtsDeckCard {
   description: string
 }
 
-function transform(y = 1): Record<string, number> {
+// Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
+// fissa per tipo, qualunque sia la sua immagine. Queste sono misurate in TTS (ottobre 2026) con il
+// righello, in unità (che TTS mostra come pollici): una carta larga 63 mm è larga 2,25, una
+// tessera 2 sul lato lungo, un segnalino circa 3,2 sul lato lungo dell'immagine. Le scale si
+// calcolano in modo che tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
+
+/** Unità di TTS per mm: la carta da 63 mm a scala 1 è larga 2,25 */
+export const TTS_UNITS_PER_MM = 2.25 / 63
+const TTS_CARD_WIDTH = 2.25
+const TTS_TILE_SIZE = 2
+const TTS_TOKEN_SIZE = 3.2
+
+const round3 = (v: number): number => Math.round(v * 1000) / 1000
+
+/** Scala di una carta larga w mm: 1 per 63 mm, come prima */
+export function ttsCardScale(w: number): number {
+  return round3((w * TTS_UNITS_PER_MM) / TTS_CARD_WIDTH)
+}
+
+/** Scala di un segnalino o di una tessera la cui immagine misura w × h mm */
+export function ttsPieceScale(kind: 'token' | 'tile', w: number, h: number): number {
+  const base = kind === 'token' ? TTS_TOKEN_SIZE : TTS_TILE_SIZE
+  return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / base)
+}
+
+/** Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su */
+function transform(y = 1, faceDown = true, scale = 1): Record<string, number> {
   return {
     posX: 0,
     posY: y,
     posZ: 0,
     rotX: 0,
     rotY: 180,
-    rotZ: 180,
-    scaleX: 1,
+    rotZ: faceDown ? 180 : 0,
+    // lo spessore si dà a parte: in altezza la scala resta 1
+    scaleX: scale,
     scaleY: 1,
-    scaleZ: 1
+    scaleZ: scale
   }
 }
 
@@ -616,8 +682,11 @@ function transform(y = 1): Record<string, number> {
 export function ttsSavedObject(
   name: string,
   sheets: TtsSheet[],
-  cards: TtsDeckCard[]
+  cards: TtsDeckCard[],
+  /** Larghezza della carta in mm, per la scala */
+  cardWidth = 63
 ): Record<string, unknown> {
+  const scale = ttsCardScale(cardWidth)
   const customDeck = (i: number): Record<string, unknown> => ({
     [String(i + 1)]: {
       FaceURL: sheets[i].faceUrl,
@@ -632,7 +701,7 @@ export function ttsSavedObject(
   const cardId = (c: TtsDeckCard): number => (c.sheet + 1) * 100 + c.slot
   const cardObject = (c: TtsDeckCard): Record<string, unknown> => ({
     Name: 'Card',
-    Transform: transform(),
+    Transform: transform(1, true, scale),
     Nickname: c.nickname,
     Description: c.description,
     CardID: cardId(c),
@@ -648,7 +717,7 @@ export function ttsSavedObject(
       ? { ...cardObject(cards[0]), Nickname: cards[0].nickname || name }
       : {
           Name: 'Deck',
-          Transform: transform(),
+          Transform: transform(1, true, scale),
           Nickname: name,
           Description: '',
           DeckIDs: cards.map(cardId),
@@ -660,6 +729,10 @@ export function ttsSavedObject(
           Hands: false,
           SidewaysCard: false
         }
+  return savedFile(object)
+}
+
+function savedFile(object: Record<string, unknown>): Record<string, unknown> {
   return {
     SaveName: '',
     GameMode: '',
@@ -679,10 +752,118 @@ export function ttsSavedObject(
   }
 }
 
+/** Un segnalino o una tessera, con le sue immagini */
+export interface TtsPiece {
+  faceUrl: string
+  /** Retro delle tessere; i segnalini mostrano sotto il fronte specchiato */
+  backUrl: string
+  nickname: string
+  description: string
+  /** Quante copie mettere nel sacchetto */
+  count: number
+}
+
+/** Forme delle tessere di Tabletop Simulator: quadrata, esagonale, rotonda, con angoli arrotondati */
+export function ttsTileType(t: Pick<Template, 'shape' | 'cornerRadius'>): 0 | 1 | 2 | 3 {
+  if (t.shape === 'hexagon') return 1
+  if (t.shape === 'ellipse') return 2
+  if ((t.shape ?? 'rect') === 'rect' && t.cornerRadius > 0) return 3
+  return 0
+}
+
+/** Colore di Tabletop Simulator (componenti da 0 a 1) da un colore #RGB o #RRGGBB */
+export function ttsColor(hex: string): { r: number; g: number; b: number } {
+  let h = hex.trim().replace(/^#/, '')
+  if (h.length === 3 || h.length === 4)
+    h = h
+      .slice(0, 3)
+      .split('')
+      .map((c) => c + c)
+      .join('')
+  const v = /^[0-9a-f]{6}/i.test(h) ? parseInt(h.slice(0, 6), 16) : 0xffffff
+  const c = (n: number): number => Math.round((n / 255) * 1000) / 1000
+  return { r: c((v >> 16) & 255), g: c((v >> 8) & 255), b: c(v & 255) }
+}
+
+/**
+ * Oggetto salvato con segnalini o tessere: uno solo se il set ne ha uno, altrimenti un sacchetto
+ * che li contiene tutti, copie comprese. Le copie usano le stesse immagini, quindi si impilano.
+ */
+export function ttsSavedPieces(
+  name: string,
+  kind: 'token' | 'tile',
+  settings: Pick<TtsSetObject, 'thickness' | 'edgeColor'>,
+  tileType: 0 | 1 | 2 | 3,
+  pieces: TtsPiece[],
+  /** Misure dell'immagine in mm, per la scala */
+  size: { w: number; h: number }
+): Record<string, unknown> {
+  const thickness = round3(Math.max(0.1, settings.thickness) * TTS_UNITS_PER_MM)
+  const scale = ttsPieceScale(kind, size.w, size.h)
+  const pieceObject = (p: TtsPiece): Record<string, unknown> => ({
+    Name: kind === 'token' ? 'Custom_Token' : 'Custom_Tile',
+    Transform: transform(1, false, scale),
+    Nickname: p.nickname,
+    Description: p.description,
+    // nelle tessere la tinta colora solo i lati, non le immagini
+    ColorDiffuse: kind === 'tile' ? ttsColor(settings.edgeColor) : { r: 1, g: 1, b: 1 },
+    Locked: false,
+    Grid: true,
+    Snap: true,
+    Hands: false,
+    CustomImage: {
+      ImageURL: p.faceUrl,
+      ImageSecondaryURL: kind === 'tile' ? p.backUrl : '',
+      ImageScalar: 1,
+      WidthScale: 0,
+      ...(kind === 'token'
+        ? {
+            CustomToken: {
+              Thickness: thickness,
+              MergeDistancePixels: 15,
+              StandUp: false,
+              Stackable: true
+            }
+          }
+        : {
+            // Stretch false: la tessera prende le proporzioni dell'immagine, cioè della carta
+            CustomTile: { Type: tileType, Thickness: thickness, Stackable: true, Stretch: false }
+          })
+    }
+  })
+  const all = pieces.flatMap((p) => Array.from({ length: Math.max(1, p.count) }, () => p))
+  const object =
+    all.length === 1
+      ? { ...pieceObject(all[0]), Nickname: all[0].nickname || name }
+      : {
+          Name: 'Bag',
+          Transform: transform(1, false),
+          Nickname: name,
+          Description: '',
+          ColorDiffuse: { r: 0.7, g: 0.7, b: 0.7 },
+          Locked: false,
+          Grid: true,
+          Snap: true,
+          Hands: false,
+          ContainedObjects: all.map(pieceObject)
+        }
+  return savedFile(object)
+}
+
 /** Cartella Saved Objects di Tabletop Simulator per sistema operativo */
 export function defaultTtsFolder(platform: string, home: string, documents: string): string {
   if (platform === 'darwin') return `${home}/Library/Tabletop Simulator/Saves/Saved Objects`
   if (platform === 'win32')
     return `${documents}\\My Games\\Tabletop Simulator\\Saves\\Saved Objects`
   return `${home}/.local/share/Tabletop Simulator/Saves/Saved Objects`
+}
+
+/**
+ * Indirizzo di un'immagine locale per i FaceURL/BackURL di Tabletop Simulator. Su Windows TTS
+ * legge solo la forma che scrive lui stesso, file:/// seguito dal percorso con \ e senza codifica
+ * (spazi e lettere accentate come sono); con le / e i %20 di un URL standard non carica le carte.
+ */
+export function ttsImageUrl(path: string, platform: string, standardUrl: string): string {
+  if (platform === 'win32') return 'file:///' + path.replace(/\//g, '\\')
+  return standardUrl
 }

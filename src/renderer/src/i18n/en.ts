@@ -1160,7 +1160,7 @@ export const en = {
   'web.desktop.ttc': 'Import of Tabletop Creator projects',
   'web.desktop.ai': 'The naibi command and the skill for AI agents (Claude, Codex…)',
   'web.desktop.browser':
-    'Independent of the browser: the web version works only in Chrome, Edge, Brave and Opera, and asks again for permission on the folder each time you open the site',
+    'Independent of the browser: the web version works only in Chrome, Edge and Opera (in Brave after turning on brave://flags/#file-system-access-api), and asks again for permission on the folder each time you open the site',
   'web.desktopOutro':
     'Projects are the same files: a project made here opens in the desktop app and the other way round.',
   'web.download': 'Download the desktop app',

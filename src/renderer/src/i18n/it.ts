@@ -1178,7 +1178,7 @@ export const it: Record<MessageKey, string> = {
   'web.desktop.ttc': 'Importazione dei progetti di Tabletop Creator',
   'web.desktop.ai': 'Il comando naibi e la skill per gli agenti IA (Claude, Codex…)',
   'web.desktop.browser':
-    'Indipendente dal browser: la versione web funziona solo con Chrome, Edge, Brave e Opera, e chiede di nuovo il permesso sulla cartella ogni volta che riapri il sito',
+    'Indipendente dal browser: la versione web funziona solo con Chrome, Edge e Opera (in Brave dopo aver attivato brave://flags/#file-system-access-api), e chiede di nuovo il permesso sulla cartella ogni volta che riapri il sito',
   'web.desktopOutro':
     "I progetti sono gli stessi file: un progetto fatto qui si apre nell'app desktop e viceversa.",
   'web.download': 'Scarica la versione desktop',

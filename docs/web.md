@@ -7,8 +7,9 @@ file. È pubblicata su GitHub Pages: <https://lucadj77.github.io/naibi/>.
 
 ## Browser
 
-Serve la File System Access API, che c'è solo nei browser basati su Chromium: Chrome, Edge, Brave,
-Opera. Firefox e Safari mostrano una pagina che lo spiega. Il permesso sulla cartella del progetto
+Serve la File System Access API, che c'è solo nei browser basati su Chromium: Chrome, Edge, Opera.
+Brave la tiene spenta: si attiva in `brave://flags/#file-system-access-api` e si riavvia Brave.
+Firefox, Safari e Brave senza l'impostazione mostrano una pagina che lo spiega. Il permesso sulla cartella del progetto
 si chiede a ogni sessione: il browser lo domanda quando si apre il progetto.
 
 ## Cosa manca rispetto all'app desktop

@@ -35,7 +35,7 @@ I pacchetti si scaricano dalla pagina [Releases](https://github.com/lucadj77/nai
 - **Windows**: `Naibi-<versione>-windows-setup.exe`. Senza firma, Windows SmartScreen mostra "Windows ha protetto il PC": si preme **Ulteriori informazioni** e poi **Esegui comunque**. Per la versione portable, che non si installa, c'è `Naibi-<versione>-windows-portable.exe`: si avvia direttamente, anche da una chiavetta, e tiene i suoi dati (progetti recenti, preferenze) nella cartella `Naibi data` accanto al file.
 - **Linux**: `Naibi-<versione>-linux-x86_64.AppImage`, da rendere eseguibile (`chmod +x`) e avviare, oppure `Naibi-<versione>-linux-amd64.deb` per Debian e Ubuntu (per esempio `sudo apt install ./Naibi-1.0.0-linux-amd64.deb`). L'AppImage richiede libfuse2 (su Ubuntu `sudo apt install libfuse2t64`).
 
-Dove non si può installare nulla c'è la **versione web**, da aprire con Chrome, Edge, Brave o Opera: <https://lucadj77.github.io/naibi/>. Lavora sugli stessi progetti, con alcune funzioni in meno; vedi [docs/web.md](docs/web.md).
+Dove non si può installare nulla c'è la **versione web**, da aprire con Chrome, Edge o Opera (in Brave va attivata `brave://flags/#file-system-access-api`): <https://lucadj77.github.io/naibi/>. Lavora sugli stessi progetti, con alcune funzioni in meno; vedi [docs/web.md](docs/web.md).
 
 ## Build
 

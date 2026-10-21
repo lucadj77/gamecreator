@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import changelog from '../../../../CHANGELOG.md?raw'
-import { changelogSection, notesForLanguage, type UpdateInfo } from '../../../shared/update'
+import {
+  changelogSection,
+  notesForLanguage,
+  type UpdateInfo,
+  type UpdateMode
+} from '../../../shared/update'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import { CHECK_EVENT, checkForUpdateNow } from './updateCheck'
@@ -21,15 +26,28 @@ function skipped(): string | null {
   }
 }
 
-export default function UpdateNotice(): React.JSX.Element | null {
+export default function UpdateNotice({
+  dirty
+}: {
+  /** Ci sono modifiche non salvate: prima di riavviare per aggiornare si chiede */
+  dirty: boolean
+}): React.JSX.Element | null {
   const { t, lang } = useI18n()
   const [update, setUpdate] = useState<UpdateInfo | null>(null)
+  const [mode, setMode] = useState<UpdateMode>('manual')
+  /** Avanzamento dell'aggiornamento da 0 a 1, null se non è in corso */
+  const [installing, setInstalling] = useState<number | null>(null)
+  const [failed, setFailed] = useState(false)
   const [open, setOpen] = useState(false)
   /** Esito di un controllo a mano senza novità: la versione è l'ultima, o non si è potuto verificare */
   const [result, setResult] = useState<'latest' | 'failed' | 'checking' | null>(null)
 
   useEffect(() => {
     let live = true
+    window.api.updateMode().then(
+      (m) => live && setMode(m),
+      () => {}
+    )
     window.api.checkForUpdate().then(
       (u) => live && u && u.version !== skipped() && setUpdate(u),
       () => {}
@@ -74,16 +92,40 @@ export default function UpdateNotice(): React.JSX.Element | null {
     }
     setUpdate(null)
   }
+  const install = async (): Promise<void> => {
+    if (dirty && !window.confirm(t('update.unsaved'))) return
+    setFailed(false)
+    setInstalling(0)
+    const stop = window.api.onUpdateProgress((p) => setInstalling(p))
+    try {
+      // se riesce, l'app si chiude e si riapre aggiornata
+      await window.api.installUpdate(update.version)
+    } catch {
+      setInstalling(null)
+      setFailed(true)
+    } finally {
+      stop()
+    }
+  }
   // la pagina della release si apre nel browser (vedi setWindowOpenHandler)
-  const download = (
-    <button className="primary" onClick={() => window.open(update.url)}>
-      {t('update.download')}
-    </button>
-  )
+  const download =
+    mode === 'auto' && !failed ? (
+      <button className="primary" disabled={installing !== null} onClick={install}>
+        {installing === null
+          ? t('update.install')
+          : t('update.installing', { percent: Math.round(installing * 100) })}
+      </button>
+    ) : (
+      <button className="primary" onClick={() => window.open(update.url)}>
+        {t('update.download')}
+      </button>
+    )
 
   return (
     <div className="banner info update-notice">
-      <span>{t('update.available', { version: update.version })}</span>
+      <span>
+        {t(failed ? 'update.installFailed' : 'update.available', { version: update.version })}
+      </span>
       <button onClick={() => setOpen(true)}>{t('update.whatsNew')}</button>
       {download}
       <span className="spacer" />

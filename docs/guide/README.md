@@ -55,7 +55,7 @@ When it starts, Naibi shows the start screen.
 
 At the top right you choose the interface size, the theme (light, dark or the system's) and the language (English or Italian).
 
-When a new version is out, a strip appears at the top of the window at startup: **What's new** shows what changes, **Download** opens the page to download it. **Skip this version** stops showing it, **Remind me later** hides it until the next start.
+When a new version is out, a strip appears at the top of the window at startup: **What's new** shows what changes, **Update and restart** downloads the new version, installs it and reopens Naibi. This works for Naibi installed with the setup on Windows, for the AppImage on Linux, and on the Mac for the app in Applications (or another folder you can write to); if there are unsaved changes Naibi asks first. The Windows portable version, the .deb package and an app opened from the downloaded disk image have **Download** instead, which opens the page to download it; the same happens if the automatic update fails. **Skip this version** stops showing it, **Remind me later** hides it until the next start.
 
 To create a project you write its name and location. The default location is `Documents/Naibi`; the data file can be Excel (`.xlsx`, recommended) or OpenDocument (`.ods`).
 

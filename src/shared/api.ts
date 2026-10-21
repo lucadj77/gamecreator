@@ -1,4 +1,4 @@
-import type { UpdateInfo } from './update'
+import type { UpdateInfo, UpdateMode } from './update'
 import type {
   DeletedContent,
   DeletedItem,
@@ -185,6 +185,11 @@ export interface Api {
   naibiCommand(): Promise<{ command: string; ready: boolean }>
   /** L'ultima versione pubblicata, se è più recente di questa; null anche senza rete */
   checkForUpdate(): Promise<UpdateInfo | null>
+  /** Se questa installazione si aggiorna da sola (setup di Windows, AppImage, Mac in una cartella scrivibile) */
+  updateMode(): Promise<UpdateMode>
+  /** Scarica la versione e riavvia l'app aggiornata; il progresso arriva a onUpdateProgress */
+  installUpdate(version: string): Promise<void>
+  onUpdateProgress(cb: (p: number) => void): () => void
   /** Versione dell'app, per esempio 1.2.0-beta.1 */
   appVersion(): Promise<string>
   /** Scrive la skill in <cartella>/naibi/SKILL.md e ne restituisce il percorso */

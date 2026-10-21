@@ -1562,6 +1562,12 @@ export const en = {
   'update.available': 'Naibi {version} is available.',
   'update.whatsNew': "What's new",
   'update.download': 'Download',
+  'update.install': 'Update and restart',
+  'update.installing': 'Downloading… {percent}%',
+  'update.installFailed':
+    'Naibi {version} could not be installed automatically: download it from the release page.',
+  'update.unsaved':
+    'There are unsaved changes: they will be lost when Naibi restarts. Update anyway?',
   'update.skip': 'Skip this version',
   'update.later': 'Remind me later',
   'update.title': "What's new in Naibi {version}",

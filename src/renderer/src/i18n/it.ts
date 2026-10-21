@@ -1583,6 +1583,12 @@ export const it: Record<MessageKey, string> = {
   'update.available': 'È disponibile Naibi {version}.',
   'update.whatsNew': 'Novità',
   'update.download': 'Scarica',
+  'update.install': 'Aggiorna e riavvia',
+  'update.installing': 'Scaricamento… {percent}%',
+  'update.installFailed':
+    'Non è stato possibile installare Naibi {version} da solo: scaricalo dalla pagina della release.',
+  'update.unsaved':
+    'Ci sono modifiche non salvate: andranno perse al riavvio di Naibi. Aggiornare comunque?',
   'update.skip': 'Salta questa versione',
   'update.later': 'Ricordamelo più tardi',
   'update.title': 'Novità di Naibi {version}',

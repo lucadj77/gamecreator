@@ -22,13 +22,34 @@ arriva nel web va tolta da lì.
   (margini nessuno, grafica di sfondo attiva). Niente CMYK.
 - Immagini PNG, JPG e WebP: si ottengono dall'SVG della carta (lo stesso dell'esportazione in SVG)
   disegnato su un canvas, non da una cattura della pagina. Il risultato può differire di poco
-  nella posizione delle lettere.
-- Non ci sono: Tabletop Simulator, librerie di icone e Google Fonts, font del computer, backup,
-  importazione da Tabletop Creator, comando `naibi` e skill per gli agenti IA, controllo degli
-  aggiornamenti (il sito è sempre all'ultima versione), dimensione dell'interfaccia (si usa lo
-  zoom del browser).
-- Le immagini si aggiungono copiandole in `assets/` con il file manager del sistema e premendo
-  **Ricarica**.
+  nella posizione delle lettere. Lo stesso vale per i fogli di Tabletop Simulator.
+- Tabletop Simulator: i file vanno solo nella cartella di Tabletop Simulator scelta con
+  **Scegli…**, e la prima volta si incolla il suo percorso completo nel campo **Percorso di questa
+  cartella**: il browser non lo dice, e il file del mazzo ne ha bisogno per trovare le immagini
+  (`src/shared/realPath.ts`, ricordato nel browser per ogni cartella). Su macOS Chrome non apre le
+  cartelle dentro `~/Library`, dove sta `Saved Objects`: si sceglie un'altra cartella, per
+  esempio `Documenti/Naibi TTS`, e una volta sola si crea in `Saved Objects` un collegamento a
+  essa dal Terminale (da verificare con Tabletop Simulator):
+
+  ```bash
+  ln -s ~/Documents/"Naibi TTS" ~/Library/"Tabletop Simulator"/Saves/"Saved Objects"/"Naibi TTS"
+  ```
+
+- Google Fonts: nel browser Google dà file WOFF2 divisi per alfabeto, e si salva solo quello
+  latino (lettere accentate comprese). Nome, peso e stile si ricavano dal nome del file, perché
+  il browser non ha il brotli per leggerli dal WOFF2.
+- Font del computer: con la Local Font Access API (Chrome ed Edge, dopo il permesso). Le raccolte
+  `.ttc` e i font che vietano l'incorporamento non si copiano.
+- Backup: senza una cartella scelta stanno nello spazio privato del sito nel browser, che si
+  perde cancellando i dati del sito. Il backup automatico all'apertura parte solo se la cartella
+  scelta è già autorizzata. Il ripristino crea la cartella accanto al progetto; se il progetto è
+  proprio la cartella scelta, il browser chiede dove metterlo.
+- Importazione da Tabletop Creator: la cartella di destinazione si sceglie (o si crea) dalla
+  finestra del browser e deve essere vuota.
+- I cataloghi di game-icons.net e dei font Google sono quelli della versione pubblicata: non si
+  aggiornano dall'app.
+- Non ci sono: comando `naibi` e skill per gli agenti IA, controllo degli aggiornamenti (il sito
+  è sempre all'ultima versione), dimensione dell'interfaccia (si usa lo zoom del browser).
 
 ## Come funziona
 
@@ -44,6 +65,13 @@ arriva nel web va tolta da lì.
   protocollo `gc-asset://`.
 - Le esportazioni usano `src/main/export/run.ts` con un iframe invisibile al posto della finestra
   nascosta di Electron (`src/web/exportFrame.ts`).
+- I dati dell'app (impostazioni dei backup, backup senza cartella scelta) stanno nell'Origin
+  Private File System del sito, montato come `/.naibi` (`DATA_ROOT` in `src/web/fs/roots.ts`);
+  `src/web/shims/electron.ts` vi fa puntare `app.getPath`.
+- I cataloghi inclusi (`resources/catalogs`, importati con `?asset`) diventano file della build e
+  si leggono con `fetch` (plugin `assetFiles` in `vite.web.config.mts`).
+- Le parti che nel browser vanno fatte in un altro modo (font Google e del computer, scelta delle
+  immagini) sono in `src/web/library.ts`.
 
 ## Sviluppo e pubblicazione
 
@@ -54,5 +82,7 @@ npm run preview:web  # prova della build
 ```
 
 L'azione **Web** (`.github/workflows/web.yml`) costruisce la versione web sulle PR e la pubblica
-su GitHub Pages a ogni tag `v*`, insieme alla release, oppure a mano da Actions. La prima volta va
-attivato **Settings → Pages → Source: GitHub Actions** nel repository.
+su GitHub Pages a ogni tag `v*`, insieme alla release, oppure a mano da Actions. Una volta sola
+nel repository servono **Settings → Pages → Source: GitHub Actions** e, in **Settings →
+Environments → github-pages**, una regola che permetta i tag `v*` (di base l'ambiente accetta solo
+il ramo main e rifiuta la pubblicazione dai tag).

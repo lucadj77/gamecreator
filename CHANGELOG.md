@@ -5,6 +5,30 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.11
+
+### English
+
+- Web version: most of what was desktop-only now works in the browser too.
+  - **Icon libraries** (game-icons.net, Kenney, Iconify) and **Google Fonts** (the Latin alphabet, accented letters included).
+  - **Fonts installed on the computer**, in Chrome and Edge after you allow it.
+  - **Backups**. Without a chosen folder they stay in the browser, and clearing the site data deletes them.
+  - **Tabletop Creator import**.
+  - **Tabletop Simulator export**. Choose the Tabletop Simulator folder, then paste its full path the first time. The browser does not give the path, and the deck needs it to find the images; the site remembers it. On macOS the browser cannot open the Saved Objects folder: docs/web.md explains how to work around it.
+- New **Add images…** button in the image picker, in the desktop app and in the web version. It copies images from the computer into `assets/images` of the project. A file with the same name is not overwritten: the copy gets a number.
+- The **Help** window has a link to the complete user guide at the top.
+
+### Italiano
+
+- Versione web: gran parte di ciò che c'era solo nell'app desktop ora funziona anche nel browser.
+  - **Librerie di icone** (game-icons.net, Kenney, Iconify) e **Google Fonts** (alfabeto latino, lettere accentate comprese).
+  - **Font installati sul computer**, in Chrome ed Edge dopo averlo consentito.
+  - **Backup**. Senza una cartella scelta restano nel browser, e cancellando i dati del sito si perdono.
+  - **Importazione da Tabletop Creator**.
+  - **Esportazione per Tabletop Simulator**. Si sceglie la cartella di Tabletop Simulator e la prima volta si incolla il suo percorso completo. Il browser non lo fornisce, e al mazzo serve per trovare le immagini; il sito lo ricorda. Su macOS il browser non può aprire la cartella Saved Objects: docs/web.md spiega come aggirarlo.
+- Nuovo pulsante **Aggiungi immagini…** nella scelta delle immagini, nell'app desktop e nella versione web. Copia immagini dal computer in `assets/images` del progetto. Un file con lo stesso nome non si sovrascrive: la copia prende un numero.
+- La finestra **Aiuto** ha in cima un link alla guida completa.
+
 ## 1.2.0-beta.10
 
 ### English

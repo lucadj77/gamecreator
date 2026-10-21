@@ -312,6 +312,8 @@ export const en = {
   'icons.import': 'Import {n}',
   'icons.unknown': 'Icon {id} is not in the catalog',
   'icons.invalidName': 'Invalid icon name: {name}',
+  'assetPicker.addImages': 'Add images…',
+  'assetPicker.addImagesHint': 'Copy images from the computer into assets/images of the project',
   'assetPicker.importIcons': 'Import icons…',
   'assetPicker.title': 'Choose an image',
   'assetPicker.search': 'Search by name or folder',
@@ -1152,12 +1154,11 @@ export const en = {
     'This is the web version of Naibi: it opens in the browser without installing anything and works on the project folders of your computer, like the desktop app. Some things are only in the desktop app (Windows, macOS, Linux):',
   'web.desktop.pdf':
     'PDF saved directly, without the print window, and conversion to CMYK for printers',
-  'web.desktop.tts': 'Export to Tabletop Simulator',
-  'web.desktop.icons':
-    'Icon libraries (game-icons.net, Kenney, Iconify) and Google Fonts, imported into the project',
-  'web.desktop.systemFonts': 'Fonts installed on the computer, copied into the project',
-  'web.desktop.backup': 'Automatic and manual backups of the project',
-  'web.desktop.ttc': 'Import of Tabletop Creator projects',
+  'web.desktop.tts':
+    'Tabletop Simulator export without writing the folder path; on macOS also straight into the Saved Objects folder, which the browser cannot open',
+  'web.desktop.fonts':
+    'Google Fonts with every alphabet: the web version saves only the Latin one (accented letters included)',
+  'web.desktop.catalogs': 'Updating the game-icons.net and Google Fonts catalogs from the app',
   'web.desktop.ai': 'The naibi command and the skill for AI agents (Claude, Codex…)',
   'web.desktop.browser':
     'Independent of the browser: the web version works only in Chrome, Edge and Opera (in Brave after turning on brave://flags/#file-system-access-api), and asks again for permission on the folder each time you open the site',
@@ -1168,6 +1169,23 @@ export const en = {
   'web.permissionDenied':
     'Naibi needs permission to read and write the project folder. Open it again and allow access.',
   'web.chooseParent': 'Choose the folder in which to create the project.',
+  'web.noLocalFonts':
+    'This browser does not let the site read the fonts installed on the computer (Chrome and Edge do, after you allow it).',
+  'web.backupInSite': 'in this browser (site data)',
+  'web.backupInSiteHint':
+    'Backups kept in the browser are lost if you clear the site data. Choose a folder to keep them on disk.',
+  'web.restoreCancelled': 'Restore cancelled: no folder chosen.',
+  'web.ttcTargetHint':
+    'Choose (or create in the window) an empty folder; if the original is inside a folder you chose, the new one is proposed next to it',
+  'web.ttsFolderHint':
+    'Usually Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects on Windows. On macOS the browser cannot open that folder: see the guide.',
+  'web.ttsRealPath': 'Path of this folder',
+  'web.ttsRealPathPlaceholder': 'C:\\Users\\…\\Saved Objects',
+  'web.ttsRealPathHint':
+    'The browser does not tell the full path of a folder, and Tabletop Simulator needs it to find the card images. Paste it once (in Explorer: click the address bar and copy; in Finder: right click with Option, "Copy as pathname"); this browser remembers it.',
+  'web.ttsRealPathMissing':
+    'Write the path of the Tabletop Simulator folder: the deck needs it to find the images.',
+  'web.ttsChooseFolder': 'Choose the Tabletop Simulator folder (Saved Objects).',
   'web.pdfHint':
     'In the web version the pages go to the browser print window: choose "Save as PDF", margins "None" and turn on "Background graphics". One window for each PDF.',
   'about.link': 'What does Naibi mean?',
@@ -1188,6 +1206,7 @@ export const en = {
   'app.help': 'Help',
   'tip.help': 'Text markup, system variables, formulas and keyboard shortcuts (F1)',
   'help.title': 'Help',
+  'help.guide': 'Open the complete user guide (online)',
   'help.tab.text': 'Text',
   'help.tab.variables': 'Fields and variables',
   'help.tab.formulas': 'Formulas',

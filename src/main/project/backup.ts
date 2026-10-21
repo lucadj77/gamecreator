@@ -1,6 +1,5 @@
 import JSZip from 'jszip'
 import { createHash } from 'crypto'
-import { createWriteStream } from 'fs'
 import { copyFile, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'fs/promises'
 import { basename, dirname, extname, join, relative, resolve, sep } from 'path'
 import { exists } from '../fs'
@@ -146,13 +145,9 @@ export async function createBackup(
   const name = `${backupDirName(projectName)} ${stamp(now)}${auto ? ' auto' : ''}.zip`
   const file = join(dir, name)
   const tmp = file + '.tmp'
-  await new Promise<void>((ok, fail) => {
-    zip
-      .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
-      .pipe(createWriteStream(tmp))
-      .on('finish', ok)
-      .on('error', fail)
-  })
+  // lo zip si fa in memoria: i file di assets/ non ci sono, quindi resta piccolo (e così si
+  // scrive anche nella versione web, che non ha gli stream di Node)
+  await writeFile(tmp, await zip.generateAsync({ type: 'nodebuffer', streamFiles: true }))
   await rename(tmp, file)
   return { file, name, date: now.getTime(), size: (await stat(file)).size, auto }
 }

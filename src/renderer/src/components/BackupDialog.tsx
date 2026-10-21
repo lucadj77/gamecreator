@@ -72,7 +72,7 @@ export default function BackupDialog({
           <button className="primary" disabled={busy || !state} onClick={create}>
             {dirty ? t('backup.saveAndCreate') : t('backup.create')}
           </button>
-          {state && (
+          {state && !window.api.isWeb && (
             <button
               onClick={() => window.api.showFolder(state.folder)}
               disabled={!state.items.length}
@@ -133,7 +133,12 @@ export default function BackupDialog({
               </label>
               <div className="backup-folder">
                 <span>{t('backup.folder')}</span>
-                <code>{state.settings.folder || state.defaultFolder}</code>
+                {/* nel web la cartella di base è lo spazio del sito nel browser, senza percorso */}
+                {state.settings.folder || state.defaultFolder ? (
+                  <code>{state.settings.folder || state.defaultFolder}</code>
+                ) : (
+                  <span className="muted">{t('web.backupInSite')}</span>
+                )}
                 <button
                   disabled={busy}
                   onClick={async () => {
@@ -151,6 +156,9 @@ export default function BackupDialog({
                   </button>
                 )}
               </div>
+              {window.api.isWeb && !state.settings.folder && (
+                <p className="muted small">{t('web.backupInSiteHint')}</p>
+              )}
             </fieldset>
           </>
         )}

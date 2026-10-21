@@ -3813,6 +3813,11 @@ select.from-template {
   width: 760px;
 }
 
+.help-guide {
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
 .help-body {
   max-height: 62vh;
   overflow-y: auto;

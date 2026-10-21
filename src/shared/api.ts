@@ -138,6 +138,8 @@ export interface Api {
   systemFonts(): Promise<SystemFontFamily[]>
   /** Copia i file di un font installato in assets/fonts/<famiglia>/ */
   copySystemFont(family: string): Promise<AssetsUpdate>
+  /** Copia in assets/images/ immagini scelte dal computer; null se l'utente annulla */
+  addImages(): Promise<AssetsUpdate | null>
   /** Scrive i crediti in export/credits.txt e restituisce il percorso */
   saveCredits(text: string): Promise<string>
   /** Sceglie una cartella qualsiasi, partendo da current */

@@ -22,6 +22,7 @@ import {
   type TtsOptions
 } from '../../../shared/export'
 import { messageFromError, type Message } from '../../../shared/messages'
+import { readRealPath, writeRealPath } from '../../../shared/realPath'
 import { Dialog } from '../editor/dialogs'
 import CreditsDialog from './CreditsDialog'
 import ExportPreview from './ExportPreview'
@@ -51,8 +52,7 @@ export default function ExportDialog({
   const saved = project.file.export ?? {}
   const [kind, setKindState] = useState<ExportKind>(() => {
     const k = localStorage.getItem(KIND_KEY)
-    // Tabletop Simulator non c'è nella versione web
-    return k === 'pdf' || (k === 'tts' && !window.api.isWeb) ? k : 'images'
+    return k === 'pdf' || k === 'tts' ? k : 'images'
   })
   const setKind = (k: ExportKind): void => {
     localStorage.setItem(KIND_KEY, k)
@@ -63,8 +63,14 @@ export default function ExportDialog({
   const [tts, setTts] = useState<TtsOptions>(() => ({
     ...DEFAULT_TTS,
     nickname: defaultNickname(project),
-    ...saved.tts
+    ...saved.tts,
+    // nel web i file vanno solo nella cartella di Tabletop Simulator: il mazzo ha bisogno del
+    // percorso vero delle immagini, che si conosce solo per quella (vedi shared/realPath.ts)
+    ...(window.api.isWeb ? { destination: 'tts' as const } : {})
   }))
+  const [realPath, setRealPath] = useState(() =>
+    window.api.isWeb && tts.ttsFolder ? readRealPath(tts.ttsFolder) : ''
+  )
   const [defaults, setDefaults] = useState({ export: '', tts: '' })
   const [progress, setProgress] = useState<ExportProgress | null>(null)
   const [result, setResult] = useState<ExportResult | null>(null)
@@ -205,7 +211,9 @@ export default function ExportDialog({
 
   const chooseFolder = async (current: string, key: 'folder' | 'ttsFolder'): Promise<void> => {
     const f = await window.api.chooseExportFolder(current)
-    if (f) patch({ [key]: f })
+    if (!f) return
+    patch({ [key]: f })
+    if (key === 'ttsFolder' && window.api.isWeb) setRealPath(readRealPath(f))
   }
 
   /** "Personalizzato" scelto nel menu: il campo resta anche se il valore è uno di quelli fissi */
@@ -280,6 +288,8 @@ export default function ExportDialog({
         value={value}
         placeholder={placeholder}
         title={value || placeholder}
+        // nel web una cartella si sceglie solo con il pulsante
+        readOnly={window.api.isWeb}
         onChange={(e) => patch({ [key]: e.target.value })}
       />
       <button
@@ -318,7 +328,7 @@ export default function ExportDialog({
           options={[
             ['images', t('export.images')],
             ['pdf', t('export.pdf')],
-            ...(window.api.isWeb ? [] : [['tts', t('export.tts')] as [ExportKind, string]])
+            ['tts', t('export.tts')] as [ExportKind, string]
           ]}
           onChange={(k) => {
             setKind(k)
@@ -763,20 +773,39 @@ export default function ExportDialog({
                   (back) => patch({ back })
                 )
               )}
-              {field(
-                'export.destination',
-                select(
-                  tts.destination,
-                  [
-                    ['project', t('export.destProject')],
-                    ['tts', t('export.destTts')],
-                    ['both', t('export.destBoth')]
-                  ],
-                  (destination) => patch({ destination })
-                )
-              )}
+              {!window.api.isWeb &&
+                field(
+                  'export.destination',
+                  select(
+                    tts.destination,
+                    [
+                      ['project', t('export.destProject')],
+                      ['tts', t('export.destTts')],
+                      ['both', t('export.destBoth')]
+                    ],
+                    (destination) => patch({ destination })
+                  )
+                )}
               {tts.destination !== 'project' &&
-                field('export.ttsFolder', folderField(tts.ttsFolder, defaults.tts, 'ttsFolder'))}
+                field(
+                  'export.ttsFolder',
+                  folderField(tts.ttsFolder, defaults.tts, 'ttsFolder'),
+                  window.api.isWeb ? t('web.ttsFolderHint') : undefined
+                )}
+              {window.api.isWeb &&
+                tts.ttsFolder &&
+                field(
+                  'web.ttsRealPath',
+                  <input
+                    value={realPath}
+                    placeholder={t('web.ttsRealPathPlaceholder')}
+                    onChange={(e) => {
+                      setRealPath(e.target.value)
+                      writeRealPath(tts.ttsFolder, e.target.value)
+                    }}
+                  />,
+                  t('web.ttsRealPathHint')
+                )}
               {field(
                 'export.nickname',
                 select(

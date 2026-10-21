@@ -69,6 +69,8 @@ export default function ImportTtcDialog({
         <input
           value={folders[key]}
           title={folders[key]}
+          // nel web una cartella si sceglie solo con il pulsante
+          readOnly={window.api.isWeb}
           onChange={(e) =>
             key === 'source'
               ? setSource(e.target.value)
@@ -79,7 +81,9 @@ export default function ImportTtcDialog({
           {t('export.choose')}
         </button>
       </div>
-      <p className="field-note export-note">{t(hint)}</p>
+      <p className="field-note export-note">
+        {t(window.api.isWeb && key === 'target' ? 'web.ttcTargetHint' : hint)}
+      </p>
     </div>
   )
 

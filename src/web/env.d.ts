@@ -24,3 +24,9 @@ interface Window {
 }
 
 declare const __APP_VERSION__: string
+
+// file inclusi nella build con ?asset, come in electron-vite (vedi assetFiles in vite.web.config.mts)
+declare module '*?asset' {
+  const src: string
+  export default src
+}

@@ -85,10 +85,7 @@ export default function FontPicker({
 }): React.JSX.Element {
   const { t } = useI18n()
   const project = useProjectFonts()
-  // nel web Google Fonts e i font del computer non si copiano nel progetto: solo l'app desktop
-  const [tab, setTab] = useState<Tab>(
-    project.families.length || window.api.isWeb ? 'project' : 'google'
-  )
+  const [tab, setTab] = useState<Tab>(project.families.length ? 'project' : 'google')
   const [sample, setSampleState] = useState(() => loadSample(t('fonts.sample')))
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string | null>(null)
@@ -226,17 +223,15 @@ export default function FontPicker({
     <Dialog title={t('fonts.title')} onClose={busy ? () => undefined : onClose}>
       <div className="font-picker">
         <div className="asset-picker-bar">
-          {!window.api.isWeb && (
-            <Segmented
-              value={tab}
-              options={[
-                ['project', t('fonts.tabProject')],
-                ['google', 'Google Fonts'],
-                ['system', t('fonts.tabSystem')]
-              ]}
-              onChange={(v) => setTab(v as Tab)}
-            />
-          )}
+          <Segmented
+            value={tab}
+            options={[
+              ['project', t('fonts.tabProject')],
+              ['google', 'Google Fonts'],
+              ['system', t('fonts.tabSystem')]
+            ]}
+            onChange={(v) => setTab(v as Tab)}
+          />
           <input
             autoFocus
             type="search"
@@ -260,14 +255,17 @@ export default function FontPicker({
               </button>
             ))}
             <span className="spacer" />
-            <button
-              className="small-btn"
-              title={t('catalog.updateHint')}
-              disabled={updating === 'running'}
-              onClick={updateCatalog}
-            >
-              {updating === 'running' ? t('catalog.updating') : t('catalog.update')}
-            </button>
+            {/* nel web il catalogo è quello della versione pubblicata */}
+            {!window.api.isWeb && (
+              <button
+                className="small-btn"
+                title={t('catalog.updateHint')}
+                disabled={updating === 'running'}
+                onClick={updateCatalog}
+              >
+                {updating === 'running' ? t('catalog.updating') : t('catalog.update')}
+              </button>
+            )}
           </div>
         )}
         {tab === 'google' && updating && updating !== 'running' && (

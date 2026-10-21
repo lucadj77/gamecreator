@@ -4,7 +4,8 @@ import { fuzzyFilter } from '../../../shared/model/fuzzy'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import { BUILTIN_SHAPES } from '../../../shared/model/markup'
-import { AssetsContext, assetUrl, VariablesContext } from '../render/assets'
+import { messageFromError, type Message } from '../../../shared/messages'
+import { AssetsContext, assetUrl, publishAssetsUpdate, VariablesContext } from '../render/assets'
 import MarkupText from '../render/MarkupText'
 import IconBrowser from './IconBrowser'
 
@@ -43,6 +44,7 @@ export default function AssetPicker({
   const [folder, setFolder] = useState<string | null>(null)
   const [size, setSizeState] = useState(loadSize)
   const [importing, setImporting] = useState(false)
+  const [error, setError] = useState<Message | null>(null)
   const setSize = (n: number): void => {
     setSizeState(n)
     try {
@@ -118,6 +120,17 @@ export default function AssetPicker({
   )
   const extraCount = shapes.length + imageVars.length
 
+  /** Copia in assets/images/ immagini scelte dal computer */
+  const addImages = async (): Promise<void> => {
+    setError(null)
+    try {
+      const u = await window.api.addImages()
+      if (u) publishAssetsUpdate(u)
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }
+
   const pick = (path: string): void => {
     onPick(assetRefName(path, assets))
     onClose()
@@ -144,10 +157,12 @@ export default function AssetPicker({
             title={t('assetPicker.size')}
             onChange={(e) => setSize(Number(e.target.value))}
           />
-          {!window.api.isWeb && (
-            <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
-          )}
+          <button onClick={addImages} title={t('assetPicker.addImagesHint')}>
+            {t('assetPicker.addImages')}
+          </button>
+          <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
         </div>
+        {error && <div className="banner error">{t(error)}</div>}
         {folders.length > 0 && (
           <div className="asset-picker-folders">
             <button className={folder === null ? 'on' : ''} onClick={() => setFolder(null)}>

@@ -1,0 +1,37 @@
+# Pubblica una versione senza il terminale: si avvia a mano da main (Actions → Release → Run
+# workflow). Crea il tag v<versione di package.json> sull'ultimo commit di main e avvia Build e
+# Web su quel tag: Build pubblica la release, Web aggiorna il sito. Vedi docs/rilascio.md.
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  tag:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag della versione
+        run: |
+          tag="v$(node -p "require('./package.json').version")"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "::error::Il tag $tag esiste già: alza la versione in package.json e CHANGELOG.md"
+            exit 1
+          fi
+          # si ferma qui se CHANGELOG.md non ha la sezione della versione
+          node scripts/release-notes.mjs "$tag" > /dev/null
+          git tag "$tag"
+          git push origin "$tag"
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+      # un tag spinto con il token dell'azione non avvia le altre azioni: si avviano a mano sul tag
+      - name: Build e Web sul tag
+        run: |
+          gh workflow run build.yml --ref "$TAG"
+          gh workflow run web.yml --ref "$TAG"
+        env:
+          GH_TOKEN: ${{ github.token }}

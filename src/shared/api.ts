@@ -149,8 +149,11 @@ export interface Api {
   /** Crea subito un backup del progetto aperto (dei file salvati) */
   createBackup(): Promise<BackupItem>
   saveBackupSettings(settings: BackupSettings): Promise<BackupState>
-  /** Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso */
-  restoreBackup(file: string): Promise<string>
+  /**
+   * Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso. Nel
+   * web la cartella in cui estrarlo (parent) la sceglie l'utente.
+   */
+  restoreBackup(file: string, parent?: string): Promise<string>
   /** Cartella proposta per un progetto Tabletop Creator convertito */
   defaultTtcTarget(source: string): Promise<string>
   /** Converte un progetto Tabletop Creator in un progetto nuovo; l'originale non si modifica */

@@ -42,3 +42,17 @@ export function toRealPath(file: string, real: string): { path: string; platform
   const base = real.replace(/\/+$/, '')
   return { path: [base, ...rest].join('/'), platform: 'darwin' }
 }
+
+/**
+ * Il percorso scritto finisce con il nome della cartella scelta (a cui il sito può aver aggiunto
+ * un numero, come "Saved Objects (2)")
+ */
+export function realPathMatches(path: string, real: string): boolean {
+  const name = virtualRoot(path).slice(1)
+  const last =
+    real
+      .replace(/[\\/]+$/, '')
+      .split(/[\\/]/)
+      .pop() ?? ''
+  return name === last || name.startsWith(last + ' (') || name === last.replace(/^\./, '_')
+}

@@ -10,6 +10,7 @@ import MarkupText from '../render/MarkupText'
 import IconBrowser from './IconBrowser'
 
 const SIZE_KEY = 'assetPickerSize'
+const DARK_KEY = 'assetPickerDark'
 
 function loadSize(): number {
   try {
@@ -45,6 +46,22 @@ export default function AssetPicker({
   const [size, setSizeState] = useState(loadSize)
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState<Message | null>(null)
+  // le icone bianche su sfondo chiaro non si vedono
+  const [dark, setDarkState] = useState(() => {
+    try {
+      return localStorage.getItem(DARK_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+  const setDark = (on: boolean): void => {
+    setDarkState(on)
+    try {
+      localStorage.setItem(DARK_KEY, on ? '1' : '0')
+    } catch {
+      // preferenza non essenziale
+    }
+  }
   const setSize = (n: number): void => {
     setSizeState(n)
     try {
@@ -157,6 +174,9 @@ export default function AssetPicker({
             title={t('assetPicker.size')}
             onChange={(e) => setSize(Number(e.target.value))}
           />
+          <button className={dark ? 'small-btn on' : 'small-btn'} onClick={() => setDark(!dark)}>
+            {t('icons.darkBackground')}
+          </button>
           <button onClick={addImages} title={t('assetPicker.addImagesHint')}>
             {t('assetPicker.addImages')}
           </button>
@@ -181,7 +201,7 @@ export default function AssetPicker({
           <p className="muted">{t('assetPicker.noMatch')}</p>
         ) : (
           <div
-            className="asset-grid"
+            className={dark ? 'asset-grid dark' : 'asset-grid'}
             style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${size}px, 1fr))` }}
           >
             {shapes.length > 0 && <h3 className="asset-grid-title">{t('assetPicker.shapes')}</h3>}

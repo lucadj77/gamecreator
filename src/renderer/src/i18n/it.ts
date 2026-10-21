@@ -1196,15 +1196,20 @@ export const it: Record<MessageKey, string> = {
   'web.restoreCancelled': 'Ripristino annullato: nessuna cartella scelta.',
   'web.ttcTargetHint':
     "Scegli (o crea nella finestra) una cartella vuota; se l'originale sta dentro una cartella scelta, la nuova si propone accanto",
+  'web.ttsFolder': 'Cartella di destinazione',
   'web.ttsFolderHint':
-    'Di solito Documenti\\My Games\\Tabletop Simulator\\Saves\\Saved Objects su Windows. Su macOS il browser non può aprire quella cartella: vedi la guida.',
-  'web.ttsRealPath': 'Percorso di questa cartella',
+    'Il browser scrive qui fogli, immagini e file del mazzo (.json). Su Windows scegli Documenti\\My Games\\Tabletop Simulator\\Saves\\Saved Objects. Su macOS il browser non può aprire la cartella di Tabletop Simulator: scegli una cartella in Documenti e vedi la guida.',
+  'web.ttsRealPath': 'Percorso completo della stessa cartella',
   'web.ttsRealPathPlaceholder': 'C:\\Users\\…\\Saved Objects',
   'web.ttsRealPathHint':
-    'Il browser non dice il percorso completo di una cartella, e a Tabletop Simulator serve per trovare le immagini delle carte. Incollalo una volta (in Esplora file: clic sulla barra dell\'indirizzo e copia; nel Finder: clic destro con Opzione, "Copia come nome percorso"); questo browser lo ricorda.',
+    'Il browser non rivela il percorso completo della cartella scelta, ma il file del mazzo deve contenerlo: Tabletop Simulator lo usa per trovare le immagini delle carte. Incollalo una volta (Esplora file: clic sulla barra dell\'indirizzo e copia; Finder: tasto destro con Opzione, "Copia come nome percorso"); questo browser lo ricorda.',
   'web.ttsRealPathMissing':
-    'Scrivi il percorso della cartella di Tabletop Simulator: al mazzo serve per trovare le immagini.',
-  'web.ttsChooseFolder': 'Scegli la cartella di Tabletop Simulator (Saved Objects).',
+    'Scrivi il percorso completo della cartella di destinazione: il file del mazzo ne ha bisogno per trovare le immagini.',
+  'web.ttsRealPathMismatch':
+    'Il percorso scritto non finisce con la cartella scelta ({folder}): controlla di aver copiato il percorso della stessa cartella.',
+  'web.ttsChooseFolder': 'Scegli la cartella di destinazione.',
+  'web.restoreConfirm':
+    "Il backup verrà estratto in una nuova cartella dentro quella scelta, e si aprirà al posto di questo progetto. Il progetto attuale resta com'è. Continuare?",
   'web.pdfHint':
     'Nella versione web le pagine vanno alla finestra di stampa del browser: scegli "Salva come PDF", margini "Nessuno" e attiva "Grafica di sfondo". Una finestra per ogni PDF.',
   'about.link': 'Cosa vuol dire Naibi?',

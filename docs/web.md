@@ -23,10 +23,11 @@ arriva nel web va tolta da lì.
 - Immagini PNG, JPG e WebP: si ottengono dall'SVG della carta (lo stesso dell'esportazione in SVG)
   disegnato su un canvas, non da una cattura della pagina. Il risultato può differire di poco
   nella posizione delle lettere. Lo stesso vale per i fogli di Tabletop Simulator.
-- Tabletop Simulator: i file vanno solo nella cartella di Tabletop Simulator scelta con
-  **Scegli…**, e la prima volta si incolla il suo percorso completo nel campo **Percorso di questa
-  cartella**: il browser non lo dice, e il file del mazzo ne ha bisogno per trovare le immagini
-  (`src/shared/realPath.ts`, ricordato nel browser per ogni cartella). Su macOS Chrome non apre le
+- Tabletop Simulator: i file vanno solo nella **Cartella di destinazione** scelta con
+  **Scegli…**, e la prima volta si incolla il percorso completo della stessa cartella nel campo
+  sotto: il browser non lo dice, e il file del mazzo ne ha bisogno per trovare le immagini
+  (`src/shared/realPath.ts`, ricordato nel browser per ogni cartella). Un percorso che non finisce
+  con il nome della cartella scelta viene rifiutato. Su macOS Chrome non apre le
   cartelle dentro `~/Library`, dove sta `Saved Objects`: si sceglie un'altra cartella, per
   esempio `Documenti/Naibi TTS`, e una volta sola si crea in `Saved Objects` un collegamento a
   essa dal Terminale (da verificare con Tabletop Simulator):
@@ -42,8 +43,8 @@ arriva nel web va tolta da lì.
   `.ttc` e i font che vietano l'incorporamento non si copiano.
 - Backup: senza una cartella scelta stanno nello spazio privato del sito nel browser, che si
   perde cancellando i dati del sito. Il backup automatico all'apertura parte solo se la cartella
-  scelta è già autorizzata. Il ripristino crea la cartella accanto al progetto; se il progetto è
-  proprio la cartella scelta, il browser chiede dove metterlo.
+  scelta è già autorizzata. Il ripristino chiede in quale cartella estrarre il backup: il
+  browser apre la finestra di scelta solo subito dopo un clic, quindi la si apre per prima.
 - Importazione da Tabletop Creator: la cartella di destinazione si sceglie (o si crea) dalla
   finestra del browser e deve essere vuota.
 - I cataloghi di game-icons.net e dei font Google sono quelli della versione pubblicata: non si

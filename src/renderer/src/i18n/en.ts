@@ -1177,15 +1177,20 @@ export const en = {
   'web.restoreCancelled': 'Restore cancelled: no folder chosen.',
   'web.ttcTargetHint':
     'Choose (or create in the window) an empty folder; if the original is inside a folder you chose, the new one is proposed next to it',
+  'web.ttsFolder': 'Destination folder',
   'web.ttsFolderHint':
-    'Usually Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects on Windows. On macOS the browser cannot open that folder: see the guide.',
-  'web.ttsRealPath': 'Path of this folder',
+    'The browser writes the sheets, images and deck file (.json) here. On Windows choose Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects. On macOS the browser cannot open the Tabletop Simulator folder: choose a folder in Documents and see the guide.',
+  'web.ttsRealPath': 'Full path of the same folder',
   'web.ttsRealPathPlaceholder': 'C:\\Users\\…\\Saved Objects',
   'web.ttsRealPathHint':
-    'The browser does not tell the full path of a folder, and Tabletop Simulator needs it to find the card images. Paste it once (in Explorer: click the address bar and copy; in Finder: right click with Option, "Copy as pathname"); this browser remembers it.',
+    'The browser does not reveal the full path of the chosen folder, but the deck file must contain it: Tabletop Simulator uses it to find the card images. Paste it once (Explorer: click the address bar and copy; Finder: right click with Option, "Copy as pathname"); this browser remembers it.',
   'web.ttsRealPathMissing':
-    'Write the path of the Tabletop Simulator folder: the deck needs it to find the images.',
-  'web.ttsChooseFolder': 'Choose the Tabletop Simulator folder (Saved Objects).',
+    'Write the full path of the destination folder: the deck file needs it to find the images.',
+  'web.ttsRealPathMismatch':
+    'The path does not end with the chosen folder ({folder}): check that you copied the path of the same folder.',
+  'web.ttsChooseFolder': 'Choose the destination folder.',
+  'web.restoreConfirm':
+    'The backup will be extracted into a new folder inside the chosen one, and it will open in place of this project. The current project stays as it is. Continue?',
   'web.pdfHint':
     'In the web version the pages go to the browser print window: choose "Save as PDF", margins "None" and turn on "Background graphics". One window for each PDF.',
   'about.link': 'What does Naibi mean?',

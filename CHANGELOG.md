@@ -17,6 +17,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
   - **Tabletop Simulator export**. Choose the Tabletop Simulator folder, then paste its full path the first time. The browser does not give the path, and the deck needs it to find the images; the site remembers it. On macOS the browser cannot open the Saved Objects folder: docs/web.md explains how to work around it.
 - New **Add images…** button in the image picker, in the desktop app and in the web version. It copies images from the computer into `assets/images` of the project. A file with the same name is not overwritten: the copy gets a number.
 - The **Help** window has a link to the complete user guide at the top.
+- Image picker: new **Dark background** button, to see white icons. The choice is remembered.
 
 ### Italiano
 
@@ -28,6 +29,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
   - **Esportazione per Tabletop Simulator**. Si sceglie la cartella di Tabletop Simulator e la prima volta si incolla il suo percorso completo. Il browser non lo fornisce, e al mazzo serve per trovare le immagini; il sito lo ricorda. Su macOS il browser non può aprire la cartella Saved Objects: docs/web.md spiega come aggirarlo.
 - Nuovo pulsante **Aggiungi immagini…** nella scelta delle immagini, nell'app desktop e nella versione web. Copia immagini dal computer in `assets/images` del progetto. Un file con lo stesso nome non si sovrascrive: la copia prende un numero.
 - La finestra **Aiuto** ha in cima un link alla guida completa.
+- Scelta delle immagini: nuovo pulsante **Sfondo scuro**, per vedere le icone bianche. La scelta viene ricordata.
 
 ## 1.2.0-beta.10
 

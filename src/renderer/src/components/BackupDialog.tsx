@@ -58,9 +58,17 @@ export default function BackupDialog({
     run(async () => setState(await window.api.saveBackupSettings({ ...state.settings, ...patch })))
   }
 
-  const restore = (file: string): void => {
-    if (!window.confirm(t('backup.restoreConfirm'))) return
-    run(async () => onRestored(await window.api.restoreBackup(file)))
+  const restore = async (file: string): Promise<void> => {
+    // nel web la cartella si sceglie prima di tutto: il browser apre la finestra solo subito
+    // dopo il clic
+    let parent: string | undefined
+    if (window.api.isWeb) {
+      parent = (await window.api.chooseFolder()) ?? undefined
+      if (!parent) return
+    }
+    if (!window.confirm(t(window.api.isWeb ? 'web.restoreConfirm' : 'backup.restoreConfirm')))
+      return
+    run(async () => onRestored(await window.api.restoreBackup(file, parent)))
   }
 
   return (

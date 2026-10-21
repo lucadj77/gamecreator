@@ -29,7 +29,7 @@ import {
 } from '../main/project/backup'
 import { backupDirFor, backupSettingsFile } from '../main/project/backupPaths'
 import { defaultTarget, importTtc } from '../main/import/ttc'
-import { readRealPath, toRealPath } from '../shared/realPath'
+import { readRealPath, realPathMatches, toRealPath, virtualRoot } from '../shared/realPath'
 import { ensurePermission, hasPermission, pickFolder } from './fs/roots'
 import { assetChanged, assetUrl, openAssets } from './assets'
 import { addImages, copySystemFont, downloadGoogleFont, systemFonts } from './library'
@@ -146,8 +146,12 @@ export const webApi: Api = {
     if (job.kind === 'tts') {
       // vedi ExportDialog: nel web solo la cartella di Tabletop Simulator, scelta dall'utente
       if (!job.options.ttsFolder) throw new MessageError(msg('web.ttsChooseFolder'))
-      if (!readRealPath(job.options.ttsFolder))
-        throw new MessageError(msg('web.ttsRealPathMissing'))
+      const real = readRealPath(job.options.ttsFolder)
+      if (!real) throw new MessageError(msg('web.ttsRealPathMissing'))
+      if (!realPathMatches(job.options.ttsFolder, real))
+        throw new MessageError(
+          msg('web.ttsRealPathMismatch', { folder: virtualRoot(job.options.ttsFolder).slice(1) })
+        )
       job = { ...job, options: { ...job.options, destination: 'tts' } }
     }
     return runExport(job, {
@@ -208,18 +212,12 @@ export const webApi: Api = {
     await writeBackupSettings(backupSettingsFile(), settings)
     return backupState()
   },
-  // si estraggono solo i backup del progetto aperto, accanto al progetto; se il progetto è una
-  // cartella scelta direttamente, "accanto" non si raggiunge e il browser chiede dove
-  restoreBackup: async (file) => {
-    const f = projectFolder()
+  // si estraggono solo i backup del progetto aperto, nella cartella scelta dall'utente: la finestra
+  // del browser va aperta subito dopo il clic, quindi la apre BackupDialog prima di chiamare qui
+  restoreBackup: async (file, parent) => {
     const dir = await backupDir()
     if (dirname(file) !== dir) throw new Error('not a backup')
-    let parent = dirname(f)
-    if (parent === '/') {
-      const chosen = await pickFolder('naibi-restore')
-      if (!chosen) throw new MessageError(msg('web.restoreCancelled'))
-      parent = chosen
-    }
+    if (!parent) throw new MessageError(msg('web.restoreCancelled'))
     return restoreBackup(file, parent)
   },
   // accanto all'originale solo se la cartella scelta lo contiene; altrimenti la si sceglie

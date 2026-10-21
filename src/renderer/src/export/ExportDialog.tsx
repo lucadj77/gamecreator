@@ -788,7 +788,7 @@ export default function ExportDialog({
                 )}
               {tts.destination !== 'project' &&
                 field(
-                  'export.ttsFolder',
+                  window.api.isWeb ? 'web.ttsFolder' : 'export.ttsFolder',
                   folderField(tts.ttsFolder, defaults.tts, 'ttsFolder'),
                   window.api.isWeb ? t('web.ttsFolderHint') : undefined
                 )}

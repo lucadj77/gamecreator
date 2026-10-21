@@ -4029,3 +4029,64 @@ details.usages button.link {
   overflow-y: auto;
   padding: 4px 2px;
 }
+
+/* statistiche del set */
+.stats-dialog {
+  min-width: 380px;
+}
+
+.stats-numbers {
+  margin: 0;
+  font-weight: 600;
+}
+
+.stats-table-wrap {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.stats-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+}
+
+.stats-table td,
+.stats-table th {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.stats-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  width: 4em;
+}
+
+.stats-table .bar {
+  width: 40%;
+}
+
+.stats-table .bar span {
+  display: block;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.dialog-form label.stats-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+}

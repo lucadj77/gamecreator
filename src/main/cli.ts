@@ -35,7 +35,8 @@ import { saveData } from './project/save'
 import { saveTemplate } from './project/templates'
 import { renameSet } from '../shared/model/renameSet'
 import { renameTemplate } from '../shared/model/renameTemplate'
-import { isValidSheetName } from '../shared/model/sheet'
+import { isValidSheetName, setColumns } from '../shared/model/sheet'
+import { columnStats, columnValues, rowAmounts } from '../shared/model/stats'
 import { isValidTemplateName, walkLayers } from '../shared/model/normalize'
 import { setProjectFolder } from './protocol'
 import { systemFonts } from './library/systemFonts'
@@ -72,6 +73,8 @@ Commands:
          [--dpi 150] [--out folder]    Draw cards as PNG files (default folder: export/naibi-render)
   export <project> --profile NAME      Run a named export profile saved in the project
   new <name> <parent folder>           Create an empty project
+  stats <project> <set> [--column C]  How many cards have each value of every column (or one),
+                                       with sum, average, min and max of numeric columns
   notes <project> [<name>]             The project notes (notes/*.md), all or one: the user's
                                        reminders, also for you; write them as Markdown files there
   begin <project> [--note TEXT]        Start working: fails (exit code 3) if the Naibi app has
@@ -81,7 +84,7 @@ Commands:
   help                                 This text
 
 <project> is the project folder (the one with naibi.json).
-Add --json to info, check, template and notes for machine-readable output.`
+Add --json to info, check, template, stats and notes for machine-readable output.`
 
 const print = (s = ''): void => {
   process.stdout.write(s + '\n')
@@ -538,6 +541,43 @@ async function begin(p: Parsed): Promise<number> {
   return 0
 }
 
+/** Statistiche delle colonne di un set: carte per valore, somma e media dei numeri */
+async function stats(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  const set = findSet(project, p.positional[1])
+  const sheet = set.data ?? { name: set.sheet ?? set.name, headers: [], rows: [] }
+  const tpl = project.templates.find((t) => t.name === set.template) ?? null
+  const all = setColumns(sheet, tpl)
+    .map((c) => c.header)
+    .filter((h) => h && h !== 'amount' && !h.includes('.'))
+  const only = typeof p.flags.column === 'string' ? p.flags.column : null
+  if (only && !all.includes(only))
+    throw new CliError(`no column "${only}" (columns: ${all.join(', ') || 'none'})`)
+  const rows = sheet.rows.map((_, i) => i)
+  const amounts = rowAmounts(sheet, rows)
+  const list = (only ? [only] : all).map((c) =>
+    columnStats(
+      c,
+      columnValues(sheet, c, rows, tpl, project.templates, project.file.variables),
+      amounts
+    )
+  )
+  if (p.flags.json) {
+    print(JSON.stringify(list, null, 2))
+    return 0
+  }
+  for (const s of list) {
+    print(`=== ${s.column}: ${s.groups.length} values, ${s.cards} cards ===`)
+    if (s.numeric)
+      print(
+        `sum ${s.numeric.sum}  average ${+s.numeric.mean.toFixed(2)}  min ${s.numeric.min}  max ${s.numeric.max}`
+      )
+    for (const g of s.groups) print(`${g.cards}\t${g.value === '' ? '(empty)' : g.value}`)
+    print()
+  }
+  return 0
+}
+
 /** Note del progetto (notes/*.md), tutte o una sola */
 async function notes(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
@@ -576,6 +616,7 @@ const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   export: exportProfile,
   new: create,
   notes,
+  stats,
   begin,
   end
 }

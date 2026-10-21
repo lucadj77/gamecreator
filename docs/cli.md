@@ -17,10 +17,11 @@ Il comando `naibi` permette a un agente IA (Claude Code, Codex, Cursor…) o a u
 | `export <progetto> --profile NOME`                                                                     | esegue un profilo di esportazione salvato nel progetto                                                                         |
 | `new <nome> <cartella>`                                                                                | crea un progetto vuoto                                                                                                         |
 | `notes <progetto> [<nome>]`                                                                            | note del progetto (`notes/*.md`), tutte o una; l'agente le scrive come file Markdown in `notes/`                               |
+| `stats <progetto> <set> [--column C]`                                                                  | quante carte hanno ogni valore di ogni colonna (o di una), con somma, media, minimo e massimo delle colonne numeriche          |
 | `begin <progetto> [--note testo]`                                                                      | inizio del lavoro di un'IA: esce con 3 se l'app ha modifiche non salvate nel progetto, altrimenti l'app si blocca              |
 | `end <progetto>`                                                                                       | fine del lavoro: l'app si sblocca e ricarica il progetto                                                                       |
 
-`info`, `check`, `template` e `notes` accettano `--json`. `naibi --help` elenca i comandi.
+`info`, `check`, `template`, `stats` e `notes` accettano `--json`. `naibi --help` elenca i comandi.
 
 ## Come si lancia
 

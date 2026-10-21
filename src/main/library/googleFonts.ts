@@ -38,8 +38,11 @@ const LICENSE_FILES: Record<string, [string, string]> = {
   'UFL-1.0': ['ufl', 'UFL.txt']
 }
 
-/** Testo della licenza dal repository dei font Google; prova tutte le cartelle se non è nota */
-async function fetchLicense(
+/**
+ * Testo della licenza dal repository dei font Google; prova tutte le cartelle se non è nota.
+ * La usa anche la versione web (src/web/library.ts).
+ */
+export async function fetchLicense(
   family: string,
   license: string
 ): Promise<{ file: string; text: string; license: string } | null> {

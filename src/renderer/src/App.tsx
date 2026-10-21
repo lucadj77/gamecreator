@@ -1266,15 +1266,13 @@ function App(): React.JSX.Element {
                   <button onClick={() => setExporting(true)} title={t('tip.export')}>
                     {t('app.export')}
                   </button>
+                  <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
+                    {t('app.backup')}
+                  </button>
                   {!window.api.isWeb && (
-                    <>
-                      <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
-                        {t('app.backup')}
-                      </button>
-                      <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
-                        {t('app.aiTools')}
-                      </button>
-                    </>
+                    <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
+                      {t('app.aiTools')}
+                    </button>
                   )}
                   <button onClick={() => setHelp(true)} title={t('tip.help')}>
                     {t('app.help')}

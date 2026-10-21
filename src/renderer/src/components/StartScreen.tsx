@@ -93,15 +93,13 @@ export default function StartScreen({
           <button onClick={onChoose} title={t('tip.openProject')}>
             {t('start.openProject')}
           </button>
+          <button onClick={onImport} title={t('tip.importTtc')}>
+            {t('start.importTtc')}
+          </button>
           {!window.api.isWeb && (
-            <>
-              <button onClick={onImport} title={t('tip.importTtc')}>
-                {t('start.importTtc')}
-              </button>
-              <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
-                {t('app.aiTools')}
-              </button>
-            </>
+            <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
+              {t('app.aiTools')}
+            </button>
           )}
           <button onClick={onHelp} title={t('tip.help')}>
             {t('app.help')}

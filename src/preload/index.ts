@@ -40,6 +40,7 @@ const api: Api = {
   downloadFont: (family, variants) => ipcRenderer.invoke('library:download-font', family, variants),
   systemFonts: () => ipcRenderer.invoke('library:system-fonts'),
   copySystemFont: (family) => ipcRenderer.invoke('library:copy-system-font', family),
+  addImages: () => ipcRenderer.invoke('library:add-images'),
   saveCredits: (text) => ipcRenderer.invoke('library:save-credits', text),
   chooseFolder: (current) => ipcRenderer.invoke('folder:choose', current),
   backups: () => ipcRenderer.invoke('backup:list'),

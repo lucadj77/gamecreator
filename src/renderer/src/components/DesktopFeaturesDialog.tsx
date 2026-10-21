@@ -9,10 +9,8 @@ const RELEASES = 'https://github.com/lucadj77/naibi/releases'
 const ITEMS = [
   'web.desktop.pdf',
   'web.desktop.tts',
-  'web.desktop.icons',
-  'web.desktop.systemFonts',
-  'web.desktop.backup',
-  'web.desktop.ttc',
+  'web.desktop.fonts',
+  'web.desktop.catalogs',
   'web.desktop.ai',
   'web.desktop.browser'
 ] as const

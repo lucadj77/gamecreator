@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import pkg from './package.json'
 
@@ -8,6 +8,28 @@ import pkg from './package.json'
 // shims sopra la File System Access API. Vedi docs/web.md.
 
 const shims = resolve('src/web/shims')
+
+/**
+ * I cataloghi inclusi (resources/catalogs) si importano con ?asset, che in electron-vite dà il
+ * percorso del file: qui diventano file della build, letti con fetch da shims/fs.ts
+ */
+function assetFiles(): Plugin {
+  return {
+    name: 'naibi-asset-files',
+    enforce: 'pre',
+    async resolveId(source, importer) {
+      if (!source.endsWith('?asset')) return null
+      const r = await this.resolve(source.slice(0, -6), importer, { skipSelf: true })
+      // l'id non finisce in .json: il plugin dei JSON di Vite proverebbe a leggerlo
+      return r ? `\0naibi-asset:${r.id}.js` : null
+    },
+    load(id) {
+      if (!id.startsWith('\0naibi-asset:')) return null
+      const file = id.slice('\0naibi-asset:'.length, -'.js'.length)
+      return `import url from ${JSON.stringify(file + '?url')}\nexport default 'web-asset:' + url`
+    }
+  }
+}
 
 export default defineConfig({
   root: 'src/web',
@@ -19,10 +41,12 @@ export default defineConfig({
       { find: /^(node:)?fs\/promises$/, replacement: resolve(shims, 'fs.ts') },
       { find: /^(node:)?path$/, replacement: resolve(shims, 'path.ts') },
       { find: /^(node:)?zlib$/, replacement: resolve(shims, 'zlib.ts') },
-      { find: /^(node:)?url$/, replacement: resolve(shims, 'url.ts') }
+      { find: /^(node:)?url$/, replacement: resolve(shims, 'url.ts') },
+      { find: /^(node:)?crypto$/, replacement: resolve(shims, 'crypto.ts') },
+      { find: /^electron$/, replacement: resolve(shims, 'electron.ts') }
     ]
   },
-  plugins: [react()],
+  plugins: [assetFiles(), react()],
   build: {
     outDir: resolve('out/web'),
     emptyOutDir: true,

@@ -82,8 +82,13 @@ export async function getFile(path: string): Promise<File> {
   }
 }
 
+/** File inclusi nella build (cataloghi), vedi assetFiles in vite.web.config.mts */
+const BUILD_FILE = 'web-asset:'
+
 export async function readFile(path: string, opts?: Encoding): Promise<string | Buffer> {
-  const data = Buffer.from(await (await getFile(path)).arrayBuffer())
+  const data = path.startsWith(BUILD_FILE)
+    ? Buffer.from(await (await fetch(path.slice(BUILD_FILE.length))).arrayBuffer())
+    : Buffer.from(await (await getFile(path)).arrayBuffer())
   const enc = encodingOf(opts)
   return enc ? data.toString(enc) : data
 }

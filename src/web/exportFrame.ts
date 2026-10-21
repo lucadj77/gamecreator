@@ -3,6 +3,7 @@ import type { CapturedImage, RenderWindow } from '../main/export/run'
 import type { ExportContext, Scene } from '../shared/export'
 import type { ExportPageApi } from '../shared/api'
 import { Watchdog } from '../shared/exportWait'
+import type { PageCard } from '../renderer/src/export/ExportPage'
 
 // La finestra nascosta delle esportazioni nella versione web: un iframe invisibile con la stessa
 // pagina (#export) dell'app desktop. Il browser non cattura i pixel di una pagina: l'immagine si
@@ -124,26 +125,42 @@ export class FrameWindow implements RenderWindow {
     return page.naibiCardSvg(background)
   }
 
+  /**
+   * Immagine della pagina: ogni carta come SVG (lo stesso dell'esportazione in SVG) disegnata al
+   * suo posto su un canvas delle dimensioni chieste. Vale per una carta sola e per i fogli di
+   * Tabletop Simulator; i segni di taglio non ci sono, e qui non servono.
+   */
   async capture(width: number, height: number): Promise<CapturedImage> {
     const w = Math.max(1, Math.round(width))
     const h = Math.max(1, Math.round(height))
-    // l'SVG è in mm: si disegna alle dimensioni chieste in pixel
-    const doc = new DOMParser().parseFromString(await this.svg(this.background), 'image/svg+xml')
-    doc.documentElement.setAttribute('width', String(w))
-    doc.documentElement.setAttribute('height', String(h))
-    const svg = new XMLSerializer().serializeToString(doc)
-    const img = new Image()
-    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
-    try {
-      img.src = url
-      await img.decode()
-    } finally {
-      URL.revokeObjectURL(url)
-    }
+    const page = this.frame.contentWindow as
+      (Window & { naibiPageCards?: () => Promise<PageCard[]> }) | null
+    if (!page?.naibiPageCards) throw new Error('the export page is not ready')
     const canvas = document.createElement('canvas')
     canvas.width = w
     canvas.height = h
-    canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+    const ctx = canvas.getContext('2d')!
+    if (this.background) {
+      ctx.fillStyle = this.background
+      ctx.fillRect(0, 0, w, h)
+    }
+    for (const card of await page.naibiPageCards()) {
+      // l'SVG è in mm: si disegna alle dimensioni che la carta ha nella pagina
+      const doc = new DOMParser().parseFromString(card.svg, 'image/svg+xml')
+      doc.documentElement.setAttribute('width', String(card.width))
+      doc.documentElement.setAttribute('height', String(card.height))
+      const img = new Image()
+      const url = URL.createObjectURL(
+        new Blob([new XMLSerializer().serializeToString(doc)], { type: 'image/svg+xml' })
+      )
+      try {
+        img.src = url
+        await img.decode()
+      } finally {
+        URL.revokeObjectURL(url)
+      }
+      ctx.drawImage(img, card.x, card.y, card.width, card.height)
+    }
     const encode = (type: string, quality?: number): Buffer =>
       Buffer.from(canvas.toDataURL(type, quality).split(',')[1], 'base64')
     return {

@@ -63,6 +63,11 @@ export interface RunEnv {
   openWindow(context: ExportContext): Promise<RenderWindow>
   /** Conversione del PDF in CMYK; null se non riesce, assente dove non si può fare */
   toCmyk?(pdf: Buffer): Promise<Buffer | null>
+  /**
+   * Versione web: il percorso vero di un file sul computer (il browser ne conosce uno virtuale),
+   * per gli indirizzi delle immagini di Tabletop Simulator, e il sistema a cui appartiene
+   */
+  realPath?(file: string): { path: string; platform: string }
   projectFolder: string
   platform: string
   home: string
@@ -328,8 +333,8 @@ async function exportTts(
           if (i === 0) await write(ctx, backFile, s.back)
         }
         ttsSheets.push({
-          faceUrl: ttsImageUrl(faceFile, env.platform, pathToFileURL(faceFile).href),
-          backUrl: ttsImageUrl(backFile, env.platform, pathToFileURL(backFile).href),
+          faceUrl: imageUrl(env, faceFile),
+          backUrl: imageUrl(env, backFile),
           cols: s.cols,
           rows: s.rows,
           uniqueBack: s.uniqueBack
@@ -341,6 +346,14 @@ async function exportTts(
       await write(ctx, join(target, `${stem}.png`), thumb)
     }
   }
+}
+
+/** Indirizzo di un'immagine scritta per Tabletop Simulator, come lo legge TTS */
+function imageUrl(env: RunEnv, file: string): string {
+  const real = env.realPath?.(file) ?? { path: file, platform: env.platform }
+  // un percorso di Windows scritto a mano nel web non diventa un URL standard: non serve
+  const standard = real.platform === 'win32' ? '' : pathToFileURL(real.path).href
+  return ttsImageUrl(real.path, real.platform, standard)
 }
 
 function fieldText(card: ExportCard, field: string): string {

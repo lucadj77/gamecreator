@@ -138,6 +138,8 @@ export interface Api {
   systemFonts(): Promise<SystemFontFamily[]>
   /** Copia i file di un font installato in assets/fonts/<famiglia>/ */
   copySystemFont(family: string): Promise<AssetsUpdate>
+  /** Copia in assets/images/ immagini scelte dal computer; null se l'utente annulla */
+  addImages(): Promise<AssetsUpdate | null>
   /** Scrive i crediti in export/credits.txt e restituisce il percorso */
   saveCredits(text: string): Promise<string>
   /** Sceglie una cartella qualsiasi, partendo da current */
@@ -147,8 +149,11 @@ export interface Api {
   /** Crea subito un backup del progetto aperto (dei file salvati) */
   createBackup(): Promise<BackupItem>
   saveBackupSettings(settings: BackupSettings): Promise<BackupState>
-  /** Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso */
-  restoreBackup(file: string): Promise<string>
+  /**
+   * Estrae un backup in una cartella nuova accanto al progetto e ne restituisce il percorso. Nel
+   * web la cartella in cui estrarlo (parent) la sceglie l'utente.
+   */
+  restoreBackup(file: string, parent?: string): Promise<string>
   /** Cartella proposta per un progetto Tabletop Creator convertito */
   defaultTtcTarget(source: string): Promise<string>
   /** Converte un progetto Tabletop Creator in un progetto nuovo; l'originale non si modifica */

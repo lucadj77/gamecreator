@@ -12,6 +12,10 @@ import Segmented from './Segmented'
 
 type Tab = 'text' | 'variables' | 'formulas' | 'keys'
 
+/** Guida completa su GitHub, nella lingua dell'interfaccia */
+const GUIDE = 'https://github.com/lucadj77/naibi/blob/main/docs'
+const guideUrl = (lang: string): string => `${GUIDE}/${lang === 'it' ? 'guida' : 'guide'}/README.md`
+
 /** Markdown: cosa si scrive ($ è un testo di esempio) e la chiave della spiegazione */
 const MARKDOWN: [string, MessageKey][] = [
   ['**$**', 'help.md.bold'],
@@ -82,7 +86,7 @@ function Table({ rows }: { rows: [string, string][] }): React.JSX.Element {
 }
 
 export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [tab, setTab] = useState<Tab>('text')
   const field = t('help.sampleField')
   const icon = t('help.sampleIcon')
@@ -90,6 +94,11 @@ export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.
   return (
     <Dialog title={t('help.title')} onClose={onClose}>
       <div className="help-dialog">
+        <p className="help-guide">
+          <a href={guideUrl(lang)} target="_blank" rel="noreferrer">
+            {t('help.guide')}
+          </a>
+        </p>
         <Segmented<Tab>
           value={tab}
           onChange={setTab}

@@ -33,6 +33,9 @@ import {
   importIconifyIcons
 } from './library/iconify'
 import { importIcons } from './library/icons'
+import { copyImages } from './library/images'
+import { assetsUpdate } from './library/sources'
+import { IMAGE_EXTENSIONS } from '../shared/model/assets'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
 import { runCli } from './cli'
@@ -311,6 +314,18 @@ function registerIpc(): void {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     return copySystemFont(folder, family)
+  })
+
+  ipcMain.handle('library:add-images', async () => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Images', extensions: IMAGE_EXTENSIONS.map((e) => e.slice(1)) }]
+    })
+    if (result.canceled || !result.filePaths.length) return null
+    await copyImages(folder, result.filePaths)
+    return assetsUpdate(folder)
   })
 
   ipcMain.handle('library:save-credits', async (_, text: string) => {

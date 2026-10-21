@@ -2155,6 +2155,7 @@ label.check {
   overflow: visible;
 }
 
+.asset-grid.dark .asset-thumb,
 .icon-grid.dark .asset-thumb {
   background: #2a2a2e;
 }
@@ -3811,6 +3812,11 @@ select.from-template {
 .dialog:has(> .help-dialog) {
   max-width: 760px;
   width: 760px;
+}
+
+.help-guide {
+  margin: 0 0 10px;
+  font-weight: 600;
 }
 
 .help-body {

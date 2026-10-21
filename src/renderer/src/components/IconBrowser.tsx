@@ -343,7 +343,7 @@ export default function IconBrowser({
           <button className={dark ? 'small-btn on' : 'small-btn'} onClick={() => setDark(!dark)}>
             {t('icons.darkBackground')}
           </button>
-          {collection === 'game-icons' && (
+          {collection === 'game-icons' && !window.api.isWeb && (
             <button
               className="small-btn"
               title={t('catalog.updateHint')}

@@ -24,6 +24,15 @@ export async function cardToSvg(
 ): Promise<string> {
   const live = root.querySelector<SVGSVGElement>('svg[xmlns]')
   if (!live) throw new Error('No card to export')
+  return svgOfCard(live, fonts, background)
+}
+
+/** SVG autonomo di una carta disegnata (il suo elemento svg) */
+export async function svgOfCard(
+  live: SVGSVGElement,
+  fonts: ProjectFont[],
+  background: string | null
+): Promise<string> {
   const clone = live.cloneNode(true) as SVGSVGElement
   const liveFos = [...live.querySelectorAll('foreignObject')]
   const cloneFos = [...clone.querySelectorAll('foreignObject')]

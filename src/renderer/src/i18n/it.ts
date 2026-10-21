@@ -316,6 +316,8 @@ export const it: Record<MessageKey, string> = {
   'icons.import': 'Importa {n}',
   'icons.unknown': "L'icona {id} non è nel catalogo",
   'icons.invalidName': "Nome dell'icona non valido: {name}",
+  'assetPicker.addImages': 'Aggiungi immagini…',
+  'assetPicker.addImagesHint': 'Copia immagini dal computer in assets/images del progetto',
   'assetPicker.importIcons': 'Importa icone…',
   'assetPicker.title': "Scegli un'immagine",
   'assetPicker.search': 'Cerca per nome o cartella',
@@ -1170,12 +1172,12 @@ export const it: Record<MessageKey, string> = {
     "Questa è la versione web di Naibi: si apre nel browser senza installare nulla e lavora sulle cartelle dei progetti del tuo computer, come l'app desktop. Alcune cose ci sono solo nella versione desktop (Windows, macOS, Linux):",
   'web.desktop.pdf':
     'PDF salvato direttamente, senza la finestra di stampa, e conversione in CMYK per le tipografie',
-  'web.desktop.tts': 'Esportazione per Tabletop Simulator',
-  'web.desktop.icons':
-    'Librerie di icone (game-icons.net, Kenney, Iconify) e Google Fonts, da importare nel progetto',
-  'web.desktop.systemFonts': 'Font installati sul computer, copiati nel progetto',
-  'web.desktop.backup': 'Backup automatici e manuali del progetto',
-  'web.desktop.ttc': 'Importazione dei progetti di Tabletop Creator',
+  'web.desktop.tts':
+    'Esportazione per Tabletop Simulator senza scrivere il percorso della cartella; su macOS anche direttamente nella cartella Saved Objects, che il browser non può aprire',
+  'web.desktop.fonts':
+    'Font Google con tutti gli alfabeti: la versione web salva solo quello latino (lettere accentate comprese)',
+  'web.desktop.catalogs':
+    "Aggiornamento dall'app dei cataloghi di game-icons.net e dei font Google",
   'web.desktop.ai': 'Il comando naibi e la skill per gli agenti IA (Claude, Codex…)',
   'web.desktop.browser':
     'Indipendente dal browser: la versione web funziona solo con Chrome, Edge e Opera (in Brave dopo aver attivato brave://flags/#file-system-access-api), e chiede di nuovo il permesso sulla cartella ogni volta che riapri il sito',
@@ -1186,6 +1188,28 @@ export const it: Record<MessageKey, string> = {
   'web.permissionDenied':
     "Naibi ha bisogno del permesso di leggere e scrivere nella cartella del progetto. Riaprilo e consenti l'accesso.",
   'web.chooseParent': 'Scegli la cartella in cui creare il progetto.',
+  'web.noLocalFonts':
+    'Questo browser non permette al sito di leggere i font installati sul computer (Chrome ed Edge sì, dopo averlo consentito).',
+  'web.backupInSite': 'in questo browser (dati del sito)',
+  'web.backupInSiteHint':
+    'I backup tenuti nel browser si perdono se cancelli i dati del sito. Scegli una cartella per tenerli sul disco.',
+  'web.restoreCancelled': 'Ripristino annullato: nessuna cartella scelta.',
+  'web.ttcTargetHint':
+    "Scegli (o crea nella finestra) una cartella vuota; se l'originale sta dentro una cartella scelta, la nuova si propone accanto",
+  'web.ttsFolder': 'Cartella di destinazione',
+  'web.ttsFolderHint':
+    'Il browser scrive qui fogli, immagini e file del mazzo (.json). Su Windows scegli Documenti\\My Games\\Tabletop Simulator\\Saves\\Saved Objects. Su macOS il browser non può aprire la cartella di Tabletop Simulator: scegli una cartella in Documenti e vedi la guida.',
+  'web.ttsRealPath': 'Percorso completo della stessa cartella',
+  'web.ttsRealPathPlaceholder': 'C:\\Users\\…\\Saved Objects',
+  'web.ttsRealPathHint':
+    'Il browser non rivela il percorso completo della cartella scelta, ma il file del mazzo deve contenerlo: Tabletop Simulator lo usa per trovare le immagini delle carte. Incollalo una volta (Esplora file: clic sulla barra dell\'indirizzo e copia; Finder: tasto destro con Opzione, "Copia come nome percorso"); questo browser lo ricorda.',
+  'web.ttsRealPathMissing':
+    'Scrivi il percorso completo della cartella di destinazione: il file del mazzo ne ha bisogno per trovare le immagini.',
+  'web.ttsRealPathMismatch':
+    'Il percorso scritto non finisce con la cartella scelta ({folder}): controlla di aver copiato il percorso della stessa cartella.',
+  'web.ttsChooseFolder': 'Scegli la cartella di destinazione.',
+  'web.restoreConfirm':
+    "Il backup verrà estratto in una nuova cartella dentro quella scelta, e si aprirà al posto di questo progetto. Il progetto attuale resta com'è. Continuare?",
   'web.pdfHint':
     'Nella versione web le pagine vanno alla finestra di stampa del browser: scegli "Salva come PDF", margini "Nessuno" e attiva "Grafica di sfondo". Una finestra per ogni PDF.',
   'about.link': 'Cosa vuol dire Naibi?',
@@ -1206,6 +1230,7 @@ export const it: Record<MessageKey, string> = {
   'app.help': 'Aiuto',
   'tip.help': 'Markup del testo, variabili di sistema, formule e scorciatoie da tastiera (F1)',
   'help.title': 'Aiuto',
+  'help.guide': 'Apri la guida completa (online)',
   'help.tab.text': 'Testo',
   'help.tab.variables': 'Campi e variabili',
   'help.tab.formulas': 'Formule',

@@ -1422,6 +1422,29 @@ export const it: Record<MessageKey, string> = {
   'backup.defaultFolder': 'Usa quella predefinita',
   'set.generate': 'Genera…',
   'tip.generateCards': 'Crea le carte con tutte le combinazioni di alcuni insiemi di valori',
+  'set.split': 'Dividi immagine…',
+  'tip.split': "Divide un'immagine grande tra le carte del set: ogni carta ne mostra un pezzo",
+  'split.title': "Dividi un'immagine tra le carte",
+  'split.hint':
+    "Ogni carta mostra un pezzo dell'immagine: messe in griglia una accanto all'altra, le carte ricompongono l'immagine intera. Naibi scrive nelle colonne delle carte l'immagine, il ritaglio e, dove serve, il riquadro del livello.",
+  'split.noLayer':
+    'Il template non ha un livello immagine da dividere (quelli dentro un gruppo o ruotati non si possono).',
+  'split.layer': 'Livello immagine',
+  'split.image': 'Immagine',
+  'split.imagePlaceholder': "Nome di un'immagine del progetto",
+  'split.imageMissing': 'Nessuna immagine del progetto ha questo nome.',
+  'split.cols': 'Colonne',
+  'split.rows': 'Righe',
+  'split.start': 'Dalla carta',
+  'split.order': 'Ordine delle carte',
+  'split.byRows': 'Per righe: da sinistra a destra, poi la riga sotto',
+  'split.byColumns': "Per colonne: dall'alto in basso, poi la colonna dopo",
+  'split.outerBleed':
+    "L'immagine comprende anche l'abbondanza intorno a tutta la griglia ({bleed} mm per lato)",
+  'split.summary': '{n} pezzi, sulle carte da {from} a {to}; si aggiungono {added} carte.',
+  'split.aspect':
+    "L'immagine sarà un po' deformata: è larga {actual} per 1 di altezza, la griglia vuole {ideal} (per esempio {w} × {h} pixel).",
+  'split.apply': 'Dividi',
   'set.compare': 'Confronta…',
   'tip.compare':
     "Segna le carte nuove o cambiate dall'ultima esportazione o da un backup, per ristampare solo quelle",

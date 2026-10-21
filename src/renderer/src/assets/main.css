@@ -4217,3 +4217,21 @@ details.usages button.link {
   color: var(--text);
   padding: 3px 0;
 }
+
+/* immagine divisa tra le carte */
+.split-image {
+  display: flex;
+  gap: 6px;
+}
+
+.split-image input {
+  flex: 1;
+}
+
+.dialog-form label.split-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+}

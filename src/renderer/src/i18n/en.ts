@@ -1401,6 +1401,15 @@ export const en = {
   'backup.defaultFolder': 'Use the default',
   'set.generate': 'Generate…',
   'tip.generateCards': 'Create the cards with every combination of some sets of values',
+  'set.textCheck': 'Check text…',
+  'tip.textCheck':
+    'Find the texts that do not fit in their box, on every card of the set, front and back',
+  'textCheck.title': 'Text that does not fit',
+  'textCheck.running': 'Checking {n} cards…',
+  'textCheck.none': 'All texts of the {n} cards fit in their boxes.',
+  'textCheck.found':
+    '{n} card sides with text that does not fit, even shrunk to the minimum size. Click a card to select it. In the grid these cards have an orange mark.',
+  'textCheck.pick': 'Select this card',
   'set.stats': 'Statistics…',
   'tip.stats': 'How many cards have each value of a column, with sum and average of the numbers',
   'stats.title': 'Set statistics',

@@ -10,10 +10,12 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Statistics…** in the set header: how many cards have each value of a column (formula layers too), with sum, average, minimum and maximum of numbers, counting the copies in `amount`. With a filter, only the filtered cards count. The new `naibi stats` command gives the same numbers to an AI.
+- **Check text…** in the set header lists the cards (front and back) whose text does not fit in its box, even shrunk to the minimum size; in the grid those cards have an orange mark.
 
 ### Italiano
 
 - **Statistiche…** nell'intestazione del set: quante carte hanno ogni valore di una colonna (anche dei livelli con formula), con somma, media, minimo e massimo dei numeri, contando le copie di `amount`. Con un filtro contano solo le carte filtrate. Il nuovo comando `naibi stats` dà gli stessi numeri a un'IA.
+- **Controlla testi…** nell'intestazione del set elenca le carte (fronte e retro) con un testo che non sta nel riquadro, anche ridotto alla dimensione minima; nella griglia quelle carte hanno un segno arancione.
 
 ## 1.2.0-beta.16
 

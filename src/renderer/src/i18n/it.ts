@@ -1422,6 +1422,15 @@ export const it: Record<MessageKey, string> = {
   'backup.defaultFolder': 'Usa quella predefinita',
   'set.generate': 'Genera…',
   'tip.generateCards': 'Crea le carte con tutte le combinazioni di alcuni insiemi di valori',
+  'set.textCheck': 'Controlla testi…',
+  'tip.textCheck':
+    'Trova i testi che non stanno nel loro riquadro, in tutte le carte del set, fronte e retro',
+  'textCheck.title': 'Testi che non stanno nel riquadro',
+  'textCheck.running': 'Controllo di {n} carte…',
+  'textCheck.none': 'Tutti i testi delle {n} carte stanno nel loro riquadro.',
+  'textCheck.found':
+    '{n} facce di carte con testo che non sta nel riquadro, anche ridotto alla dimensione minima. Un clic seleziona la carta. Nella griglia queste carte hanno un segno arancione.',
+  'textCheck.pick': 'Seleziona questa carta',
   'set.stats': 'Statistiche…',
   'tip.stats': 'Quante carte hanno ogni valore di una colonna, con somma e media dei numeri',
   'stats.title': 'Statistiche del set',

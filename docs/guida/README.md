@@ -424,6 +424,12 @@ L'anteprima mostra quante carte nasceranno e le prime righe. **Aggiungi in fondo
 
 ![Il generatore: tre risorse, due per carta, con ripetizioni](img/genera.png)
 
+### 10.1 Dividere un'immagine tra le carte
+
+**Dividi immagine…** distribuisce un'immagine grande tra le carte del set: messe in griglia una accanto all'altra, le carte la ricompongono (una mappa, un'illustrazione su più carte). Si scelgono il livello immagine del template, l'immagine, quante colonne e righe, da quale carta cominciare e l'ordine: per righe (da sinistra a destra, poi la riga sotto) o per colonne. Se mancano carte se ne aggiungono.
+
+Ogni carta mostra la parte dell'immagine che sta sotto il suo livello, come se l'immagine coprisse tutta la griglia delle carte rifilate. Naibi scrive nelle colonne della carta l'immagine (`livello.src`), il ritaglio (`livello.crop`) e l'adattamento **Allunga**; toglie la tinta, così un'icona del template non diventa una sagoma. L'abbondanza delle carte interne prende l'immagine delle carte vicine. Per le carte sul bordo ci sono due possibilità: se l'immagine comprende anche l'abbondanza intorno a tutta la griglia (casella apposita), la usa; altrimenti il livello si ferma al bordo dell'immagine e nell'abbondanza esterna si vede quello che c'è sotto. Le proporzioni giuste dell'immagine sono colonne × larghezza della carta per righe × altezza (più l'abbondanza, se compresa): se l'immagine è diversa la finestra lo dice, perché i pezzi risulterebbero un po' deformati. Si possono dividere i livelli immagine non ruotati e fuori dai gruppi.
+
 ## 11. Esportare
 
 **Esporta…** apre una finestra con tre schede: immagini, PDF e Tabletop Simulator. In ogni scheda si scelgono i set e se ripetere le carte secondo la colonna `amount`. Le carte si disegnano con lo stesso motore dell'anteprima, comprese le modifiche non ancora salvate.

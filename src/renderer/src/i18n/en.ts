@@ -1401,6 +1401,29 @@ export const en = {
   'backup.defaultFolder': 'Use the default',
   'set.generate': 'Generate…',
   'tip.generateCards': 'Create the cards with every combination of some sets of values',
+  'set.split': 'Split image…',
+  'tip.split': 'Split one big image across the cards of the set: each card shows its piece',
+  'split.title': 'Split an image across the cards',
+  'split.hint':
+    "Each card shows one piece of the image: placed side by side in a grid, the cards make up the whole image. Naibi writes the image, the crop and, where needed, the box of the layer in the cards' columns.",
+  'split.noLayer':
+    'The template has no image layer that can be split (image layers inside groups or rotated cannot).',
+  'split.layer': 'Image layer',
+  'split.image': 'Image',
+  'split.imagePlaceholder': 'Name of an image of the project',
+  'split.imageMissing': 'No image of the project has this name.',
+  'split.cols': 'Columns',
+  'split.rows': 'Rows',
+  'split.start': 'From card',
+  'split.order': 'Card order',
+  'split.byRows': 'By rows: left to right, then the row below',
+  'split.byColumns': 'By columns: top to bottom, then the next column',
+  'split.outerBleed':
+    'The image also includes the bleed around the whole grid ({bleed} mm per side)',
+  'split.summary': '{n} pieces, on cards {from} to {to}; {added} cards will be added.',
+  'split.aspect':
+    'The image will be slightly stretched: it is {actual} wide per 1 high, the grid wants {ideal} (for example {w} × {h} pixels).',
+  'split.apply': 'Split',
   'set.compare': 'Compare…',
   'tip.compare':
     'Mark the cards that are new or changed since the last export or a backup, to reprint only those',

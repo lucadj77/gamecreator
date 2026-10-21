@@ -13,6 +13,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Check text…** in the set header lists the cards (front and back) whose text does not fit in its box, even shrunk to the minimum size; in the grid those cards have an orange mark.
 - **Trash…** in the toolbar: deleted templates, sets and notes, with **Restore** to put them back in the project (a set gets the template you choose).
 - **Compare…** marks the cards that are new or changed since the last export or a backup (blue dot), and the export can include only those: reprint just what changed.
+- **Split image…** in the set header spreads one big image across the cards (columns × rows, by rows or by columns, with or without the outer bleed in the image): the cards make up the image again when placed in a grid.
 
 ### Italiano
 
@@ -20,6 +21,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Controlla testi…** nell'intestazione del set elenca le carte (fronte e retro) con un testo che non sta nel riquadro, anche ridotto alla dimensione minima; nella griglia quelle carte hanno un segno arancione.
 - **Cestino…** nella barra in alto: template, set e note eliminati, con **Ripristina** per rimetterli nel progetto (un set prende il template scelto).
 - **Confronta…** segna le carte nuove o cambiate dall'ultima esportazione o da un backup (punto blu), e l'esportazione può includere solo quelle: si ristampa solo ciò che è cambiato.
+- **Dividi immagine…** nell'intestazione del set distribuisce un'immagine grande tra le carte (colonne × righe, per righe o per colonne, con o senza l'abbondanza esterna nell'immagine): messe in griglia, le carte ricompongono l'immagine.
 
 ## 1.2.0-beta.16
 

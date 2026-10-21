@@ -6,6 +6,7 @@ import HelpDialog from './components/HelpDialog'
 import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import StatsDialog from './components/StatsDialog'
+import SplitImageDialog from './components/SplitImageDialog'
 import TrashDialog from './components/TrashDialog'
 import CompareDialog, { type CompareBase } from './components/CompareDialog'
 import { cardFingerprints, changedCards } from '../../shared/model/compare'
@@ -2038,6 +2039,7 @@ function SetView({
   const [addingColumn, setAddingColumn] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [showStats, setShowStats] = useState(false)
+  const [splitting, setSplitting] = useState(false)
   const [checkingText, setCheckingText] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
   /** Campi del modulo con i dettagli del livello aperti: restano aperti passando di carta in carta */
@@ -2513,6 +2515,9 @@ function SetView({
           <button onClick={() => setGenerating(true)} title={t('tip.generateCards')}>
             {t('set.generate')}
           </button>
+          <button disabled={!template} onClick={() => setSplitting(true)} title={t('tip.split')}>
+            {t('set.split')}
+          </button>
           <span className="sep" />
           <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
             {t('set.addColumn')}
@@ -2769,6 +2774,17 @@ function SetView({
             setCheckingText(false)
           }}
           onClose={() => setCheckingText(false)}
+        />
+      )}
+      {splitting && template && (
+        <SplitImageDialog
+          sheet={sheet}
+          template={template}
+          onApply={(s) => {
+            onChange(s)
+            setSplitting(false)
+          }}
+          onClose={() => setSplitting(false)}
         />
       )}
       {showStats && (

@@ -20,6 +20,8 @@ import type { Template } from '../shared/model/template'
 import type { BackupSettings, BackupState, Theme, TtcImportOptions } from '../shared/api'
 import { defaultTarget, importTtc } from './import/ttc'
 import { runExport } from './export/run'
+import { ExportWindow } from './export/window'
+import { toCmyk } from './export/cmyk'
 import { saveExportProfiles } from './project/exportProfiles'
 import { fontCatalog, iconCatalog } from './library/catalogs'
 import { updateGameIcons, updateGoogleFonts } from './library/catalogUpdate'
@@ -235,6 +237,8 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     cancelExport = false
     return runExport(job, {
+      openWindow: (context) => ExportWindow.open(context),
+      toCmyk,
       projectFolder: folder,
       platform: process.platform,
       home: app.getPath('home'),

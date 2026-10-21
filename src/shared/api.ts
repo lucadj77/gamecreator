@@ -73,6 +73,10 @@ export interface BackupState {
 }
 
 export interface Api {
+  /** Versione web (src/web): alcune funzioni ci sono solo nell'app desktop */
+  readonly isWeb: boolean
+  /** Solo nel web: URL di un file sotto assets/; nell'app desktop c'è il protocollo gc-asset:// */
+  assetUrl?(path: string): string
   chooseProjectFolder(): Promise<string | null>
   /** Progetti aperti di recente, dal più recente */
   recentProjects(): Promise<RecentProject[]>

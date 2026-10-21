@@ -8,6 +8,7 @@ import { useProjectFonts } from './fonts'
 export const AssetsContext = createContext<string[]>([])
 
 export function assetUrl(path: string): string {
+  if (window.api.assetUrl) return window.api.assetUrl(path)
   return `gc-asset://project/${path.split('/').map(encodeURIComponent).join('/')}`
 }
 

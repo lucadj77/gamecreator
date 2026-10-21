@@ -965,6 +965,8 @@ export const en = {
   'export.cmyk': 'Convert to CMYK',
   'export.cmykHint':
     'Needs Ghostscript installed on the computer (for example with Homebrew: brew install ghostscript). Without it the PDF stays RGB and a warning says so.',
+  'export.printed':
+    'The PDF pages went to the browser print window: if you closed it without saving, export again.',
   'export.cmykUnavailable':
     'The PDF stayed in RGB: Ghostscript is not installed, or the CMYK conversion failed.',
   'export.posterSplit': 'Split cards larger than the page over several pages',
@@ -1144,6 +1146,30 @@ export const en = {
     'No recent projects yet. Create a new one, open a project folder or import one from Tabletop Creator.',
   'start.missing': 'Folder not found',
   'start.remove': 'Remove from the list (the folder is not deleted)',
+  'web.desktopLink': 'What the desktop app adds',
+  'web.desktopTitle': 'What the desktop app adds',
+  'web.desktopIntro':
+    'This is the web version of Naibi: it opens in the browser without installing anything and works on the project folders of your computer, like the desktop app. Some things are only in the desktop app (Windows, macOS, Linux):',
+  'web.desktop.pdf':
+    'PDF saved directly, without the print window, and conversion to CMYK for printers',
+  'web.desktop.tts': 'Export to Tabletop Simulator',
+  'web.desktop.icons':
+    'Icon libraries (game-icons.net, Kenney, Iconify) and Google Fonts, imported into the project',
+  'web.desktop.systemFonts': 'Fonts installed on the computer, copied into the project',
+  'web.desktop.backup': 'Automatic and manual backups of the project',
+  'web.desktop.ttc': 'Import of Tabletop Creator projects',
+  'web.desktop.ai': 'The naibi command and the skill for AI agents (Claude, Codex…)',
+  'web.desktop.browser':
+    'Independent of the browser: the web version works only in Chrome, Edge, Brave and Opera, and asks again for permission on the folder each time you open the site',
+  'web.desktopOutro':
+    'Projects are the same files: a project made here opens in the desktop app and the other way round.',
+  'web.download': 'Download the desktop app',
+  'web.desktopOnly': 'This is available only in the desktop app.',
+  'web.permissionDenied':
+    'Naibi needs permission to read and write the project folder. Open it again and allow access.',
+  'web.chooseParent': 'Choose the folder in which to create the project.',
+  'web.pdfHint':
+    'In the web version the pages go to the browser print window: choose "Save as PDF", margins "None" and turn on "Background graphics". One window for each PDF.',
   'about.link': 'What does Naibi mean?',
   'about.title': 'What does Naibi mean?',
   'about.p1':

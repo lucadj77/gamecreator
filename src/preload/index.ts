@@ -3,6 +3,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 import type { Api } from '../shared/api'
 
 const api: Api = {
+  isWeb: false,
   chooseProjectFolder: () => ipcRenderer.invoke('project:choose-folder'),
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
   recentProjects: () => ipcRenderer.invoke('recent:list'),

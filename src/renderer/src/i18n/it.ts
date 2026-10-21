@@ -981,6 +981,8 @@ export const it: Record<MessageKey, string> = {
   'export.cmyk': 'Converti in CMYK',
   'export.cmykHint':
     'Serve Ghostscript installato sul computer (per esempio con Homebrew: brew install ghostscript). Senza, il PDF resta in RGB e un avviso lo segnala.',
+  'export.printed':
+    "Le pagine del PDF sono andate alla finestra di stampa del browser: se l'hai chiusa senza salvare, esporta di nuovo.",
   'export.cmykUnavailable':
     'Il PDF è rimasto in RGB: Ghostscript non è installato, o la conversione in CMYK non è riuscita.',
   'export.posterSplit': 'Dividi su più pagine le carte più grandi della pagina',
@@ -1162,6 +1164,30 @@ export const it: Record<MessageKey, string> = {
     'Ancora nessun progetto recente. Creane uno nuovo, apri la cartella di un progetto o importane uno da Tabletop Creator.',
   'start.missing': 'Cartella non trovata',
   'start.remove': "Togli dall'elenco (la cartella non viene cancellata)",
+  'web.desktopLink': 'Cosa ha in più la versione desktop',
+  'web.desktopTitle': 'Cosa ha in più la versione desktop',
+  'web.desktopIntro':
+    "Questa è la versione web di Naibi: si apre nel browser senza installare nulla e lavora sulle cartelle dei progetti del tuo computer, come l'app desktop. Alcune cose ci sono solo nella versione desktop (Windows, macOS, Linux):",
+  'web.desktop.pdf':
+    'PDF salvato direttamente, senza la finestra di stampa, e conversione in CMYK per le tipografie',
+  'web.desktop.tts': 'Esportazione per Tabletop Simulator',
+  'web.desktop.icons':
+    'Librerie di icone (game-icons.net, Kenney, Iconify) e Google Fonts, da importare nel progetto',
+  'web.desktop.systemFonts': 'Font installati sul computer, copiati nel progetto',
+  'web.desktop.backup': 'Backup automatici e manuali del progetto',
+  'web.desktop.ttc': 'Importazione dei progetti di Tabletop Creator',
+  'web.desktop.ai': 'Il comando naibi e la skill per gli agenti IA (Claude, Codex…)',
+  'web.desktop.browser':
+    'Indipendente dal browser: la versione web funziona solo con Chrome, Edge, Brave e Opera, e chiede di nuovo il permesso sulla cartella ogni volta che riapri il sito',
+  'web.desktopOutro':
+    "I progetti sono gli stessi file: un progetto fatto qui si apre nell'app desktop e viceversa.",
+  'web.download': 'Scarica la versione desktop',
+  'web.desktopOnly': "Questa funzione c'è solo nella versione desktop.",
+  'web.permissionDenied':
+    "Naibi ha bisogno del permesso di leggere e scrivere nella cartella del progetto. Riaprilo e consenti l'accesso.",
+  'web.chooseParent': 'Scegli la cartella in cui creare il progetto.',
+  'web.pdfHint':
+    'Nella versione web le pagine vanno alla finestra di stampa del browser: scegli "Salva come PDF", margini "Nessuno" e attiva "Grafica di sfondo". Una finestra per ogni PDF.',
   'about.link': 'Cosa vuol dire Naibi?',
   'about.title': 'Cosa vuol dire Naibi?',
   'about.p1':

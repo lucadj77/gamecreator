@@ -5,6 +5,9 @@
 
 export const RELEASES_API = 'https://api.github.com/repos/lucadj77/naibi/releases?per_page=30'
 
+/** auto: l'app si aggiorna da sola; manual: si scarica il pacchetto dalla pagina della release */
+export type UpdateMode = 'auto' | 'manual'
+
 export interface UpdateInfo {
   /** Versione senza la v iniziale, per esempio 1.1.0 */
   version: string

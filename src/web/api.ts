@@ -246,6 +246,9 @@ export const webApi: Api = {
   naibiCommand: desktopOnly,
   // chi apre il sito ha sempre l'ultima versione
   checkForUpdate: async () => null,
+  updateMode: async () => 'manual',
+  installUpdate: async () => {},
+  onUpdateProgress: () => () => {},
   appVersion: async () => __APP_VERSION__,
   saveSkill: desktopOnly,
   skillsFolder: desktopOnly,

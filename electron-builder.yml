@@ -38,8 +38,12 @@ nsis:
   include: build/win/installer.nsh
 mac:
   category: public.app-category.graphics-design
+  # lo zip serve all'aggiornamento dall'app (src/main/updater.ts)
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
   target:
     - target: dmg
+      arch: [arm64, x64]
+    - target: zip
       arch: [arm64, x64]
   # senza certificato Apple: firma ad hoc, necessaria perché l'app si avvii sui Mac con chip Apple
   identity: '-'
@@ -66,4 +70,9 @@ appImage:
 deb:
   artifactName: ${productName}-${version}-linux-${arch}.${ext}
 npmRebuild: false
-publish: null
+# electron-updater (Windows setup e AppImage) legge latest.yml / beta.yml dalle release di GitHub;
+# la build non pubblica nulla (--publish never), i file li carica il job release di build.yml
+publish:
+  provider: github
+  owner: lucadj77
+  repo: naibi

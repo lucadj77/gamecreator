@@ -1595,7 +1595,7 @@ function App(): React.JSX.Element {
           <SaveStyleContext.Provider value={project ? saveStyle : null}>
             <div className="app">
               <Tooltip />
-              {!window.api.isWeb && <UpdateNotice />}
+              {!window.api.isWeb && <UpdateNotice dirty={anyDirty} />}
               {help && <HelpDialog onClose={() => setHelp(false)} />}
               {project && !sidebarCompact && (
                 <SidebarPreview

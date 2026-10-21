@@ -60,6 +60,13 @@ const api: Api = {
   importTtc: (options) => ipcRenderer.invoke('ttc:import', options),
   naibiCommand: () => ipcRenderer.invoke('ai:command'),
   checkForUpdate: () => ipcRenderer.invoke('update:check'),
+  updateMode: () => ipcRenderer.invoke('update:mode'),
+  installUpdate: (version) => ipcRenderer.invoke('update:install', version),
+  onUpdateProgress: (cb) => {
+    const listener = (_: unknown, p: number): void => cb(p)
+    ipcRenderer.on('update:progress', listener)
+    return () => ipcRenderer.removeListener('update:progress', listener)
+  },
   appVersion: () => ipcRenderer.invoke('app:version'),
   saveSkill: (folder, text) => ipcRenderer.invoke('ai:save-skill', folder, text),
   skillsFolder: () => ipcRenderer.invoke('ai:skills-folder'),

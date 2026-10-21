@@ -67,7 +67,7 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 
 ![La finestra del progetto, con le parti numerate](img/progetto.png)
 
-1. **Barra in alto.** Nome e cartella del progetto, annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), **Esporta…**, **Backup…**, **Strumenti IA…**, **Salva** (⌘S), **Ricarica** (rilegge il progetto dal disco, perdendo le modifiche non salvate) e **Chiudi**.
+1. **Barra in alto.** Nome e cartella del progetto, annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), **Esporta…**, **Backup…**, **Strumenti IA…**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)), **Salva** (⌘S), **Ricarica** (rilegge il progetto dal disco, perdendo le modifiche non salvate) e **Chiudi**.
 2. **Set.** Un clic apre le carte del set; il numero è il totale delle carte, copie comprese.
 3. **Template.** Un clic apre il template nell'editor; accanto c'è il formato in millimetri.
 4. **Stili** di testo del progetto ([capitolo 7](#7-variabili-e-stili)).
@@ -280,6 +280,11 @@ Le forme `circle`, `square`, `rounded`, `hexagon` e `diamond` sono sempre dispon
 Naibi conosce da sé alcuni valori, le **variabili di sistema**, che si scrivono come i campi, anche nelle formule: `{project.name}` (il gioco), `{set.name}`, `{template.name}`, `{card.number}` (la riga della carta nel set), `{set.rows}`, `{set.cards}` (le carte con le copie), `{card.copies}`, `{card.copy}` (la copia stampata, per scrivere per esempio `{card.copy}/{card.copies}`), `{card.side}` (`front` o `back`) e `{date}`. Un piè di pagina come `{set.name} {card.number}/{set.rows}` numera le carte da solo.
 
 Il pulsante **Aiuto** nella barra in alto e nella schermata di ingresso, o il tasto F1, apre un riepilogo del markup, dei campi e delle variabili, delle variabili di sistema, delle formule e delle scorciatoie.
+
+<table><tr>
+<td width="50%"><img src="img/aiuto.png" alt="La finestra Aiuto, scheda Testo"></td>
+<td width="50%"><img src="img/aiuto-variabili.png" alt="Le variabili di sistema nella finestra Aiuto"></td>
+</tr></table>
 
 ### 6.4 Aiuto alla scrittura
 

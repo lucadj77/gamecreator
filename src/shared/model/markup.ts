@@ -25,6 +25,8 @@ export interface Attrs {
   /** pt sopra la linea di base */
   raise?: number
   transform?: 'upper' | 'lower' | 'smallcaps'
+  /** Il testo non va a capo dentro questa porzione */
+  nowrap?: boolean
   // riquadro in linea
   border?: { color: string; width: number }
   fill?: string
@@ -109,6 +111,7 @@ export const ATTRIBUTES = {
   upper: 'flag',
   lower: 'flag',
   smallcaps: 'flag',
+  nowrap: 'flag',
   left: 'flag',
   center: 'flag',
   right: 'flag',
@@ -161,6 +164,7 @@ export function parseAttrs(src: string, offset = 0): { attrs: Attrs; problems: M
       else if (key === 'underline') attrs.underline = true
       else if (key === 'strike') attrs.strike = true
       else if (key === 'upper' || key === 'lower' || key === 'smallcaps') attrs.transform = key
+      else if (key === 'nowrap') attrs.nowrap = true
       else attrs.align = key as HAlign
       continue
     }
@@ -687,4 +691,39 @@ export function spanAt(src: string, from: number, to: number): SpanRange | null 
     }
   }
   return best
+}
+
+export type GlueRun = string | { glued: boolean; items: Inline[] }
+
+/**
+ * Divide le porzioni in parole, spazi e nodi (icone, variabili, porzioni formattate). Le parole
+ * e i nodi che si toccano senza spazi in mezzo formano un gruppo da non spezzare, se nel gruppo
+ * c'è almeno un nodo: tra due lettere il browser non va a capo, tra una lettera e un'icona sì.
+ */
+export function glueRuns(list: Inline[]): GlueRun[] {
+  const out: GlueRun[] = []
+  let current: Inline[] = []
+  const flush = (): void => {
+    if (!current.length) return
+    if (current.length > 1 && current.some((n) => n.t !== 'text'))
+      out.push({ glued: true, items: current })
+    else for (const n of current) out.push(n.t === 'text' ? n.text : { glued: false, items: [n] })
+    current = []
+  }
+  for (const n of list) {
+    if (n.t === 'br') {
+      flush()
+      out.push({ glued: false, items: [n] })
+    } else if (n.t !== 'text') current.push(n)
+    else
+      for (const part of n.text.split(/(\s+)/)) {
+        if (!part) continue
+        if (/^\s+$/.test(part)) {
+          flush()
+          out.push(part)
+        } else current.push({ t: 'text', text: part })
+      }
+  }
+  flush()
+  return out
 }

@@ -11,12 +11,14 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 - Editor, like Affinity: holding Shift while moving a layer keeps it horizontal, vertical or at 45°. While resizing, Shift switches the proportion lock (before, it could only turn it on) and ⌘ (Ctrl on Windows) resizes from the center.
 - The hexagon is now regular (all sides and angles equal): as card shape, where it is the largest that fits in the card (**Fit the card to the hexagon** adjusts the short side so it fills the card), and as text background (`bg=hexagon`). Before, it was stretched to the card size. Polygon and star layers get a **Make regular** button.
+- Text: an icon or variable written right next to a word, without spaces (`4{coin}`, `{coin}.`), no longer ends up on a different line from that word. The new `nowrap` attribute keeps a whole span on one line: `[4 coins]{nowrap}`.
 - PDF export: new **One after another on the same page** option. A set starts right after the previous one instead of on a new page, so 10 + 8 cards with 9 per page take 2 pages, not 3. A set with cards of another size starts on a new row of the same page, if there is room.
 
 ### Italiano
 
 - Editor, come in Affinity: tenendo premuto Maiuscolo mentre si sposta un livello, questo resta in orizzontale, in verticale o a 45°. Ridimensionando, Maiuscolo inverte il blocco delle proporzioni (prima poteva solo attivarlo) e ⌘ (Ctrl su Windows) ridimensiona dal centro.
 - L'esagono ora è regolare (lati e angoli tutti uguali): come forma della carta, dove è il più grande che sta nella carta (**Adatta la carta all'esagono** cambia il lato corto perché la riempia), e come sfondo nel testo (`bg=hexagon`). Prima si allungava sulle misure della carta. I livelli poligono e stella hanno un pulsante **Rendi regolare**.
+- Testo: un'icona o una variabile scritta attaccata a una parola, senza spazi (`4{moneta}`, `{moneta}.`), non finisce più su una riga diversa da quella parola. Il nuovo attributo `nowrap` tiene un'intera porzione sulla stessa riga: `[4 monete]{nowrap}`.
 - Esportazione in PDF: nuova opzione **Uno dopo l'altro sulla stessa pagina**. Un set comincia subito dopo il precedente invece che su una pagina nuova, quindi 10 + 8 carte con 9 per pagina occupano 2 pagine e non 3. Un set con carte di un'altra misura comincia su una riga nuova della stessa pagina, se c'è posto.
 
 ## 1.2.0-beta.12

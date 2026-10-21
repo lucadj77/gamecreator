@@ -244,7 +244,7 @@ Il testo delle carte si scrive con un markup semplice, uguale nell'app e nelle c
 | `---`                        | linea separatrice                              |
 | `\` a fine riga              | a capo senza nuovo paragrafo                   |
 
-Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio.
+Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio. Un'icona o una variabile attaccata a una parola, senza spazi in mezzo (`4{moneta}`, `{moneta}.`), non si separa mai da quella parola andando a capo; per tenere insieme anche parole separate da spazi si usa `[4 monete]{nowrap}`.
 
 ### 6.2 Attributi
 
@@ -258,6 +258,7 @@ Le parentesi quadre delimitano il testo e le graffe che seguono dicono come form
 | `font=`, `weight=`                    | `{font=Open_Sans weight=800}`              | famiglia (con `_` al posto degli spazi) e peso |
 | `stroke=`                             | `{stroke=white/8%}`                        | contorno delle lettere                         |
 | `upper`, `lower`, `smallcaps`         | `[Fase]{smallcaps}`                        | maiuscole, minuscole, maiuscoletto             |
+| `nowrap`                              | `[4 monete]{nowrap}`                       | la porzione non va a capo                      |
 | `left`, `center`, `right`, `justify`  | `{.flavor center}` a inizio paragrafo      | allineamento del paragrafo                     |
 | `border=`, `fill=`, `radius=`, `pad=` | `[Rapida]{border=red/0.3 radius=round}`    | riquadro attorno al testo                      |
 | `bg=`, `bg-color=`, `bg-size=`        | `[3]{bg=circle bg-color=blue color=white}` | forma o immagine dietro il testo               |

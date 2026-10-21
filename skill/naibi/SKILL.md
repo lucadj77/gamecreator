@@ -235,7 +235,7 @@ Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts 
 | `{cover}`, `{cover*3}`                                                 | the picture that image layer `cover` shows on this card                       |
 | `\{`, `\*`, `\[`                                                       | literal characters                                                            |
 
-Character attributes: `.style`, `color=`, `highlight=`, `size=` (14, +2, -1, 80%), `font=` (`Open_Sans`, underscores for spaces, or `{variable}`), `weight=`, `stroke=colour/width`, `spacing=` (‰), `raise=` (pt), `upper`, `lower`, `smallcaps`, `bold`, `italic`, `underline`, `strike`, `left`, `center`, `right`, `justify`.
+Character attributes: `.style`, `color=`, `highlight=`, `size=` (14, +2, -1, 80%), `font=` (`Open_Sans`, underscores for spaces, or `{variable}`), `weight=`, `stroke=colour/width`, `spacing=` (‰), `raise=` (pt), `upper`, `lower`, `smallcaps`, `nowrap` (the span never breaks across lines), `bold`, `italic`, `underline`, `strike`, `left`, `center`, `right`, `justify`.
 
 Box attributes turn the text into an inline box: `border=colour/width`, `fill=`, `radius=` (mm or `round`), `pad=` (mm, or vertical/horizontal `0.3/1`), `bg=` (a background image: `circle`, `square`, `rounded`, `hexagon`, `diamond`, an image variable or file), `bg-color=`, `bg-size=` (% of the line or mm). Example: `[{strength}]{bg=circle bg-color=red color=white weight=800}`.
 

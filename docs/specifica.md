@@ -96,6 +96,7 @@ Le parentesi quadre delimitano il testo, le graffe subito dopo dicono come forma
 | `spacing=`                              | `{spacing=50}`                                | spaziatura caratteri in ‰, vale anche per le immagini nel testo                 |
 | `raise=`                                | `{raise=1}`                                   | spostamento dalla linea di base in pt                                           |
 | `upper`, `lower`, `smallcaps`           | `[Fase]{smallcaps}`                           | trasformazione                                                                  |
+| `nowrap`                                | `[4 monete]{nowrap}`                          | la porzione non va a capo                                                       |
 | `bold`, `italic`, `underline`, `strike` | `{.flavor italic}`                            | come i segni Markdown, utili negli stili                                        |
 | `left`, `center`, `right`, `justify`    | `{.flavor center}`                            | allineamento, solo per un paragrafo o in uno stile                              |
 

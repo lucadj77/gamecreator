@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  glueRuns,
   markupProblems,
   parseAttrs,
   parseMarkup,
@@ -183,5 +184,44 @@ describe('markupProblems con i campi', () => {
     expect(markupProblems('{spada*x}', {}, ['forza']).map((p) => p.message.key)).toEqual([
       'markup.badRepeat'
     ])
+  })
+})
+
+describe('gruppi da non spezzare', () => {
+  const runs = (src: string): unknown[] =>
+    glueRuns(parseMarkup(src).blocks[0].children).map((r) =>
+      typeof r === 'string'
+        ? r
+        : r.glued
+          ? r.items.map((n) => (n.t === 'text' ? n.text : n.t === 'ref' ? `{${n.name}}` : n.t))
+          : r.items[0].t
+    )
+
+  it('un numero attaccato a un icona resta con lei, gli spazi separano', () => {
+    expect(runs('Paga 4{pp} e {oro}.')).toEqual([
+      'Paga',
+      ' ',
+      ['4', '{pp}'],
+      ' ',
+      'e',
+      ' ',
+      ['{oro}', '.']
+    ])
+  })
+
+  it('senza nodi le parole non si raggruppano; un nodo da solo nemmeno', () => {
+    expect(runs('due parole')).toEqual(['due', ' ', 'parole'])
+    expect(runs('a {x} b')).toEqual(['a', ' ', 'ref', ' ', 'b'])
+  })
+
+  it('anche le porzioni formattate si attaccano al testo', () => {
+    expect(runs('**4**{pp}')).toEqual([['span', '{pp}']])
+  })
+
+  it('nowrap tiene insieme una porzione intera', () => {
+    expect(parseMarkup('[4 punti]{nowrap}').blocks[0].children[0]).toMatchObject({
+      t: 'span',
+      attrs: { nowrap: true }
+    })
   })
 })

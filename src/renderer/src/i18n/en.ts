@@ -841,6 +841,7 @@ export const en = {
   'markupHelp.attr.upper': 'ALL CAPS',
   'markupHelp.attr.lower': 'lowercase',
   'markupHelp.attr.smallcaps': 'Small capitals',
+  'markupHelp.attr.nowrap': 'Never breaks across lines',
   'markupHelp.attr.left': 'Paragraph aligned left',
   'markupHelp.attr.center': 'Paragraph centered',
   'markupHelp.attr.right': 'Paragraph aligned right',

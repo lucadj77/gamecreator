@@ -2,6 +2,7 @@ import { useContext, useMemo, type CSSProperties } from 'react'
 import { resolveAsset } from '../../../shared/model/assets'
 import {
   BLOCK_STYLE,
+  glueRuns,
   isBox,
   mergeAttrs,
   parseMarkup,
@@ -124,24 +125,39 @@ function Inlines({
   k: Scale
   styles: Record<string, string>
 }): React.JSX.Element {
+  const node = (n: Inline, i: number): React.ReactNode => {
+    switch (n.t) {
+      case 'text':
+        return n.text
+      case 'br':
+        return <br key={i} />
+      case 'ref':
+        return <Ref key={i} name={n.name} count={n.count} raw={n.raw} image={n.image} />
+      default:
+        return (
+          <SpanView key={i} attrs={resolveStyles(n.attrs, styles)} k={k} styles={styles}>
+            {n.children}
+          </SpanView>
+        )
+    }
+  }
   return (
     <>
-      {list.map((n, i) => {
-        switch (n.t) {
-          case 'text':
-            return n.text
-          case 'br':
-            return <br key={i} />
-          case 'ref':
-            return <Ref key={i} name={n.name} count={n.count} raw={n.raw} image={n.image} />
-          default:
-            return (
-              <SpanView key={i} attrs={resolveStyles(n.attrs, styles)} k={k} styles={styles}>
-                {n.children}
-              </SpanView>
-            )
-        }
-      })}
+      {glueRuns(list).map((run, i) =>
+        typeof run === 'string' ? (
+          run
+        ) : run.glued ? (
+          // icone e porzioni attaccate al testo senza spazi: non si va a capo tra l'una e l'altro
+          // (4{pp} resta insieme). Il gruppo intero non va a capo: Chrome decide se andare a capo
+          // prima di un'icona con lo stile di ciò che la contiene, quindi non si può riattivare
+          // l'a capo dentro le singole porzioni
+          <span key={i} style={{ whiteSpace: 'nowrap' }}>
+            {run.items.map((n, j) => (n.t === 'text' ? n.text : node(n, j)))}
+          </span>
+        ) : (
+          node(run.items[0], i)
+        )
+      )}
     </>
   )
 }
@@ -430,5 +446,6 @@ function textStyle(a: Attrs, k: Scale): CSSProperties {
   if (a.transform === 'upper') s.textTransform = 'uppercase'
   if (a.transform === 'lower') s.textTransform = 'lowercase'
   if (a.transform === 'smallcaps') s.fontVariant = 'small-caps'
+  if (a.nowrap) s.whiteSpace = 'nowrap'
   return s
 }

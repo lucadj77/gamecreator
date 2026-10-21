@@ -856,6 +856,7 @@ export const it: Record<MessageKey, string> = {
   'markupHelp.attr.upper': 'TUTTO MAIUSCOLO',
   'markupHelp.attr.lower': 'tutto minuscolo',
   'markupHelp.attr.smallcaps': 'Maiuscoletto',
+  'markupHelp.attr.nowrap': 'Non va mai a capo',
   'markupHelp.attr.left': 'Paragrafo allineato a sinistra',
   'markupHelp.attr.center': 'Paragrafo centrato',
   'markupHelp.attr.right': 'Paragrafo allineato a destra',

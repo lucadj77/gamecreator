@@ -244,7 +244,7 @@ Card text is written with a simple markup, the same in the app and in the sheet 
 | `---`                    | divider line                                      |
 | `\` at the end of a line | line break without a new paragraph                |
 
-Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter.
+Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. An icon or variable written right next to a word, without spaces (`4{coin}`, `{coin}.`), never gets separated from that word by a line break; to keep words separated by spaces together too, use `[4 coins]{nowrap}`.
 
 ### 6.2 Attributes
 
@@ -258,6 +258,7 @@ Square brackets mark the text and the braces that follow say how to format it: `
 | `font=`, `weight=`                    | `{font=Open_Sans weight=800}`                  | family (with `_` instead of spaces) and weight |
 | `stroke=`                             | `{stroke=white/8%}`                            | letter outline                                 |
 | `upper`, `lower`, `smallcaps`         | `[Phase]{smallcaps}`                           | uppercase, lowercase, small caps               |
+| `nowrap`                              | `[4 coins]{nowrap}`                            | the span never breaks across lines             |
 | `left`, `center`, `right`, `justify`  | `{.flavor center}` at the start of a paragraph | paragraph alignment                            |
 | `border=`, `fill=`, `radius=`, `pad=` | `[Quick]{border=red/0.3 radius=round}`         | box around the text                            |
 | `bg=`, `bg-color=`, `bg-size=`        | `[3]{bg=circle bg-color=blue color=white}`     | shape or image behind the text                 |

@@ -996,6 +996,10 @@ export const en = {
   'export.splitSingle': 'One file',
   'export.splitSet': 'One per set',
   'export.splitSide': 'Fronts and backs apart',
+  'export.continuous': 'Pages',
+  'export.continuousCheck': 'One after another on the same page',
+  'export.continuousHint':
+    'A set starts right after the previous one instead of on a new page. Sets of a different size start on a new row.',
   'export.grid': 'Grid',
   'export.gridAuto': 'Automatic for each set',
   'export.gridHint':

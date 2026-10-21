@@ -1012,6 +1012,10 @@ export const it: Record<MessageKey, string> = {
   'export.splitSingle': 'Un file',
   'export.splitSet': 'Uno per set',
   'export.splitSide': 'Fronti e retri separati',
+  'export.continuous': 'Pagine',
+  'export.continuousCheck': "Uno dopo l'altro sulla stessa pagina",
+  'export.continuousHint':
+    'Un set comincia subito dopo il precedente invece che su una pagina nuova. I set di misura diversa cominciano su una riga nuova.',
   'export.grid': 'Griglia',
   'export.gridAuto': 'Automatica per ogni set',
   'export.gridHint':

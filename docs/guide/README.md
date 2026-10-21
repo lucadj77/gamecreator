@@ -433,6 +433,7 @@ The PDF is vector, with embedded fonts. You choose page size and orientation, ma
 - **Fold**: front and back side by side, to fold.
 - **Crop marks**: at the corners or as full lines, with length, width and color.
 - **Duplex**: backs on alternate pages, flipping on the long or short edge, with an offset for printers that do not align the two sides.
+- **Pages**: with **One after another on the same page** a set starts right after the previous one instead of on a new page (10 + 8 cards with 9 per page fit on 2 pages instead of 3). A set with cards of another size starts on a new row, if there is room on the page.
 - **Proof sheet**: a separate PDF with every card small.
 - **Convert to CMYK**: needs Ghostscript installed on the computer.
 

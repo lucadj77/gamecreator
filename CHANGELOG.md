@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.13
+
+### English
+
+- PDF export: new **One after another on the same page** option. A set starts right after the previous one instead of on a new page, so 10 + 8 cards with 9 per page take 2 pages, not 3. A set with cards of another size starts on a new row of the same page, if there is room.
+
+### Italiano
+
+- Esportazione in PDF: nuova opzione **Uno dopo l'altro sulla stessa pagina**. Un set comincia subito dopo il precedente invece che su una pagina nuova, quindi 10 + 8 carte con 9 per pagina occupano 2 pagine e non 3. Un set con carte di un'altra misura comincia su una riga nuova della stessa pagina, se c'è posto.
+
 ## 1.2.0-beta.12
 
 ### English

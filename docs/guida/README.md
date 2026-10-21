@@ -433,6 +433,7 @@ Il PDF è vettoriale, con i font incorporati. Si scelgono pagina e orientamento,
 - **Piegatura**: fronte e retro affiancati, da piegare.
 - **Segni di taglio**: agli angoli o a linee intere, con lunghezza, spessore e colore.
 - **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati.
+- **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con carte di un'altra misura comincia su una riga nuova, se nella pagina c'è posto.
 - **Foglio di prova**: un PDF a parte con tutte le carte in piccolo.
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
 

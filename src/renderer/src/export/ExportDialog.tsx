@@ -681,6 +681,16 @@ export default function ExportDialog({
                   (split) => patch({ split })
                 )
               )}
+              {pdf.split !== 'set' &&
+                field(
+                  'export.continuous',
+                  check(
+                    pdf.continuous,
+                    (continuous) => patch({ continuous }),
+                    'export.continuousCheck'
+                  ),
+                  t('export.continuousHint')
+                )}
               {field(
                 'export.extras',
                 <>

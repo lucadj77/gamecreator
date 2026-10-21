@@ -74,6 +74,8 @@ export interface PdfOptions extends CommonOptions {
   proof: boolean
   /** Conversione in CMYK con Ghostscript, se installato */
   cmyk: boolean
+  /** Set uno dopo l'altro sulla stessa pagina, invece di cominciare ogni set su una pagina nuova */
+  continuous: boolean
 }
 
 export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
@@ -177,7 +179,8 @@ export const DEFAULT_PDF: PdfOptions = {
   posterOverlap: 10,
   fold: false,
   proof: false,
-  cmyk: false
+  cmyk: false,
+  continuous: false
 }
 
 export const DEFAULT_TTS: TtsOptions = {
@@ -533,8 +536,12 @@ export function planPdfPages(o: PdfOptions, g: Grid, instances: Instance[]): Pdf
   return sidesOf(o.sides).flatMap((side) => chunks.map((c) => page(c, side)))
 }
 
-/** Segni di taglio di una pagina, sulle linee di rifilo delle carte */
-export function cropMarks(o: PdfOptions, g: Grid, cards: PlacedCard[]): SceneLine[] {
+/**
+ * Segni di taglio di una pagina, sulle linee di rifilo delle carte. Con `local` (più set di
+ * misure diverse sulla pagina) le linee verticali restano all'altezza delle carte che tagliano,
+ * per non attraversare gli altri set: si taglia prima tra un set e l'altro, poi le carte.
+ */
+export function cropMarks(o: PdfOptions, g: Grid, cards: PlacedCard[], local = false): SceneLine[] {
   if (o.marks === 'none' || !cards.length) return []
   const page = pageSize(o)
   const trims = cards.map((c) => ({
@@ -547,8 +554,10 @@ export function cropMarks(o: PdfOptions, g: Grid, cards: PlacedCard[]): SceneLin
   if (o.marks === 'lines') {
     const xs = [...new Set(trims.flatMap((t) => [round(t.l), round(t.r)]))]
     const ys = [...new Set(trims.flatMap((t) => [round(t.t), round(t.b)]))]
+    const y1 = local ? Math.min(...cards.map((c) => c.y)) : 0
+    const y2 = local ? Math.max(...cards.map((c) => c.y + g.cellH)) : page.height
     return [
-      ...xs.map((x) => ({ x1: x, y1: 0, x2: x, y2: page.height })),
+      ...xs.map((x) => ({ x1: x, y1, x2: x, y2 })),
       ...ys.map((y) => ({ x1: 0, y1: y, x2: page.width, y2: y }))
     ]
   }

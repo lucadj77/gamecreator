@@ -7,11 +7,14 @@ progetto/
   naibi.json      # nome, file dati, elenco dei set
   data/carte.xlsx       # un foglio per set (oppure un .csv per un solo set)
   templates/<nome>.json # i template delle carte
+  notes/<nome>.md       # note del progetto in Markdown, scritte nell'app o con un editor qualsiasi
   assets/               # immagini e icone
   assets/icons/         # icone importate da game-icons.net
   assets/fonts/         # font del progetto (ttf, otf, woff, woff2)
   assets/sources.json   # provenienza e licenza dei file importati dall'app
 ```
+
+Le note in `notes/` sono appunti liberi: l'app le mostra nella sezione **Note** della barra laterale e le salva mentre si scrive; un'IA le legge con `naibi notes` (vedi [cli.md](cli.md)). Una nota eliminata va in `deleted/`.
 
 `assets/sources.json` si scrive quando si importano icone o si scaricano font dall'app: per ogni file (percorso relativo ad `assets/`) indica tipo (`icon` o `font`), fonte, identificativo, autore, licenza in forma SPDX (`CC-BY-3.0`, `OFL-1.1`…), indirizzo e data di importazione. Serve a comporre i crediti; le voci dei file che non esistono più si tolgono alla scrittura successiva. I file aggiunti a mano non compaiono.
 

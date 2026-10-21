@@ -96,6 +96,10 @@ export interface Api {
   saveTemplate(template: Template): Promise<void>
   /** Sposta il file del template in deleted/ nel progetto; restituisce il nuovo percorso */
   deleteTemplate(file: string): Promise<string | null>
+  /** Scrive la nota notes/<name>.md; con oldName diverso la rinomina */
+  saveNote(name: string, text: string, oldName?: string): Promise<void>
+  /** Sposta la nota in deleted/ */
+  deleteNote(name: string): Promise<void>
   /** Salva i fogli modificati e, se cambiati i set, il file di progetto */
   saveData(changes: { file?: ProjectFile; sheets: Sheet[]; removed?: string[] }): Promise<void>
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */

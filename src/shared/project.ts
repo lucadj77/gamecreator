@@ -76,7 +76,20 @@ export interface LoadedProject {
   fonts: ProjectFont[]
   /** Provenienza e licenza dei file importati dall'app (assets/sources.json) */
   sources: Sources
+  /** Note del progetto, da notes/*.md */
+  notes: ProjectNote[]
   warnings: Message[]
+}
+
+/** Una nota del progetto: notes/<name>.md */
+export interface ProjectNote {
+  name: string
+  text: string
+}
+
+/** Nome di una nota: è anche il nome del file, senza caratteri vietati nei nomi di file */
+export function isValidNoteName(name: string): boolean {
+  return /^[^\\/:*?"<>|.][^\\/:*?"<>|]*$/.test(name) && name.trim() === name
 }
 
 export const FONT_EXTENSIONS = ['.ttf', '.otf', '.woff', '.woff2']

@@ -3973,3 +3973,59 @@ details.usages button.link {
   color: var(--accent);
   cursor: pointer;
 }
+
+/* nota del progetto, accanto alla schermata */
+.note-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 380px;
+  flex-shrink: 0;
+  padding: 12px;
+  border-left: 1px solid var(--border);
+  background: var(--panel);
+  min-height: 0;
+}
+
+.note-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-panel .note-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.note-panel .note-name.invalid {
+  border-color: #e5484d;
+}
+
+.note-panel .icon-btn {
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+.note-panel .note-close {
+  font-size: 20px;
+}
+
+.note-text {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px;
+}
+
+.note-preview {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 2px;
+}

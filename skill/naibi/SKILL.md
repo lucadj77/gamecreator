@@ -216,7 +216,7 @@ Image names: file name without path or extension is enough (`sword` finds `asset
 
 ## Text markup
 
-Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts a new paragraph (a cell written with Alt+Enter); `\` at the end of a line breaks without a new paragraph.
+Markdown for basics plus `[text]{attributes}`. No HTML. Every line break starts a new paragraph (a cell written with Alt+Enter); `\` at the end of a line breaks without a new paragraph. `[[4{coin}]]` keeps its content on one line (same as `[4{coin}]{nowrap}`); text and icons otherwise wrap freely.
 
 | Write                                                                  | Get                                                                           |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |

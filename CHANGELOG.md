@@ -11,8 +11,8 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 - Editor, like Affinity: holding Shift while moving a layer keeps it horizontal, vertical or at 45°. While resizing, Shift switches the proportion lock (before, it could only turn it on) and ⌘ (Ctrl on Windows) resizes from the center.
 - The hexagon is now regular (all sides and angles equal): as card shape, where it is the largest that fits in the card (**Fit the card to the hexagon** adjusts the short side so it fills the card), and as text background (`bg=hexagon`). Before, it was stretched to the card size. Polygon and star layers get a **Make regular** button.
-- Text: an icon or variable written right next to a word, without spaces (`4{coin}`, `{coin}.`), no longer ends up on a different line from that word. The new `nowrap` attribute keeps a whole span on one line: `[4 coins]{nowrap}`.
-- Styles and variables can be split into groups (**Group** field in their window). In the sidebar each group has a heading that closes with a click; with more than 12 items a field filters them by name.
+- Text: double square brackets keep a piece of text on one line, so a number and its icon never get separated: `[[4{coin}]]`. The same as the new `nowrap` attribute: `[4{coin}]{nowrap}`.
+- Styles and variables can be split into groups (**Group** field in their window, or by dragging an item onto a group heading or next to an item of another group). In the sidebar each group has a heading that closes with a click; with more than 12 items a field filters them by name.
 - The style and variable windows show **Where it is used**: templates with their layers, sets with card numbers, other variables and styles. Clicking a template or set opens it.
 - PDF export: new **One after another on the same page** option. A set starts right after the previous one instead of on a new page, so 10 + 8 cards with 9 per page take 2 pages, not 3. A set with cards of another size starts on a new row of the same page, if there is room.
 
@@ -20,8 +20,8 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 - Editor, come in Affinity: tenendo premuto Maiuscolo mentre si sposta un livello, questo resta in orizzontale, in verticale o a 45°. Ridimensionando, Maiuscolo inverte il blocco delle proporzioni (prima poteva solo attivarlo) e ⌘ (Ctrl su Windows) ridimensiona dal centro.
 - L'esagono ora è regolare (lati e angoli tutti uguali): come forma della carta, dove è il più grande che sta nella carta (**Adatta la carta all'esagono** cambia il lato corto perché la riempia), e come sfondo nel testo (`bg=hexagon`). Prima si allungava sulle misure della carta. I livelli poligono e stella hanno un pulsante **Rendi regolare**.
-- Testo: un'icona o una variabile scritta attaccata a una parola, senza spazi (`4{moneta}`, `{moneta}.`), non finisce più su una riga diversa da quella parola. Il nuovo attributo `nowrap` tiene un'intera porzione sulla stessa riga: `[4 monete]{nowrap}`.
-- Stili e variabili si possono dividere in gruppi (campo **Gruppo** nella loro finestra). Nella barra laterale ogni gruppo ha un titolo che si chiude con un clic; con più di 12 voci un campo le filtra per nome.
+- Testo: le doppie parentesi quadre tengono un pezzo di testo sulla stessa riga, così un numero e la sua icona non si separano: `[[4{moneta}]]`. È lo stesso del nuovo attributo `nowrap`: `[4{moneta}]{nowrap}`.
+- Stili e variabili si possono dividere in gruppi (campo **Gruppo** nella loro finestra, oppure trascinando una voce sul titolo di un gruppo o accanto a una voce di un altro gruppo). Nella barra laterale ogni gruppo ha un titolo che si chiude con un clic; con più di 12 voci un campo le filtra per nome.
 - Le finestre di stili e variabili mostrano **Dove si usa**: template con i livelli, set con i numeri delle carte, altre variabili e stili. Un clic su un template o su un set lo apre.
 - Esportazione in PDF: nuova opzione **Uno dopo l'altro sulla stessa pagina**. Un set comincia subito dopo il precedente invece che su una pagina nuova, quindi 10 + 8 carte con 9 per pagina occupano 2 pagine e non 3. Un set con carte di un'altra misura comincia su una riga nuova della stessa pagina, se c'è posto.
 

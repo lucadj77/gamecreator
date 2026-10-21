@@ -1281,6 +1281,7 @@ export const it: Record<MessageKey, string> = {
   'help.md.list': 'Elenco puntato o numerato',
   'help.md.rule': 'Linea separatrice',
   'help.md.break': 'A fine riga: a capo senza nuovo paragrafo',
+  'help.md.nowrap': 'Non va mai a capo, per esempio un numero e la sua icona',
   'help.attributes': 'Attributi',
   'help.attributesIntro':
     'Le parentesi quadre delimitano il testo e le graffe che seguono dicono come formattarlo: [Attenzione]{color=red weight=800}. Uno stile si applica con .nome: [pino]{.keyword}. A inizio paragrafo {center} e gli altri allineamenti valgono per tutto il paragrafo.',

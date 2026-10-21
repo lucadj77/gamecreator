@@ -1261,6 +1261,7 @@ export const en = {
   'help.md.list': 'Bulleted or numbered list',
   'help.md.rule': 'Separator line',
   'help.md.break': 'At the end of a line: line break without a new paragraph',
+  'help.md.nowrap': 'Never breaks across lines, e.g. a number and its icon',
   'help.attributes': 'Attributes',
   'help.attributesIntro':
     'Square brackets enclose the text and the braces after them say how to format it: [Warning]{color=red weight=800}. A style is applied with .name: [pine]{.keyword}. At the start of a paragraph, {center} and the other alignments apply to the whole paragraph.',

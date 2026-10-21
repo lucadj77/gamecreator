@@ -28,7 +28,8 @@ const MARKDOWN: [string, MessageKey][] = [
   ['> …', 'help.md.note'],
   ['- …  1. …', 'help.md.list'],
   ['---', 'help.md.rule'],
-  ['\\', 'help.md.break']
+  ['\\', 'help.md.break'],
+  ['[[$]]', 'help.md.nowrap']
 ]
 
 const FUNCTIONS = [

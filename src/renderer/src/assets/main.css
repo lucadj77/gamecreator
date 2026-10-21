@@ -3901,6 +3901,11 @@ select.from-template {
   cursor: pointer;
 }
 
+.sidebar-group-title.drop-into {
+  box-shadow: inset 0 0 0 2px var(--accent);
+  border-radius: 4px;
+}
+
 .sidebar-group-title .caret {
   width: 10px;
 }

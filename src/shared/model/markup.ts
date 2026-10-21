@@ -317,6 +317,14 @@ class InlineParser {
             continue
           }
         }
+        // [[4{pp}]]: una porzione che non va mai a capo, come [4{pp}]{nowrap}
+        if (s[i + 1] === '[' && close > 0 && this.matching(i + 1, to, '[', ']') === close - 1) {
+          flush()
+          const attrs: Attrs = { styles: [], nowrap: true }
+          out.push({ t: 'span', attrs, children: this.parse(i + 2, close - 1) })
+          i = close + 1
+          continue
+        }
       }
       if (c === '{') {
         const end = this.matching(i, to, '{', '}')
@@ -691,39 +699,4 @@ export function spanAt(src: string, from: number, to: number): SpanRange | null 
     }
   }
   return best
-}
-
-export type GlueRun = string | { glued: boolean; items: Inline[] }
-
-/**
- * Divide le porzioni in parole, spazi e nodi (icone, variabili, porzioni formattate). Le parole
- * e i nodi che si toccano senza spazi in mezzo formano un gruppo da non spezzare, se nel gruppo
- * c'è almeno un nodo: tra due lettere il browser non va a capo, tra una lettera e un'icona sì.
- */
-export function glueRuns(list: Inline[]): GlueRun[] {
-  const out: GlueRun[] = []
-  let current: Inline[] = []
-  const flush = (): void => {
-    if (!current.length) return
-    if (current.length > 1 && current.some((n) => n.t !== 'text'))
-      out.push({ glued: true, items: current })
-    else for (const n of current) out.push(n.t === 'text' ? n.text : { glued: false, items: [n] })
-    current = []
-  }
-  for (const n of list) {
-    if (n.t === 'br') {
-      flush()
-      out.push({ glued: false, items: [n] })
-    } else if (n.t !== 'text') current.push(n)
-    else
-      for (const part of n.text.split(/(\s+)/)) {
-        if (!part) continue
-        if (/^\s+$/.test(part)) {
-          flush()
-          out.push(part)
-        } else current.push({ t: 'text', text: part })
-      }
-  }
-  flush()
-  return out
 }

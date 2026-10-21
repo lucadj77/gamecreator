@@ -80,6 +80,7 @@ import {
   groupOf,
   setGroup,
   type GroupKind,
+  type ListOrder,
   type OrderKind
 } from '../../shared/model/order'
 import {
@@ -248,6 +249,8 @@ function App(): React.JSX.Element {
   const [closedSections, setSectionClosed] = useClosedSections('sidebar')
   /** Testo per filtrare stili e variabili nella barra laterale */
   const [listFilter, setListFilter] = useState<Partial<Record<GroupKind, string>>>({})
+  /** Titolo del gruppo su cui si sta trascinando una voce */
+  const [groupDrop, setGroupDrop] = useState<string | null>(null)
   const sidebarPreview = useSidebarPreview()
 
   const load = useCallback(async (folder: string) => {
@@ -435,11 +438,36 @@ function App(): React.JSX.Element {
   }
 
   /** Ordine scelto a mano di template, stili o variabili; `null` torna all'ordine alfabetico */
-  const setListOrder = (kind: OrderKind, names: string[] | null): void => {
+  const setListOrder = (kind: OrderKind, names: string[] | null): void =>
+    changeOrder((o) => {
+      const order = { ...o }
+      if (names) order[kind] = names
+      else delete order[kind]
+      return order
+    })
+
+  /**
+   * Sposta una voce di stili o variabili trascinandola: nell'elenco da `from` a `to` e nel gruppo
+   * `group`, o in quello della voce `target` su cui è stata lasciata
+   */
+  const dropInGroups = (
+    kind: GroupKind,
+    names: string[],
+    from: number,
+    to: number,
+    target: { item: number } | { group: string }
+  ): void => {
+    const current = project?.file.order
+    const group = 'group' in target ? target.group : groupOf(current, kind, names[target.item])
+    if (from === to && groupOf(current, kind, names[from]) === group) return
+    changeOrder((o) =>
+      setGroup({ ...o, [kind]: moveItem(names, from, to) }, kind, names[from], group)
+    )
+  }
+
+  const changeOrder = (change: (order: ListOrder) => ListOrder | undefined): void => {
     if (!project) return
-    const order = { ...project.file.order }
-    if (names) order[kind] = names
-    else delete order[kind]
+    const order = change({ ...project.file.order }) ?? {}
     setHistory((h) => ({
       past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
       future: [],
@@ -932,15 +960,16 @@ function App(): React.JSX.Element {
       )
     )
   )
-  const dragStyles = useDragReorder((a, b) => setListOrder('styles', moveItem(styleList, a, b)))
-  const dragVariables = useDragReorder((a, b) =>
-    setListOrder(
+  const dragStyles = useDragReorder((a, b, item) =>
+    dropInGroups('styles', styleList, a, b, { item })
+  )
+  const dragVariables = useDragReorder((a, b, item) =>
+    dropInGroups(
       'variables',
-      moveItem(
-        variableList.map(([n]) => n),
-        a,
-        b
-      )
+      variableList.map(([n]) => n),
+      a,
+      b,
+      { item }
     )
   )
   /**
@@ -950,6 +979,7 @@ function App(): React.JSX.Element {
   const groupedItems = (
     kind: GroupKind,
     names: string[],
+    dragging: number | null,
     item: (name: string, index: number) => React.ReactNode
   ): React.ReactNode => {
     const query = listFilter[kind]?.trim().toLowerCase() ?? ''
@@ -976,9 +1006,21 @@ function App(): React.JSX.Element {
             <div key={id} className={group ? 'sidebar-group' : undefined}>
               {group && (
                 <button
-                  className="sidebar-group-title"
+                  className={`sidebar-group-title${groupDrop === id ? ' drop-into' : ''}`}
                   aria-expanded={open}
                   onClick={() => setSectionClosed(id, open)}
+                  // una voce lasciata sul titolo entra nel gruppo
+                  onDragOver={(e) => {
+                    if (dragging === null) return
+                    e.preventDefault()
+                    setGroupDrop(id)
+                  }}
+                  onDragLeave={() => setGroupDrop(null)}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    setGroupDrop(null)
+                    if (dragging !== null) dropInGroups(kind, names, dragging, dragging, { group })
+                  }}
                 >
                   <span className="caret">{open ? '▾' : '▸'}</span>
                   {group}
@@ -1221,7 +1263,7 @@ function App(): React.JSX.Element {
               </>
             }
           >
-            {groupedItems('styles', styleList, (name, i) => (
+            {groupedItems('styles', styleList, dragStyles.dragging, (name, i) => (
               <li key={name} {...dragStyles.itemProps(i)}>
                 <button
                   onClick={() => setEditingStyle(name)}
@@ -1260,6 +1302,7 @@ function App(): React.JSX.Element {
             {groupedItems(
               'variables',
               variableList.map(([n]) => n),
+              dragVariables.dragging,
               (name, i) => (
                 <li key={name} {...dragVariables.itemProps(i)}>
                   <button

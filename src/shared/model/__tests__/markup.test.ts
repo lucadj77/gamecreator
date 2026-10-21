@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  glueRuns,
   markupProblems,
   parseAttrs,
   parseMarkup,
@@ -187,35 +186,31 @@ describe('markupProblems con i campi', () => {
   })
 })
 
-describe('gruppi da non spezzare', () => {
-  const runs = (src: string): unknown[] =>
-    glueRuns(parseMarkup(src).blocks[0].children).map((r) =>
-      typeof r === 'string'
-        ? r
-        : r.glued
-          ? r.items.map((n) => (n.t === 'text' ? n.text : n.t === 'ref' ? `{${n.name}}` : n.t))
-          : r.items[0].t
-    )
-
-  it('un numero attaccato a un icona resta con lei, gli spazi separano', () => {
-    expect(runs('Paga 4{pp} e {oro}.')).toEqual([
-      'Paga',
-      ' ',
-      ['4', '{pp}'],
-      ' ',
-      'e',
-      ' ',
-      ['{oro}', '.']
+describe('porzioni da non spezzare', () => {
+  it('[[...]] è una porzione nowrap, anche con icone e spazi', () => {
+    expect(parseMarkup('Paga [[4{pp}]] e [[2 {oro}]].').blocks[0].children).toMatchObject([
+      { t: 'text', text: 'Paga ' },
+      {
+        t: 'span',
+        attrs: { nowrap: true },
+        children: [
+          { t: 'text', text: '4' },
+          { t: 'ref', name: 'pp' }
+        ]
+      },
+      { t: 'text', text: ' e ' },
+      { t: 'span', attrs: { nowrap: true } },
+      { t: 'text', text: '.' }
     ])
   })
 
-  it('senza nodi le parole non si raggruppano; un nodo da solo nemmeno', () => {
-    expect(runs('due parole')).toEqual(['due', ' ', 'parole'])
-    expect(runs('a {x} b')).toEqual(['a', ' ', 'ref', ' ', 'b'])
-  })
-
-  it('anche le porzioni formattate si attaccano al testo', () => {
-    expect(runs('**4**{pp}')).toEqual([['span', '{pp}']])
+  it('[[a]{...}] resta una porzione normale dentro parentesi', () => {
+    const [first] = parseMarkup('[[a]{.x} b]').blocks[0].children
+    expect(first).toMatchObject({ t: 'text' })
+    expect(parseMarkup('[[a]]{.x}').blocks[0].children[0]).toMatchObject({
+      t: 'span',
+      attrs: { styles: ['x'] }
+    })
   })
 
   it('nowrap tiene insieme una porzione intera', () => {

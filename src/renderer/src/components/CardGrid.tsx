@@ -22,6 +22,8 @@ interface Props {
   scale: number
   /** Carte mostrate, come indici, nell'ordine della vista (di base tutte) */
   order?: number[]
+  /** Carte segnate dal confronto con un'altra versione: nuove o cambiate */
+  marked?: Set<number>
 }
 
 function CardGrid({
@@ -33,7 +35,8 @@ function CardGrid({
   onSelectArea,
   onMove,
   scale,
-  order
+  order,
+  marked
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const [dragging, setDragging] = useState<number | null>(null)
@@ -154,6 +157,7 @@ function CardGrid({
               'card-cell',
               i === selected && 'selected',
               i !== selected && selection?.includes(i) && 'selected-also',
+              marked?.has(i) && 'changed',
               dragging !== null && moving(dragging).includes(i) && 'dragging',
               drop?.index === i && dragging !== i && (drop.after ? 'drop-after' : 'drop-before')
             ]
@@ -189,6 +193,7 @@ function CardGrid({
           >
             <CardSvg template={c.template} side={side} scale={scale} />
             <span className="card-caption" title={`${i + 1}`}>
+              {marked?.has(i) && <span className="compare-dot" title={t('compare.changedCard')} />}
               <span className="card-label">{c.label || i + 1}</span>
               {c.amount !== 1 && <span className="muted"> {t('set.copies', { n: c.amount })}</span>}
               {c.problems.length > 0 && <span className="problem-dot" aria-label="!" />}

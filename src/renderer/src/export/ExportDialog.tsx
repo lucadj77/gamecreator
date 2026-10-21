@@ -34,6 +34,7 @@ import { EXPORT_PRESETS } from '../../../shared/exportPresets'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { buildSets } from '../../../shared/exportJob'
+import { cardFingerprints } from '../../../shared/model/compare'
 import { ColorSwatch } from '../components/ColorPicker'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
@@ -43,10 +44,13 @@ const DPIS = [150, 300, 600]
 
 export default function ExportDialog({
   project,
+  changed,
   onProfiles,
   onClose
 }: {
   project: LoadedProject
+  /** Con un confronto attivo, le righe nuove o cambiate di ogni set: si possono esportare solo quelle */
+  changed?: Record<string, number[]> | null
   /** Opzioni salvate nel file di progetto dopo un'esportazione */
   onProfiles(p: ExportProfiles): void
   onClose(): void
@@ -104,6 +108,8 @@ export default function ExportDialog({
     else if (kind === 'pdf') setPdf((o) => ({ ...o, ...p }))
     else setTts((o) => ({ ...o, ...p }))
   }
+  const [onlyChanged, setOnlyChanged] = useState(!!changed)
+  const changedCount = changed ? selected.reduce((n, s) => n + (changed[s]?.length ?? 0), 0) : 0
   const toggleSet = (name: string): void => {
     const next = selected.includes(name) ? selected.filter((s) => s !== name) : [...selected, name]
     patch({ sets: next.length === setNames.length ? [] : next })
@@ -132,7 +138,18 @@ export default function ExportDialog({
 
   /** Il lavoro con le opzioni attuali: lo stesso per l'anteprima e per l'esportazione */
   const buildJob = (): ExportJob => {
-    const base = { project: project.file.name, sets: buildSets(project, selected) }
+    const all = buildSets(project, selected)
+    // solo le carte cambiate dal confronto: i set senza carte cambiate non escono
+    const sets =
+      changed && onlyChanged
+        ? all
+            .map((s) => {
+              const rows = new Set(changed[s.name] ?? [])
+              return { ...s, cards: s.cards.filter((c) => rows.has(c.n - 1)) }
+            })
+            .filter((s) => s.cards.length)
+        : all
+    const base = { project: project.file.name, sets }
     return kind === 'images'
       ? { ...base, kind, options: img }
       : kind === 'pdf'
@@ -173,6 +190,24 @@ export default function ExportDialog({
     onProfiles(profiles)
   }
 
+  /**
+   * Impronte delle carte esportate, per confrontare più avanti con "l'ultima esportazione": un set
+   * esportato per intero si sostituisce, le carte di un'esportazione parziale si aggiungono
+   */
+  const recordPrinted = async (sets: ExportJob['sets']): Promise<void> => {
+    const prints = cardFingerprints(project, project.assets)
+    const old = await window.api.readPrinted()
+    const out = { ...old?.sets }
+    for (const s of sets) {
+      const now = prints[s.name] ?? []
+      out[s.name] =
+        s.cards.length === now.length
+          ? now
+          : [...(out[s.name] ?? []), ...s.cards.map((c) => now[c.n - 1]).filter(Boolean)]
+    }
+    await window.api.savePrinted({ date: Date.now(), sets: out })
+  }
+
   const run = async (): Promise<void> => {
     setError(null)
     setResult(null)
@@ -208,6 +243,7 @@ export default function ExportDialog({
       if (fonts.length)
         r.warnings.push({ key: 'export.missingFonts', params: { fonts: fonts.join(', ') } })
       setResult(r)
+      if (!r.cancelled) await recordPrinted(sets).catch(() => undefined)
     } catch (e) {
       setError(messageFromError(e))
     } finally {
@@ -365,6 +401,18 @@ export default function ExportDialog({
               ))}
             </div>
           )}
+          {changed &&
+            field(
+              'export.onlyChanged',
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={onlyChanged}
+                  onChange={(e) => setOnlyChanged(e.target.checked)}
+                />
+                {t('export.onlyChangedHint', { n: changedCount })}
+              </label>
+            )}
           {field(
             'export.copies',
             check(options.copies, (copies) => patch({ copies }), 'export.copiesHint')
@@ -965,7 +1013,7 @@ export default function ExportDialog({
           <button
             type="button"
             title={t('export.previewHint')}
-            disabled={running || !selected.length}
+            disabled={running || !selected.length || (!!changed && onlyChanged && !changedCount)}
             onClick={() => setPreview(buildJob())}
           >
             {t('export.preview')}
@@ -973,7 +1021,7 @@ export default function ExportDialog({
           <button
             type="button"
             className="primary"
-            disabled={running || !selected.length}
+            disabled={running || !selected.length || (!!changed && onlyChanged && !changedCount)}
             onClick={run}
           >
             {t('export.run')}

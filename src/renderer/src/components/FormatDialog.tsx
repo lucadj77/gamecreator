@@ -4,6 +4,7 @@ import GroupField from './GroupField'
 import {
   BUILTIN_SHAPES,
   BUILTIN_STYLES,
+  isBox,
   parseAttrs,
   serializeAttrs,
   type Attrs
@@ -334,6 +335,19 @@ export default function FormatDialog({
                 onChange={(v) => set({ bgSize: opt(v.replace(',', '.')) })}
               />
             </>
+          )}
+          {(isBox(a) || a.textRaise !== undefined) && (
+            <TextField
+              label={t('format.textRaise')}
+              hint={t('format.textRaiseHint')}
+              value={a.textRaise === undefined ? '' : String(a.textRaise)}
+              validate={(v) =>
+                !v.trim() || Number.isFinite(Number(v.replace(',', '.'))) ? null : '✕'
+              }
+              onChange={(v) =>
+                set({ textRaise: v.trim() ? Number(v.replace(',', '.')) : undefined })
+              }
+            />
           )}
           {mode === 'style' && (
             <>

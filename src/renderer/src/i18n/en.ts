@@ -833,6 +833,7 @@ export const en = {
   'markupHelp.attr.bg': 'Background image or shape, text centered on it: bg=circle, bg=shield',
   'markupHelp.attr.bg-color': 'Tint of the background image or shape: bg-color=blue',
   'markupHelp.attr.bg-size': 'Size of the background, % of the line or mm: bg-size=140%',
+  'markupHelp.attr.text-raise': 'Moves only the text inside a box, in pt: text-raise=1',
   'markupHelp.attr.image.tint':
     'Recolors the image; none keeps its colors, currentColor uses the text color',
   'markupHelp.attr.image.size': 'Size relative to the normal icon height: size=150%',
@@ -910,6 +911,8 @@ export const en = {
   'format.bgColor': 'Background color',
   'format.bgSize': 'Background size',
   'format.bgSizeHint': '% of the line or mm',
+  'format.textRaise': 'Text raise',
+  'format.textRaiseHint': 'pt: moves the text, not the box',
   'format.shape.circle': 'Circle',
   'format.shape.square': 'Square',
   'format.shape.rounded': 'Rounded square',

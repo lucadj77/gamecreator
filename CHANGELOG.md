@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.16
+
+### English
+
+- New box attribute `text-raise=`: moves only the text inside a box (`bg=`, `fill=`, `border=`) up by the given pt, or down with a negative value, without moving the box. It also works in a style, for example `.heart = bg=heart color=white text-raise=1`, and appears in the Format dialog under the box settings.
+
+### Italiano
+
+- Nuovo attributo dei riquadri `text-raise=`: sposta in su dei pt indicati, o in giù con un valore negativo, solo il testo dentro un riquadro (`bg=`, `fill=`, `border=`) senza spostare il riquadro. Vale anche in uno stile, per esempio `.cuore = bg=cuore color=white text-raise=1`, e compare nella finestra Formato tra le impostazioni del riquadro.
+
 ## 1.2.0-beta.15
 
 ### English

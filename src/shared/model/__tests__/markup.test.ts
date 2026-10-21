@@ -152,6 +152,14 @@ describe('markup: stili', () => {
     expect(resolveStyles({ styles: ['heading1'] }, {})).toMatchObject({ weight: 800 })
   })
 
+  it('text-raise vale anche dentro uno stile', () => {
+    const a = resolveStyles(parseAttrs('.cuore').attrs, {
+      cuore: 'bg=cuore color=white text-raise=1'
+    })
+    expect(a).toMatchObject({ bg: 'cuore', color: 'white', textRaise: 1 })
+    expect(parseAttrs('text-raise=alto').problems).toHaveLength(1)
+  })
+
   it('segnala gli stili che non esistono', () => {
     expect(markupProblems('[a]{.nessuno}').map((p) => p.message)).toEqual([
       { key: 'markup.unknownStyle', params: { name: 'nessuno' } }
@@ -162,7 +170,7 @@ describe('markup: stili', () => {
 describe('markup: scrittura degli attributi', () => {
   it('scrive gli attributi in modo che si rileggano uguali', () => {
     const src =
-      '.keyword color=red size=+2 font=Open_Sans bold italic smallcaps stroke=white/8% border=red/0.3 radius=round pad=0.3/1 bg=circle bg-color=blue'
+      '.keyword color=red size=+2 font=Open_Sans bold italic smallcaps stroke=white/8% border=red/0.3 radius=round pad=0.3/1 bg=circle bg-color=blue text-raise=1.5'
     const a = parseAttrs(src).attrs
     expect(serializeAttrs(a)).toBe(src)
     expect(parseAttrs(serializeAttrs(a)).attrs).toEqual(a)

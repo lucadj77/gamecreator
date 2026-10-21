@@ -264,7 +264,7 @@ Square brackets mark the text and the braces that follow say how to format it: `
 | `border=`, `fill=`, `radius=`, `pad=` | `[Quick]{border=red/0.3 radius=round}`         | box around the text                            |
 | `bg=`, `bg-color=`, `bg-size=`        | `[3]{bg=circle bg-color=blue color=white}`     | shape or image behind the text                 |
 
-The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always available for `bg=`.
+The shapes `circle`, `square`, `rounded`, `hexagon` and `diamond` are always available for `bg=`. To move the text inside the box up or down without moving the box, use `text-raise=` in pt, also in a style: `.heart = bg=heart color=white text-raise=1` (`raise=` moves the whole box instead).
 
 ### 6.3 Fields, variables and icons
 

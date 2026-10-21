@@ -846,6 +846,7 @@ export const it: Record<MessageKey, string> = {
     'Immagine o forma di sfondo, con il testo centrato sopra: bg=circle, bg=shield',
   'markupHelp.attr.bg-color': "Tinta dell'immagine o della forma di sfondo: bg-color=blue",
   'markupHelp.attr.bg-size': 'Dimensione dello sfondo, in % della riga o in mm: bg-size=140%',
+  'markupHelp.attr.text-raise': 'Sposta solo il testo dentro il riquadro, in pt: text-raise=1',
   'markupHelp.attr.image.tint':
     "Ricolora l'immagine; none tiene i suoi colori, currentColor usa il colore del testo",
   'markupHelp.attr.image.size': "Dimensione rispetto all'altezza normale delle icone: size=150%",
@@ -926,6 +927,8 @@ export const it: Record<MessageKey, string> = {
   'format.bgColor': 'Colore dello sfondo',
   'format.bgSize': 'Dimensione dello sfondo',
   'format.bgSizeHint': '% della riga o mm',
+  'format.textRaise': 'Spostamento del testo',
+  'format.textRaiseHint': 'pt: sposta il testo, non il riquadro',
   'format.shape.circle': 'Cerchio',
   'format.shape.square': 'Quadrato',
   'format.shape.rounded': 'Quadrato arrotondato',

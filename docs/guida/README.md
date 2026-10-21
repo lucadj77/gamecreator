@@ -450,6 +450,14 @@ Crea per ogni set i fogli di carte (fino a 10 × 7, con la griglia scelta in aut
 
 Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una carta: una volta sola nel foglio, e il file del mazzo la moltiplica (è la scelta predefinita e tiene i fogli piccoli), oppure ripetute nel foglio quante volte dice `amount`. La seconda serve quando si caricano i fogli a mano in Tabletop Simulator, senza il file del mazzo: ogni posizione del foglio è una carta.
 
+**Oggetti** sceglie per ogni set cosa creare in Tabletop Simulator:
+
+- **Carte**: il mazzo dai fogli, come sopra.
+- **Segnalini**: un'immagine per carta, ritagliata sulla forma della carta (rettangolo, angoli arrotondati, cerchio, esagono o sagoma). Tabletop Simulator ne fa un pezzo spesso con il bordo del colore dell'immagine; sotto mostra il fronte specchiato, quindi il retro della carta non si usa.
+- **Tessere**: fronte e retro della carta. La forma (quadrata, arrotondata, esagonale o rotonda) viene dalla forma della carta; una sagoma diventa un quadrato. **Bordo** è il colore dello spessore.
+
+Per segnalini e tessere **Spessore** è in unità di Tabletop Simulator (1 è circa 2,5 cm, 0,2 è il valore predefinito di Tabletop Simulator). I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Le dimensioni in Tabletop Simulator non seguono quelle della carta: si cambiano con la scala dopo averli caricati.
+
 I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online bisogna caricare le immagini su un servizio web e cambiare gli indirizzi in Tabletop Simulator.
 
 ![Esportazione per Tabletop Simulator](img/esporta-tts.png)

@@ -450,6 +450,14 @@ For each set it creates the card sheets (up to 10 × 7, with the grid chosen aut
 
 With **Copies** on, **Copies on the sheet** decides where a card's copies go: once on the sheet, with the deck file multiplying it (the default, which keeps sheets small), or repeated on the sheet as many times as `amount` says. The second is for loading the sheets into Tabletop Simulator by hand, without the deck file: each slot of the sheet is one card.
 
+**Objects** chooses, for each set, what to create in Tabletop Simulator:
+
+- **Cards**: the deck from the sheets, as above.
+- **Tokens**: one image per card, cut out along the card shape (rectangle, rounded corners, circle, hexagon or silhouette). Tabletop Simulator turns it into a thick piece whose edge takes the image color; underneath it shows the front mirrored, so the card back is not used.
+- **Tiles**: front and back of the card. The shape (square, rounded, hexagonal or round) comes from the card shape; a silhouette becomes a square. **Edge** is the color of the thickness.
+
+For tokens and tiles, **Thickness** is in Tabletop Simulator units (1 is about 2.5 cm, 0.2 is Tabletop Simulator's default). The pieces of a set go into a bag, copies included; a set with a single piece becomes that piece. Sizes in Tabletop Simulator do not follow the card size: change them with the scale after loading.
+
 Sheets are referenced by local addresses, so the deck works on the computer that exported it. To play online, upload the images to a web service and change the addresses in Tabletop Simulator.
 
 ![Exporting for Tabletop Simulator](img/esporta-tts.png)

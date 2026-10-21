@@ -19,7 +19,10 @@ import {
   type ExportSet,
   type ImageOptions,
   type PdfOptions,
-  type TtsOptions
+  ttsSetObject,
+  type TtsObjectType,
+  type TtsOptions,
+  type TtsSetObject
 } from '../../../shared/export'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { readRealPath, writeRealPath } from '../../../shared/realPath'
@@ -105,6 +108,9 @@ export default function ExportDialog({
     const next = selected.includes(name) ? selected.filter((s) => s !== name) : [...selected, name]
     patch({ sets: next.length === setNames.length ? [] : next })
   }
+
+  /** Almeno un set scelto esce come mazzo di carte: servono le opzioni dei fogli */
+  const hasCards = selected.some((name) => ttsSetObject(tts, name).type === 'card')
 
   const firstTemplate = useMemo(() => {
     const set = project.sets.find((s) => selected.includes(s.name))
@@ -689,7 +695,67 @@ export default function ExportDialog({
 
           {kind === 'tts' && (
             <>
-              {tts.copies &&
+              {field(
+                'export.ttsObjects',
+                <div className="tts-objects">
+                  {selected.map((name) => {
+                    const obj = ttsSetObject(tts, name)
+                    const set = (p: Partial<TtsSetObject>): void =>
+                      patch({ objects: { ...tts.objects, [name]: { ...obj, ...p } } })
+                    return (
+                      <div key={name} className="tts-object">
+                        <span className="tts-object-name" title={name}>
+                          {name}
+                        </span>
+                        {select<TtsObjectType>(
+                          obj.type,
+                          [
+                            ['card', t('export.ttsCard')],
+                            ['token', t('export.ttsToken')],
+                            ['tile', t('export.ttsTile')]
+                          ],
+                          (type) => set({ type })
+                        )}
+                        {obj.type !== 'card' && (
+                          <>
+                            <span className="unit">{t('export.ttsThickness')}</span>
+                            <input
+                              className="num narrow"
+                              type="number"
+                              step={0.05}
+                              min={0.05}
+                              max={5}
+                              value={obj.thickness}
+                              title={t('export.ttsThicknessHint')}
+                              onChange={(e) =>
+                                set({
+                                  thickness: Math.max(
+                                    0.01,
+                                    Math.min(5, num(e.target.value, obj.thickness))
+                                  )
+                                })
+                              }
+                            />
+                          </>
+                        )}
+                        {obj.type === 'tile' && (
+                          <>
+                            <span className="unit">{t('export.ttsEdge')}</span>
+                            <ColorSwatch
+                              value={obj.edgeColor}
+                              title={t('export.ttsEdge')}
+                              onChange={(edgeColor) => set({ edgeColor })}
+                            />
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>,
+                t('export.ttsObjectsHint')
+              )}
+              {hasCards &&
+                tts.copies &&
                 field(
                   'export.copiesIn',
                   select(
@@ -701,55 +767,56 @@ export default function ExportDialog({
                     (copiesIn) => patch({ copiesIn })
                   )
                 )}
-              {field(
-                'export.grid',
-                <>
-                  {select(
-                    tts.grid,
-                    [
-                      ['auto', t('export.gridAuto')],
-                      ['fixed', t('export.layoutFixed')]
-                    ],
-                    (grid) => patch({ grid })
-                  )}
-                  {tts.grid === 'fixed' && (
-                    <>
-                      <input
-                        className="num narrow"
-                        type="number"
-                        min={2}
-                        max={10}
-                        value={tts.cols}
-                        onChange={(e) =>
-                          patch({
-                            cols: Math.max(
-                              2,
-                              Math.min(10, Math.round(num(e.target.value, tts.cols)))
-                            )
-                          })
-                        }
-                      />
-                      <span className="unit">×</span>
-                      <input
-                        className="num narrow"
-                        type="number"
-                        min={2}
-                        max={7}
-                        value={tts.rows}
-                        onChange={(e) =>
-                          patch({
-                            rows: Math.max(
-                              2,
-                              Math.min(7, Math.round(num(e.target.value, tts.rows)))
-                            )
-                          })
-                        }
-                      />
-                    </>
-                  )}
-                </>,
-                t('export.gridHint')
-              )}
+              {hasCards &&
+                field(
+                  'export.grid',
+                  <>
+                    {select(
+                      tts.grid,
+                      [
+                        ['auto', t('export.gridAuto')],
+                        ['fixed', t('export.layoutFixed')]
+                      ],
+                      (grid) => patch({ grid })
+                    )}
+                    {tts.grid === 'fixed' && (
+                      <>
+                        <input
+                          className="num narrow"
+                          type="number"
+                          min={2}
+                          max={10}
+                          value={tts.cols}
+                          onChange={(e) =>
+                            patch({
+                              cols: Math.max(
+                                2,
+                                Math.min(10, Math.round(num(e.target.value, tts.cols)))
+                              )
+                            })
+                          }
+                        />
+                        <span className="unit">×</span>
+                        <input
+                          className="num narrow"
+                          type="number"
+                          min={2}
+                          max={7}
+                          value={tts.rows}
+                          onChange={(e) =>
+                            patch({
+                              rows: Math.max(
+                                2,
+                                Math.min(7, Math.round(num(e.target.value, tts.rows)))
+                              )
+                            })
+                          }
+                        />
+                      </>
+                    )}
+                  </>,
+                  t('export.gridHint')
+                )}
               {field(
                 'export.maxSize',
                 select<number>(
@@ -761,18 +828,19 @@ export default function ExportDialog({
                   (v) => patch({ maxSize: v === 8192 ? 8192 : 4096 })
                 )
               )}
-              {field(
-                'export.ttsBack',
-                select(
-                  tts.back,
-                  [
-                    ['auto', t('export.backAuto')],
-                    ['single', t('export.backSingle')],
-                    ['sheet', t('export.backSheet')]
-                  ],
-                  (back) => patch({ back })
-                )
-              )}
+              {hasCards &&
+                field(
+                  'export.ttsBack',
+                  select(
+                    tts.back,
+                    [
+                      ['auto', t('export.backAuto')],
+                      ['single', t('export.backSingle')],
+                      ['sheet', t('export.backSheet')]
+                    ],
+                    (back) => patch({ back })
+                  )
+                )}
               {!window.api.isWeb &&
                 field(
                   'export.destination',

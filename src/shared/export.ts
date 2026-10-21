@@ -94,6 +94,30 @@ export interface TtsOptions extends Omit<CommonOptions, 'folder'> {
   /** Campo per Nickname e Description; vuoto per lasciarli vuoti */
   nickname: string
   description: string
+  /** Oggetto da creare per ogni set, per nome del set; un set assente diventa un mazzo di carte */
+  objects?: Record<string, TtsSetObject>
+}
+
+/** Carte in un mazzo, segnalini ritagliati sulla sagoma o tessere con fronte, retro e bordo */
+export type TtsObjectType = 'card' | 'token' | 'tile'
+
+export interface TtsSetObject {
+  type: TtsObjectType
+  /** Spessore di segnalini e tessere, in unità di Tabletop Simulator (circa 2,5 cm) */
+  thickness: number
+  /** Colore del bordo (lo spessore) delle tessere */
+  edgeColor: string
+}
+
+export const DEFAULT_TTS_OBJECT: TtsSetObject = {
+  type: 'card',
+  thickness: 0.2,
+  edgeColor: '#FFFFFF'
+}
+
+/** Oggetto scelto per un set, con i valori mancanti presi da quelli predefiniti */
+export function ttsSetObject(o: Pick<TtsOptions, 'objects'>, set: string): TtsSetObject {
+  return { ...DEFAULT_TTS_OBJECT, ...o.objects?.[set] }
 }
 
 /** Opzioni salvate con un nome, per rilanciare un'esportazione o partire da un servizio di stampa */
@@ -604,14 +628,15 @@ export interface TtsDeckCard {
   description: string
 }
 
-function transform(y = 1): Record<string, number> {
+/** Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su */
+function transform(y = 1, faceDown = true): Record<string, number> {
   return {
     posX: 0,
     posY: y,
     posZ: 0,
     rotX: 0,
     rotY: 180,
-    rotZ: 180,
+    rotZ: faceDown ? 180 : 0,
     scaleX: 1,
     scaleY: 1,
     scaleZ: 1
@@ -666,6 +691,10 @@ export function ttsSavedObject(
           Hands: false,
           SidewaysCard: false
         }
+  return savedFile(object)
+}
+
+function savedFile(object: Record<string, unknown>): Record<string, unknown> {
   return {
     SaveName: '',
     GameMode: '',
@@ -683,6 +712,101 @@ export function ttsSavedObject(
     TabStates: {},
     VersionNumber: ''
   }
+}
+
+/** Un segnalino o una tessera, con le sue immagini */
+export interface TtsPiece {
+  faceUrl: string
+  /** Retro delle tessere; i segnalini mostrano sotto il fronte specchiato */
+  backUrl: string
+  nickname: string
+  description: string
+  /** Quante copie mettere nel sacchetto */
+  count: number
+}
+
+/** Forme delle tessere di Tabletop Simulator: quadrata, esagonale, rotonda, con angoli arrotondati */
+export function ttsTileType(t: Pick<Template, 'shape' | 'cornerRadius'>): 0 | 1 | 2 | 3 {
+  if (t.shape === 'hexagon') return 1
+  if (t.shape === 'ellipse') return 2
+  if ((t.shape ?? 'rect') === 'rect' && t.cornerRadius > 0) return 3
+  return 0
+}
+
+/** Colore di Tabletop Simulator (componenti da 0 a 1) da un colore #RGB o #RRGGBB */
+export function ttsColor(hex: string): { r: number; g: number; b: number } {
+  let h = hex.trim().replace(/^#/, '')
+  if (h.length === 3 || h.length === 4)
+    h = h
+      .slice(0, 3)
+      .split('')
+      .map((c) => c + c)
+      .join('')
+  const v = /^[0-9a-f]{6}/i.test(h) ? parseInt(h.slice(0, 6), 16) : 0xffffff
+  const c = (n: number): number => Math.round((n / 255) * 1000) / 1000
+  return { r: c((v >> 16) & 255), g: c((v >> 8) & 255), b: c(v & 255) }
+}
+
+/**
+ * Oggetto salvato con segnalini o tessere: uno solo se il set ne ha uno, altrimenti un sacchetto
+ * che li contiene tutti, copie comprese. Le copie usano le stesse immagini, quindi si impilano.
+ */
+export function ttsSavedPieces(
+  name: string,
+  kind: 'token' | 'tile',
+  settings: Pick<TtsSetObject, 'thickness' | 'edgeColor'>,
+  tileType: 0 | 1 | 2 | 3,
+  pieces: TtsPiece[]
+): Record<string, unknown> {
+  const thickness = Math.max(0.01, settings.thickness)
+  const pieceObject = (p: TtsPiece): Record<string, unknown> => ({
+    Name: kind === 'token' ? 'Custom_Token' : 'Custom_Tile',
+    Transform: transform(1, false),
+    Nickname: p.nickname,
+    Description: p.description,
+    // nelle tessere la tinta colora solo i lati, non le immagini
+    ColorDiffuse: kind === 'tile' ? ttsColor(settings.edgeColor) : { r: 1, g: 1, b: 1 },
+    Locked: false,
+    Grid: true,
+    Snap: true,
+    Hands: false,
+    CustomImage: {
+      ImageURL: p.faceUrl,
+      ImageSecondaryURL: kind === 'tile' ? p.backUrl : '',
+      ImageScalar: 1,
+      WidthScale: 0,
+      ...(kind === 'token'
+        ? {
+            CustomToken: {
+              Thickness: thickness,
+              MergeDistancePixels: 15,
+              StandUp: false,
+              Stackable: true
+            }
+          }
+        : {
+            // Stretch false: la tessera prende le proporzioni dell'immagine, cioè della carta
+            CustomTile: { Type: tileType, Thickness: thickness, Stackable: true, Stretch: false }
+          })
+    }
+  })
+  const all = pieces.flatMap((p) => Array.from({ length: Math.max(1, p.count) }, () => p))
+  const object =
+    all.length === 1
+      ? { ...pieceObject(all[0]), Nickname: all[0].nickname || name }
+      : {
+          Name: 'Bag',
+          Transform: transform(1, false),
+          Nickname: name,
+          Description: '',
+          ColorDiffuse: { r: 0.7, g: 0.7, b: 0.7 },
+          Locked: false,
+          Grid: true,
+          Snap: true,
+          Hands: false,
+          ContainedObjects: all.map(pieceObject)
+        }
+  return savedFile(object)
 }
 
 /** Cartella Saved Objects di Tabletop Simulator per sistema operativo */

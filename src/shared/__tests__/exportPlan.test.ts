@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_IMAGE, DEFAULT_PDF, DEFAULT_TTS, type ExportCard } from '../export'
-import { planImages, planPdf, planTts, posterLayout, sheetPage } from '../exportPlan'
+import { piecePage, planImages, planPdf, planTts, posterLayout, sheetPage } from '../exportPlan'
 import { normalizeTemplate } from '../model/normalize'
 
 const tpl = normalizeTemplate({ name: 't', width: 63, height: 88, bleed: 3, front: [], back: [] })
@@ -72,6 +72,36 @@ describe("piano dell'esportazione", () => {
       y: (rows - 1) * 88,
       side: 'back'
     })
+  })
+})
+
+describe('Tabletop Simulator: segnalini e tessere', () => {
+  it('un set di segnalini non ha fogli: un pezzo per carta con le sue copie', () => {
+    const o = {
+      ...DEFAULT_TTS,
+      objects: { s: { type: 'token' as const, thickness: 0.3, edgeColor: '#FFF' } }
+    }
+    const [plan, other] = planTts(o, [
+      { name: 's', cards: [card(1, 3), card(2, 0), card(3, 1)] },
+      { name: 'carte', cards: [card(1)] }
+    ])
+    expect(plan.chunks).toEqual([])
+    expect(plan.pieces.map((p) => [p.card.n, p.count])).toEqual([
+      [1, 3],
+      [3, 1]
+    ])
+    expect(plan.pieces[0].scale).toBeLessThanOrEqual(300 / 25.4)
+    expect(other.object.type).toBe('card')
+    expect(other.chunks).toHaveLength(1)
+  })
+
+  it('il segnalino ha un margine trasparente, la tessera è il rettangolo della carta', () => {
+    const token = piecePage(tpl, 'front', 'token')
+    expect([token.width, token.height]).toEqual([65, 90])
+    expect(token.items[0]).toMatchObject({ x: 1, y: 1, mode: 'trim' })
+    const tile = piecePage(tpl, 'back', 'tile')
+    expect([tile.width, tile.height]).toEqual([63, 88])
+    expect(tile.items[0]).toMatchObject({ side: 'back', mode: 'cut' })
   })
 })
 

@@ -1020,6 +1020,16 @@ export const it: Record<MessageKey, string> = {
   'export.copiesInDeck': 'Una volta: il mazzo (file JSON) le moltiplica',
   'export.copiesInSheet': 'Ripetute nel foglio, per caricarlo a mano',
   'export.maxSize': 'Dimensione massima',
+  'export.ttsObjects': 'Oggetti',
+  'export.ttsObjectsHint':
+    "Carte: un mazzo dai fogli. Segnalini: un'immagine per carta, ritagliata sulla forma della carta; sotto mostra il fronte specchiato. Tessere: fronte e retro, quadrate, arrotondate, esagonali o rotonde come la carta, con il bordo del colore scelto. Segnalini e tessere di un set vanno in un sacchetto, copie comprese.",
+  'export.ttsCard': 'Carte',
+  'export.ttsToken': 'Segnalini',
+  'export.ttsTile': 'Tessere',
+  'export.ttsThickness': 'Spessore',
+  'export.ttsThicknessHint':
+    'In unità di Tabletop Simulator (1 è circa 2,5 cm); 0,2 è il valore predefinito',
+  'export.ttsEdge': 'Bordo',
   'export.ttsBack': 'Retro',
   'export.backAuto': "Automatico: un'immagine se i retri sono tutti uguali",
   'export.backSingle': "Un'immagine per tutte le carte",

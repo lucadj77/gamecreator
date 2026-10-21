@@ -14,11 +14,15 @@ import {
   safeName,
   ttsAutoGrid,
   ttsImageUrl,
+  ttsColor,
   ttsSavedObject,
+  ttsSavedPieces,
+  ttsTileType,
   ttsScale,
   uniqueNames,
   type ExportCard,
-  type PdfOptions
+  type PdfOptions,
+  type TtsPiece
 } from '../export'
 import { normalizeTemplate } from '../model/normalize'
 
@@ -192,5 +196,66 @@ describe('Tabletop Simulator', () => {
     expect(ttsImageUrl('/Users/luca/x y.png', 'darwin', 'file:///Users/luca/x%20y.png')).toBe(
       'file:///Users/luca/x%20y.png'
     )
+  })
+})
+
+describe('Tabletop Simulator: segnalini e tessere', () => {
+  const piece = (n: number, count = 1): TtsPiece => ({
+    faceUrl: `file:///f${n}.png`,
+    backUrl: `file:///b${n}.png`,
+    nickname: `P${n}`,
+    description: '',
+    count
+  })
+
+  it('forma della tessera dalla forma della carta', () => {
+    expect(ttsTileType({ shape: 'rect', cornerRadius: 0 })).toBe(0)
+    expect(ttsTileType({ cornerRadius: 3 })).toBe(3)
+    expect(ttsTileType({ shape: 'hexagon', cornerRadius: 3 })).toBe(1)
+    expect(ttsTileType({ shape: 'ellipse', cornerRadius: 0 })).toBe(2)
+    expect(ttsTileType({ shape: 'path', cornerRadius: 3 })).toBe(0)
+  })
+
+  it('colori da #RGB e #RRGGBB, bianco se non si capisce', () => {
+    expect(ttsColor('#FF0000')).toEqual({ r: 1, g: 0, b: 0 })
+    expect(ttsColor('#0f0')).toEqual({ r: 0, g: 1, b: 0 })
+    expect(ttsColor('rosso')).toEqual({ r: 1, g: 1, b: 1 })
+  })
+
+  it('un pezzo solo è l oggetto stesso, con il nome del set se non ne ha uno', () => {
+    const saved = ttsSavedPieces('Monete', 'token', { thickness: 0.3, edgeColor: '#000' }, 0, [
+      { ...piece(1), nickname: '' }
+    ])
+    expect(saved).toMatchObject({
+      ObjectStates: [
+        {
+          Name: 'Custom_Token',
+          Nickname: 'Monete',
+          CustomImage: {
+            ImageURL: 'file:///f1.png',
+            ImageSecondaryURL: '',
+            CustomToken: { Thickness: 0.3 }
+          }
+        }
+      ]
+    })
+  })
+
+  it('più pezzi vanno in un sacchetto, copie comprese; le tessere hanno retro e bordo colorato', () => {
+    const saved = ttsSavedPieces('Terreni', 'tile', { thickness: 0.2, edgeColor: '#0000FF' }, 1, [
+      piece(1, 2),
+      piece(2)
+    ]) as { ObjectStates: { Name: string; ContainedObjects: { Nickname: string }[] }[] }
+    const [bag] = saved.ObjectStates
+    expect(bag).toMatchObject({ Name: 'Bag', Nickname: 'Terreni' })
+    expect(bag.ContainedObjects.map((o) => o.Nickname)).toEqual(['P1', 'P1', 'P2'])
+    expect(bag.ContainedObjects[2]).toMatchObject({
+      Name: 'Custom_Tile',
+      ColorDiffuse: { r: 0, g: 0, b: 1 },
+      CustomImage: {
+        ImageSecondaryURL: 'file:///b2.png',
+        CustomTile: { Type: 1, Thickness: 0.2, Stretch: false }
+      }
+    })
   })
 })

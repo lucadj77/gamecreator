@@ -10,8 +10,20 @@ function renameInProfiles(
   to: string
 ): ExportProfiles | undefined {
   if (!profiles) return profiles
-  const fix = <T extends { sets?: string[] }>(o: T | undefined): T | undefined =>
-    o?.sets?.includes(from) ? { ...o, sets: o.sets.map((s) => (s === from ? to : s)) } : o
+  const fix = <T extends { sets?: string[]; objects?: Record<string, unknown> }>(
+    o: T | undefined
+  ): T | undefined => {
+    if (!o) return o
+    let out = o
+    if (o.sets?.includes(from)) out = { ...out, sets: o.sets.map((s) => (s === from ? to : s)) }
+    // oggetti di Tabletop Simulator scelti per set (segnalini, tessere)
+    if (o.objects && from in o.objects) {
+      const objects = { ...o.objects, [to]: o.objects[from] }
+      delete objects[from]
+      out = { ...out, objects }
+    }
+    return out
+  }
   return {
     ...profiles,
     images: fix(profiles.images),

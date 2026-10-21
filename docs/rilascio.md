@@ -16,7 +16,9 @@ Chi ha installato una beta riceve l'avviso sia delle beta più recenti sia delle
 
 1. Controlla che la sezione `## x.y.z` in cima a `CHANGELOG.md` sia completa e che `package.json` abbia la stessa versione (`npm version x.y.z --no-git-tag-version` aggiorna anche `package-lock.json`). Si alza il secondo numero per le funzioni nuove, il terzo per le sole correzioni.
 2. Unisci tutto in `main`.
-3. Dal Mac, nella cartella di Naibi:
+3. Su GitHub, **Actions → Release → Run workflow** (ramo `main`): l'azione crea il tag della versione di `package.json` sull'ultimo commit di `main` e avvia Build e Web su quel tag. Si ferma se il tag esiste già o se manca la sezione in `CHANGELOG.md`. La stessa azione la può avviare anche un'IA con accesso a GitHub.
+
+   In alternativa, dal Mac, nella cartella di Naibi:
 
    ```bash
    git checkout main

@@ -54,6 +54,7 @@ const api: Api = {
   restoreBackup: (file) => ipcRenderer.invoke('backup:restore', file),
   backupVersion: (file) => ipcRenderer.invoke('backup:version', file),
   readPrinted: () => ipcRenderer.invoke('printed:read'),
+  fetchGoogleSheet: (link) => ipcRenderer.invoke('gsheets:fetch', link),
   savePrinted: (state) => ipcRenderer.invoke('printed:save', state),
   defaultTtcTarget: (source) => ipcRenderer.invoke('ttc:default-target', source),
   importTtc: (options) => ipcRenderer.invoke('ttc:import', options),

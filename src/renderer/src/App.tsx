@@ -7,6 +7,7 @@ import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import StatsDialog from './components/StatsDialog'
 import SplitImageDialog from './components/SplitImageDialog'
+import GoogleSheetsDialog, { type SheetImport } from './components/GoogleSheetsDialog'
 import TrashDialog from './components/TrashDialog'
 import CompareDialog, { type CompareBase } from './components/CompareDialog'
 import { cardFingerprints, changedCards } from '../../shared/model/compare'
@@ -220,6 +221,7 @@ function App(): React.JSX.Element {
   const [exporting, setExporting] = useState(false)
   const [backingUp, setBackingUp] = useState(false)
   const [trashOpen, setTrashOpen] = useState(false)
+  const [sheetsOpen, setSheetsOpen] = useState(false)
   /** Confronto con un backup o con l'ultima esportazione: le carte cambiate da allora */
   const [comparing, setComparing] = useState(false)
   const [compareBase, setCompareBase] = useState<CompareBase | null>(null)
@@ -1021,6 +1023,33 @@ function App(): React.JSX.Element {
     }
   }
 
+  /** Dati dal foglio Google: ogni scheda sostituisce i dati del suo set; ⌘Z annulla */
+  const importGoogleSheet = (link: string, imports: SheetImport[]): void => {
+    if (!project) return
+    setHistory((h) => ({
+      past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
+      future: [],
+      at: 0
+    }))
+    const names: string[] = []
+    const sets = project.sets.map((s) => {
+      const found = imports.find((i) => i.set === s.name)
+      if (!found) return s
+      const data: Sheet = {
+        ...s.data,
+        name: s.data?.name ?? s.sheet ?? s.name,
+        headers: found.sheet.headers,
+        rows: found.sheet.rows
+      }
+      names.push(data.name)
+      return { ...s, data }
+    })
+    setProject({ ...project, sets, file: { ...project.file, googleSheet: link } })
+    setDirtySheets((d) => new Set([...d, ...names]))
+    if (project.file.googleSheet !== link) setFileDirty(true)
+    setSheetsOpen(false)
+  }
+
   const duplicateTemplate = (from: string, name: string): void => {
     const src = project?.templates.find((x) => x.name === from)
     if (!src) return
@@ -1610,6 +1639,9 @@ function App(): React.JSX.Element {
                   <button onClick={() => setTrashOpen(true)} title={t('tip.trash')}>
                     {t('app.trash')}
                   </button>
+                  <button onClick={() => setSheetsOpen(true)} title={t('tip.googleSheets')}>
+                    {t('app.googleSheets')}
+                  </button>
                   {!window.api.isWeb && (
                     <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
                       {t('app.aiTools')}
@@ -1919,6 +1951,13 @@ function App(): React.JSX.Element {
                   setComparing(false)
                 }}
                 onClose={() => setComparing(false)}
+              />
+            )}
+            {sheetsOpen && project && (
+              <GoogleSheetsDialog
+                project={project}
+                onImport={importGoogleSheet}
+                onClose={() => setSheetsOpen(false)}
               />
             )}
             {trashOpen && project && (

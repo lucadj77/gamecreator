@@ -1,9 +1,11 @@
+import { fetchGoogleSheet } from './project/googleSheets'
+import { matchTabs } from '../shared/model/googleSheets'
 import { app } from 'electron'
 import { readFile } from 'fs/promises'
 import { join, resolve } from 'path'
 import Papa from 'papaparse'
 import { messageFromError } from '../shared/messages'
-import type { LoadedProject } from '../shared/project'
+import type { LoadedProject, Sheet } from '../shared/project'
 import {
   CliError,
   messageText,
@@ -64,6 +66,9 @@ Commands:
   rows <project> <set> [--csv|--json]  Rows of a set's sheet (default: tab-separated)
   set-rows <project> <set> <file>      Replace a set's rows with a .csv or .json file
                                        (a backup of the project is made first)
+  pull-sheets <project> [<link>]       Replace the data of the sets with the tabs of the same
+                                       name in a Google sheet shared by link (default: the link
+                                       saved in the project; a new link is saved; backup first)
   rename-set <project> <set> <name>    Rename a set, its sheet in the data file and the export
                                        profiles that pick it (backup first)
   rename-template <project> <template> <name>
@@ -370,6 +375,35 @@ async function backup(project: LoadedProject): Promise<() => void> {
   }
 }
 
+async function pullSheets(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  await checkWritable(project.folder)
+  const link = p.positional[1]?.trim() || project.file.googleSheet
+  if (!link) throw new CliError('no Google Sheets link: pass one, it is then saved in the project')
+  const tabs = await fetchGoogleSheet(link)
+  const targets = matchTabs(
+    tabs.map((t) => t.name),
+    project.sets
+  )
+  const sheets: Sheet[] = []
+  for (const tab of tabs) {
+    const set = project.sets.find((s) => s.name === targets[tab.name])
+    if (!set) {
+      print(`${tab.name}: no set with this name, skipped`)
+      continue
+    }
+    sheets.push({ ...tab, name: set.data?.name ?? set.sheet ?? set.name })
+    print(`${tab.name} → ${set.name}: ${tab.rows.length} rows, columns ${tab.headers.join(', ')}`)
+  }
+  const file =
+    link === project.file.googleSheet ? undefined : { ...project.file, googleSheet: link }
+  if (!sheets.length && !file) return 0
+  const done = await backup(project)
+  await saveData(project.folder, { file, sheets })
+  done()
+  return 0
+}
+
 async function renameSetCommand(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
   await checkWritable(project.folder)
@@ -610,6 +644,7 @@ const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   template,
   rows,
   'set-rows': setRows,
+  'pull-sheets': pullSheets,
   'rename-set': renameSetCommand,
   'rename-template': renameTemplateCommand,
   render,

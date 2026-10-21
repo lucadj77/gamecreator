@@ -4235,3 +4235,34 @@ details.usages button.link {
   font-size: 13px;
   color: var(--text);
 }
+
+.gsheets-dialog {
+  max-width: 100%;
+}
+
+.gsheets-link {
+  display: flex;
+  gap: 6px;
+}
+
+.gsheets-link input {
+  flex: 1;
+  min-width: 0;
+}
+
+.gsheets-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gsheets-table th,
+.gsheets-table td {
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.dialog:has(.gsheets-dialog) {
+  max-width: min(680px, 94vw);
+}

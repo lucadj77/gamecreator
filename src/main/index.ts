@@ -9,6 +9,7 @@ import { saveTemplate, trashTemplate } from './project/templates'
 import { saveNote, trashNote } from './project/notes'
 import { dropDeleted, listDeleted, readDeleted } from './project/trash'
 import { readBackupVersion, readPrinted, savePrinted } from './project/versions'
+import { fetchGoogleSheet } from './project/googleSheets'
 import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
@@ -442,6 +443,10 @@ function registerIpc(): void {
     if (dirname(resolve(file)) !== resolve(await backupDir())) throw new Error('not a backup')
     return readBackupVersion(file)
   })
+  // net.fetch usa il proxy del sistema, come il browser
+  ipcMain.handle('gsheets:fetch', (_, link: string) =>
+    fetchGoogleSheet(link, (url) => net.fetch(url))
+  )
   ipcMain.handle('printed:read', async () => {
     const folder = getProjectFolder()
     return folder ? readPrinted(folder) : null

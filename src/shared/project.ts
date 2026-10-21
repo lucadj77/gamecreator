@@ -42,6 +42,8 @@ export interface ProjectFile {
   export?: ExportProfiles
   /** Ordine scelto a mano di template, stili e variabili nella barra laterale; assente: alfabetico */
   order?: ListOrder
+  /** Link del foglio Google da cui si importano i dati dei set */
+  googleSheet?: string
 }
 
 export interface Sheet {

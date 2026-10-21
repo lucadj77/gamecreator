@@ -15,6 +15,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Compare…** marks the cards that are new or changed since the last export or a backup (blue dot), and the export can include only those: reprint just what changed.
 - **Split image…** in the set header spreads one big image across the cards (columns × rows, by rows or by columns, with or without the outer bleed in the image): the cards make up the image again when placed in a grid.
 - Tabletop Simulator: two new objects per set. **Boards**: like tiles but not stackable, each one on the table next to the others. **Dice (6 faces)**: every six cards of the set make a die (card 1 on face 1 and so on, opposite faces adding up to 7), with the value shown when you roll it.
+- **Google Sheets…** in the top bar: set data from a Google sheet shared by link, one tab per set (usually with the same name). The link stays in the project to refresh the data with one click; also from the command line with `naibi pull-sheets`.
 
 ### Italiano
 
@@ -24,6 +25,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Confronta…** segna le carte nuove o cambiate dall'ultima esportazione o da un backup (punto blu), e l'esportazione può includere solo quelle: si ristampa solo ciò che è cambiato.
 - **Dividi immagine…** nell'intestazione del set distribuisce un'immagine grande tra le carte (colonne × righe, per righe o per colonne, con o senza l'abbondanza esterna nell'immagine): messe in griglia, le carte ricompongono l'immagine.
 - Tabletop Simulator: due nuovi oggetti per set. **Plance**: come le tessere ma non impilabili, ognuna sul tavolo accanto alle altre. **Dadi (6 facce)**: ogni sei carte del set fanno un dado (la carta 1 sulla faccia 1 e così via, facce opposte che fanno 7), con il valore mostrato quando lo tiri.
+- **Google Sheets…** nella barra in alto: i dati dei set da un foglio Google condiviso con il link, una scheda per set (di solito con lo stesso nome). Il link resta nel progetto per aggiornare i dati con un clic; anche da riga di comando con `naibi pull-sheets`.
 
 ## 1.2.0-beta.16
 

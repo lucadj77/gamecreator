@@ -8,6 +8,7 @@ import { saveTemplate, trashTemplate } from '../main/project/templates'
 import { saveNote, trashNote } from '../main/project/notes'
 import { dropDeleted, listDeleted, readDeleted } from '../main/project/trash'
 import { readBackupVersion, readPrinted, savePrinted } from '../main/project/versions'
+import { fetchGoogleSheet } from '../main/project/googleSheets'
 import { createProject } from '../main/project/create'
 import { saveData } from '../main/project/save'
 import { saveExportProfiles } from '../main/project/exportProfiles'
@@ -233,6 +234,7 @@ export const webApi: Api = {
     return readBackupVersion(file)
   },
   readPrinted: () => readPrinted(projectFolder()),
+  fetchGoogleSheet: (link) => fetchGoogleSheet(link),
   savePrinted: (state) => savePrinted(projectFolder(), state),
   // accanto all'originale solo se la cartella scelta lo contiene; altrimenti la si sceglie
   defaultTtcTarget: async (source) => (dirname(source) === '/' ? '' : defaultTarget(source)),

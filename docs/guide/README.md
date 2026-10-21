@@ -230,6 +230,12 @@ The **Template** field, at the top of the card form, picks the template of a sin
 
 The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, with the project closed or followed by **Reload**. When saving, Naibi rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change.
 
+### 5.6 Data from Google Sheets
+
+If you keep the data in a Google sheet, **Google Sheets…** in the top bar brings it into the project. In the Google sheet choose **Share** → **Anyone with the link** (viewer), copy the link and paste it; **Download** reads all the tabs. Each tab goes to the set with the same name (ignoring case); from the menu you can pick another one or **do not import** the tab. If a tab lacks some columns of the set, the window lists them: after the import those columns are gone. **Import** replaces the data of the chosen sets (⌘Z undoes it) and **Save** writes them to the project's data file, which stays the local copy: Naibi works without a network too.
+
+The link stays in the project: next time just open the window and press **Download**. A sheet not shared by link cannot be downloaded, and Naibi says so. An AI can do the same with `naibi pull-sheets`.
+
 ## 6. Text and markup
 
 Card text is written with a simple markup, the same in the app and in the sheet cells. No HTML is needed.

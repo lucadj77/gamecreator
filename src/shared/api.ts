@@ -172,6 +172,8 @@ export interface Api {
   restoreBackup(file: string, parent?: string): Promise<string>
   /** Il progetto com'era in un backup del progetto aperto, per confrontarlo */
   backupVersion(file: string): Promise<ProjectVersion>
+  /** Schede di un foglio Google condiviso con chiunque abbia il link */
+  fetchGoogleSheet(link: string): Promise<Sheet[]>
   /** Impronte delle carte dell'ultima esportazione, se ce n'è una */
   readPrinted(): Promise<PrintedState | null>
   savePrinted(state: PrintedState): Promise<void>

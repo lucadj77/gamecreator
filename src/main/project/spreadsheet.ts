@@ -17,8 +17,9 @@ export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   throw new MessageError(msg('load.unsupportedDataFile', { ext }))
 }
 
-async function readXlsx(path: string): Promise<Sheet[]> {
-  const workbook = await readWorkbook(path)
+/** Fogli di un .xlsx, da un file o dai suoi dati */
+export async function readXlsx(source: string | Buffer): Promise<Sheet[]> {
+  const workbook = await readWorkbook(source)
   return workbook.worksheets.map((ws) => {
     const width = ws.columnCount
     const table: string[][] = []

@@ -1,0 +1,51 @@
+# Versione web (src/web, docs/web.md): si costruisce sulle PR che toccano il codice e si pubblica
+# su GitHub Pages a ogni tag v*, insieme alla release dell'app, oppure a mano (Actions → Web →
+# Run workflow). Serve una volta Settings → Pages → Source: GitHub Actions.
+name: Web
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - src/**
+      - package.json
+      - package-lock.json
+      - vite.web.config.mts
+      - tsconfig.webapp.json
+      - .github/workflows/web.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # senza gli script di installazione: Electron qui non serve
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck:webapp
+      - run: npx vite build -c vite.web.config.mts
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out/web
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

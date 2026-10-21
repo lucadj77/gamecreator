@@ -1,10 +1,6 @@
-import { execFile } from 'child_process'
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises'
-import { tmpdir } from 'os'
+import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
-import { promisify } from 'util'
 import { pathToFileURL } from 'url'
-import type { NativeImage } from 'electron'
 import {
   defaultTtsFolder,
   ttsImageUrl,
@@ -37,16 +33,36 @@ import {
 import { plainText } from '../../shared/model/markup'
 import { msg } from '../../shared/messages'
 import type { Side, Template } from '../../shared/model/template'
-import { ExportWindow } from './window'
 
 // Esegue un'esportazione: prepara le scene, le fa disegnare alla finestra nascosta e scrive i file.
-
-const execFileAsync = promisify(execFile)
+// La finestra arriva da chi chiama (window.ts nell'app, un iframe nella versione web), così questo
+// file non dipende da Electron.
 
 /** 96 pixel CSS per pollice: le pagine del PDF si misurano così */
 const PDF_SCALE = 96 / 25.4
 
+/** Immagine catturata, come NativeImage di Electron */
+export interface CapturedImage {
+  toPNG(): Buffer
+  toJPEG(quality: number): Buffer
+}
+
+/** Ciò che disegna le scene: la finestra nascosta di Electron o, nel browser, un iframe */
+export interface RenderWindow {
+  /** Disegna la scena e aspetta che immagini, font e adattamenti del testo siano finiti */
+  show(scene: Scene, width: number, height: number): Promise<void>
+  capture(width: number, height: number): Promise<CapturedImage>
+  toWebp(png: Buffer, quality: number): Promise<Buffer>
+  toSvg(background: string | null): Promise<Buffer>
+  /** PDF delle pagine; null se le pagine sono andate alla stampa del browser e non c'è un file */
+  printToPdf(): Promise<Buffer | null>
+  close(): void
+}
+
 export interface RunEnv {
+  openWindow(context: ExportContext): Promise<RenderWindow>
+  /** Conversione del PDF in CMYK; null se non riesce, assente dove non si può fare */
+  toCmyk?(pdf: Buffer): Promise<Buffer | null>
   projectFolder: string
   platform: string
   home: string
@@ -58,7 +74,7 @@ export interface RunEnv {
 
 interface Ctx {
   env: RunEnv
-  win: ExportWindow
+  win: RenderWindow
   result: ExportResult
   progress: ExportProgress
 }
@@ -67,7 +83,7 @@ export async function runExport(job: ExportJob, env: RunEnv): Promise<ExportResu
   const result: ExportResult = { files: 0, folders: [], warnings: [], cancelled: false }
   const sets = job.sets.filter((s) => s.cards.length)
   if (!sets.length) return result
-  const win = await ExportWindow.open(env.context)
+  const win = await env.openWindow(env.context)
   const ctx: Ctx = { env, win, result, progress: { done: 0, total: 0 } }
   try {
     if (job.kind === 'images') await exportImages(ctx, job.options, sets)
@@ -109,7 +125,7 @@ async function renderCard(
   side: Side,
   scale: number,
   opts: { bleed: boolean; mode: 'trim' | 'cut'; background: string | null }
-): Promise<NativeImage> {
+): Promise<CapturedImage> {
   const page = cardPage(t, side, opts.bleed, opts.mode)
   const w = Math.round(page.width * scale)
   const h = Math.round(page.height * scale)
@@ -187,6 +203,7 @@ async function exportPdf(
   const page = pageSize(o)
   const { docs, overflow } = planPdf(o, sets, project)
   let cmykWarned = false
+  let printed = false
   for (const set of overflow) ctx.result.warnings.push(msg('export.gridOverflow', { set }))
   ctx.progress.total = docs.length
   for (const doc of docs) {
@@ -200,8 +217,13 @@ async function exportPdf(
     }
     await ctx.win.show(scene, page.width * PDF_SCALE, page.height * PDF_SCALE)
     let pdf = await ctx.win.printToPdf()
+    if (!pdf) {
+      printed = true
+      step(ctx)
+      continue
+    }
     if (o.cmyk) {
-      const converted = await toCmyk(pdf)
+      const converted = ctx.env.toCmyk ? await ctx.env.toCmyk(pdf) : null
       if (converted) pdf = converted
       else if (!cmykWarned) {
         ctx.result.warnings.push(msg('export.cmykUnavailable'))
@@ -211,49 +233,7 @@ async function exportPdf(
     await write(ctx, join(folder, `${doc.name}.pdf`), pdf)
     step(ctx)
   }
-}
-
-/** Ghostscript, se installato: dalle app aperte dal Finder il PATH non comprende Homebrew */
-async function findGhostscript(): Promise<string | null> {
-  const names = process.platform === 'win32' ? ['gswin64c', 'gswin32c', 'gs'] : ['gs']
-  const dirs = ['', '/opt/homebrew/bin/', '/usr/local/bin/', '/usr/bin/']
-  for (const dir of dirs)
-    for (const name of names)
-      try {
-        await execFileAsync(dir + name, ['--version'])
-        return dir + name
-      } catch {
-        // si prova il prossimo
-      }
-  return null
-}
-
-/** Il PDF convertito in CMYK, o null se Ghostscript non c'è o la conversione non riesce */
-async function toCmyk(pdf: Buffer): Promise<Buffer | null> {
-  const gs = await findGhostscript()
-  if (!gs) return null
-  const dir = await mkdtemp(join(tmpdir(), 'naibi-cmyk-'))
-  try {
-    const input = join(dir, 'rgb.pdf')
-    const output = join(dir, 'cmyk.pdf')
-    await writeFile(input, pdf)
-    await execFileAsync(gs, [
-      '-q',
-      '-dNOPAUSE',
-      '-dBATCH',
-      '-dSAFER',
-      '-sDEVICE=pdfwrite',
-      '-sColorConversionStrategy=CMYK',
-      '-sProcessColorModel=DeviceCMYK',
-      `-sOutputFile=${output}`,
-      input
-    ])
-    return await readFile(output)
-  } catch {
-    return null
-  } finally {
-    await rm(dir, { recursive: true, force: true })
-  }
+  if (printed) ctx.result.warnings.push(msg('export.printed'))
 }
 
 // ——— Tabletop Simulator ———

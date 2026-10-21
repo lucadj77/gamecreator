@@ -27,6 +27,8 @@ import {
 } from '../shared/export'
 import { buildSets } from '../shared/exportJob'
 import { runExport } from './export/run'
+import { ExportWindow } from './export/window'
+import { toCmyk } from './export/cmyk'
 import { loadProject } from './project/load'
 import { createProject } from './project/create'
 import { saveData } from './project/save'
@@ -433,6 +435,8 @@ function selectCards(sets: ExportSet[], spec: string | true | undefined): Export
 
 async function exportJob(project: LoadedProject, job: ExportJob): Promise<number> {
   const r = await runExport(job, {
+    openWindow: (context) => ExportWindow.open(context),
+    toCmyk,
     projectFolder: project.folder,
     platform: process.platform,
     home: app.getPath('home'),

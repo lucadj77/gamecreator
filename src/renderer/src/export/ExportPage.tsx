@@ -59,6 +59,7 @@ export default function ExportPage(): React.JSX.Element {
           html, body, #root { background: ${bg}; margin: 0; height: auto; overflow: hidden }
           .export-page { position: relative; overflow: hidden; break-after: page }
           .export-page:last-child { break-after: auto }
+          * { print-color-adjust: exact; -webkit-print-color-adjust: exact }
         `}</style>
           <div ref={rootRef} key={job?.id}>
             {scene?.pages.map((p, i) => (

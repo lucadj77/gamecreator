@@ -51,7 +51,8 @@ export default function ExportDialog({
   const saved = project.file.export ?? {}
   const [kind, setKindState] = useState<ExportKind>(() => {
     const k = localStorage.getItem(KIND_KEY)
-    return k === 'pdf' || k === 'tts' ? k : 'images'
+    // Tabletop Simulator non c'è nella versione web
+    return k === 'pdf' || (k === 'tts' && !window.api.isWeb) ? k : 'images'
   })
   const setKind = (k: ExportKind): void => {
     localStorage.setItem(KIND_KEY, k)
@@ -317,7 +318,7 @@ export default function ExportDialog({
           options={[
             ['images', t('export.images')],
             ['pdf', t('export.pdf')],
-            ['tts', t('export.tts')]
+            ...(window.api.isWeb ? [] : [['tts', t('export.tts')] as [ExportKind, string]])
           ]}
           onChange={(k) => {
             setKind(k)
@@ -668,9 +669,9 @@ export default function ExportDialog({
                 'export.extras',
                 <>
                   {check(pdf.proof, (proof) => patch({ proof }), 'export.proof')}
-                  {check(pdf.cmyk, (cmyk) => patch({ cmyk }), 'export.cmyk')}
+                  {!window.api.isWeb && check(pdf.cmyk, (cmyk) => patch({ cmyk }), 'export.cmyk')}
                 </>,
-                pdf.cmyk ? t('export.cmykHint') : undefined
+                window.api.isWeb ? t('web.pdfHint') : pdf.cmyk ? t('export.cmykHint') : undefined
               )}
               {field('export.folder', folderField(pdf.folder, defaults.export, 'folder'))}
             </>
@@ -809,16 +810,23 @@ export default function ExportDialog({
                 {t(w)}
               </p>
             ))}
-            {result.folders.map((f) => (
-              <button
-                key={f}
-                type="button"
-                className="link"
-                onClick={() => window.api.showFolder(f)}
-              >
-                {t('export.openFolder', { folder: f })}
-              </button>
-            ))}
+            {result.folders.map((f) =>
+              // il browser non apre le cartelle: si dice solo dove sono i file
+              window.api.isWeb ? (
+                <p key={f} className="muted small">
+                  {f}
+                </p>
+              ) : (
+                <button
+                  key={f}
+                  type="button"
+                  className="link"
+                  onClick={() => window.api.showFolder(f)}
+                >
+                  {t('export.openFolder', { folder: f })}
+                </button>
+              )
+            )}
           </div>
         )}
         <div className="dialog-buttons">

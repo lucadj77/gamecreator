@@ -7,6 +7,7 @@ import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import appIcon from '../assets/app-icon.png'
 import AiToolsDialog from './AiToolsDialog'
+import DesktopFeaturesDialog from './DesktopFeaturesDialog'
 import { WhatsNewDialog } from './UpdateNotice'
 import { checkForUpdateNow } from './updateCheck'
 
@@ -40,6 +41,7 @@ export default function StartScreen({
   const [aiTools, setAiTools] = useState(false)
   const [version, setVersion] = useState<string | null>(null)
   const [whatsNew, setWhatsNew] = useState(false)
+  const [desktop, setDesktop] = useState(false)
 
   useEffect(() => {
     window.api.appVersion().then(setVersion, () => {})
@@ -91,12 +93,16 @@ export default function StartScreen({
           <button onClick={onChoose} title={t('tip.openProject')}>
             {t('start.openProject')}
           </button>
-          <button onClick={onImport} title={t('tip.importTtc')}>
-            {t('start.importTtc')}
-          </button>
-          <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
-            {t('app.aiTools')}
-          </button>
+          {!window.api.isWeb && (
+            <>
+              <button onClick={onImport} title={t('tip.importTtc')}>
+                {t('start.importTtc')}
+              </button>
+              <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
+                {t('app.aiTools')}
+              </button>
+            </>
+          )}
           <button onClick={onHelp} title={t('tip.help')}>
             {t('app.help')}
           </button>
@@ -143,9 +149,15 @@ export default function StartScreen({
             {t('update.whatsNew')}
           </button>
         )}
-        <button className="about-link" onClick={checkForUpdateNow}>
-          {t('update.check')}
-        </button>
+        {window.api.isWeb ? (
+          <button className="about-link" onClick={() => setDesktop(true)}>
+            {t('web.desktopLink')}
+          </button>
+        ) : (
+          <button className="about-link" onClick={checkForUpdateNow}>
+            {t('update.check')}
+          </button>
+        )}
         <button className="about-link" onClick={() => setAbout(true)}>
           {t('about.link')}
         </button>
@@ -154,6 +166,7 @@ export default function StartScreen({
         <WhatsNewDialog version={version} onClose={() => setWhatsNew(false)} />
       )}
       {about && <AboutDialog onClose={() => setAbout(false)} />}
+      {desktop && <DesktopFeaturesDialog onClose={() => setDesktop(false)} />}
       {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
       {creating && (
         <NewProjectDialog
@@ -220,7 +233,13 @@ function NewProjectDialog({
         <label>
           {t('newProject.location')}
           <span className="field-control">
-            <input value={parent} title={parent} onChange={(e) => setParent(e.target.value)} />
+            {/* nel browser la cartella si sceglie solo con la finestra: non ha un percorso vero */}
+            <input
+              value={parent}
+              title={parent}
+              readOnly={window.api.isWeb}
+              onChange={(e) => setParent(e.target.value)}
+            />
             <button
               type="button"
               title={t('tip.chooseFolder')}

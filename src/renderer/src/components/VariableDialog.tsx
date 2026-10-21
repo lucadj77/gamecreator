@@ -133,12 +133,16 @@ export default function VariableDialog({
                   </button>
                 }
               />
-              <div className="field">
-                <span className="field-label" />
-                <span className="field-control">
-                  <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
-                </span>
-              </div>
+              {!window.api.isWeb && (
+                <div className="field">
+                  <span className="field-label" />
+                  <span className="field-control">
+                    <button onClick={() => setImporting(true)}>
+                      {t('assetPicker.importIcons')}
+                    </button>
+                  </span>
+                </div>
+              )}
               <datalist id={IMAGE_LIST}>
                 {images.map((n) => (
                   <option key={n} value={n} />

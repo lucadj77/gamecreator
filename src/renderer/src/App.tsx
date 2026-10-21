@@ -1185,16 +1185,19 @@ function App(): React.JSX.Element {
   /** Dimensione dell'interfaccia, tema e lingua: nella schermata di ingresso e nel progetto */
   const settings = (
     <span className="app-settings">
-      <label className="muted" title={t('app.uiSizeHint')}>
-        {t('app.uiSize')}{' '}
-        <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
-          {UI_ZOOMS.map((z) => (
-            <option key={z} value={z}>
-              {Math.round(z * 100)}%
-            </option>
-          ))}
-        </select>
-      </label>
+      {/* nel browser l'ingrandimento è quello del browser stesso */}
+      {!window.api.isWeb && (
+        <label className="muted" title={t('app.uiSizeHint')}>
+          {t('app.uiSize')}{' '}
+          <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
+            {UI_ZOOMS.map((z) => (
+              <option key={z} value={z}>
+                {Math.round(z * 100)}%
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="muted">
         {t('app.theme')}{' '}
         <select value={theme} onChange={(e) => changeTheme(e.target.value as Theme)}>
@@ -1225,7 +1228,7 @@ function App(): React.JSX.Element {
           <SaveStyleContext.Provider value={project ? saveStyle : null}>
             <div className="app">
               <Tooltip />
-              <UpdateNotice />
+              {!window.api.isWeb && <UpdateNotice />}
               {help && <HelpDialog onClose={() => setHelp(false)} />}
               {project && !sidebarCompact && (
                 <SidebarPreview
@@ -1263,12 +1266,16 @@ function App(): React.JSX.Element {
                   <button onClick={() => setExporting(true)} title={t('tip.export')}>
                     {t('app.export')}
                   </button>
-                  <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
-                    {t('app.backup')}
-                  </button>
-                  <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
-                    {t('app.aiTools')}
-                  </button>
+                  {!window.api.isWeb && (
+                    <>
+                      <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
+                        {t('app.backup')}
+                      </button>
+                      <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
+                        {t('app.aiTools')}
+                      </button>
+                    </>
+                  )}
                   <button onClick={() => setHelp(true)} title={t('tip.help')}>
                     {t('app.help')}
                   </button>

@@ -144,7 +144,9 @@ export default function AssetPicker({
             title={t('assetPicker.size')}
             onChange={(e) => setSize(Number(e.target.value))}
           />
-          <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
+          {!window.api.isWeb && (
+            <button onClick={() => setImporting(true)}>{t('assetPicker.importIcons')}</button>
+          )}
         </div>
         {folders.length > 0 && (
           <div className="asset-picker-folders">

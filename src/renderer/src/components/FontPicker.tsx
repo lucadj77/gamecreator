@@ -85,7 +85,10 @@ export default function FontPicker({
 }): React.JSX.Element {
   const { t } = useI18n()
   const project = useProjectFonts()
-  const [tab, setTab] = useState<Tab>(project.families.length ? 'project' : 'google')
+  // nel web Google Fonts e i font del computer non si copiano nel progetto: solo l'app desktop
+  const [tab, setTab] = useState<Tab>(
+    project.families.length || window.api.isWeb ? 'project' : 'google'
+  )
   const [sample, setSampleState] = useState(() => loadSample(t('fonts.sample')))
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string | null>(null)
@@ -223,15 +226,17 @@ export default function FontPicker({
     <Dialog title={t('fonts.title')} onClose={busy ? () => undefined : onClose}>
       <div className="font-picker">
         <div className="asset-picker-bar">
-          <Segmented
-            value={tab}
-            options={[
-              ['project', t('fonts.tabProject')],
-              ['google', 'Google Fonts'],
-              ['system', t('fonts.tabSystem')]
-            ]}
-            onChange={(v) => setTab(v as Tab)}
-          />
+          {!window.api.isWeb && (
+            <Segmented
+              value={tab}
+              options={[
+                ['project', t('fonts.tabProject')],
+                ['google', 'Google Fonts'],
+                ['system', t('fonts.tabSystem')]
+              ]}
+              onChange={(v) => setTab(v as Tab)}
+            />
+          )}
           <input
             autoFocus
             type="search"

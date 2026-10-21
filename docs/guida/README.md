@@ -107,7 +107,7 @@ I livelli selezionati si copiano con ⌘C (⌘X per tagliarli) e si incollano co
 
 ### 4.3 Le proprietà del template
 
-Senza livelli selezionati, il pannello mostra le proprietà del template: misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia.
+Senza livelli selezionati, il pannello mostra le proprietà del template: misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia. L'esagono è sempre regolare, il più grande che sta nella carta: per riempirla il lato corto deve essere il lato lungo × 0,866, e il pulsante **Adatta la carta all'esagono** cambia così il lato corto. Nelle forme poligono e stella, **Rendi regolare** porta il riquadro a un quadrato attorno allo stesso centro, così lati e angoli sono tutti uguali.
 
 Quando si cambiano le misure di un template che ha già dei livelli, l'app chiede se scalare i livelli in proporzione o lasciarli dove sono. Nel secondo caso ogni livello segue i suoi **vincoli** (resta a sinistra, segue il bordo destro, si allarga con la carta e così via).
 

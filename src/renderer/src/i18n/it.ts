@@ -494,6 +494,11 @@ export const it: Record<MessageKey, string> = {
   'prop.bleed': 'Abbondanza',
   'prop.safeMargin': 'Margine di sicurezza',
   'prop.cardShape': 'Forma della carta',
+  'editor.hexagonFit': "Adatta la carta all'esagono ({w} × {h} mm)",
+  'editor.hexagonFitHint':
+    "L'esagono è sempre regolare e grande quanto la carta permette. Per riempire la carta il lato corto deve essere il lato lungo × 0,866.",
+  'editor.regular': 'Rendi regolare',
+  'editor.regularHint': 'Riquadro quadrato attorno allo stesso centro: lati e angoli tutti uguali',
   'editor.cardShapeHint':
     "Forma della carta rifilata. L'abbondanza resta rettangolare: la tipografia ritaglia la forma al suo interno.",
   'cardShape.rect': 'Rettangolo',

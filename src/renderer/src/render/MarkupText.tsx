@@ -235,7 +235,8 @@ const SHAPES: Record<string, (p: React.SVGProps<SVGElement>) => React.JSX.Elemen
   ),
   hexagon: (p) => (
     <polygon
-      points="25,0 75,0 100,50 75,100 25,100 0,50"
+      // esagono regolare: alto √3 / 2 della larghezza, al centro del quadrato
+      points="25,6.7 75,6.7 100,50 75,93.3 25,93.3 0,50"
       {...(p as React.SVGProps<SVGPolygonElement>)}
     />
   ),

@@ -238,15 +238,32 @@ export function roundedPolygonPath(pts: Point[], r: number): string {
   return parts.join(' ') + ' Z'
 }
 
+/** Rapporto tra il lato corto e il lato lungo del riquadro di un esagono regolare (√3 / 2) */
+export const HEXAGON_RATIO = Math.sqrt(3) / 2
+
 /**
- * Esagono inscritto nel riquadro: con i lati piatti in alto se è più largo che alto,
- * altrimenti con le punte in alto.
+ * Esagono regolare, il più grande che sta nel riquadro, al centro: con i lati piatti in alto se
+ * il riquadro è più largo che alto, altrimenti con le punte in alto. Riempie il riquadro quando
+ * il lato corto è il lato lungo × √3 / 2 (vedi hexagonFit).
  */
 export function hexagonPoints(x: number, y: number, w: number, h: number): Point[] {
-  const p = (u: number, v: number): Point => ({ x: x + u * w, y: y + v * h })
-  return w >= h
+  const flat = w >= h
+  // lato lungo L (da punta a punta) e lato corto L × √3 / 2 (tra i lati piatti)
+  const long = flat ? Math.min(w, h / HEXAGON_RATIO) : Math.min(h, w / HEXAGON_RATIO)
+  const short = long * HEXAGON_RATIO
+  const [bw, bh] = flat ? [long, short] : [short, long]
+  const x0 = x + (w - bw) / 2
+  const y0 = y + (h - bh) / 2
+  const p = (u: number, v: number): Point => ({ x: x0 + u * bw, y: y0 + v * bh })
+  return flat
     ? [p(0.25, 0), p(0.75, 0), p(1, 0.5), p(0.75, 1), p(0.25, 1), p(0, 0.5)]
     : [p(0.5, 0), p(1, 0.25), p(1, 0.75), p(0.5, 1), p(0, 0.75), p(0, 0.25)]
+}
+
+/** Misure che l'esagono regolare riempie: cambia il lato corto, il lato lungo resta */
+export function hexagonFit(w: number, h: number): { w: number; h: number } {
+  const r = (v: number): number => Math.round(v * 10) / 10
+  return w >= h ? { w, h: r(w * HEXAGON_RATIO) } : { w: r(h * HEXAGON_RATIO), h }
 }
 
 /**

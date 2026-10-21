@@ -487,6 +487,11 @@ export const en = {
   'prop.bleed': 'Bleed',
   'prop.safeMargin': 'Safe margin',
   'prop.cardShape': 'Card shape',
+  'editor.hexagonFit': 'Fit the card to the hexagon ({w} × {h} mm)',
+  'editor.hexagonFitHint':
+    'The hexagon is always regular and as large as the card allows. To fill the card, its short side must be the long side × 0.866.',
+  'editor.regular': 'Make regular',
+  'editor.regularHint': 'Square frame around the same center: all sides and angles equal',
   'editor.cardShapeHint':
     'Shape of the trimmed card. The bleed stays rectangular: printers cut the shape out of it.',
   'cardShape.rect': 'Rectangle',

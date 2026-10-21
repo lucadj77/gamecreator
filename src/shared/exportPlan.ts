@@ -4,6 +4,7 @@
 
 import {
   TTS_MAX_COLS,
+  TTS_MAX_DPI,
   TTS_MAX_ROWS,
   cropMarks,
   effectivePattern,
@@ -18,6 +19,7 @@ import {
   sidesOf,
   ttsAutoGrid,
   ttsScale,
+  ttsSetObject,
   uniqueNames,
   type CardMode,
   type ExportCard,
@@ -30,7 +32,8 @@ import {
   type SceneLabel,
   type SceneLine,
   type ScenePage,
-  type TtsOptions
+  type TtsOptions,
+  type TtsSetObject
 } from './export'
 import type { Side, Template } from './model/template'
 
@@ -432,9 +435,21 @@ export interface TtsChunk {
   scale: number
 }
 
+/** Segnalino o tessera: un'immagine per lato, le copie nel sacchetto */
+export interface TtsPiecePlan {
+  card: ExportCard
+  count: number
+  /** Pixel per mm */
+  scale: number
+}
+
 export interface TtsSetPlan {
   set: ExportSet
+  object: TtsSetObject
+  /** Fogli del mazzo; vuoto per segnalini e tessere */
   chunks: TtsChunk[]
+  /** Segnalini o tessere; vuoto per le carte */
+  pieces: TtsPiecePlan[]
   /** Un foglio dei retri per ogni foglio di fronti, invece di un retro unico */
   uniqueBack: boolean
 }
@@ -448,6 +463,15 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
   return sets.map((set) => {
     // senza copie ogni riga è una carta; con le copie le righe a 0 non entrano nel mazzo
     const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
+    const object = ttsSetObject(o, set.name)
+    if (object.type !== 'card') {
+      const pieces = kept.map((card) => ({
+        card,
+        count: o.copies ? card.amount : 1,
+        scale: pieceScale(card.template, o.maxSize)
+      }))
+      return { set, object, chunks: [], pieces, uniqueBack: false }
+    }
     // copie nel foglio: ogni copia ha la sua posizione e nel mazzo compare una volta
     const inSheet = o.copies && o.copiesIn === 'sheet'
     const cards = inSheet ? expandCopies(kept, true).map((i) => i.card) : kept
@@ -466,7 +490,13 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
     }
     const backs = cards.map((c) => JSON.stringify(c.template.back))
     const sameBacks = backs.every((b) => b === backs[0])
-    return { set, chunks, uniqueBack: o.back === 'sheet' || (o.back === 'auto' && !sameBacks) }
+    return {
+      set,
+      object,
+      chunks,
+      pieces: [],
+      uniqueBack: o.back === 'sheet' || (o.back === 'auto' && !sameBacks)
+    }
   })
 }
 
@@ -490,4 +520,28 @@ export function sheetPage(chunk: TtsChunk, side: Side): ScenePage {
     mode: 'cut'
   })
   return { width: cols * t0.width, height: rows * t0.height, items, lines: [] }
+}
+
+/** Pixel per mm di un segnalino o di una tessera: entro la dimensione massima e 300 DPI */
+function pieceScale(t: Template, maxSize: number): number {
+  return Math.min(TTS_MAX_DPI / 25.4, maxSize / Math.max(t.width, t.height))
+}
+
+/** Margine trasparente attorno ai segnalini: Tabletop Simulator ne ritaglia meglio la sagoma */
+export const TOKEN_MARGIN = 1
+
+/**
+ * Immagine di un segnalino o di una tessera. Il segnalino è la carta ritagliata sulla sua forma,
+ * su fondo trasparente con un piccolo margine; la tessera è il rettangolo della carta, perché la
+ * forma (esagono, cerchio, angoli arrotondati) la dà Tabletop Simulator.
+ */
+export function piecePage(t: Template, side: Side, kind: 'token' | 'tile'): ScenePage {
+  if (kind === 'tile') return cardPage(t, side, false, 'cut')
+  const m = TOKEN_MARGIN
+  return {
+    width: t.width + 2 * m,
+    height: t.height + 2 * m,
+    items: [{ x: m, y: m, template: t, side, mode: 'trim' }],
+    lines: []
+  }
 }

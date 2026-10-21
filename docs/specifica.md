@@ -264,18 +264,18 @@ Se il nome è un campo, il suo valore diventa il nome dell'immagine: con `icona`
 
 Valori che Naibi conosce da sé, scritti come i campi nei testi e nelle formule. Il punto nel nome li distingue dalle variabili del progetto, che non lo ammettono; un campo o una variabile con lo stesso nome ha comunque la precedenza.
 
-| Variabile         | Valore                                                                                         |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| `{project.name}`  | nome del progetto                                                                              |
-| `{set.name}`      | nome del set                                                                                   |
-| `{template.name}` | nome del template della carta (anche quello scelto nella colonna `template`)                   |
-| `{card.number}`   | riga della carta nel set, da 1                                                                 |
-| `{set.rows}`      | righe del set                                                                                  |
-| `{set.cards}`     | carte del set con le copie: somma di `amount` (vuoto vale 1)                                   |
-| `{card.copies}`   | `amount` della carta                                                                           |
-| `{card.copy}`     | copia disegnata, da 1; diversa per ogni copia solo esportando PDF e immagini con le copie      |
-| `{card.side}`     | `front` o `back`                                                                               |
-| `{date}`          | data di oggi, AAAA-MM-GG                                                                       |
+| Variabile         | Valore                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| `{project.name}`  | nome del progetto                                                                         |
+| `{set.name}`      | nome del set                                                                              |
+| `{template.name}` | nome del template della carta (anche quello scelto nella colonna `template`)              |
+| `{card.number}`   | riga della carta nel set, da 1                                                            |
+| `{set.rows}`      | righe del set                                                                             |
+| `{set.cards}`     | carte del set con le copie: somma di `amount` (vuoto vale 1)                              |
+| `{card.copies}`   | `amount` della carta                                                                      |
+| `{card.copy}`     | copia disegnata, da 1; diversa per ogni copia solo esportando PDF e immagini con le copie |
+| `{card.side}`     | `front` o `back`                                                                          |
+| `{date}`          | data di oggi, AAAA-MM-GG                                                                  |
 
 Dove manca il contesto (l'editor senza carta in anteprima, la miniatura di un template senza set) i valori del set e della carta sono vuoti. In Tabletop Simulator tutte le copie mostrano `{card.copy}` = 1, perché il mazzo ripete la stessa immagine.
 
@@ -430,8 +430,13 @@ Il PDF è vettoriale, con i font incorporati e in RGB. **Converti in CMYK** pass
 | oggetto salvato    | file JSON del mazzo pronto da caricare                                                                                                                                            |
 | Nickname           | vuoto oppure da un campo a scelta (di base il primo campo di testo, per esempio `nome`)                                                                                           |
 | Description        | vuota oppure da un campo a scelta                                                                                                                                                 |
+| oggetti            | per set: carte (mazzo), segnalini (`Custom_Token`) o tessere (`Custom_Tile`), con spessore e, per le tessere, colore del bordo                                                    |
 
 La griglia automatica sceglie, tra 2 × 2 e 10 × 7, quella con meno posizioni vuote e, a parità, il foglio più vicino al quadrato. Le carte non superano 300 DPI. Le copie non si ripetono sul foglio: il mazzo richiama più volte la stessa posizione. Si scrivono `<set>.json` (oggetto salvato), `<set>.png` (miniatura) e i fogli in `images/`; i fogli si richiamano con indirizzi `file:///`, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online le immagini vanno caricate su un servizio web e gli indirizzi cambiati in Tabletop Simulator. La cartella predefinita di Tabletop Simulator è `~/Library/Tabletop Simulator/Saves/Saved Objects` su macOS, `Documenti/My Games/Tabletop Simulator/Saves/Saved Objects` su Windows; dentro si crea una cartella con il nome del progetto.
+
+Le opzioni per set stanno in `objects`, per nome del set: `{ "type": "card" | "token" | "tile", "thickness": 2, "edgeColor": "#FFFFFF" }`; un set assente è un mazzo di carte. Rinominando un set la sua voce segue. Segnalini e tessere non usano i fogli: ogni carta è un'immagine (`<set>_<n>.png`, e `<set>_<n>_back.png` per il retro delle tessere) fino a 300 DPI e alla dimensione massima scelta. Il segnalino è la carta ritagliata sulla sua forma, su fondo trasparente con 1 mm di margine, perché Tabletop Simulator ritaglia il pezzo seguendo la trasparenza; il retro della carta non si usa, perché sotto il segnalino mostra il fronte specchiato. La tessera è il rettangolo della carta su fondo bianco e la sua forma viene dalla carta: rettangolo (Type 0), rettangolo con raggio (3), esagono (1), cerchio o ellisse (2); una sagoma diventa un rettangolo. Il colore del bordo è la tinta della tessera (`ColorDiffuse`), che in Tabletop Simulator colora solo i lati; può essere un colore del progetto, scritto per nome. Lo spessore è in mm. Più pezzi vanno in un sacchetto (`Bag`), una voce per copia; un pezzo solo è l'oggetto salvato.
+
+Tabletop Simulator non ha una scala assoluta: a scala 1 ogni tipo di oggetto ha una misura fissa, qualunque sia l'immagine. Misurate con il righello di TTS (in unità, che mostra come pollici): una carta è larga 2,25 (una carta da 63 mm), una tessera 2 sul lato lungo, un segnalino circa 3,2 sul lato lungo dell'immagine. Naibi prende 2,25 unità = 63 mm (`TTS_UNITS_PER_MM` in `src/shared/export.ts`) e dà a carte, segnalini e tessere la scala (X e Z) che li porta alla loro misura in mm; la scala Y resta 1 e lo spessore in mm diventa `Thickness` in unità. Le carte da 63 mm restano a scala 1. Le misure di base sono stime prese a occhio: se un tipo risulta sproporzionato si correggono le costanti.
 
 ### 9.4 Preset per tipografie
 

@@ -17,6 +17,7 @@ function project(): { file: ProjectFile; sets: LoadedSet[] } {
       sets: defs,
       export: {
         pdf: { sets: ['Eroi', 'Mostri'] },
+        tts: { objects: { Eroi: { type: 'token', thickness: 0.2, edgeColor: '#FFFFFF' } } },
         named: [{ name: 'Stampa', kind: 'images', options: { sets: ['Eroi'] } }]
       }
     },
@@ -39,6 +40,7 @@ describe('renameSet', () => {
     expect(out.sets[0].data).toMatchObject({ name: 'Personaggi', origin: 'Eroi' })
     expect(out.file.export?.pdf?.sets).toEqual(['Personaggi', 'Mostri'])
     expect(out.file.export?.named?.[0].options.sets).toEqual(['Personaggi'])
+    expect(Object.keys(out.file.export?.tts?.objects ?? {})).toEqual(['Personaggi'])
     // l'originale non cambia
     expect(p.sets[0].data?.name).toBe('Eroi')
   })

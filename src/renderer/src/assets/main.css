@@ -3857,3 +3857,27 @@ select.from-template {
   width: 1%;
   padding-right: 16px;
 }
+
+.tts-objects {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tts-object {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.tts-object-name {
+  width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tts-object input.num {
+  width: 64px;
+}

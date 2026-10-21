@@ -5,6 +5,24 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.12
+
+### English
+
+- Tabletop Simulator export: new **Objects** option, set by set. Besides **Cards** (the deck, as before), a set can become **Tokens** or **Tiles**.
+  - A token is the card cut out along its shape, with a thickness; underneath, Tabletop Simulator shows the front mirrored.
+  - A tile has the card front and back, the card shape (square, rounded, hexagonal or round), a thickness and an **Edge** color.
+  - Thickness is in mm. The pieces of a set go into a bag, copies included.
+  - Cards, tokens and tiles keep their true proportions in Tabletop Simulator: a 63 mm card keeps the usual size, smaller or larger cards and pieces are scaled to match.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator: nuova opzione **Oggetti**, set per set. Oltre a **Carte** (il mazzo, come prima), un set può diventare **Segnalini** o **Tessere**.
+  - Un segnalino è la carta ritagliata sulla sua forma, con uno spessore; sotto, Tabletop Simulator mostra il fronte specchiato.
+  - Una tessera ha fronte e retro della carta, la forma della carta (quadrata, arrotondata, esagonale o rotonda), uno spessore e un colore del **Bordo**.
+  - Lo spessore è in mm. I pezzi di un set vanno in un sacchetto, copie comprese.
+  - Carte, segnalini e tessere mantengono in Tabletop Simulator le proporzioni vere: una carta da 63 mm resta della misura solita, carte e pezzi più piccoli o più grandi si scalano di conseguenza.
+
 ## 1.2.0-beta.11
 
 ### English

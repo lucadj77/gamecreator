@@ -8,6 +8,8 @@ import {
   safeName,
   uniqueNames,
   ttsSavedObject,
+  ttsSavedPieces,
+  ttsTileType,
   type ExportCard,
   type ExportContext,
   type ExportJob,
@@ -19,6 +21,7 @@ import {
   type Scene,
   type TtsDeckCard,
   type TtsOptions,
+  type TtsPiece,
   type TtsSheet
 } from '../../shared/export'
 import {
@@ -26,11 +29,15 @@ import {
   imageExtension,
   planImages,
   planPdf,
+  piecePage,
   planTts,
   sheetPage,
-  type TtsChunk
+  type TtsChunk,
+  type TtsPiecePlan,
+  type TtsSetPlan
 } from '../../shared/exportPlan'
 import { plainText } from '../../shared/model/markup'
+import { palette, resolveColor } from '../../shared/model/variables'
 import { msg } from '../../shared/messages'
 import type { Side, Template } from '../../shared/model/template'
 
@@ -267,11 +274,19 @@ async function exportTts(
   for (const t of targets) if (!ctx.result.folders.includes(t)) ctx.result.folders.push(t)
 
   const plans = planTts(o, sets)
-  ctx.progress.total = plans.reduce((n, p) => n + p.chunks.length * 2 + 1, 0)
+  ctx.progress.total = plans.reduce(
+    (n, p) => n + p.chunks.length * 2 + p.pieces.length * (p.object.type === 'tile' ? 2 : 1) + 1,
+    0
+  )
 
   // set con nomi che differiscono solo per caratteri non ammessi (a/b e a_b) non si sovrascrivono
   const stems = uniqueNames(plans.map((p) => safeName(p.set.name)))
-  for (const [index, { set, chunks, uniqueBack: unique }] of plans.entries()) {
+  for (const [index, plan] of plans.entries()) {
+    if (plan.pieces.length) {
+      await exportPieces(ctx, o, plan, stems[index], targets)
+      continue
+    }
+    const { set, chunks, uniqueBack: unique } = plan
     if (!chunks.length) continue
     const t0 = chunks[0].cards[0].template
 
@@ -340,12 +355,100 @@ async function exportTts(
           uniqueBack: s.uniqueBack
         })
       }
-      const object = ttsSavedObject(set.name, ttsSheets, deck)
+      const object = ttsSavedObject(set.name, ttsSheets, deck, t0.width)
       await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
       // miniatura mostrata da Tabletop Simulator tra gli oggetti salvati
       await write(ctx, join(target, `${stem}.png`), thumb)
     }
   }
+}
+
+/** Segnalini o tessere di un set: un'immagine per lato di ogni carta, un sacchetto con le copie */
+async function exportPieces(
+  ctx: Ctx,
+  o: TtsOptions,
+  plan: TtsSetPlan,
+  stem: string,
+  targets: string[]
+): Promise<void> {
+  const kind = plan.object.type === 'tile' ? 'tile' : 'token'
+  const images: { face: Buffer; back: Buffer | null }[] = []
+  for (const p of plan.pieces) {
+    const face = await renderPiece(ctx, p, 'front', kind)
+    step(ctx)
+    let back: Buffer | null = null
+    if (kind === 'tile') {
+      back = await renderPiece(ctx, p, 'back', kind)
+      step(ctx)
+    }
+    images.push({ face, back })
+  }
+  const t0 = plan.pieces[0].card.template
+  const thumb = (
+    await renderCard(ctx, t0, 'front', 256 / Math.max(t0.width, t0.height), {
+      bleed: false,
+      mode: 'trim',
+      background: null
+    })
+  ).toPNG()
+  step(ctx)
+
+  const env = ctx.env
+  // numeri con gli zeri davanti: i file restano in ordine anche nelle cartelle
+  const digits = String(plan.pieces.length).length
+  for (const target of targets) {
+    const pieces: TtsPiece[] = []
+    for (const [i, p] of plan.pieces.entries()) {
+      const n = String(i + 1).padStart(digits, '0')
+      const faceFile = join(target, 'images', `${stem}_${n}.png`)
+      await write(ctx, faceFile, images[i].face)
+      let backUrl = ''
+      if (images[i].back) {
+        const backFile = join(target, 'images', `${stem}_${n}_back.png`)
+        await write(ctx, backFile, images[i].back as Buffer)
+        backUrl = imageUrl(env, backFile)
+      }
+      pieces.push({
+        faceUrl: imageUrl(env, faceFile),
+        backUrl,
+        nickname: fieldText(p.card, o.nickname),
+        description: fieldText(p.card, o.description),
+        count: p.count
+      })
+    }
+    // il colore del bordo può essere un colore del progetto, scritto per nome
+    const edgeColor = resolveColor(plan.object.edgeColor, palette(env.context.variables))
+    const settings = { ...plan.object, edgeColor }
+    const size = piecePage(t0, 'front', kind)
+    const object = ttsSavedPieces(plan.set.name, kind, settings, ttsTileType(t0), pieces, {
+      w: size.width,
+      h: size.height
+    })
+    await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
+    await write(ctx, join(target, `${stem}.png`), thumb)
+  }
+}
+
+async function renderPiece(
+  ctx: Ctx,
+  p: TtsPiecePlan,
+  side: Side,
+  kind: 'token' | 'tile'
+): Promise<Buffer> {
+  const page = piecePage(p.card.template, side, kind)
+  const w = Math.round(page.width * p.scale)
+  const h = Math.round(page.height * p.scale)
+  const scene: Scene = {
+    pages: [page],
+    scale: w / page.width,
+    // le tessere hanno il fondo bianco; i segnalini trasparente, perché TTS li ritaglia lì
+    background: kind === 'tile' ? '#FFFFFF' : null,
+    lineColor: '#000',
+    lineWidth: 0,
+    linesOver: false
+  }
+  await ctx.win.show(scene, w, h)
+  return (await ctx.win.capture(w, h)).toPNG()
 }
 
 /** Indirizzo di un'immagine scritta per Tabletop Simulator, come lo legge TTS */

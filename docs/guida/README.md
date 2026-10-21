@@ -99,7 +99,7 @@ Il + accanto a **Template** apre la finestra del nuovo template: nome, formato (
 5. **Barra della tela**: mostra o nasconde abbondanza, area sicura e griglia, sceglie a cosa agganciarsi (griglia, oggetti) e regola lo zoom.
 6. **Dati**: disegna la tela con i valori di una carta di un set, invece dei valori del template.
 
-Sulla tela i livelli si spostano trascinandoli, si ridimensionano con le maniglie e si ruotano con la maniglia rotonda in alto (Maiuscolo per scatti di 15°). Durante il trascinamento i bordi si agganciano alla griglia, agli altri livelli e alle guide; tenendo premuto Alt si trascina liberamente. Alt+clic seleziona il livello che sta sotto quello selezionato, nello stesso punto: serve quando un livello più grande ne copre altri. Le frecce della tastiera spostano il livello di 0,5 mm, con Maiuscolo di 5 mm.
+Sulla tela i livelli si spostano trascinandoli, si ridimensionano con le maniglie e si ruotano con la maniglia rotonda in alto (Maiuscolo per scatti di 15°). Tenendo premuto Maiuscolo mentre si sposta, il livello si muove solo in orizzontale, in verticale o a 45°, secondo la direzione più vicina. Ridimensionando, Maiuscolo inverte il blocco delle proporzioni (le mantiene se sono libere, le libera se sono bloccate) e ⌘ (Ctrl su Windows) ridimensiona dal centro; i due si possono combinare. Durante il trascinamento i bordi si agganciano alla griglia, agli altri livelli e alle guide; tenendo premuto Alt si trascina liberamente. Alt+clic seleziona il livello che sta sotto quello selezionato, nello stesso punto: serve quando un livello più grande ne copre altri. Le frecce della tastiera spostano il livello di 0,5 mm, con Maiuscolo di 5 mm.
 
 Nell'elenco dei livelli si trascina un livello per cambiarne l'ordine, o sul centro di un gruppo per metterlo dentro. Con Maiuscolo o ⌘ si selezionano più livelli; ⌘G li raggruppa. Con più livelli selezionati il pannello delle proprietà mostra le voci che hanno in comune (opacità, rotazione, visibilità, e quelle del tipo se sono tutti dello stesso tipo, per esempio colore e dimensione del testo): una modifica vale per tutti. I campi mostrano i valori del primo livello selezionato.
 
@@ -527,22 +527,23 @@ Il progetto è autonomo: copiando la cartella su un altro computer si vede ugual
 
 Su Windows e Linux ⌘ è Ctrl.
 
-| Dove          | Tasti                 | Azione                                          |
-| ------------- | --------------------- | ----------------------------------------------- |
-| ovunque       | ⌘S                    | salva template, dati e impostazioni             |
-| set           | ⌘Z, ⇧⌘Z               | annulla e ripete le modifiche ai dati           |
-| set           | ⌘A, Esc               | seleziona tutte le carte, torna a una sola      |
-| tabella       | Alt+Invio             | a capo dentro una cella                         |
-| testo         | `{`, poi ↑ ↓, Invio   | suggerimenti di campi e variabili               |
-| editor        | ⌘Z, ⇧⌘Z (o ⌘Y)        | annulla e ripete                                |
-| editor        | T, R, E               | nuovo testo, rettangolo, ellisse                |
-| editor        | ⌘D                    | duplica i livelli selezionati                   |
-| editor        | ⌘C, ⌘X, ⌘V            | copia, taglia e incolla livelli tra template    |
-| editor        | ⌘G, ⇧⌘G               | raggruppa e separa                              |
-| editor        | ⌘A                    | seleziona tutti i livelli                       |
-| editor        | Canc                  | elimina i livelli selezionati                   |
-| editor        | frecce, ⇧ + frecce    | sposta di 0,5 mm o di 5 mm                      |
-| editor        | Esc                   | toglie la selezione o esce dal gruppo           |
-| tela          | Maiuscolo trascinando | mantiene le proporzioni o ruota a scatti di 15° |
-| tela          | Alt trascinando       | sposta senza agganciarsi                        |
-| tela, griglia | ⌘ + rotella           | zoom                                            |
+| Dove          | Tasti                 | Azione                                                                                                       |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ |
+| ovunque       | ⌘S                    | salva template, dati e impostazioni                                                                          |
+| set           | ⌘Z, ⇧⌘Z               | annulla e ripete le modifiche ai dati                                                                        |
+| set           | ⌘A, Esc               | seleziona tutte le carte, torna a una sola                                                                   |
+| tabella       | Alt+Invio             | a capo dentro una cella                                                                                      |
+| testo         | `{`, poi ↑ ↓, Invio   | suggerimenti di campi e variabili                                                                            |
+| editor        | ⌘Z, ⇧⌘Z (o ⌘Y)        | annulla e ripete                                                                                             |
+| editor        | T, R, E               | nuovo testo, rettangolo, ellisse                                                                             |
+| editor        | ⌘D                    | duplica i livelli selezionati                                                                                |
+| editor        | ⌘C, ⌘X, ⌘V            | copia, taglia e incolla livelli tra template                                                                 |
+| editor        | ⌘G, ⇧⌘G               | raggruppa e separa                                                                                           |
+| editor        | ⌘A                    | seleziona tutti i livelli                                                                                    |
+| editor        | Canc                  | elimina i livelli selezionati                                                                                |
+| editor        | frecce, ⇧ + frecce    | sposta di 0,5 mm o di 5 mm                                                                                   |
+| editor        | Esc                   | toglie la selezione o esce dal gruppo                                                                        |
+| tela          | Maiuscolo trascinando | sposta solo in orizzontale, in verticale o a 45°; inverte il blocco delle proporzioni; ruota a scatti di 15° |
+| tela          | ⌘ ridimensionando     | ridimensiona dal centro                                                                                      |
+| tela          | Alt trascinando       | sposta senza agganciarsi                                                                                     |
+| tela, griglia | ⌘ + rotella           | zoom                                                                                                         |

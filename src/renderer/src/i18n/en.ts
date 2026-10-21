@@ -1308,7 +1308,8 @@ export const en = {
   'help.keys.delete': 'Editor: delete the selected layers',
   'help.keys.move': 'Editor: move by 0.5 mm, with ⇧ by 5 mm',
   'help.keys.drag':
-    'Canvas, while dragging: keep proportions or rotate by 15°; move without snapping',
+    'Canvas, while dragging: move only horizontally, vertically or at 45°, switch the proportion lock, rotate by 15°; move without snapping',
+  'help.keys.dragCenter': 'Canvas, resizing: from the center',
   'help.keys.zoom': 'Canvas and grid: zoom',
   'help.keys.help': 'This help',
   'ai.title': 'Tools for AI agents',

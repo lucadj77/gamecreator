@@ -1327,7 +1327,8 @@ export const it: Record<MessageKey, string> = {
   'help.keys.delete': 'Editor: elimina i livelli selezionati',
   'help.keys.move': 'Editor: sposta di 0,5 mm, con ⇧ di 5 mm',
   'help.keys.drag':
-    'Tela, trascinando: mantiene le proporzioni o ruota a scatti di 15°; sposta senza agganciarsi',
+    'Tela, trascinando: sposta solo in orizzontale, in verticale o a 45°, inverte il blocco delle proporzioni, ruota a scatti di 15°; sposta senza agganciarsi',
+  'help.keys.dragCenter': 'Tela, ridimensionando: dal centro',
   'help.keys.zoom': 'Tela e griglia: zoom',
   'help.keys.help': 'Questo aiuto',
   'ai.title': 'Strumenti per gli agenti IA',

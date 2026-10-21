@@ -110,26 +110,49 @@ export function resizeWithHandle(
   start: LayerBase,
   handle: Handle,
   local: Point,
-  opts: { keepRatio?: boolean; step?: number } = {}
+  opts: { keepRatio?: boolean; step?: number; fromCenter?: boolean } = {}
 ): Bounds {
   const step = opts.step ?? 0
   let left = start.x
   let top = start.y
   let right = start.x + start.w
   let bottom = start.y + start.h
-  if (handle.includes('w')) left = Math.min(snap(local.x, step), right - MIN_SIZE)
-  if (handle.includes('e')) right = Math.max(snap(local.x, step), left + MIN_SIZE)
-  if (handle.includes('n')) top = Math.min(snap(local.y, step), bottom - MIN_SIZE)
-  if (handle.includes('s')) bottom = Math.max(snap(local.y, step), top + MIN_SIZE)
+  const cx = start.x + start.w / 2
+  const cy = start.y + start.h / 2
+  if (opts.fromCenter) {
+    // dal centro: il lato opposto si muove in modo simmetrico
+    if (handle.includes('w') || handle.includes('e')) {
+      const half = Math.max(Math.abs(snap(local.x, step) - cx), MIN_SIZE / 2)
+      left = cx - half
+      right = cx + half
+    }
+    if (handle.includes('n') || handle.includes('s')) {
+      const half = Math.max(Math.abs(snap(local.y, step) - cy), MIN_SIZE / 2)
+      top = cy - half
+      bottom = cy + half
+    }
+  } else {
+    if (handle.includes('w')) left = Math.min(snap(local.x, step), right - MIN_SIZE)
+    if (handle.includes('e')) right = Math.max(snap(local.x, step), left + MIN_SIZE)
+    if (handle.includes('n')) top = Math.min(snap(local.y, step), bottom - MIN_SIZE)
+    if (handle.includes('s')) bottom = Math.max(snap(local.y, step), top + MIN_SIZE)
+  }
 
   if (opts.keepRatio && handle.length === 2 && start.w > 0 && start.h > 0) {
     const s = Math.max((right - left) / start.w, (bottom - top) / start.h)
     const w = start.w * s
     const h = start.h * s
-    if (handle.includes('w')) left = right - w
-    else right = left + w
-    if (handle.includes('n')) top = bottom - h
-    else bottom = top + h
+    if (opts.fromCenter) {
+      left = cx - w / 2
+      right = cx + w / 2
+      top = cy - h / 2
+      bottom = cy + h / 2
+    } else {
+      if (handle.includes('w')) left = right - w
+      else right = left + w
+      if (handle.includes('n')) top = bottom - h
+      else bottom = top + h
+    }
   } else if (opts.keepRatio && start.w > 0 && start.h > 0) {
     // maniglia su un lato: l'altra misura segue, centrata sull'asse che non si trascina
     if (handle === 'e' || handle === 'w') {
@@ -263,4 +286,11 @@ export function lineFromEnds(
     w: round(w),
     rotation: round(rotation)
   }
+}
+
+/** Asse a cui si limita uno spostamento con Maiuscolo: il più vicino tra i due assi e 45° */
+export function constrainAxis(dx: number, dy: number): 'x' | 'y' | 'diagonal' | null {
+  if (!dx && !dy) return null
+  const a = (Math.atan2(Math.abs(dy), Math.abs(dx)) * 180) / Math.PI
+  return a < 22.5 ? 'x' : a > 67.5 ? 'y' : 'diagonal'
 }

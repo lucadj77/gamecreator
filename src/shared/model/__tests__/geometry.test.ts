@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   lineEnds,
   lineFromEnds,
+  constrainAxis,
   hexagonPoints,
   anchorPoint,
   hitTest,
@@ -132,5 +133,28 @@ describe('linea da A a B', () => {
     const corner = { ...l, anchor: 'top-left' as const, h: 4 }
     const [c, d] = lineEnds({ ...corner, ...lineFromEnds(corner, A, B) })
     expect([c.x, c.y, d.x, d.y].map((v) => Math.round(v * 1000) / 1000)).toEqual([10, 20, 40, 60])
+  })
+})
+
+describe('modificatori del trascinamento', () => {
+  it('Maiuscolo: l asse più vicino tra orizzontale, verticale e 45°', () => {
+    expect(constrainAxis(10, 2)).toBe('x')
+    expect(constrainAxis(-1, 9)).toBe('y')
+    expect(constrainAxis(5, -6)).toBe('diagonal')
+    expect(constrainAxis(0, 0)).toBe(null)
+  })
+
+  it('dal centro: il lato opposto si muove in modo simmetrico', () => {
+    const l = { x: 10, y: 10, w: 20, h: 10, rotation: 0 }
+    expect(resizeWithHandle(l as never, 'e', { x: 35, y: 0 }, { fromCenter: true })).toEqual({
+      x: 5,
+      y: 10,
+      w: 30,
+      h: 10
+    })
+    // angolo con le proporzioni: si allarga attorno al centro
+    expect(
+      resizeWithHandle(l as never, 'se', { x: 40, y: 15 }, { fromCenter: true, keepRatio: true })
+    ).toEqual({ x: 0, y: 5, w: 40, h: 20 })
   })
 })

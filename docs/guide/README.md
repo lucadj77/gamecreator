@@ -99,7 +99,7 @@ The + next to **Templates** opens the new template window: name, format (poker, 
 5. **Canvas bar**: shows or hides bleed, safe area and grid, chooses what to snap to (grid, objects) and sets the zoom.
 6. **Data**: draws the canvas with the values of a card from a set, instead of the template values.
 
-On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
+On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). Holding Shift while moving, the layer moves only horizontally, vertically or at 45°, whichever direction is closest. While resizing, Shift switches the proportion lock (keeps proportions when they are free, frees them when they are locked) and ⌘ (Ctrl on Windows) resizes from the center; the two can be combined. While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
 
 In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ selects several layers; ⌘G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
@@ -527,22 +527,23 @@ A project is self-contained: copying the folder to another computer gives the sa
 
 On Windows and Linux ⌘ is Ctrl.
 
-| Where        | Keys                 | Action                                  |
-| ------------ | -------------------- | --------------------------------------- |
-| anywhere     | ⌘S                   | save templates, data and settings       |
-| set          | ⌘Z, ⇧⌘Z              | undo and redo data changes              |
-| set          | ⌘A, Esc              | select all cards, go back to one        |
-| table        | Alt+Enter            | new line inside a cell                  |
-| text         | `{`, then ↑ ↓, Enter | field and variable suggestions          |
-| editor       | ⌘Z, ⇧⌘Z (or ⌘Y)      | undo and redo                           |
-| editor       | T, R, E              | new text, rectangle, ellipse            |
-| editor       | ⌘D                   | duplicate the selected layers           |
-| editor       | ⌘C, ⌘X, ⌘V           | copy, cut and paste layers              |
-| editor       | ⌘G, ⇧⌘G              | group and ungroup                       |
-| editor       | ⌘A                   | select all layers                       |
-| editor       | Delete               | delete the selected layers              |
-| editor       | arrows, ⇧ + arrows   | move by 0.5 mm or 5 mm                  |
-| editor       | Esc                  | clear the selection or leave the group  |
-| canvas       | Shift while dragging | keep proportions or rotate in 15° steps |
-| canvas       | Alt while dragging   | move without snapping                   |
-| canvas, grid | ⌘ + mouse wheel      | zoom                                    |
+| Where        | Keys                 | Action                                                                                        |
+| ------------ | -------------------- | --------------------------------------------------------------------------------------------- |
+| anywhere     | ⌘S                   | save templates, data and settings                                                             |
+| set          | ⌘Z, ⇧⌘Z              | undo and redo data changes                                                                    |
+| set          | ⌘A, Esc              | select all cards, go back to one                                                              |
+| table        | Alt+Enter            | new line inside a cell                                                                        |
+| text         | `{`, then ↑ ↓, Enter | field and variable suggestions                                                                |
+| editor       | ⌘Z, ⇧⌘Z (or ⌘Y)      | undo and redo                                                                                 |
+| editor       | T, R, E              | new text, rectangle, ellipse                                                                  |
+| editor       | ⌘D                   | duplicate the selected layers                                                                 |
+| editor       | ⌘C, ⌘X, ⌘V           | copy, cut and paste layers                                                                    |
+| editor       | ⌘G, ⇧⌘G              | group and ungroup                                                                             |
+| editor       | ⌘A                   | select all layers                                                                             |
+| editor       | Delete               | delete the selected layers                                                                    |
+| editor       | arrows, ⇧ + arrows   | move by 0.5 mm or 5 mm                                                                        |
+| editor       | Esc                  | clear the selection or leave the group                                                        |
+| canvas       | Shift while dragging | move only horizontally, vertically or at 45°; switch the proportion lock; rotate in 15° steps |
+| canvas       | ⌘ while resizing     | resize from the center                                                                        |
+| canvas       | Alt while dragging   | move without snapping                                                                         |
+| canvas, grid | ⌘ + mouse wheel      | zoom                                                                                          |

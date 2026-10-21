@@ -64,6 +64,7 @@ const KEYS: [string, MessageKey][] = [
   ['Del', 'help.keys.delete'],
   ['← → ↑ ↓  ⇧', 'help.keys.move'],
   ['⇧ / Alt', 'help.keys.drag'],
+  ['⌘', 'help.keys.dragCenter'],
   ['⌘ + wheel', 'help.keys.zoom'],
   ['F1', 'help.keys.help']
 ]

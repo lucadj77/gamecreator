@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.14
+
+### English
+
+- Set view: **Reset** in the **Columns** menu goes back to the basic view. Only the columns read by layers linked to a column stay visible, with their properties in the field details, which close. Sheet columns no layer reads, for example left over from an imported TTC project, are hidden; nothing is deleted.
+
+### Italiano
+
+- Vista del set: **Ripristina** nel menu **Colonne** torna alla vista di base. Restano visibili solo le colonne lette dai livelli collegati a una colonna, con le loro proprietà nei dettagli dei campi, che si chiudono. Le colonne del foglio che nessun livello legge, per esempio rimaste da un progetto TTC importato, si nascondono; non si cancella niente.
+
 ## 1.2.0-beta.13
 
 ### English

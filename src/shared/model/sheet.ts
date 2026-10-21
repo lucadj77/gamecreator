@@ -296,6 +296,26 @@ export function setColumns(s: Sheet, t: Template | null, others: Template[] = []
 }
 
 /**
+ * Colonne da nascondere per tornare alla vista di base: restano quelle lette da un livello
+ * collegato a una colonna (con le loro proprietà, `nome.color`, che vanno nei dettagli) e le
+ * copie; spariscono le colonne del foglio che nessun livello legge, per esempio quelle rimaste da
+ * un progetto TTC importato.
+ */
+export function defaultHiddenColumns(
+  columns: ColumnInfo[],
+  t: Template | null,
+  others: Template[] = []
+): string[] {
+  const all = t ? [t, ...others.filter((o) => o !== t)] : []
+  const read = new Set(['amount'])
+  for (const l of all.flatMap((x) => walkLayers([...x.front, ...x.back])))
+    if (l.source.kind === 'column') read.add(l.source.column ?? l.name)
+  const linked = (h: string): boolean =>
+    read.has(h) || (h.includes('.') && read.has(h.slice(0, h.indexOf('.'))))
+  return columns.filter((c) => !c.computed && !linked(c.header)).map((c) => c.header)
+}
+
+/**
  * Scrive lo stesso valore nella colonna di più righe; se il foglio non ha la colonna la aggiunge,
  * ma solo per un valore non vuoto
  */

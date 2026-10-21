@@ -3089,7 +3089,9 @@ details.advanced > button.link {
   border-top: 1px solid var(--border);
 }
 
-.columns-menu-all {
+.columns-menu-actions {
+  display: flex;
+  gap: 6px;
   margin-top: 8px;
 }
 

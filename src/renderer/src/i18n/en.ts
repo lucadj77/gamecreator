@@ -87,6 +87,9 @@ export const en = {
   'columns.hint': 'Columns shown in the table and in the card fields.',
   'columns.showComputed': 'Show fixed and formula layers (read only)',
   'columns.showAll': 'Show all',
+  'columns.reset': 'Reset',
+  'columns.resetHint':
+    'Show only the columns of layers linked to a column and close the field details',
   'tip.columns': 'Choose which columns to show; fixed and formula layers can be shown too',
   'table.removeColumn': 'Remove column',
   'table.removeColumnConfirm': 'Remove the column “{column}” and its values?',

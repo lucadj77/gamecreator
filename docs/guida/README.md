@@ -212,6 +212,8 @@ Ordinamento e filtro cambiano solo la vista: il foglio e l'esportazione restano 
 
 **Statistiche…** mostra quante carte hanno ogni valore di una colonna, anche di un livello con formula, con una barra per confrontarli: serve a bilanciare il set (per esempio quante carte per costo). Per le colonne di numeri dà anche somma, media, minimo e massimo. Le copie della colonna `amount` contano, a meno di togliere la spunta; con un filtro attivo contano solo le carte filtrate.
 
+**Controlla testi…** cerca, in tutte le carte del set, fronte e retro, i testi che non stanno nel loro riquadro: quelli che escono, quelli tagliati e quelli che anche ridotti alla dimensione minima non ci stanno. L'elenco dice carta, faccia e livelli; un clic seleziona la carta. Nella griglia le carte con un testo che non sta hanno un segno arancione accanto al nome.
+
 ### 5.4 Colonne delle proprietà
 
 Oltre al valore principale, ogni proprietà di un livello può cambiare carta per carta con una colonna `livello.proprietà`: per esempio `nome.color` per il colore del titolo o `icona.tint` per la colorazione di un'icona. **+ Colonna** propone le colonne che il template legge e che mancano nel foglio, le proprietà di un livello a scelta, o una colonna libera.

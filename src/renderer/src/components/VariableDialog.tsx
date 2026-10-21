@@ -1,4 +1,5 @@
 import { useContext, useMemo, useState } from 'react'
+import UsagesSection, { type UsagesNav } from './UsagesSection'
 import GroupField from './GroupField'
 import { substituteFields } from '../../../shared/model/bind'
 import {
@@ -31,6 +32,7 @@ export default function VariableDialog({
   name: initialName,
   group: initialGroup = '',
   groups = [],
+  usages,
   onSave,
   onDelete,
   onClose
@@ -40,6 +42,8 @@ export default function VariableDialog({
   /** Gruppo nella barra laterale e gruppi già usati */
   group?: string
   groups?: string[]
+  /** Dove è usata la variabile, per una variabile che esiste già */
+  usages?: UsagesNav
   onSave(name: string, v: Variable, group: string): void
   onDelete(): void
   onClose(): void
@@ -113,6 +117,7 @@ export default function VariableDialog({
             onChange={setName}
           />
           <GroupField value={group} groups={groups} onChange={setGroup} />
+          {usages && <UsagesSection {...usages} />}
           <div className="field">
             <span className="field-label">{t('variable.type')}</span>
             <span className="field-control">

@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react'
+import UsagesSection, { type UsagesNav } from './UsagesSection'
 import GroupField from './GroupField'
 import {
   BUILTIN_SHAPES,
@@ -40,6 +41,8 @@ interface Props {
   /** Gruppo dello stile nella barra laterale e gruppi già usati (mode 'style') */
   group?: string
   groups?: string[]
+  /** Dove è usato lo stile, per uno stile che esiste già */
+  usages?: UsagesNav
   onApply(attrs: Attrs, name?: string, group?: string): void
   /** Salva gli attributi come nuovo stile del progetto */
   onSaveStyle?(name: string, attrs: Attrs): void
@@ -54,6 +57,7 @@ export default function FormatDialog({
   styleName,
   group: initialGroup = '',
   groups = [],
+  usages,
   onApply,
   onSaveStyle,
   onDelete,
@@ -131,6 +135,7 @@ export default function FormatDialog({
             />
           )}
           {mode === 'style' && <GroupField value={group} groups={groups} onChange={setGroup} />}
+          {mode === 'style' && usages && <UsagesSection {...usages} />}
           <SelectField<string>
             label={mode === 'style' ? t('format.basedOn') : t('format.style')}
             value={a.styles[0] ?? ''}

@@ -3912,3 +3912,29 @@ select.from-template {
 .sidebar-group > ul {
   padding-left: 10px;
 }
+
+details.usages {
+  margin: 4px 0 8px;
+}
+
+details.usages summary {
+  cursor: pointer;
+  color: var(--muted, inherit);
+}
+
+details.usages ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+details.usages li {
+  margin: 2px 0;
+}
+
+details.usages button.link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+}

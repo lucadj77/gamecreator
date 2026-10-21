@@ -861,6 +861,13 @@ export const it: Record<MessageKey, string> = {
   'markupHelp.attr.center': 'Paragrafo centrato',
   'markupHelp.attr.right': 'Paragrafo allineato a destra',
   'markupHelp.attr.justify': 'Paragrafo giustificato',
+  'usages.none': 'Non si usa da nessuna parte',
+  'usages.summary': 'Dove si usa: template {templates}, carte {cards}',
+  'usages.template': 'Template {name}',
+  'usages.set': 'Set {name}',
+  'usages.cards': 'carte:',
+  'usages.variables': 'Variabili: {names}',
+  'usages.styles': 'Stili: {names}',
   'group.label': 'Gruppo',
   'group.none': 'Nessun gruppo',
   'group.hint':

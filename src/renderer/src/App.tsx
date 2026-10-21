@@ -1,4 +1,6 @@
 import AiToolsDialog from './components/AiToolsDialog'
+import { findUsages } from '../../shared/model/usages'
+import type { UsagesNav } from './components/UsagesSection'
 import AgentLockOverlay from './components/AgentLockOverlay'
 import HelpDialog from './components/HelpDialog'
 import BackupDialog from './components/BackupDialog'
@@ -991,6 +993,33 @@ function App(): React.JSX.Element {
     )
   }
 
+  /** Dove sono usati uno stile o una variabile; un clic apre il template o il set e chiude la finestra */
+  const usagesNav = (kind: RefKind, name: string): UsagesNav | undefined =>
+    project
+      ? {
+          usages: findUsages(
+            {
+              templates: project.templates,
+              sets: project.sets,
+              variables: project.file.variables ?? {},
+              styles: project.file.styles ?? {}
+            },
+            kind,
+            name
+          ),
+          openTemplate: (n) => {
+            setEditingStyle(null)
+            setEditingVariable(null)
+            setSelected({ kind: 'template', name: n })
+          },
+          openSet: (index) => {
+            setEditingStyle(null)
+            setEditingVariable(null)
+            setSelected({ kind: 'set', index })
+          }
+        }
+      : undefined
+
   /** Pulsante "A–Z" accanto al +, solo quando l'elenco non è già alfabetico */
   const sortButton = (names: string[], onSort: () => void): React.ReactNode =>
     !isAlphabetical(names) && (
@@ -1648,6 +1677,7 @@ function App(): React.JSX.Element {
                 mode="style"
                 styleName={editingStyle || undefined}
                 group={groupOf(order, 'styles', editingStyle)}
+                usages={editingStyle ? usagesNav('style', editingStyle) : undefined}
                 groups={groupNames(order, 'styles', styleList)}
                 initial={parseAttrs(allStyles[editingStyle] ?? '').attrs}
                 sample={editingStyle || 'Aa'}
@@ -1666,6 +1696,7 @@ function App(): React.JSX.Element {
               <VariableDialog
                 name={editingVariable}
                 group={groupOf(order, 'variables', editingVariable)}
+                usages={editingVariable ? usagesNav('variable', editingVariable) : undefined}
                 groups={groupNames(
                   order,
                   'variables',

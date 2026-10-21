@@ -45,6 +45,12 @@ npm run build:mac    # oppure build:win, build:linux; i pacchetti vanno in dist/
 
 Ogni sistema costruisce bene solo i propri pacchetti (il .dmg richiede un Mac, l'installer Windows richiede Windows o Wine). Per averli tutti insieme c'è l'azione **Build** di GitHub: si avvia a mano da Actions, oppure si crea un tag (`git tag v1.0.0 && git push origin v1.0.0`) e i pacchetti finiscono in una release pubblica, scaricabile da chiunque anche senza account GitHub. La versione è quella di `package.json` e le novità sono in [CHANGELOG.md](CHANGELOG.md): la procedura completa è in [docs/rilascio.md](docs/rilascio.md).
 
+## Licenza
+
+Naibi è software libero, distribuito con la licenza [GNU GPL versione 3 o successive](LICENSE): si può usare, studiare, modificare e ridistribuire, anche con modifiche, a patto che le versioni ridistribuite restino sotto la stessa licenza e con il codice sorgente disponibile. Le carte e gli altri file creati con Naibi appartengono a chi li crea e non sono vincolati dalla licenza. Icone, font e librerie inclusi hanno le loro licenze, elencate in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+_English_: Naibi is free software, licensed under the [GNU GPL version 3 or later](LICENSE). Cards and other files made with Naibi belong to their authors and are not covered by this license. Bundled icons, fonts and libraries keep their own licenses, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
 ## Stack
 
 Electron, React e TypeScript con electron-vite. Electron è stato scelto rispetto a Tauri perché include Chromium e garantisce lo stesso rendering di carte e PDF su tutti i sistemi operativi.

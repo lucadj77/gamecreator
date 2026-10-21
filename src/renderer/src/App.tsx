@@ -6,6 +6,7 @@ import HelpDialog from './components/HelpDialog'
 import BackupDialog from './components/BackupDialog'
 import GenerateDialog from './components/GenerateDialog'
 import StatsDialog from './components/StatsDialog'
+import TextCheckDialog from './components/TextCheckDialog'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   LoadedProject,
@@ -1910,6 +1911,7 @@ function SetView({
   const [addingColumn, setAddingColumn] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [showStats, setShowStats] = useState(false)
+  const [checkingText, setCheckingText] = useState(false)
   const [focus, setFocus] = useState<{ column: string; seq: number } | null>(null)
   /** Campi del modulo con i dettagli del livello aperti: restano aperti passando di carta in carta */
   const [details, setDetails] = useState<Set<string>>(new Set())
@@ -2385,6 +2387,13 @@ function SetView({
           <button onClick={() => setShowStats(true)} title={t('tip.stats')}>
             {t('set.stats')}
           </button>
+          <button
+            disabled={!template}
+            onClick={() => setCheckingText(true)}
+            title={t('tip.textCheck')}
+          >
+            {t('set.textCheck')}
+          </button>
           <ColumnsMenu
             columns={allColumns}
             hidden={hidden}
@@ -2599,6 +2608,16 @@ function SetView({
             </div>
           </div>
         </Dialog>
+      )}
+      {checkingText && (
+        <TextCheckDialog
+          cards={cards}
+          onPick={(row) => {
+            setSelection([row])
+            setCheckingText(false)
+          }}
+          onClose={() => setCheckingText(false)}
+        />
       )}
       {showStats && (
         <StatsDialog

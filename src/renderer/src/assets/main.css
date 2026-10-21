@@ -4090,3 +4090,43 @@ details.usages button.link {
   font-size: 13px;
   color: var(--text);
 }
+
+/* testo che non sta nel riquadro: segno arancione nella griglia e controllo dei testi */
+.card-cell:has([data-overflow]) .card-caption::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #f08c00;
+  flex-shrink: 0;
+}
+
+.text-check-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.text-check-list button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 5px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.text-check-list button:hover {
+  background: var(--accent-soft);
+}
+
+.text-check-stage {
+  position: fixed;
+  left: -100000px;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+}

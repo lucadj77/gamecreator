@@ -685,10 +685,34 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
     if (overflows && size - 0.5 >= l.minSize) setFitted({ key: fitKey, size: size - 0.5 })
   }, [fitKey, size, l.fit, l.minSize])
 
+  // testo che non sta nel riquadro, anche dopo averlo ridotto: lo segnala data-overflow, che
+  // la griglia e il controllo dei testi leggono; si rimisura quando cambiano font e immagini
+  const [over, setOver] = useState(false)
+  useLayoutEffect(() => {
+    const el = boxRef.current
+    const inner = el?.firstElementChild as HTMLElement | null
+    if (!el || !inner) return
+    const measure = (): void => {
+      const cs = getComputedStyle(el)
+      const h = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)
+      const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+      const overflows = inner.scrollHeight > h + 1.5 || inner.scrollWidth > w + 1.5
+      setOver(!empty && overflows && (l.fit !== 'shrink' || size - 0.5 < l.minSize))
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(inner)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [fitKey, size, l.fit, l.minSize, empty])
+
   const sizeMm = size * PT_TO_MM
   const s = TEXT_SCALE
   return (
-    <g transform={`translate(${l.x} ${l.y}) scale(${1 / s})`}>
+    <g
+      transform={`translate(${l.x} ${l.y}) scale(${1 / s})`}
+      data-overflow={over ? l.name : undefined}
+    >
       <foreignObject
         width={l.w * s}
         height={l.h * s}

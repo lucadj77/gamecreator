@@ -73,7 +73,7 @@ Il testo si salva, nel progetto e nel foglio, con un unico markup: Markdown per 
 | a capo                       | nuovo paragrafo                                          |
 | riga vuota                   | paragrafo vuoto (spazio verticale)                       |
 | `\` a fine riga              | a capo senza nuovo paragrafo                             |
-| `[[testo]]`                  | non va mai a capo, come `[testo]{nowrap}`                |
+| `_testo_`                    | non va mai a capo, come `[testo]{nowrap}`                |
 
 Gli stili `heading1`, `heading2` e `note` esistono in ogni progetto e si modificano come gli altri.
 

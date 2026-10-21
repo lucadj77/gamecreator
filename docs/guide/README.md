@@ -243,9 +243,9 @@ Card text is written with a simple markup, the same in the app and in the sheet 
 | `- item` / `1. item`     | bulleted / numbered list                          |
 | `---`                    | divider line                                      |
 | `\` at the end of a line | line break without a new paragraph                |
-| `[[4{coin}]]`            | never breaks across lines                         |
+| `_4{coin}_`              | never breaks across lines                         |
 
-Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. To keep a piece of text on one line, so that `4` and its icon never end up on different lines, wrap it in double square brackets: `[[4{coin}]]`. It is the same as `[4{coin}]{nowrap}`.
+Every line break starts a new paragraph, as when you type in an Excel cell with Alt+Enter. To keep a piece of text on one line, so that `4` and its icon never end up on different lines, wrap it in underscores: `_4{coin}_`. It is the same as `[4{coin}]{nowrap}`. An underscore inside a word (`file_name`) stays as it is; write `\_` for a lone one.
 
 ### 6.2 Attributes
 

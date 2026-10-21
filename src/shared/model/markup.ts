@@ -263,13 +263,18 @@ const DELIMS: { d: string; apply: Partial<Attrs>; tight?: boolean }[] = [
   { d: '==', apply: {} },
   { d: '*', apply: { italic: true } },
   { d: '^', apply: { script: 'sup' }, tight: true },
-  { d: '~', apply: { script: 'sub' }, tight: true }
+  { d: '~', apply: { script: 'sub' }, tight: true },
+  // _4{pp}_: una porzione che non va mai a capo, come [4{pp}]{nowrap}
+  { d: '_', apply: { nowrap: true } }
 ]
 
 /** Colore di evidenziazione del progetto per ==testo== */
 export const DEFAULT_HIGHLIGHT = '#FFE58F'
 
-const ESCAPABLE = '\\{}[]*~^=+#>-.'
+/** Un _ dentro una parola (nome_file) resta testo */
+const WORD = /[\p{L}\p{N}]/u
+
+const ESCAPABLE = '\\{}[]*~^=+#>-._'
 
 class InlineParser {
   problems: MarkupProblem[] = []
@@ -306,15 +311,6 @@ class InlineParser {
       }
       if (c === '[') {
         const close = this.matching(i, to, '[', ']')
-        // [[4{pp}]]: una porzione che non va mai a capo, come [4{pp}]{nowrap}; vale anche se
-        // subito dopo c'è un'icona, [[4{pp}]]{oro}
-        if (s[i + 1] === '[' && close > 0 && this.matching(i + 1, to, '[', ']') === close - 1) {
-          flush()
-          const attrs: Attrs = { styles: [], nowrap: true }
-          out.push({ t: 'span', attrs, children: this.parse(i + 2, close - 1) })
-          i = close + 1
-          continue
-        }
         if (close > 0 && s[close + 1] === '{') {
           const end = this.matching(close + 1, to, '{', '}')
           if (end > 0) {
@@ -337,7 +333,9 @@ class InlineParser {
         }
         this.problems.push({ message: msg('markup.unclosedBrace'), from: i, to: i + 1 })
       }
-      const delim = DELIMS.find((d) => s.startsWith(d.d, i))
+      const delim = DELIMS.find(
+        (d) => s.startsWith(d.d, i) && !(d.d === '_' && WORD.test(s[i - 1] ?? ''))
+      )
       if (delim) {
         const close = this.closer(delim.d, i + delim.d.length, to, !!delim.tight)
         if (close > 0) {
@@ -432,7 +430,12 @@ class InlineParser {
           continue
         }
       }
-      if (s.startsWith(d, i) && i > start && !/\s/.test(s[i - 1])) {
+      if (
+        s.startsWith(d, i) &&
+        i > start &&
+        !/\s/.test(s[i - 1]) &&
+        !(d === '_' && WORD.test(s[i + 1] ?? ''))
+      ) {
         // un * singolo non chiude su un ** (che è un grassetto interno)
         if (d.length === 1 && (s[i + 1] === d || s[i - 1] === d)) {
           if (s[i + 1] === d) i++
@@ -688,7 +691,6 @@ export function spanAt(src: string, from: number, to: number): SpanRange | null 
     if (src[i] !== '[' || src[i - 1] === '\\') continue
     const close = match(i, '[', ']')
     if (close < 0 || src[close + 1] !== '{') continue
-    if (src[i + 1] === '[' && match(i + 1, '[', ']') === close - 1) continue
     const end = match(close + 1, '{', '}')
     if (end < 0 || to > end + 1) continue
     best = {

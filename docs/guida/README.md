@@ -243,9 +243,9 @@ Il testo delle carte si scrive con un markup semplice, uguale nell'app e nelle c
 | `- voce` / `1. voce`         | elenco puntato / numerato                      |
 | `---`                        | linea separatrice                              |
 | `\` a fine riga              | a capo senza nuovo paragrafo                   |
-| `[[4{moneta}]]`              | non va mai a capo                              |
+| `_4{moneta}_`                | non va mai a capo                              |
 
-Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio. Per tenere un pezzo di testo sulla stessa riga, così che `4` e la sua icona non finiscano su righe diverse, lo si chiude tra doppie parentesi quadre: `[[4{moneta}]]`. È lo stesso di `[4{moneta}]{nowrap}`.
+Ogni a capo inizia un nuovo paragrafo, come quando si scrive in una cella di Excel con Alt+Invio. Per tenere un pezzo di testo sulla stessa riga, così che `4` e la sua icona non finiscano su righe diverse, lo si chiude tra due trattini bassi: `_4{moneta}_`. È lo stesso di `[4{moneta}]{nowrap}`. Un trattino basso dentro una parola (`nome_file`) resta com'è; per scriverne uno isolato si usa `\_`.
 
 ### 6.2 Attributi
 

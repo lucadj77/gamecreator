@@ -103,7 +103,7 @@ export type TtsObjectType = 'card' | 'token' | 'tile'
 
 export interface TtsSetObject {
   type: TtsObjectType
-  /** Spessore di segnalini e tessere, in unità di Tabletop Simulator (circa 2,5 cm) */
+  /** Spessore di segnalini e tessere, in mm */
   thickness: number
   /** Colore del bordo (lo spessore) delle tessere */
   edgeColor: string
@@ -111,7 +111,7 @@ export interface TtsSetObject {
 
 export const DEFAULT_TTS_OBJECT: TtsSetObject = {
   type: 'card',
-  thickness: 0.2,
+  thickness: 2,
   edgeColor: '#FFFFFF'
 }
 
@@ -628,8 +628,33 @@ export interface TtsDeckCard {
   description: string
 }
 
+// Misure in Tabletop Simulator. TTS non ha una scala assoluta: un oggetto a scala 1 ha una misura
+// fissa per tipo, qualunque sia la sua immagine. Queste sono misurate in TTS (ottobre 2026) con il
+// righello, in unità (che TTS mostra come pollici): una carta larga 63 mm è larga 2,25, una
+// tessera 2 sul lato lungo, un segnalino circa 3,2 sul lato lungo dell'immagine. Le scale si
+// calcolano in modo che tutto stia nelle proporzioni vere rispetto a una carta da 63 mm.
+
+/** Unità di TTS per mm: la carta da 63 mm a scala 1 è larga 2,25 */
+export const TTS_UNITS_PER_MM = 2.25 / 63
+const TTS_CARD_WIDTH = 2.25
+const TTS_TILE_SIZE = 2
+const TTS_TOKEN_SIZE = 3.2
+
+const round3 = (v: number): number => Math.round(v * 1000) / 1000
+
+/** Scala di una carta larga w mm: 1 per 63 mm, come prima */
+export function ttsCardScale(w: number): number {
+  return round3((w * TTS_UNITS_PER_MM) / TTS_CARD_WIDTH)
+}
+
+/** Scala di un segnalino o di una tessera la cui immagine misura w × h mm */
+export function ttsPieceScale(kind: 'token' | 'tile', w: number, h: number): number {
+  const base = kind === 'token' ? TTS_TOKEN_SIZE : TTS_TILE_SIZE
+  return round3((Math.max(w, h) * TTS_UNITS_PER_MM) / base)
+}
+
 /** Posizione sul tavolo: le carte a faccia in giù, segnalini e tessere a faccia in su */
-function transform(y = 1, faceDown = true): Record<string, number> {
+function transform(y = 1, faceDown = true, scale = 1): Record<string, number> {
   return {
     posX: 0,
     posY: y,
@@ -637,9 +662,10 @@ function transform(y = 1, faceDown = true): Record<string, number> {
     rotX: 0,
     rotY: 180,
     rotZ: faceDown ? 180 : 0,
-    scaleX: 1,
+    // lo spessore si dà a parte: in altezza la scala resta 1
+    scaleX: scale,
     scaleY: 1,
-    scaleZ: 1
+    scaleZ: scale
   }
 }
 
@@ -647,8 +673,11 @@ function transform(y = 1, faceDown = true): Record<string, number> {
 export function ttsSavedObject(
   name: string,
   sheets: TtsSheet[],
-  cards: TtsDeckCard[]
+  cards: TtsDeckCard[],
+  /** Larghezza della carta in mm, per la scala */
+  cardWidth = 63
 ): Record<string, unknown> {
+  const scale = ttsCardScale(cardWidth)
   const customDeck = (i: number): Record<string, unknown> => ({
     [String(i + 1)]: {
       FaceURL: sheets[i].faceUrl,
@@ -663,7 +692,7 @@ export function ttsSavedObject(
   const cardId = (c: TtsDeckCard): number => (c.sheet + 1) * 100 + c.slot
   const cardObject = (c: TtsDeckCard): Record<string, unknown> => ({
     Name: 'Card',
-    Transform: transform(),
+    Transform: transform(1, true, scale),
     Nickname: c.nickname,
     Description: c.description,
     CardID: cardId(c),
@@ -679,7 +708,7 @@ export function ttsSavedObject(
       ? { ...cardObject(cards[0]), Nickname: cards[0].nickname || name }
       : {
           Name: 'Deck',
-          Transform: transform(),
+          Transform: transform(1, true, scale),
           Nickname: name,
           Description: '',
           DeckIDs: cards.map(cardId),
@@ -756,12 +785,15 @@ export function ttsSavedPieces(
   kind: 'token' | 'tile',
   settings: Pick<TtsSetObject, 'thickness' | 'edgeColor'>,
   tileType: 0 | 1 | 2 | 3,
-  pieces: TtsPiece[]
+  pieces: TtsPiece[],
+  /** Misure dell'immagine in mm, per la scala */
+  size: { w: number; h: number }
 ): Record<string, unknown> {
-  const thickness = Math.max(0.01, settings.thickness)
+  const thickness = round3(Math.max(0.1, settings.thickness) * TTS_UNITS_PER_MM)
+  const scale = ttsPieceScale(kind, size.w, size.h)
   const pieceObject = (p: TtsPiece): Record<string, unknown> => ({
     Name: kind === 'token' ? 'Custom_Token' : 'Custom_Tile',
-    Transform: transform(1, false),
+    Transform: transform(1, false, scale),
     Nickname: p.nickname,
     Description: p.description,
     // nelle tessere la tinta colora solo i lati, non le immagini

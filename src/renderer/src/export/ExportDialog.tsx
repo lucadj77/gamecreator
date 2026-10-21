@@ -722,20 +722,21 @@ export default function ExportDialog({
                             <input
                               className="num narrow"
                               type="number"
-                              step={0.05}
-                              min={0.05}
-                              max={5}
+                              step={0.5}
+                              min={0.1}
+                              max={50}
                               value={obj.thickness}
                               title={t('export.ttsThicknessHint')}
                               onChange={(e) =>
                                 set({
                                   thickness: Math.max(
-                                    0.01,
-                                    Math.min(5, num(e.target.value, obj.thickness))
+                                    0.1,
+                                    Math.min(50, num(e.target.value, obj.thickness))
                                   )
                                 })
                               }
                             />
+                            <span className="unit">mm</span>
                           </>
                         )}
                         {obj.type === 'tile' && (

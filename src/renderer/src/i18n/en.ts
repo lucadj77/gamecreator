@@ -1011,7 +1011,7 @@ export const en = {
   'export.ttsToken': 'Tokens',
   'export.ttsTile': 'Tiles',
   'export.ttsThickness': 'Thickness',
-  'export.ttsThicknessHint': 'In Tabletop Simulator units (1 is about 2.5 cm); 0.2 is the default',
+  'export.ttsThicknessHint': 'In mm',
   'export.ttsEdge': 'Edge',
   'export.ttsBack': 'Back',
   'export.backAuto': 'Automatic: one image if all backs are equal',

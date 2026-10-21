@@ -355,7 +355,7 @@ async function exportTts(
           uniqueBack: s.uniqueBack
         })
       }
-      const object = ttsSavedObject(set.name, ttsSheets, deck)
+      const object = ttsSavedObject(set.name, ttsSheets, deck, t0.width)
       await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
       // miniatura mostrata da Tabletop Simulator tra gli oggetti salvati
       await write(ctx, join(target, `${stem}.png`), thumb)
@@ -419,7 +419,11 @@ async function exportPieces(
     // il colore del bordo può essere un colore del progetto, scritto per nome
     const edgeColor = resolveColor(plan.object.edgeColor, palette(env.context.variables))
     const settings = { ...plan.object, edgeColor }
-    const object = ttsSavedPieces(plan.set.name, kind, settings, ttsTileType(t0), pieces)
+    const size = piecePage(t0, 'front', kind)
+    const object = ttsSavedPieces(plan.set.name, kind, settings, ttsTileType(t0), pieces, {
+      w: size.width,
+      h: size.height
+    })
     await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
     await write(ctx, join(target, `${stem}.png`), thumb)
   }

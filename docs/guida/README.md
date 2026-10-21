@@ -456,7 +456,7 @@ Con **Copie** attivo, **Copie nel foglio** decide dove finiscono le copie di una
 - **Segnalini**: un'immagine per carta, ritagliata sulla forma della carta (rettangolo, angoli arrotondati, cerchio, esagono o sagoma). Tabletop Simulator ne fa un pezzo spesso con il bordo del colore dell'immagine; sotto mostra il fronte specchiato, quindi il retro della carta non si usa.
 - **Tessere**: fronte e retro della carta. La forma (quadrata, arrotondata, esagonale o rotonda) viene dalla forma della carta; una sagoma diventa un quadrato. **Bordo** è il colore dello spessore.
 
-Per segnalini e tessere **Spessore** è in unità di Tabletop Simulator (1 è circa 2,5 cm, 0,2 è il valore predefinito di Tabletop Simulator). I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Le dimensioni in Tabletop Simulator non seguono quelle della carta: si cambiano con la scala dopo averli caricati.
+Per segnalini e tessere **Spessore** è in mm. I pezzi di un set vanno in un sacchetto, copie comprese; un set con un pezzo solo diventa quel pezzo. Carte, segnalini e tessere arrivano in Tabletop Simulator nelle proporzioni vere: una carta da 63 mm ha la misura predefinita di Tabletop Simulator, e tutto il resto è più grande o più piccolo in proporzione.
 
 I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul computer che l'ha esportato. Per giocare online bisogna caricare le immagini su un servizio web e cambiare gli indirizzi in Tabletop Simulator.
 

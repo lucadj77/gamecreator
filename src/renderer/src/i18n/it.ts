@@ -1027,8 +1027,7 @@ export const it: Record<MessageKey, string> = {
   'export.ttsToken': 'Segnalini',
   'export.ttsTile': 'Tessere',
   'export.ttsThickness': 'Spessore',
-  'export.ttsThicknessHint':
-    'In unità di Tabletop Simulator (1 è circa 2,5 cm); 0,2 è il valore predefinito',
+  'export.ttsThicknessHint': 'In mm',
   'export.ttsEdge': 'Bordo',
   'export.ttsBack': 'Retro',
   'export.backAuto': "Automatico: un'immagine se i retri sono tutti uguali",

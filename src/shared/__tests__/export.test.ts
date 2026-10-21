@@ -16,6 +16,8 @@ import {
   ttsImageUrl,
   ttsColor,
   ttsSavedObject,
+  ttsCardScale,
+  ttsPieceScale,
   ttsSavedPieces,
   ttsTileType,
   ttsScale,
@@ -223,9 +225,14 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
   })
 
   it('un pezzo solo è l oggetto stesso, con il nome del set se non ne ha uno', () => {
-    const saved = ttsSavedPieces('Monete', 'token', { thickness: 0.3, edgeColor: '#000' }, 0, [
-      { ...piece(1), nickname: '' }
-    ])
+    const saved = ttsSavedPieces(
+      'Monete',
+      'token',
+      { thickness: 2.8, edgeColor: '#000' },
+      0,
+      [{ ...piece(1), nickname: '' }],
+      { w: 29, h: 29 }
+    )
     expect(saved).toMatchObject({
       ObjectStates: [
         {
@@ -234,7 +241,7 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
           CustomImage: {
             ImageURL: 'file:///f1.png',
             ImageSecondaryURL: '',
-            CustomToken: { Thickness: 0.3 }
+            CustomToken: { Thickness: 0.1 }
           }
         }
       ]
@@ -242,10 +249,14 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
   })
 
   it('più pezzi vanno in un sacchetto, copie comprese; le tessere hanno retro e bordo colorato', () => {
-    const saved = ttsSavedPieces('Terreni', 'tile', { thickness: 0.2, edgeColor: '#0000FF' }, 1, [
-      piece(1, 2),
-      piece(2)
-    ]) as { ObjectStates: { Name: string; ContainedObjects: { Nickname: string }[] }[] }
+    const saved = ttsSavedPieces(
+      'Terreni',
+      'tile',
+      { thickness: 2.8, edgeColor: '#0000FF' },
+      1,
+      [piece(1, 2), piece(2)],
+      { w: 45, h: 40 }
+    ) as { ObjectStates: { Name: string; ContainedObjects: { Nickname: string }[] }[] }
     const [bag] = saved.ObjectStates
     expect(bag).toMatchObject({ Name: 'Bag', Nickname: 'Terreni' })
     expect(bag.ContainedObjects.map((o) => o.Nickname)).toEqual(['P1', 'P1', 'P2'])
@@ -254,8 +265,16 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
       ColorDiffuse: { r: 0, g: 0, b: 1 },
       CustomImage: {
         ImageSecondaryURL: 'file:///b2.png',
-        CustomTile: { Type: 1, Thickness: 0.2, Stretch: false }
+        CustomTile: { Type: 1, Thickness: 0.1, Stretch: false }
       }
     })
+  })
+
+  it('scale nelle proporzioni vere rispetto a una carta da 63 mm', () => {
+    expect(ttsCardScale(63)).toBe(1)
+    expect(ttsCardScale(44)).toBeCloseTo(0.698, 3)
+    // misurati in TTS: tessera da 45 mm larga 2 a scala 1, stella da 27 mm (29 con il margine) 3
+    expect(ttsPieceScale('tile', 45, 45)).toBeCloseTo(0.804, 3)
+    expect(ttsPieceScale('token', 29, 29)).toBeCloseTo(0.324, 3)
   })
 })

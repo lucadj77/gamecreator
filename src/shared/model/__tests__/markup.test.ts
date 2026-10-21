@@ -204,13 +204,13 @@ describe('porzioni da non spezzare', () => {
     ])
   })
 
-  it('[[a]{...}] resta una porzione normale dentro parentesi', () => {
-    const [first] = parseMarkup('[[a]{.x} b]').blocks[0].children
-    expect(first).toMatchObject({ t: 'text' })
-    expect(parseMarkup('[[a]]{.x}').blocks[0].children[0]).toMatchObject({
-      t: 'span',
-      attrs: { styles: ['x'] }
-    })
+  it('[[a]{...}] resta una porzione normale; dopo [[...]] una graffa è un icona', () => {
+    expect(parseMarkup('[[a]{.x} b]').blocks[0].children[0]).toMatchObject({ t: 'text' })
+    expect(parseMarkup('[[{ma}{mb}]]{md}').blocks[0].children).toMatchObject([
+      { t: 'span', attrs: { nowrap: true } },
+      { t: 'ref', name: 'md' }
+    ])
+    expect(markupProblems('[[{ma}{mb}]]{md}')).toEqual([])
   })
 
   it('nowrap tiene insieme una porzione intera', () => {

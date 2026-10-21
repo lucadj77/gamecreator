@@ -306,6 +306,15 @@ class InlineParser {
       }
       if (c === '[') {
         const close = this.matching(i, to, '[', ']')
+        // [[4{pp}]]: una porzione che non va mai a capo, come [4{pp}]{nowrap}; vale anche se
+        // subito dopo c'è un'icona, [[4{pp}]]{oro}
+        if (s[i + 1] === '[' && close > 0 && this.matching(i + 1, to, '[', ']') === close - 1) {
+          flush()
+          const attrs: Attrs = { styles: [], nowrap: true }
+          out.push({ t: 'span', attrs, children: this.parse(i + 2, close - 1) })
+          i = close + 1
+          continue
+        }
         if (close > 0 && s[close + 1] === '{') {
           const end = this.matching(close + 1, to, '{', '}')
           if (end > 0) {
@@ -316,14 +325,6 @@ class InlineParser {
             i = end + 1
             continue
           }
-        }
-        // [[4{pp}]]: una porzione che non va mai a capo, come [4{pp}]{nowrap}
-        if (s[i + 1] === '[' && close > 0 && this.matching(i + 1, to, '[', ']') === close - 1) {
-          flush()
-          const attrs: Attrs = { styles: [], nowrap: true }
-          out.push({ t: 'span', attrs, children: this.parse(i + 2, close - 1) })
-          i = close + 1
-          continue
         }
       }
       if (c === '{') {
@@ -687,6 +688,7 @@ export function spanAt(src: string, from: number, to: number): SpanRange | null 
     if (src[i] !== '[' || src[i - 1] === '\\') continue
     const close = match(i, '[', ']')
     if (close < 0 || src[close + 1] !== '{') continue
+    if (src[i + 1] === '[' && match(i + 1, '[', ']') === close - 1) continue
     const end = match(close + 1, '{', '}')
     if (end < 0 || to > end + 1) continue
     best = {

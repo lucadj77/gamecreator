@@ -5,6 +5,7 @@ import type { ExportProgress } from '../shared/export'
 import { MessageError, msg } from '../shared/messages'
 import { loadProject } from '../main/project/load'
 import { saveTemplate, trashTemplate } from '../main/project/templates'
+import { saveNote, trashNote } from '../main/project/notes'
 import { createProject } from '../main/project/create'
 import { saveData } from '../main/project/save'
 import { saveExportProfiles } from '../main/project/exportProfiles'
@@ -137,6 +138,8 @@ export const webApi: Api = {
   },
   saveTemplate: (template) => saveTemplate(projectFolder(), template),
   deleteTemplate: (file) => trashTemplate(projectFolder(), file),
+  saveNote: (name, text, oldName) => saveNote(projectFolder(), name, text, oldName),
+  deleteNote: (name) => trashNote(projectFolder(), name),
   saveData: (changes) => saveData(projectFolder(), changes),
   // l'ingrandimento è quello del browser (Ctrl + e Ctrl −)
   setUiZoom: () => undefined,

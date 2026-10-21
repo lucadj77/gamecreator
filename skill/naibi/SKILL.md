@@ -32,19 +32,22 @@ The Windows installer (1.2.0-beta.9 and later) already lets sandboxed agents rea
 | `render <project> [--set S] [--card 1,3,5-7] [--side front\|back\|both] [--dpi 150] [--out folder]` | Draws cards as PNG files, by default in `<project>/export/naibi-render/<set>/<n>.png`. Open the images to check your work                  |
 | `export <project> --profile NAME`                                                                   | Runs an export profile saved in the project (PDF, images or Tabletop Simulator)                                                            |
 | `new <name> <parent folder>`                                                                        | Creates an empty project                                                                                                                   |
+| `notes <project> [<name>]`                                                                          | The project notes (`notes/*.md`): the user's reminders and decisions about the project. Read them before working                           |
 | `begin <project> [--note TEXT]`                                                                     | Start of your work. Fails with exit code 3 if the Naibi app has unsaved changes in the project; otherwise the app locks itself             |
 | `end <project>`                                                                                     | End of your work: the app unlocks and reloads the project                                                                                  |
 
-`info`, `check` and `template` accept `--json`.
+`info`, `check`, `template` and `notes` accept `--json`.
 
 ## Workflow
 
 1. Run `begin` before changing anything in the project, with `--note` saying in a few words what you are doing. If it fails because the app has unsaved changes, stop: tell the user to save (or reload) in the Naibi app, and start again only when they say so. Reading commands (`info`, `check`, `template`, `rows`, `render`) do not need `begin`.
-2. Run `info` to learn the project before changing anything. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
+2. Run `info` and `notes` to learn the project before changing anything; the notes hold what the user wants remembered. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
 3. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets and the cells you do not change (formulas, dates, formatting) intact; a changed cell becomes plain text, or a number when it reads back the same.
 4. Rename sets and templates only with `rename-set` and `rename-template`: renaming files by hand breaks the references to them. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are. `set-rows`, `rename-set` and `rename-template` also refuse on their own (exit code 2) when the app has unsaved changes, or when the app is open on the project and you did not run `begin`.
 5. After every change run `check`, then `render` the cards you touched and look at the images. Fix what is wrong before reporting.
 6. Always run `end` when you have finished, also when you stop because of an error or a question for the user: until then the app stays locked. The app reloads the project by itself.
+
+To leave a note for the user or for your next session, write a Markdown file in `notes/` (between `begin` and `end`, so the open app picks it up); change an existing note only when asked.
 
 Ask before deleting sets, templates, layers or assets, and before replacing many rows the user did not ask to change.
 
@@ -55,6 +58,7 @@ project/
   naibi.json             # name, data file, sets, styles, variables, export profiles
   data/cards.xlsx        # one sheet per set (.xlsx, .ods, or .csv for a single set)
   templates/<name>.json  # one file per template
+  notes/<name>.md        # project notes in Markdown, written by the user in the app
   assets/                # images (svg, png, webp, jpg), any subfolder
   assets/fonts/          # project fonts (ttf, otf, woff, woff2)
   assets/sources.json    # origin and license of imported icons and fonts (written by the app)

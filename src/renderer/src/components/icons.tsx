@@ -113,6 +113,15 @@ export function VariablesIcon(): React.JSX.Element {
   )
 }
 
+/** Note: un foglio con le righe e l'angolo piegato */
+export function NotesIcon(): React.JSX.Element {
+  return (
+    <Outline>
+      <path d="M3.5 1.5h6l3 3v10h-9zM9.5 1.5v3h3M5.5 7.5h5M5.5 10h5M5.5 12.5h3" />
+    </Outline>
+  )
+}
+
 /** Riduce il pannello a icone, o lo riapre: un pannello con la colonna laterale */
 export function PanelIcon(): React.JSX.Element {
   return (

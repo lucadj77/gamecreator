@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.15
+
+### English
+
+- Project notes: a new **Notes** section at the bottom of the sidebar. The + creates a note, a click opens it in a panel beside any screen (sets, templates). Notes are written in Markdown, with a **Preview**, are renamed from their title and save themselves as you type, as `notes/<name>.md` files in the project. Deleted notes go to the `deleted` folder.
+- An AI working on the project reads the notes with the new `naibi notes` command (also listed by `naibi info`); the skill asks it to read them before working.
+
+### Italiano
+
+- Note del progetto: una nuova sezione **Note** in fondo alla barra laterale. Il + crea una nota, un clic la apre in un pannello accanto a qualsiasi schermata (set, template). Le note si scrivono in Markdown, con un'**Anteprima**, si rinominano dal titolo e si salvano da sole mentre si scrive, come file `notes/<nome>.md` del progetto. Le note eliminate vanno nella cartella `deleted`.
+- Un'IA che lavora sul progetto legge le note con il nuovo comando `naibi notes` (le elenca anche `naibi info`); la skill le chiede di leggerle prima di lavorare.
+
 ## 1.2.0-beta.14
 
 ### English

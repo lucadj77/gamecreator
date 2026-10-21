@@ -11,6 +11,7 @@ import type {
   LoadedSet,
   ProjectFile,
   SetDefinition,
+  ProjectNote,
   Sheet
 } from '../../shared/project'
 import { messageFromError, type Message } from '../../shared/messages'
@@ -91,7 +92,8 @@ import {
   TemplateIcon,
   PencilIcon,
   TrashIcon,
-  VariablesIcon
+  VariablesIcon,
+  NotesIcon
 } from './components/icons'
 import TemplateEditor, { EDITOR_UNDO } from './editor/TemplateEditor'
 import { Dialog, NewTemplateDialog } from './editor/dialogs'
@@ -124,6 +126,7 @@ import UpdateNotice from './components/UpdateNotice'
 import Tooltip from './components/Tooltip'
 import SidebarPreview from './components/SidebarPreview'
 import { useSidebarPreview } from './components/useSidebarPreview'
+import NotePanel from './components/NotePanel'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
@@ -193,6 +196,8 @@ function App(): React.JSX.Element {
   // icone e font importati: gli asset cambiano senza ricaricare il progetto
   useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [])
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
+  /** Nota aperta nel pannello accanto alla schermata */
+  const [openNote, setOpenNote] = useState<string | null>(null)
   const [error, setError] = useState<Message | null>(null)
   const [loading, setLoading] = useState(false)
   /** Template modificati e non ancora salvati */
@@ -570,6 +575,66 @@ function App(): React.JSX.Element {
     },
     []
   )
+
+  // Note del progetto: si scrivono subito su disco, poco dopo l'ultima modifica, senza passare dal
+  // salvataggio del progetto né dall'annulla
+  const noteTimers = useRef(new Map<string, { timer: number; text: string }>())
+  const writeNote = (name: string, text: string, oldName?: string): Promise<void> =>
+    window.api.saveNote(name, text, oldName).catch((e) => setError(messageFromError(e)))
+  const flushNote = (name: string): void => {
+    const pending = noteTimers.current.get(name)
+    if (!pending) return
+    window.clearTimeout(pending.timer)
+    noteTimers.current.delete(name)
+    void writeNote(name, pending.text)
+  }
+  const setNotes = (change: (notes: ProjectNote[]) => ProjectNote[]): void =>
+    setProject((p) => p && { ...p, notes: change(p.notes ?? []) })
+  const changeNote = (name: string, text: string): void => {
+    setNotes((notes) => notes.map((n) => (n.name === name ? { ...n, text } : n)))
+    const old = noteTimers.current.get(name)
+    if (old) window.clearTimeout(old.timer)
+    noteTimers.current.set(name, { text, timer: window.setTimeout(() => flushNote(name), 600) })
+  }
+  const newNote = async (): Promise<void> => {
+    const names = new Set((project?.notes ?? []).map((n) => n.name))
+    const base = t('notes.newName')
+    let name = base
+    for (let i = 2; names.has(name); i++) name = `${base} ${i}`
+    await writeNote(name, '')
+    setNotes((notes) => [...notes, { name, text: '' }].sort((a, b) => a.name.localeCompare(b.name)))
+    setOpenNote(name)
+  }
+  const renameNote = async (from: string, to: string): Promise<void> => {
+    const pending = noteTimers.current.get(from)
+    if (pending) window.clearTimeout(pending.timer)
+    noteTimers.current.delete(from)
+    const text = pending?.text ?? project?.notes?.find((n) => n.name === from)?.text ?? ''
+    try {
+      await window.api.saveNote(to, text, from)
+    } catch (e) {
+      setError(messageFromError(e))
+      return
+    }
+    setNotes((notes) =>
+      notes
+        .map((n) => (n.name === from ? { name: to, text } : n))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    )
+    setOpenNote(to)
+  }
+  const deleteNote = async (name: string): Promise<void> => {
+    const pending = noteTimers.current.get(name)
+    if (pending) window.clearTimeout(pending.timer)
+    noteTimers.current.delete(name)
+    await window.api.deleteNote(name).catch((e) => setError(messageFromError(e)))
+    setNotes((notes) => notes.filter((n) => n.name !== name))
+    setOpenNote((o) => (o === name ? null : o))
+  }
+  const closeNote = (): void => {
+    if (openNote) flushNote(openNote)
+    setOpenNote(null)
+  }
 
   /** Crea, modifica, rinomina (con `oldName`) o elimina (v null) una variabile del progetto */
   const saveVariable = (
@@ -1075,7 +1140,8 @@ function App(): React.JSX.Element {
     ['sets', <SetsIcon key="sets" />, t('sidebar.sets')],
     ['templates', <TemplateIcon key="templates" />, t('sidebar.templates')],
     ['styles', <StylesIcon key="styles" />, t('sidebar.styles')],
-    ['variables', <VariablesIcon key="variables" />, t('sidebar.variables')]
+    ['variables', <VariablesIcon key="variables" />, t('sidebar.variables')],
+    ['notes', <NotesIcon key="notes" />, t('sidebar.notes')]
   ]
   const sidebar =
     project && sidebarCompact ? (
@@ -1317,6 +1383,39 @@ function App(): React.JSX.Element {
               )
             )}
           </SidebarSection>
+          <SidebarSection
+            id="notes"
+            icon={<NotesIcon />}
+            title={t('sidebar.notes')}
+            open={!closedSections.has('notes')}
+            onToggle={(open) => setSectionClosed('notes', !open)}
+            actions={
+              <button
+                className="icon-btn"
+                title={t('sidebar.newNote')}
+                onClick={() => void newNote()}
+              >
+                +
+              </button>
+            }
+          >
+            <ul>
+              {(project.notes ?? []).map((n) => (
+                <li key={n.name}>
+                  <button
+                    className={openNote === n.name ? 'active' : ''}
+                    onClick={() => {
+                      if (openNote && openNote !== n.name) flushNote(openNote)
+                      setOpenNote(openNote === n.name ? null : n.name)
+                    }}
+                  >
+                    <span>{n.name}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {!project.notes?.length && <p className="muted small">{t('sidebar.noNotes')}</p>}
+          </SidebarSection>
           {project.unusedSheets.length > 0 && (
             <p className="muted small">
               {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
@@ -1534,6 +1633,18 @@ function App(): React.JSX.Element {
                         </div>
                       )}
                     </section>
+                  )}
+                  {openNote && project.notes?.some((n) => n.name === openNote) && (
+                    <NotePanel
+                      key={openNote}
+                      name={openNote}
+                      text={project.notes.find((n) => n.name === openNote)?.text ?? ''}
+                      others={project.notes.map((n) => n.name).filter((n) => n !== openNote)}
+                      onChange={(text) => changeNote(openNote, text)}
+                      onRename={(to) => void renameNote(openNote, to)}
+                      onDelete={() => void deleteNote(openNote)}
+                      onClose={closeNote}
+                    />
                   )}
                   {sidebarSide === 'right' && (
                     <>

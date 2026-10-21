@@ -9,6 +9,9 @@ import {
   uniqueNames,
   ttsSavedObject,
   ttsSavedPieces,
+  ttsSavedDice,
+  ttsDieObj,
+  TTS_UNITS_PER_MM,
   ttsTileType,
   type ExportCard,
   type ExportContext,
@@ -22,6 +25,8 @@ import {
   type TtsDeckCard,
   type TtsOptions,
   type TtsPiece,
+  type TtsPieceKind,
+  type TtsDie,
   type TtsSheet
 } from '../../shared/export'
 import {
@@ -30,6 +35,7 @@ import {
   planImages,
   planPdf,
   piecePage,
+  diePage,
   planTts,
   sheetPage,
   type TtsChunk,
@@ -275,7 +281,12 @@ async function exportTts(
 
   const plans = planTts(o, sets)
   ctx.progress.total = plans.reduce(
-    (n, p) => n + p.chunks.length * 2 + p.pieces.length * (p.object.type === 'tile' ? 2 : 1) + 1,
+    (n, p) =>
+      n +
+      p.chunks.length * 2 +
+      p.pieces.length * (p.object.type === 'token' ? 1 : 2) +
+      p.dice.length +
+      1,
     0
   )
 
@@ -284,6 +295,10 @@ async function exportTts(
   for (const [index, plan] of plans.entries()) {
     if (plan.pieces.length) {
       await exportPieces(ctx, o, plan, stems[index], targets)
+      continue
+    }
+    if (plan.dice.length) {
+      await exportDice(ctx, o, plan, stems[index], targets)
       continue
     }
     const { set, chunks, uniqueBack: unique } = plan
@@ -371,13 +386,13 @@ async function exportPieces(
   stem: string,
   targets: string[]
 ): Promise<void> {
-  const kind = plan.object.type === 'tile' ? 'tile' : 'token'
+  const kind = plan.object.type as TtsPieceKind
   const images: { face: Buffer; back: Buffer | null }[] = []
   for (const p of plan.pieces) {
     const face = await renderPiece(ctx, p, 'front', kind)
     step(ctx)
     let back: Buffer | null = null
-    if (kind === 'tile') {
+    if (kind !== 'token') {
       back = await renderPiece(ctx, p, 'back', kind)
       step(ctx)
     }
@@ -429,11 +444,77 @@ async function exportPieces(
   }
 }
 
+/**
+ * Dadi di un set: per ogni dado il foglio delle sei facce; il modello del cubo è uno per set,
+ * perché tutte le carte del set hanno la stessa misura
+ */
+async function exportDice(
+  ctx: Ctx,
+  o: TtsOptions,
+  plan: TtsSetPlan,
+  stem: string,
+  targets: string[]
+): Promise<void> {
+  const images: Buffer[] = []
+  for (const die of plan.dice) {
+    const page = diePage(die)
+    const w = Math.round(page.width * die.scale)
+    const h = Math.round(page.height * die.scale)
+    const scene: Scene = {
+      pages: [page],
+      scale: w / page.width,
+      background: '#FFFFFF',
+      lineColor: '#000',
+      lineWidth: 0,
+      linesOver: false
+    }
+    await ctx.win.show(scene, w, h)
+    images.push((await ctx.win.capture(w, h)).toPNG())
+    step(ctx)
+  }
+  if (plan.dice.some((d) => d.padded))
+    ctx.result.warnings.push(msg('export.ttsDicePadded', { set: plan.set.name }))
+  const t0 = plan.dice[0].cards[0].template
+  const thumb = (
+    await renderCard(ctx, t0, 'front', 256 / Math.max(t0.width, t0.height), {
+      bleed: false,
+      mode: 'trim',
+      background: null
+    })
+  ).toPNG()
+  step(ctx)
+
+  const env = ctx.env
+  const digits = String(plan.dice.length).length
+  const mesh = ttsDieObj(t0.width * TTS_UNITS_PER_MM)
+  for (const target of targets) {
+    const meshFile = join(target, 'models', `${stem}_d6.obj`)
+    await write(ctx, meshFile, Buffer.from(mesh))
+    const dice: TtsDie[] = []
+    for (const [i, die] of plan.dice.entries()) {
+      const n = String(i + 1).padStart(digits, '0')
+      const file = join(target, 'images', `${stem}_die_${n}.png`)
+      await write(ctx, file, images[i])
+      const first = die.cards[0]
+      dice.push({
+        imageUrl: imageUrl(env, file),
+        values: die.cards.map((c, k) => fieldText(c, o.nickname) || String(k + 1)),
+        nickname: plan.dice.length === 1 ? plan.set.name : `${plan.set.name} ${i + 1}`,
+        description: fieldText(first, o.description),
+        count: die.count
+      })
+    }
+    const object = ttsSavedDice(plan.set.name, dice, imageUrl(env, meshFile))
+    await write(ctx, join(target, `${stem}.json`), JSON.stringify(object, null, 2) + '\n')
+    await write(ctx, join(target, `${stem}.png`), thumb)
+  }
+}
+
 async function renderPiece(
   ctx: Ctx,
   p: TtsPiecePlan,
   side: Side,
-  kind: 'token' | 'tile'
+  kind: TtsPieceKind
 ): Promise<Buffer> {
   const page = piecePage(p.card.template, side, kind)
   const w = Math.round(page.width * p.scale)
@@ -442,7 +523,7 @@ async function renderPiece(
     pages: [page],
     scale: w / page.width,
     // le tessere hanno il fondo bianco; i segnalini trasparente, perché TTS li ritaglia lì
-    background: kind === 'tile' ? '#FFFFFF' : null,
+    background: kind === 'token' ? null : '#FFFFFF',
     lineColor: '#000',
     lineWidth: 0,
     linesOver: false

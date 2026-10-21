@@ -1053,10 +1053,14 @@ export const it: Record<MessageKey, string> = {
   'export.maxSize': 'Dimensione massima',
   'export.ttsObjects': 'Oggetti',
   'export.ttsObjectsHint':
-    "Carte: un mazzo dai fogli. Segnalini: un'immagine per carta, ritagliata sulla forma della carta; sotto mostra il fronte specchiato. Tessere: fronte e retro, quadrate, arrotondate, esagonali o rotonde come la carta, con il bordo del colore scelto. Segnalini e tessere di un set vanno in un sacchetto, copie comprese.",
+    "Carte: un mazzo dai fogli. Segnalini: un'immagine per carta, ritagliata sulla forma della carta; sotto mostra il fronte specchiato. Tessere: fronte e retro, quadrate, arrotondate, esagonali o rotonde come la carta, con il bordo del colore scelto. Segnalini e tessere di un set vanno in un sacchetto, copie comprese. Plancia: come una tessera ma non impilabile, ognuna sul tavolo accanto all'altra. Dado: sei carte per dado, nell'ordine del foglio (la carta 1 sulla faccia 1 e così via, le facce opposte fanno 7); usa un template quadrato.",
   'export.ttsCard': 'Carte',
   'export.ttsToken': 'Segnalini',
   'export.ttsTile': 'Tessere',
+  'export.ttsBoard': 'Plance',
+  'export.ttsDie': 'Dadi (6 facce)',
+  'export.ttsDicePadded':
+    "Set «{set}»: le carte non sono un multiplo di sei, l'ultimo dado ripete le sue prime facce.",
   'export.ttsThickness': 'Spessore',
   'export.ttsThicknessHint': 'In mm',
   'export.ttsEdge': 'Bordo',

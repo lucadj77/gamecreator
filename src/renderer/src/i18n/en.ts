@@ -1036,10 +1036,14 @@ export const en = {
   'export.maxSize': 'Max sheet size',
   'export.ttsObjects': 'Objects',
   'export.ttsObjectsHint':
-    'Card: a deck from sheets. Token: one image per card, cut out along the card shape; underneath it shows the front mirrored. Tile: front and back, square, rounded, hexagonal or round like the card, with the edge in the chosen color. Tokens and tiles of a set go into a bag, copies included.',
+    'Card: a deck from sheets. Token: one image per card, cut out along the card shape; underneath it shows the front mirrored. Tile: front and back, square, rounded, hexagonal or round like the card, with the edge in the chosen color. Tokens and tiles of a set go into a bag, copies included. Board: like a tile but not stackable, each one on the table next to the other. Die: six cards per die, in sheet order (card 1 on face 1 and so on, opposite faces add up to 7); use a square template.',
   'export.ttsCard': 'Cards',
   'export.ttsToken': 'Tokens',
   'export.ttsTile': 'Tiles',
+  'export.ttsBoard': 'Boards',
+  'export.ttsDie': 'Dice (6 faces)',
+  'export.ttsDicePadded':
+    'Set “{set}”: the cards are not a multiple of six, the last die repeats its first faces.',
   'export.ttsThickness': 'Thickness',
   'export.ttsThicknessHint': 'In mm',
   'export.ttsEdge': 'Edge',

@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_IMAGE, DEFAULT_PDF, DEFAULT_TTS, type ExportCard } from '../export'
-import { piecePage, planImages, planPdf, planTts, posterLayout, sheetPage } from '../exportPlan'
+import {
+  diePage,
+  piecePage,
+  planImages,
+  planPdf,
+  planTts,
+  posterLayout,
+  sheetPage
+} from '../exportPlan'
 import { normalizeTemplate } from '../model/normalize'
 
 const tpl = normalizeTemplate({ name: 't', width: 63, height: 88, bleed: 3, front: [], back: [] })
@@ -168,6 +176,30 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
     const tile = piecePage(tpl, 'back', 'tile')
     expect([tile.width, tile.height]).toEqual([63, 88])
     expect(tile.items[0]).toMatchObject({ side: 'back', mode: 'cut' })
+  })
+})
+
+describe('Tabletop Simulator: dadi', () => {
+  it('sei carte per dado, l ultimo completato ripetendo le sue facce', () => {
+    const o = {
+      ...DEFAULT_TTS,
+      objects: { d: { type: 'die' as const, thickness: 2, edgeColor: '#FFF' } }
+    }
+    const cards = Array.from({ length: 8 }, (_, i) => card(i + 1, i === 6 ? 3 : 1))
+    const [plan] = planTts(o, [{ name: 'd', cards }])
+    expect(plan.chunks).toEqual([])
+    expect(plan.pieces).toEqual([])
+    expect(plan.dice.map((d) => d.cards.map((c) => c.n))).toEqual([
+      [1, 2, 3, 4, 5, 6],
+      [7, 8, 7, 8, 7, 8]
+    ])
+    expect(plan.dice.map((d) => [d.count, d.padded])).toEqual([
+      [1, false],
+      [3, true]
+    ])
+    const page = diePage(plan.dice[0])
+    expect([page.width, page.height]).toEqual([189, 176])
+    expect(page.items[4]).toMatchObject({ x: 63, y: 88, side: 'front', mode: 'cut' })
   })
 })
 

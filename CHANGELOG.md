@@ -14,6 +14,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Trash…** in the toolbar: deleted templates, sets and notes, with **Restore** to put them back in the project (a set gets the template you choose).
 - **Compare…** marks the cards that are new or changed since the last export or a backup (blue dot), and the export can include only those: reprint just what changed.
 - **Split image…** in the set header spreads one big image across the cards (columns × rows, by rows or by columns, with or without the outer bleed in the image): the cards make up the image again when placed in a grid.
+- Tabletop Simulator: two new objects per set. **Boards**: like tiles but not stackable, each one on the table next to the others. **Dice (6 faces)**: every six cards of the set make a die (card 1 on face 1 and so on, opposite faces adding up to 7), with the value shown when you roll it.
 
 ### Italiano
 
@@ -22,6 +23,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - **Cestino…** nella barra in alto: template, set e note eliminati, con **Ripristina** per rimetterli nel progetto (un set prende il template scelto).
 - **Confronta…** segna le carte nuove o cambiate dall'ultima esportazione o da un backup (punto blu), e l'esportazione può includere solo quelle: si ristampa solo ciò che è cambiato.
 - **Dividi immagine…** nell'intestazione del set distribuisce un'immagine grande tra le carte (colonne × righe, per righe o per colonne, con o senza l'abbondanza esterna nell'immagine): messe in griglia, le carte ricompongono l'immagine.
+- Tabletop Simulator: due nuovi oggetti per set. **Plance**: come le tessere ma non impilabili, ognuna sul tavolo accanto alle altre. **Dadi (6 facce)**: ogni sei carte del set fanno un dado (la carta 1 sulla faccia 1 e così via, facce opposte che fanno 7), con il valore mostrato quando lo tiri.
 
 ## 1.2.0-beta.16
 

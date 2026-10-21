@@ -4,6 +4,8 @@
 
 import {
   TTS_MAX_COLS,
+  TTS_DIE_COLS,
+  TTS_DIE_ROWS,
   TTS_MAX_DPI,
   TTS_MAX_ROWS,
   cropMarks,
@@ -35,6 +37,7 @@ import {
   type SceneLine,
   type ScenePage,
   type TtsOptions,
+  type TtsPieceKind,
   type TtsSetObject
 } from './export'
 import type { Side, Template } from './model/template'
@@ -567,13 +570,25 @@ export interface TtsPiecePlan {
   scale: number
 }
 
+/** Dado: sei carte, una per faccia, in un foglio 3 × 2 */
+export interface TtsDiePlan {
+  cards: ExportCard[]
+  count: number
+  /** Le ultime facce ripetono le prime: le carte non erano un multiplo di sei */
+  padded: boolean
+  /** Pixel per mm */
+  scale: number
+}
+
 export interface TtsSetPlan {
   set: ExportSet
   object: TtsSetObject
   /** Fogli del mazzo; vuoto per segnalini e tessere */
   chunks: TtsChunk[]
-  /** Segnalini o tessere; vuoto per le carte */
+  /** Segnalini, tessere o plance; vuoto per le carte e i dadi */
   pieces: TtsPiecePlan[]
+  /** Dadi a sei facce: le carte prese sei alla volta */
+  dice: TtsDiePlan[]
   /** Un foglio dei retri per ogni foglio di fronti, invece di un retro unico */
   uniqueBack: boolean
 }
@@ -588,13 +603,31 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
     // senza copie ogni riga è una carta; con le copie le righe a 0 non entrano nel mazzo
     const kept = set.cards.filter((c) => !o.copies || c.amount > 0)
     const object = ttsSetObject(o, set.name)
+    if (object.type === 'die') {
+      const dice: TtsDiePlan[] = []
+      for (let i = 0; i < kept.length; i += 6) {
+        const group = kept.slice(i, i + 6)
+        const t = group[0].template
+        dice.push({
+          cards: Array.from({ length: 6 }, (_, j) => group[j % group.length]),
+          count: o.copies ? group[0].amount : 1,
+          padded: group.length < 6,
+          scale: Math.min(
+            TTS_MAX_DPI / 25.4,
+            o.maxSize / (TTS_DIE_COLS * t.width),
+            o.maxSize / (TTS_DIE_ROWS * t.height)
+          )
+        })
+      }
+      return { set, object, chunks: [], pieces: [], dice, uniqueBack: false }
+    }
     if (object.type !== 'card') {
       const pieces = kept.map((card) => ({
         card,
         count: o.copies ? card.amount : 1,
         scale: pieceScale(card.template, o.maxSize)
       }))
-      return { set, object, chunks: [], pieces, uniqueBack: false }
+      return { set, object, chunks: [], pieces, dice: [], uniqueBack: false }
     }
     // copie nel foglio: ogni copia ha la sua posizione e nel mazzo compare una volta
     const inSheet = o.copies && o.copiesIn === 'sheet'
@@ -619,6 +652,7 @@ export function planTts(o: TtsOptions, sets: ExportSet[]): TtsSetPlan[] {
       object,
       chunks,
       pieces: [],
+      dice: [],
       uniqueBack: o.back === 'sheet' || (o.back === 'auto' && !sameBacks)
     }
   })
@@ -659,13 +693,30 @@ export const TOKEN_MARGIN = 1
  * su fondo trasparente con un piccolo margine; la tessera è il rettangolo della carta, perché la
  * forma (esagono, cerchio, angoli arrotondati) la dà Tabletop Simulator.
  */
-export function piecePage(t: Template, side: Side, kind: 'token' | 'tile'): ScenePage {
-  if (kind === 'tile') return cardPage(t, side, false, 'cut')
+export function piecePage(t: Template, side: Side, kind: TtsPieceKind): ScenePage {
+  if (kind !== 'token') return cardPage(t, side, false, 'cut')
   const m = TOKEN_MARGIN
   return {
     width: t.width + 2 * m,
     height: t.height + 2 * m,
     items: [{ x: m, y: m, template: t, side, mode: 'trim' }],
+    lines: []
+  }
+}
+
+/** Foglio delle facce di un dado: le sei carte in 3 colonne e 2 righe, senza abbondanza */
+export function diePage(die: TtsDiePlan): ScenePage {
+  const t0 = die.cards[0].template
+  return {
+    width: TTS_DIE_COLS * t0.width,
+    height: TTS_DIE_ROWS * t0.height,
+    items: die.cards.map((c, k) => ({
+      x: (k % TTS_DIE_COLS) * t0.width,
+      y: Math.floor(k / TTS_DIE_COLS) * t0.height,
+      template: c.template,
+      side: 'front' as const,
+      mode: 'cut' as const
+    })),
     lines: []
   }
 }

@@ -19,6 +19,10 @@ import {
   ttsCardScale,
   ttsPieceScale,
   ttsSavedPieces,
+  ttsSavedDice,
+  ttsDieObj,
+  ttsDieRotations,
+  type TtsDie,
   ttsTileType,
   ttsScale,
   uniqueNames,
@@ -276,5 +280,100 @@ describe('Tabletop Simulator: segnalini e tessere', () => {
     // misurati in TTS: tessera da 45 mm larga 2 a scala 1, stella da 27 mm (29 con il margine) 3
     expect(ttsPieceScale('tile', 45, 45)).toBeCloseTo(0.804, 3)
     expect(ttsPieceScale('token', 29, 29)).toBeCloseTo(0.324, 3)
+  })
+})
+
+describe('Tabletop Simulator: plance e dadi', () => {
+  it('le plance non vanno in un sacchetto e non si impilano: una accanto all altra', () => {
+    const board = (n: number, count = 1): TtsPiece => ({
+      faceUrl: `file:///f${n}.png`,
+      backUrl: `file:///b${n}.png`,
+      nickname: '',
+      description: '',
+      count
+    })
+    const saved = ttsSavedPieces(
+      'Mappa',
+      'board',
+      { thickness: 3, edgeColor: '#000' },
+      0,
+      [board(1, 2), board(2)],
+      { w: 300, h: 200 }
+    ) as { ObjectStates: { Nickname: string; Transform: { posX: number } }[] }
+    expect(saved.ObjectStates.map((o) => o.Nickname)).toEqual(['Mappa 1', 'Mappa 2', 'Mappa 3'])
+    const xs = saved.ObjectStates.map((o) => o.Transform.posX)
+    expect(xs[0]).toBe(0)
+    expect(xs[1] - xs[0]).toBeGreaterThan((300 * 2.25) / 63)
+    expect(saved.ObjectStates[2]).toMatchObject({
+      Name: 'Custom_Tile',
+      CustomImage: { ImageSecondaryURL: 'file:///b2.png', CustomTile: { Stackable: false } }
+    })
+  })
+
+  it('il cubo del dado: facce verso fuori, ogni valore nella sua cella e dritto', () => {
+    const lines = ttsDieObj(2).split('\n')
+    const v = lines.filter((l) => l.startsWith('v ')).map((l) => l.slice(2).split(' ').map(Number))
+    const vt = lines
+      .filter((l) => l.startsWith('vt '))
+      .map((l) => l.slice(3).split(' ').map(Number))
+    const f = lines.filter((l) => l.startsWith('f ')).map((l) => l.slice(2).split(' '))
+    expect([v.length, vt.length, f.length]).toEqual([24, 24, 12])
+    // valore k + 1: normale verso fuori, cella (k % 3, k / 3) del foglio
+    const normals = [
+      [0, 1, 0],
+      [0, 0, 1],
+      [1, 0, 0],
+      [-1, 0, 0],
+      [0, 0, -1],
+      [0, -1, 0]
+    ]
+    for (let k = 0; k < 6; k++) {
+      const [a, b, c] = f[k * 2].map((s) => v[Number(s.split('/')[0]) - 1])
+      const e1 = [0, 1, 2].map((j) => b[j] - a[j])
+      const e2 = [0, 1, 2].map((j) => c[j] - a[j])
+      const n = [
+        e1[1] * e2[2] - e1[2] * e2[1],
+        e1[2] * e2[0] - e1[0] * e2[2],
+        e1[0] * e2[1] - e1[1] * e2[0]
+      ].map((x) => Math.sign(x) + 0)
+      expect(n).toEqual(normals[k])
+      const uv = vt.slice(k * 4, k * 4 + 4)
+      const cu = uv.reduce((s, p) => s + p[0], 0) / 4
+      const cv = uv.reduce((s, p) => s + p[1], 0) / 4
+      expect(Math.floor(cu * 3)).toBe(k % 3)
+      expect(Math.floor((1 - cv) * 2)).toBe(Math.floor(k / 3))
+    }
+    // facce laterali: il bordo alto dell'immagine è in alto sul dado
+    const top = vt[4 + 2][1]
+    expect(v[4 + 2][1]).toBe(1)
+    expect(top).toBeGreaterThan(vt[4][1])
+  })
+
+  it('valori e rotazioni del dado; più dadi in un sacchetto', () => {
+    const rot = ttsDieRotations(['A', '', 'C'])
+    expect(rot.map((r) => r.Value)).toEqual(['A', '2', 'C', '4', '5', '6'])
+    expect(rot[5]).toMatchObject({ Rotation: { x: 180, y: 0, z: 0 } })
+    const die = (n: number, count = 1): TtsDie => ({
+      imageUrl: `file:///d${n}.png`,
+      values: ['1', '2', '3', '4', '5', '6'],
+      nickname: `D${n}`,
+      description: '',
+      count
+    })
+    const one = ttsSavedDice('Dadi', [{ ...die(1), nickname: '' }], 'file:///d6.obj')
+    expect(one).toMatchObject({
+      ObjectStates: [
+        {
+          Name: 'Custom_Model',
+          Nickname: 'Dadi',
+          CustomMesh: { MeshURL: 'file:///d6.obj', DiffuseURL: 'file:///d1.png', TypeIndex: 2 }
+        }
+      ]
+    })
+    const many = ttsSavedDice('Dadi', [die(1, 2), die(2)], 'file:///d6.obj') as {
+      ObjectStates: { Name: string; ContainedObjects: { Nickname: string }[] }[]
+    }
+    expect(many.ObjectStates[0].Name).toBe('Bag')
+    expect(many.ObjectStates[0].ContainedObjects.map((o) => o.Nickname)).toEqual(['D1', 'D1', 'D2'])
   })
 })

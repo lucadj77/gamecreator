@@ -770,11 +770,13 @@ export default function ExportDialog({
                           [
                             ['card', t('export.ttsCard')],
                             ['token', t('export.ttsToken')],
-                            ['tile', t('export.ttsTile')]
+                            ['tile', t('export.ttsTile')],
+                            ['board', t('export.ttsBoard')],
+                            ['die', t('export.ttsDie')]
                           ],
                           (type) => set({ type })
                         )}
-                        {obj.type !== 'card' && (
+                        {obj.type !== 'card' && obj.type !== 'die' && (
                           <>
                             <span className="unit">{t('export.ttsThickness')}</span>
                             <input
@@ -797,7 +799,7 @@ export default function ExportDialog({
                             <span className="unit">mm</span>
                           </>
                         )}
-                        {obj.type === 'tile' && (
+                        {(obj.type === 'tile' || obj.type === 'board') && (
                           <>
                             <span className="unit">{t('export.ttsEdge')}</span>
                             <ColorSwatch

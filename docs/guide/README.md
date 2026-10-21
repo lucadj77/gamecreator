@@ -210,6 +210,8 @@ Sorting and filtering change only the view: the sheet and the export stay as the
 
 ![Cards sorted by strength and filtered](img/ordina-filtra.png)
 
+**Statistics…** shows how many cards have each value of a column, also of a formula layer, with a bar to compare them: useful to balance the set (for example how many cards per cost). For numeric columns it also gives sum, average, minimum and maximum. Copies from the `amount` column count, unless you untick the box; with an active filter only the filtered cards count.
+
 ### 5.4 Property columns
 
 Besides the main value, every property of a layer can change card by card with a `layer.property` column: for example `name.color` for the title color, or `icon.tint` for the tint of an icon. **+ Column** suggests the columns the template reads and the sheet lacks, the properties of a layer of your choice, or a free column.

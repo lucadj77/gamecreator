@@ -7,6 +7,7 @@ import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
 import { saveTemplate, trashTemplate } from './project/templates'
 import { saveNote, trashNote } from './project/notes'
+import { dropDeleted, listDeleted, readDeleted } from './project/trash'
 import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
@@ -239,6 +240,23 @@ function registerIpc(): void {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     await trashNote(folder, name)
+  })
+
+  ipcMain.handle('trash:list', async () => {
+    const folder = getProjectFolder()
+    return folder ? listDeleted(folder) : []
+  })
+
+  ipcMain.handle('trash:read', async (_, file: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return readDeleted(folder, file)
+  })
+
+  ipcMain.handle('trash:drop', async (_, files: string[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await dropDeleted(folder, files)
   })
 
   ipcMain.handle('data:save', async (_, changes: DataChanges) => {

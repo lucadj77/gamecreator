@@ -13,6 +13,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - The hexagon is now regular (all sides and angles equal): as card shape, where it is the largest that fits in the card (**Fit the card to the hexagon** adjusts the short side so it fills the card), and as text background (`bg=hexagon`). Before, it was stretched to the card size. Polygon and star layers get a **Make regular** button.
 - Text: underscores keep a piece of text on one line, so a number and its icon never get separated: `_4{coin}_`. The same as the new `nowrap` attribute: `[4{coin}]{nowrap}`.
 - Styles and variables can be split into groups (**Group** field in their window, or by dragging an item onto a group heading or next to an item of another group). In the sidebar each group has a heading that closes with a click; with more than 12 items a field filters them by name.
+- Sidebar: the Sets, Templates, Styles and Variables headings stand out as colored bands, with larger icons and buttons.
 - The style and variable windows show **Where it is used**: templates with their layers, sets with card numbers, other variables and styles. Clicking a template or set opens it.
 - PDF export: new **One after another on the same page** option. A set starts right after the previous one instead of on a new page, so 10 + 8 cards with 9 per page take 2 pages, not 3. A set with cards of another size starts on a new row of the same page, if there is room.
 
@@ -22,6 +23,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - L'esagono ora è regolare (lati e angoli tutti uguali): come forma della carta, dove è il più grande che sta nella carta (**Adatta la carta all'esagono** cambia il lato corto perché la riempia), e come sfondo nel testo (`bg=hexagon`). Prima si allungava sulle misure della carta. I livelli poligono e stella hanno un pulsante **Rendi regolare**.
 - Testo: i trattini bassi tengono un pezzo di testo sulla stessa riga, così un numero e la sua icona non si separano: `_4{moneta}_`. È lo stesso del nuovo attributo `nowrap`: `[4{moneta}]{nowrap}`.
 - Stili e variabili si possono dividere in gruppi (campo **Gruppo** nella loro finestra, oppure trascinando una voce sul titolo di un gruppo o accanto a una voce di un altro gruppo). Nella barra laterale ogni gruppo ha un titolo che si chiude con un clic; con più di 12 voci un campo le filtra per nome.
+- Barra laterale: i titoli Set, Template, Stili e Variabili risaltano come fasce colorate, con icone e pulsanti più grandi.
 - Le finestre di stili e variabili mostrano **Dove si usa**: template con i livelli, set con i numeri delle carte, altre variabili e stili. Un clic su un template o su un set lo apre.
 - Esportazione in PDF: nuova opzione **Uno dopo l'altro sulla stessa pagina**. Un set comincia subito dopo il precedente invece che su una pagina nuova, quindi 10 + 8 carte con 9 per pagina occupano 2 pagine e non 3. Un set con carte di un'altra misura comincia su una riga nuova della stessa pagina, se c'è posto.
 

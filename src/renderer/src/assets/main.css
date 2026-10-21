@@ -2643,12 +2643,40 @@ div.font-row {
   padding: 3px 4px;
 }
 
+/* titolo della sezione come fascia, per distinguere set, template, stili e variabili */
 .sidebar-section h2 {
-  margin-bottom: 6px;
+  margin: 0 -4px 6px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.sidebar-section + .sidebar-section {
+  margin-top: 14px;
 }
 
 .sidebar-section.closed h2 {
-  margin-bottom: 10px;
+  margin-bottom: 0;
+}
+
+.sidebar-section h2 .icon-btn {
+  font-size: 16px;
+  padding: 2px 5px;
+  color: var(--text);
+}
+
+.sidebar-section h2 .icon-btn.sort-alpha {
+  font-size: 11px;
+}
+
+.sidebar-section h2 .section-icon {
+  font-size: 17px;
+  color: var(--accent);
+  margin-right: 2px;
 }
 
 .section-toggle {

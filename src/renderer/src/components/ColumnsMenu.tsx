@@ -9,13 +9,21 @@ interface Props {
   hidden: Set<string>
   showComputed: boolean
   onChange(view: Pick<SetDefinition, 'hiddenColumns' | 'showComputed'>): void
+  /** Torna alla vista di base: solo le colonne dei livelli collegati, dettagli chiusi */
+  onReset(): void
 }
 
 /**
  * Colonne mostrate nella tabella e nei campi della carta: di base tutte quelle modificabili;
  * i livelli fissi e con formula si aggiungono a richiesta, in sola lettura.
  */
-function ColumnsMenu({ columns, hidden, showComputed, onChange }: Props): React.JSX.Element {
+function ColumnsMenu({
+  columns,
+  hidden,
+  showComputed,
+  onChange,
+  onReset
+}: Props): React.JSX.Element {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
@@ -83,11 +91,22 @@ function ColumnsMenu({ columns, hidden, showComputed, onChange }: Props): React.
           {showComputed && computed.length > 0 && (
             <div className="columns-menu-list">{computed.map(item)}</div>
           )}
-          {hidden.size > 0 && (
-            <button className="columns-menu-all" onClick={() => onChange({ hiddenColumns: [] })}>
-              {t('columns.showAll')}
+          <div className="columns-menu-actions">
+            {hidden.size > 0 && (
+              <button onClick={() => onChange({ hiddenColumns: [] })}>
+                {t('columns.showAll')}
+              </button>
+            )}
+            <button
+              title={t('columns.resetHint')}
+              onClick={() => {
+                onReset()
+                setOpen(false)
+              }}
+            >
+              {t('columns.reset')}
             </button>
-          )}
+          </div>
         </div>
       )}
     </div>

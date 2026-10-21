@@ -90,6 +90,9 @@ export const it: Record<MessageKey, string> = {
   'columns.hint': 'Colonne mostrate nella tabella e nei campi della carta.',
   'columns.showComputed': 'Mostra i livelli fissi e con formula (sola lettura)',
   'columns.showAll': 'Mostra tutte',
+  'columns.reset': 'Ripristina',
+  'columns.resetHint':
+    'Mostra solo le colonne dei livelli collegati a una colonna e chiude i dettagli dei campi',
   'tip.columns':
     'Scegli le colonne da mostrare; si possono mostrare anche i livelli fissi e con formula',
   'table.removeColumn': 'Elimina colonna',

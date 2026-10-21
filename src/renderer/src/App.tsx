@@ -39,6 +39,7 @@ import {
   removeRows,
   applyOrder,
   setColumns,
+  defaultHiddenColumns,
   viewRows,
   writeCells,
   NO_VIEW,
@@ -2273,6 +2274,15 @@ function SetView({
             hidden={hidden}
             showComputed={!!set.showComputed}
             onChange={onChangeColumns}
+            onReset={() => {
+              onChangeColumns({
+                hiddenColumns: defaultHiddenColumns(allColumns, template, [
+                  ...new Set(rowTemplates)
+                ]),
+                showComputed: false
+              })
+              setDetails(new Set())
+            }}
           />
           <span className="sep" />
           <input

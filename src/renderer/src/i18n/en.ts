@@ -1241,6 +1241,22 @@ export const en = {
   'documents.openFolder': 'Open folder',
   'documents.exportProblems':
     'The document has problems ({n}), listed under the text: cards and images that are not found are left out.',
+  'documents.table': 'Table',
+  'documents.tableButtonHint': 'Insert a table, or edit the table where the cursor is',
+  'documents.insertTable': 'Insert table',
+  'documents.editTable': 'Edit table',
+  'documents.tableAlign': 'Column alignment',
+  'documents.tableAlignAuto': 'Auto',
+  'documents.tableAlignCenter': 'Center',
+  'documents.tableAlignRight': 'Right',
+  'documents.removeColumn': 'Remove column',
+  'documents.removeRow': 'Remove row',
+  'documents.addRow': '+ Row',
+  'documents.addColumn': '+ Column',
+  'documents.tableHeading': 'Heading',
+  'documents.tableHint':
+    'The first row is the heading. Cells can use markup, such as {heart} or **bold**. You can paste cells copied from a spreadsheet.',
+  'documents.saveTable': 'Save table',
   'documents.insertCard': 'Insert card',
   'documents.insertCardHint':
     'Choose a card of the game: the document shows it as it is in the project, and follows its changes',

@@ -8,6 +8,7 @@ import {
   findCard,
   parseCardRef,
   parseDocument,
+  tableSource,
   withDocumentSettings
 } from '../document'
 import type { LoadedSet } from '../../project'
@@ -207,5 +208,29 @@ describe('impostazioni della pagina', () => {
     const two = withDocumentSettings(one, { size: 11, margin: 10 })
     expect(two).toBe('---\npage: A5\nmargin: 10\n---\n\n# Regole\n')
     expect(withDocumentSettings(two, { page: 'A4', margin: 18 })).toBe('# Regole\n')
+  })
+})
+
+describe('tabelle', () => {
+  it('si riscrivono dal testo e tornano uguali', () => {
+    const md = tableSource(
+      ['Azione', 'Costo'],
+      [null, 'center'],
+      [['Attacco | forte', '1'], ['Difesa']]
+    )
+    expect(md).toBe(
+      '| Azione           | Costo |\n| ---------------- | :---: |\n| Attacco \\| forte | 1     |\n| Difesa           |       |'
+    )
+    const src = `Testo\n\n${md}\n\nAltro`
+    const t = parseDocument(src).find((b) => b.kind === 'table')!
+    expect(t).toMatchObject({
+      header: ['Azione', 'Costo'],
+      align: [null, 'center'],
+      rows: [
+        ['Attacco | forte', '1'],
+        ['Difesa', '']
+      ]
+    })
+    expect(src.slice(t.from, t.kind === 'table' ? t.to : 0)).toBe(md)
   })
 })

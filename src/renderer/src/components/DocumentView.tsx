@@ -6,6 +6,7 @@ import {
   DOCUMENTS_DIR,
   documentProblems,
   documentSettings,
+  parseDocument,
   withDocumentSettings
 } from '../../../shared/model/document'
 import { useI18n } from '../i18n/context'
@@ -15,6 +16,7 @@ import DocumentSettingsPanel from './DocumentSettingsPanel'
 import DocumentExportDialog, { type DocExportKind } from './DocumentExportDialog'
 import { documentHtml, documentMarkdown } from '../export/documentExport'
 import InsertCardDialog from './InsertCardDialog'
+import TableDialog, { type TableValue } from './TableDialog'
 import MarkupTextarea from './MarkupTextarea'
 import { TrashIcon } from './icons'
 
@@ -56,10 +58,18 @@ export default function DocumentView({
   const [inserting, setInserting] = useState(false)
   const [pageOpen, setPageOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
+  /** La tabella aperta nello strumento: nuova, o quella del testo tra from e to */
+  const [tableEdit, setTableEdit] = useState<{
+    value?: TableValue
+    from?: number
+    to?: number
+  } | null>(null)
   const editor = useRef<HTMLTextAreaElement | null>(null)
   const preview = useRef<HTMLDivElement>(null)
   /** Dove rimettere il cursore dopo un inserimento, quando il testo nuovo è arrivato */
   const caret = useRef<number | null>(null)
+  /** Ultima posizione del cursore nel testo; prima di scrivere si inserisce in fondo */
+  const lastCaret = useRef<number | null>(null)
 
   const nameError = !isValidNoteName(draftName)
     ? t('document.invalidName', { name: draftName })
@@ -103,6 +113,23 @@ export default function DocumentView({
     }
   }, [text])
 
+  /** Apre lo strumento tabella: sulla tabella dove sta il cursore, se c'è */
+  const openTable = (): void => {
+    // il campo ricorda il cursore anche dopo aver perso il fuoco
+    const at = lastCaret.current === null ? null : (editor.current?.selectionStart ?? null)
+    const found =
+      at === null
+        ? undefined
+        : parseDocument(text).find((b) => b.kind === 'table' && b.from <= at && at <= b.to)
+    if (found?.kind === 'table')
+      setTableEdit({
+        value: { header: found.header, align: found.align, rows: found.rows },
+        from: found.from,
+        to: found.to
+      })
+    else setTableEdit({})
+  }
+
   /** Esporta dall'anteprima, mostrata per un momento senza riduzione: le carte si misurano così */
   const exportAs = async (kind: DocExportKind): Promise<string> => {
     const page = preview.current?.querySelector<HTMLElement>('.doc-page')
@@ -144,8 +171,6 @@ export default function DocumentView({
       box.scrollTo({ top: Math.max(0, top - 40) })
   }
 
-  /** Ultima posizione del cursore nel testo; prima di scrivere si inserisce in fondo */
-  const lastCaret = useRef<number | null>(null)
   /** Inserisce un blocco al posto del cursore, su righe sue */
   const insertBlock = (block: string): void => {
     const at = Math.min(lastCaret.current ?? text.length, text.length)
@@ -173,6 +198,9 @@ export default function DocumentView({
         />
         <button onClick={() => setInserting(true)} title={t('documents.insertCardHint')}>
           {t('documents.insertCard')}
+        </button>
+        <button onClick={openTable} title={t('documents.tableButtonHint')}>
+          {t('documents.table')}
         </button>
         <button onClick={() => setExporting(true)} title={t('documents.exportHint')}>
           {t('documents.export')}
@@ -256,6 +284,20 @@ export default function DocumentView({
           problems={problems.length}
           onExport={exportAs}
           onClose={() => setExporting(false)}
+        />
+      )}
+      {tableEdit && (
+        <TableDialog
+          initial={tableEdit.value}
+          onClose={() => setTableEdit(null)}
+          onSave={(md) => {
+            setTableEdit(null)
+            if (tableEdit.from === undefined || tableEdit.to === undefined) insertBlock(md)
+            else {
+              caret.current = tableEdit.from + md.length
+              onChange(text.slice(0, tableEdit.from) + md + text.slice(tableEdit.to))
+            }
+          }}
         />
       )}
       {inserting && (

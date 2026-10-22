@@ -4705,3 +4705,37 @@ details.usages button.link {
 .document-export-kinds strong {
   font-size: 15px;
 }
+
+.table-dialog-scroll {
+  max-height: 55vh;
+  overflow: auto;
+}
+
+.table-dialog-grid {
+  border-collapse: collapse;
+  width: auto;
+  min-width: 0;
+}
+
+.table-dialog-grid th,
+.table-dialog-grid td {
+  padding: 2px;
+  border: none;
+  background: none;
+  position: static;
+  white-space: nowrap;
+  max-width: none;
+}
+
+.table-dialog-grid th select {
+  width: auto;
+  font-size: 12px;
+}
+
+.table-dialog-grid input {
+  width: 130px;
+}
+
+.table-dialog-header input {
+  font-weight: 600;
+}

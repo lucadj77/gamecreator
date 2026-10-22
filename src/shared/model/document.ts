@@ -35,7 +35,14 @@ export type DocBlock = { from: number } & (
   | { kind: 'paragraph'; text: string }
   | { kind: 'list'; items: DocListItem[] }
   | { kind: 'quote'; text: string }
-  | { kind: 'table'; header: string[]; align: (HAlign | null)[]; rows: string[][] }
+  | {
+      kind: 'table'
+      header: string[]
+      align: (HAlign | null)[]
+      rows: string[][]
+      /** Fine dell'ultima riga della tabella nel testo: lo strumento tabella la riscrive */
+      to: number
+    }
   | { kind: 'rule' }
   | { kind: 'code'; text: string }
   /** Una riga con sole immagini: una o più carte (o immagini) affiancate */
@@ -162,7 +169,8 @@ export function parseDocument(src: string): DocBlock[] {
         header,
         align: header.map((_, k) => align[k] ?? null),
         rows,
-        from
+        from,
+        to: starts[i - 1] + lines[i - 1].length
       })
       continue
     }
@@ -226,6 +234,26 @@ function joinLines(lines: string[]): string {
     out += l.trim() + ' '
   })
   return out.trim()
+}
+
+/** Testo Markdown di una tabella, con le colonne allineate perché si legga anche così */
+export function tableSource(header: string[], align: (HAlign | null)[], rows: string[][]): string {
+  const cell = (s: string): string => s.replace(/\r?\n/g, ' ').replace(/\\?\|/g, '\\|').trim()
+  const all = [header, ...rows].map((r) => header.map((_, k) => cell(r[k] ?? '')))
+  const width = header.map((_, k) => Math.max(3, ...all.map((r) => r[k].length)))
+  const line = (r: string[]): string => `| ${r.map((c, k) => c.padEnd(width[k])).join(' | ')} |`
+  const sep = header.map((_, k) => {
+    const a = align[k]
+    const dashes = '-'.repeat(width[k] - (a === 'center' ? 2 : a ? 1 : 0))
+    return a === 'center'
+      ? `:${dashes}:`
+      : a === 'right'
+        ? `${dashes}:`
+        : a === 'left'
+          ? `:${dashes}`
+          : dashes
+  })
+  return [line(all[0]), `| ${sep.join(' | ')} |`, ...all.slice(1).map(line)].join('\n')
 }
 
 /** Celle di una riga di tabella; \| è una barra nel testo */

@@ -1261,6 +1261,22 @@ export const it: Record<MessageKey, string> = {
   'documents.openFolder': 'Apri la cartella',
   'documents.exportProblems':
     'Il documento ha dei problemi ({n}), elencati sotto il testo: le carte e le immagini che non si trovano restano fuori.',
+  'documents.table': 'Tabella',
+  'documents.tableButtonHint': 'Inserisce una tabella, o modifica quella dove si trova il cursore',
+  'documents.insertTable': 'Inserisci tabella',
+  'documents.editTable': 'Modifica tabella',
+  'documents.tableAlign': 'Allineamento della colonna',
+  'documents.tableAlignAuto': 'Automatico',
+  'documents.tableAlignCenter': 'Al centro',
+  'documents.tableAlignRight': 'A destra',
+  'documents.removeColumn': 'Togli la colonna',
+  'documents.removeRow': 'Togli la riga',
+  'documents.addRow': '+ Riga',
+  'documents.addColumn': '+ Colonna',
+  'documents.tableHeading': 'Intestazione',
+  'documents.tableHint':
+    "La prima riga è l'intestazione. Nelle celle si può usare il markup, come {cuore} o **grassetto**. Si possono incollare celle copiate da un foglio di calcolo.",
+  'documents.saveTable': 'Salva la tabella',
   'documents.insertCard': 'Inserisci carta',
   'documents.insertCardHint':
     "Scegli una carta del gioco: il documento la mostra com'è nel progetto e ne segue le modifiche",

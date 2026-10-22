@@ -113,6 +113,8 @@ export const en = {
   'addColumn.exists': 'The column already exists',
   'addColumn.invalid': 'Braces are not allowed in column names',
   'sidebar.delete': 'Delete',
+  'sidebar.renameSheetConfirm':
+    'Also rename the sheet "{sheet}" in the data file to "{name}"? Formulas in other sheets that refer to it would stop working. Cancel to keep the sheet\'s name.',
   'sidebar.deleteSetConfirm':
     'Delete the set "{name}"? When you save, its sheet leaves the data file and goes to the project\'s deleted folder, from where it can be recovered.',
   'sidebar.deleteTemplateConfirm':
@@ -779,6 +781,13 @@ export const en = {
   'inherit.cardTemplateSize':
     'The card uses template "{name}", which has a different size from the set\'s',
   'load.missingSheet': 'Set "{set}" cannot find sheet "{sheet}"',
+  'save.dataLossConfirm':
+    'The data file contains {what}: saving the set data, Naibi removes them from the whole file, unlinked sheets included. Save anyway?',
+  'dataLoss.charts': 'charts',
+  'dataLoss.pivotTables': 'pivot tables',
+  'dataLoss.slicers': 'slicers and timelines',
+  'dataLoss.macros': 'macros',
+  'dataLoss.externalLinks': 'links to other files',
   'load.missingTemplate': 'Set "{set}" uses template "{template}", which does not exist',
   'load.duplicateLayers': 'Template "{template}": repeated layer names ({names})',
   'load.unreadableTemplate': 'Template {file} cannot be read: {error}',
@@ -1576,6 +1585,10 @@ export const en = {
   'newProject.dataFile': 'Data file',
   'newProject.xlsx': 'Excel (.xlsx), recommended',
   'newProject.ods': 'OpenDocument (.ods)',
+  'newProject.existing': 'A file you already have (.xlsx, .ods, .csv)…',
+  'newProject.existingFile': 'File',
+  'newProject.existingNote':
+    'Naibi works on a copy of the file, in the project\'s data folder: the original does not change. Sheets are linked to sets with New set. Read "Using an Excel file you already have" in the guide first.',
   'newProject.notEmpty': 'The folder {folder} already exists and is not empty.',
   'update.available': 'Naibi {version} is available.',
   'update.whatsNew': "What's new",

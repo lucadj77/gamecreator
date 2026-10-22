@@ -115,6 +115,8 @@ export const webApi: Api = {
     await saveThumbnail(f, template, context)
   },
   defaultProjectsFolder: async () => '',
+  // nel browser non c'è un percorso da copiare: il file dei dati si mette poi nella cartella
+  chooseDataFile: async () => null,
   createProject: async (name, parent, data) => {
     if (!parent) throw new MessageError(msg('web.chooseParent'))
     if (!(await ensurePermission(parent))) throw new MessageError(msg('web.permissionDenied'))

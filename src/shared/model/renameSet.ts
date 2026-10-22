@@ -40,19 +40,21 @@ function renameInProfiles(
 }
 
 /**
- * Il set `index` con il nome `to`. Se il foglio ha lo stesso nome del set lo segue; un foglio con
- * un nome suo, o il file .csv (che ha un solo foglio con il nome del file), resta com'è.
+ * Il set `index` con il nome `to`. Se il foglio ha lo stesso nome del set lo segue, a meno di
+ * `keepSheet`; un foglio con un nome suo, o il file .csv (che ha un solo foglio con il nome del
+ * file), resta com'è.
  */
 export function renameSet(
   file: ProjectFile,
   sets: LoadedSet[],
   index: number,
   to: string,
-  csv: boolean
+  csv: boolean,
+  keepSheet = false
 ): { file: ProjectFile; sets: LoadedSet[] } {
   const set = sets[index]
   const from = set.name
-  const follows = !csv && !set.sheet && !!set.data
+  const follows = !csv && !keepSheet && !set.sheet && !!set.data
   const def = { ...file.sets[index], name: to }
   if (follows) delete def.sheet
   else def.sheet = set.sheet ?? set.name

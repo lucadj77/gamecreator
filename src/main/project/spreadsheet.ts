@@ -2,8 +2,9 @@ import { readFile, rename, writeFile } from 'fs/promises'
 import { exists } from '../fs'
 import { basename, extname } from 'path'
 import ExcelJS from 'exceljs'
+import JSZip from 'jszip'
 import Papa from 'papaparse'
-import type { Sheet } from '../../shared/project'
+import type { DataFileLoss, Sheet } from '../../shared/project'
 import { odsTableNames, odsWithOnly, readOds, writeOds } from './ods'
 import { MessageError, msg } from '../../shared/messages'
 import { deletedPath } from './deleted'
@@ -38,14 +39,12 @@ export async function readXlsx(source: string | Buffer): Promise<Sheet[]> {
  * mezzanotte), non la stringa JavaScript che darebbe `text`
  */
 export function cellText(cell: ExcelJS.Cell): string {
-  const v = cell.value
-  const date =
-    v instanceof Date
-      ? v
-      : v && typeof v === 'object' && 'result' in v && v.result instanceof Date
-        ? v.result
-        : null
-  if (date) return isoDate(date)
+  // di una formula conta il risultato salvato nel file (da cell.result: cell.value perde FALSO)
+  const r = cell.type === ExcelJS.ValueType.Formula ? cell.result : cell.value
+  if (r instanceof Date) return isoDate(r)
+  // un errore (#DIV/0!, #N/A) si legge com'è scritto, VERO e FALSO come true e false
+  if (r && typeof r === 'object' && 'error' in r) return String(r.error)
+  if (typeof r === 'boolean') return String(r)
   return cell.text ?? ''
 }
 
@@ -149,6 +148,29 @@ async function writeXlsx(path: string, sheets: Sheet[], removed: string[]): Prom
   const tmp = path + '.tmp'
   await writeFile(tmp, await workbookBuffer(workbook))
   await rename(tmp, path)
+}
+
+/** Parti di un .xlsx che exceljs non riscrive, per tipo */
+const LOST_PARTS: [DataFileLoss, RegExp][] = [
+  ['charts', /^xl\/(charts|chartsheets)\//],
+  ['pivotTables', /^xl\/(pivotTables|pivotCache)\//],
+  ['slicers', /^xl\/(slicers|slicerCaches|timelines|timelineCaches)\//],
+  ['macros', /^xl\/vbaProject\.bin$/],
+  ['externalLinks', /^xl\/externalLinks\//]
+]
+
+/**
+ * Cosa si perderebbe riscrivendo il file dati .xlsx: grafici, tabelle pivot e altro che exceljs
+ * non conosce e che al salvataggio sparisce da tutto il file, non solo dai fogli dei set.
+ */
+export async function xlsxLosses(source: string | Buffer): Promise<DataFileLoss[]> {
+  const data = typeof source === 'string' ? await readFile(source) : source
+  const zip = await JSZip.loadAsync(data)
+  const present = LOST_PARTS.filter(([, re]) => Object.keys(zip.files).some((f) => re.test(f)))
+  if (!present.length) return []
+  const after = await JSZip.loadAsync(await workbookBuffer(await readWorkbook(data)))
+  const kept = Object.keys(after.files)
+  return present.filter(([, re]) => !kept.some((f) => re.test(f))).map(([kind]) => kind)
 }
 
 /**

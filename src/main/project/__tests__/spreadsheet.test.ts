@@ -4,7 +4,7 @@ import { join } from 'path'
 import ExcelJS from 'exceljs'
 import { describe, expect, it } from 'vitest'
 import { saveData } from '../save'
-import { readSpreadsheet, writeSpreadsheet } from '../spreadsheet'
+import { readSpreadsheet, writeSpreadsheet, xlsxLosses } from '../spreadsheet'
 
 async function workbook(path: string): Promise<void> {
   const wb = new ExcelJS.Workbook()
@@ -208,5 +208,18 @@ describe('celle che non cambiano', () => {
     const again = new ExcelJS.Workbook()
     await again.xlsx.readFile(path)
     expect(again.getWorksheet('Set')!.getCell('A6').value).toBe('d')
+  })
+
+  it('legge errori e valori logici come li scrive il foglio; sa che i grafici si perderebbero', async () => {
+    const chart = join(__dirname, 'fixtures', 'chart.xlsx')
+    const [sheet] = await readSpreadsheet(chart)
+    expect(sheet.rows).toEqual([
+      ['a', '1', '#DIV/0!', 'true'],
+      ['b', '2', '#N/A', 'false']
+    ])
+    expect(await xlsxLosses(chart)).toEqual(['charts'])
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    await workbook(join(dir, 'dati.xlsx'))
+    expect(await xlsxLosses(join(dir, 'dati.xlsx'))).toEqual([])
   })
 })

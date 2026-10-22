@@ -11,7 +11,9 @@ const api: Api = {
   saveThumbnail: (template, context, onlyIfMissing) =>
     ipcRenderer.invoke('project:thumbnail', template, context, onlyIfMissing),
   defaultProjectsFolder: () => ipcRenderer.invoke('project:default-parent'),
-  createProject: (name, parent, data) => ipcRenderer.invoke('project:create', name, parent, data),
+  createProject: (name, parent, data, existing) =>
+    ipcRenderer.invoke('project:create', name, parent, data, existing),
+  chooseDataFile: () => ipcRenderer.invoke('project:choose-data-file'),
   saveTemplate: (template) => ipcRenderer.invoke('template:save', template),
   deleteTemplate: (file) => ipcRenderer.invoke('template:delete', file),
   saveNote: (name, text, oldName) => ipcRenderer.invoke('note:save', name, text, oldName),

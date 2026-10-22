@@ -117,6 +117,8 @@ export const it: Record<MessageKey, string> = {
   'addColumn.exists': 'La colonna esiste già',
   'addColumn.invalid': 'Le graffe non sono ammesse nei nomi delle colonne',
   'sidebar.delete': 'Elimina',
+  'sidebar.renameSheetConfirm':
+    'Rinominare anche il foglio "{sheet}" nel file dei dati in "{name}"? Le formule di altri fogli che lo citano smetterebbero di funzionare. Annulla per lasciare al foglio il suo nome.',
   'sidebar.deleteSetConfirm':
     'Eliminare il set "{name}"? Al salvataggio il suo foglio esce dal file dei dati e va nella cartella deleted del progetto, da cui si può recuperare.',
   'sidebar.deleteTemplateConfirm':
@@ -790,6 +792,13 @@ export const it: Record<MessageKey, string> = {
   'inherit.cardTemplateSize':
     'La carta usa il template "{name}", che ha misure diverse da quello del set',
   'load.missingSheet': 'Il set "{set}" non trova il foglio "{sheet}"',
+  'save.dataLossConfirm':
+    'Il file dei dati contiene {what}: salvando i dati dei set Naibi li toglie da tutto il file, anche dai fogli non collegati. Salvare comunque?',
+  'dataLoss.charts': 'grafici',
+  'dataLoss.pivotTables': 'tabelle pivot',
+  'dataLoss.slicers': 'filtri dati e sequenze temporali',
+  'dataLoss.macros': 'macro',
+  'dataLoss.externalLinks': 'collegamenti ad altri file',
   'load.missingTemplate': 'Il set "{set}" usa il template "{template}", che non esiste',
   'load.duplicateLayers': 'Template "{template}": nomi di livello ripetuti ({names})',
   'load.duplicateTemplate':
@@ -1597,6 +1606,10 @@ export const it: Record<MessageKey, string> = {
   'newProject.dataFile': 'File dei dati',
   'newProject.xlsx': 'Excel (.xlsx), consigliato',
   'newProject.ods': 'OpenDocument (.ods)',
+  'newProject.existing': 'Un file che hai già (.xlsx, .ods, .csv)…',
+  'newProject.existingFile': 'File',
+  'newProject.existingNote':
+    'Naibi lavora su una copia del file, nella cartella data del progetto: l\'originale non cambia. I fogli si collegano ai set con Nuovo set. Prima leggi "Usare un file Excel che hai già" nella guida.',
   'newProject.notEmpty': 'La cartella {folder} esiste già e non è vuota.',
   'update.available': 'È disponibile Naibi {version}.',
   'update.whatsNew': 'Novità',

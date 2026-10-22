@@ -80,8 +80,13 @@ export interface LoadedProject {
   sources: Sources
   /** Note del progetto, da notes/*.md */
   notes: ProjectNote[]
+  /** Cosa toglie dal file dati il primo salvataggio dei dati (solo .xlsx) */
+  dataFileLosses?: DataFileLoss[]
   warnings: Message[]
 }
+
+/** Oggetti di un file dati .xlsx che Naibi non sa riscrivere */
+export type DataFileLoss = 'charts' | 'pivotTables' | 'slicers' | 'macros' | 'externalLinks'
 
 /** Una versione del progetto da confrontare con quella di adesso */
 export type ProjectVersion = Pick<LoadedProject, 'file' | 'sets' | 'templates'>

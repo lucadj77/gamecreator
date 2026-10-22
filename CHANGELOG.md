@@ -11,11 +11,21 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 - Saving a set whose sheet has empty rows between the cards no longer moves the cards up: each card goes back to its row, the empty rows stay where they are, and the columns Naibi does not use (notes, formulas) stay next to the right card. The same holds for .ods files. If the headings are not in row 1 (for example row 1 is empty), Naibi now also writes them back to the right row.
 - Help (F1), Formulas tab: every function has an example with its result.
+- **New project** can start from a data file you already have (.xlsx, .ods, .csv): Naibi works on a copy in the project's `data` folder and its sheets become sets with **New set**. The guide has a new page on using an existing Excel file.
+- If the Excel data file contains charts, pivot tables, slicers or links to other files, Naibi warns before saving set data, because saving removes them from the whole file.
+- Renaming a set whose sheet is already in the data file asks whether to rename the sheet too: formulas in other sheets that refer to it would break.
+- Cells with an Excel error now read as the error (`#DIV/0!`, `#N/A`) instead of `[object Object]`, and FALSE reads as `false` instead of an empty cell.
+- A note that is already written opens in Preview; a new one opens ready for writing.
 
 ### Italiano
 
 - Salvando un set il cui foglio ha righe vuote tra le carte, le carte non salgono più: ognuna torna nella sua riga, le righe vuote restano dove sono e le colonne che Naibi non usa (note, formule) restano accanto alla carta giusta. Vale anche per i file .ods. Se le intestazioni non sono nella riga 1 (per esempio la riga 1 è vuota), Naibi ora le riscrive anche nella riga giusta.
 - Aiuto (F1), scheda Formule: ogni funzione ha un esempio con il suo risultato.
+- **Nuovo progetto** può partire da un file di dati che hai già (.xlsx, .ods, .csv): Naibi lavora su una copia nella cartella `data` del progetto e i suoi fogli diventano set con **Nuovo set**. La guida ha una pagina nuova su come usare un file Excel che hai già.
+- Se il file dei dati Excel contiene grafici, tabelle pivot, filtri dati o collegamenti ad altri file, Naibi avvisa prima di salvare i dati dei set, perché il salvataggio li toglie da tutto il file.
+- Rinominando un set il cui foglio è già nel file dei dati, Naibi chiede se rinominare anche il foglio: le formule di altri fogli che lo citano si romperebbero.
+- Le celle con un errore di Excel ora si leggono come l'errore (`#DIV/0!`, `#N/D`) invece di `[object Object]`, e FALSO si legge `false` invece di una cella vuota.
+- Una nota già scritta si apre in Anteprima; una nuova si apre pronta per scrivere.
 
 ## 1.2.0-beta.17
 

@@ -22,7 +22,7 @@ A project has one data file (usually `data/cards.xlsx`, set in `naibi.json` unde
 | When does Naibi rewrite the file?                                     | When you save changed data of a set, create a set with a new sheet, rename or delete a set. Opening the project, editing templates and exporting do not write to the file.                                                           | You fix a card name in the grid and press Save: the file is rewritten. You export the PDF: the file does not change.                          |
 | What does it rewrite?                                                 | Only the cells of the columns with a heading in the changed sheets, and only if the text changed. A formula cell whose result does not change stays a formula. Formatting, colours, conditional formatting and data validation stay. | You change the Footman's attack: only B2 changes in the file, and it stays yellow; D2 stays `=B2+C2`.                                         |
 | Empty rows between cards?                                             | They are skipped when reading; when saving, each card goes back to its row and the empty rows stay where they are.                                                                                                                   | Rows 2, 4 and 5 with data and row 3 empty: after saving row 3 is still empty.                                                                 |
-| What is lost when rewriting?                                          | Anything the library Naibi uses does not know, in the whole file: in our tests **charts** disappear even from sheets Naibi does not use.                                                                                             | The chart in the "Analysis" sheet is gone after saving, even if you changed only "Units".                                                     |
+| What is lost when rewriting?                                          | Anything the library Naibi uses does not know, in the whole file: in our tests **charts** disappear even from sheets Naibi does not use. Before saving Naibi warns and asks whether to go on.                                        | The chart in the "Analysis" sheet is gone after saving, even if you changed only "Units".                                                     |
 | Does it notice if I change the file in Excel while Naibi is open?     | No. Press **Reload** (unsaved changes in Naibi are lost).                                                                                                                                                                            | You change a cost in Excel and save: Naibi shows the old value until you press Reload.                                                        |
 | Number formats                                                        | Ignored. Dates arrive as `YYYY-MM-DD`.                                                                                                                                                                                               | A cell with 0.5 formatted as 50% shows on the card as `0.5`.                                                                                  |
 
@@ -53,9 +53,9 @@ In all three cases, calculations that concern a single card can move into the te
 
 **In Naibi**
 
-6. Create a new project with an Excel data file. Close Naibi.
-7. Copy your file into the project's `data` folder and name it `cards.xlsx` (or keep its name and change `dataFile` in `naibi.json`, for example `"data/game.xlsx"`).
-8. Open the project: the sidebar shows "Sheets not linked to a set" with all the sheets of the file.
+6. **New project**: under **Data file** choose **A file you already have** and pick your file. Naibi puts a copy in the project's `data` folder; from then on you work on that copy.
+7. For a project that already exists: close Naibi, copy the file into the project's `data` folder and change `dataFile` in `naibi.json`, for example `"data/game.xlsx"`.
+8. In the project, the sidebar shows "Sheets not linked to a set" with all the sheets of the file.
 9. Create a template. For each layer that shows data, in **Value on cards** choose **Column** and give the sheet heading.
 10. **New set**: choose the template and, under **Sheet**, the "Troops" sheet. The set shows the rows of the sheet right away.
 
@@ -74,20 +74,18 @@ Calculations that look at other rows or sheets stay in Excel: column sums and av
 
 Tested with files saved by LibreOffice; with files saved by Microsoft Excel the result for charts, tables and images may differ.
 
-| Situation                                                   | What happens                                                                                                                                           |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Charts in any sheet                                         | On the first data save from Naibi they disappear from the file, even from unlinked sheets.                                                             |
-| Title above the headings                                    | The first row with data becomes the heading row: the fields are wrong. The "clean" sheet solves it.                                                    |
-| Formula cell edited in Naibi                                | The formula is replaced by the value you typed.                                                                                                        |
-| Values depending on cells changed in Naibi                  | The old result stays until the file is opened and saved in Excel. Excel usually recalculates on opening; LibreOffice usually does not for Excel files. |
-| Renaming a set                                              | The sheet is renamed; formulas in other sheets that refer to it keep the old name and break.                                                           |
-| Deleting a set                                              | Its sheet leaves the file (a copy goes to `deleted/`); formulas that refer to it break.                                                                |
-| Error cells (#DIV/0!, #N/A)                                 | They show as `[object Object]`.                                                                                                                        |
-| FALSE                                                       | Shows as empty (TRUE shows as `true`).                                                                                                                 |
-| Merged cells                                                | The value is repeated in all merged cells; the merge stays.                                                                                            |
-| Excel table formatting                                      | Rows added by Naibi stay outside the table range.                                                                                                      |
-| Files with images, comments or tables made by some programs | Naibi may fail to open them ("Cannot read properties of undefined").                                                                                   |
-| Pivot tables, macros, shapes                                | Not tested: consider them at risk if Naibi saves.                                                                                                      |
-| Excel open while Naibi saves                                | On Windows Excel locks the file and saving probably fails; on Mac whoever saves last wins.                                                             |
+| Situation                                                   | What happens                                                                                                                                                 |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Charts, pivot tables, slicers in any sheet                  | On the first data save from Naibi they disappear from the file, even from unlinked sheets. Before saving Naibi says so and asks whether to go on.            |
+| Title above the headings                                    | The first row with data becomes the heading row: the fields are wrong. The "clean" sheet solves it.                                                          |
+| Formula cell edited in Naibi                                | The formula is replaced by the value you typed.                                                                                                              |
+| Values depending on cells changed in Naibi                  | The old result stays until the file is opened and saved in Excel. Excel usually recalculates on opening; LibreOffice usually does not for Excel files.       |
+| Renaming a set                                              | Naibi asks whether to rename the sheet too. If yes, formulas in other sheets that refer to it keep the old name and break; if not, the sheet keeps its name. |
+| Deleting a set                                              | Its sheet leaves the file (a copy goes to `deleted/`); formulas that refer to it break.                                                                      |
+| Merged cells                                                | The value is repeated in all merged cells; the merge stays.                                                                                                  |
+| Excel table formatting                                      | Rows added by Naibi stay outside the table range.                                                                                                            |
+| Files with images, comments or tables made by some programs | Naibi may fail to open them ("Cannot read properties of undefined").                                                                                         |
+| Pivot tables, macros, shapes                                | Not tested: consider them at risk if Naibi saves.                                                                                                            |
+| Excel open while Naibi saves                                | On Windows Excel locks the file and saving probably fails; on Mac whoever saves last wins.                                                                   |
 
 Naibi's automatic backups include the data file, but make your own copy before you start.

@@ -217,9 +217,18 @@ function registerIpc(): void {
   )
 
   ipcMain.handle('project:default-parent', () => join(app.getPath('documents'), 'Naibi'))
-  ipcMain.handle('project:create', (_, name: string, parent: string, data?: 'xlsx' | 'ods') =>
-    createProject(name, parent, data)
+  ipcMain.handle(
+    'project:create',
+    (_, name: string, parent: string, data?: 'xlsx' | 'ods', existing?: string) =>
+      createProject(name, parent, data, existing)
   )
+  ipcMain.handle('project:choose-data-file', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [{ name: 'Excel, OpenDocument, CSV', extensions: ['xlsx', 'ods', 'csv'] }]
+    })
+    return result.canceled ? null : result.filePaths[0]
+  })
 
   // si scrive solo nel progetto aperto, qualunque cartella arrivi dal renderer
   ipcMain.handle('template:save', async (_, template: Template) => {

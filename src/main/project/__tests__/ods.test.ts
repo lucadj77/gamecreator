@@ -147,4 +147,31 @@ describe('ods', () => {
       ['A', '1']
     ])
   })
+
+  it('una cella numerica modificata resta numerica, anche scritta con il formato', async () => {
+    const num = (type: string, value: string, text: string, extra = ''): string =>
+      `<table:table-cell office:value-type="${type}" office:value="${value}"${extra}><text:p>${text}</text:p></table:table-cell>`
+    const file = await ods(
+      `<table:table table:name="Carte"><table:table-row>${cell('nome')}${cell('prob')}${cell('costo')}${cell('peso')}</table:table-row>` +
+        `<table:table-row>${cell('Drago')}${num('percentage', '0.5', '50%')}${num('currency', '3', '3,00 €', ' office:currency="EUR"')}${num('float', '1.5', '1,50')}</table:table-row>` +
+        `<table:table-row>${cell('Fante')}${num('percentage', '0.25', '25%')}${num('currency', '2', '2,00 €', ' office:currency="EUR"')}${num('float', '2', '2,00')}</table:table-row>` +
+        `</table:table>`
+    )
+    const out = await writeOds(file, [
+      {
+        name: 'Carte',
+        headers: ['nome', 'prob', 'costo', 'peso'],
+        rows: [
+          ['Drago', '60%', '3,50 €', '1,50'],
+          ['Fante', '75', '2,00 €', 'tanto']
+        ]
+      }
+    ])
+    const xml = await (await JSZip.loadAsync(out)).file('content.xml')!.async('string')
+    expect(xml).toContain('office:value-type="percentage" office:value="0.6"><text:p>60%</text:p>')
+    expect(xml).toContain('office:value-type="percentage" office:value="0.75"')
+    expect(xml).toContain('office:value-type="currency" office:currency="EUR" office:value="3.5"')
+    expect(xml).toContain('office:value-type="string"><text:p>tanto</text:p>')
+    expect(xml).toContain('office:value="1.5"><text:p>1,50</text:p>')
+  })
 })

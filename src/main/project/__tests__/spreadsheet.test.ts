@@ -237,4 +237,44 @@ describe('celle che non cambiano', () => {
     await workbook(join(dir, 'dati.xlsx'))
     expect(await xlsxLosses(join(dir, 'dati.xlsx'))).toEqual([])
   })
+
+  it('legge i numeri con il formato della cella e riscrive come numeri quelli modificati', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    const path = join(dir, 'dati.xlsx')
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet('Carte')
+    ws.addRow(['nome', 'prob', 'costo', 'peso', 'forza', 'quota'])
+    ws.addRow(['Drago', 0.5, 1234.5, 1.5, 4, 0.125])
+    ws.addRow(['Fante', 0.25, 3, 2, 1, { formula: 'B3/2', result: 0.125 }])
+    ws.getColumn(2).numFmt = '0%'
+    ws.getColumn(3).numFmt = '#,##0.00 "€"'
+    ws.getColumn(4).numFmt = '0.00'
+    // contabile: riempimenti e spazi di allineamento non entrano nel testo
+    ws.getColumn(6).numFmt = '_-* 0.0%_-'
+    await wb.xlsx.writeFile(path)
+
+    const [sheet] = await readSpreadsheet(path)
+    expect(sheet.rows).toEqual([
+      ['Drago', '50%', '1 234.50 €', '1.50', '4', '12.5%'],
+      ['Fante', '25%', '3.00 €', '2.00', '1', '12.5%']
+    ])
+
+    sheet.rows[0][1] = '60%'
+    sheet.rows[0][2] = '2 000,5 €'
+    sheet.rows[1][1] = '75'
+    sheet.rows[1][3] = 'tanto'
+    await writeSpreadsheet(path, [sheet])
+    const again = new ExcelJS.Workbook()
+    await again.xlsx.readFile(path)
+    const out = again.getWorksheet('Carte')!
+    expect(out.getCell('B2').value).toBe(0.6)
+    expect(out.getCell('C2').value).toBe(2000.5)
+    // in una cella in percentuale 75 vale 75%, come in Excel
+    expect(out.getCell('B3').value).toBe(0.75)
+    expect(out.getCell('D3').value).toBe('tanto')
+    // il formato resta, e le celle non toccate pure
+    expect(out.getCell('B2').numFmt).toBe('0%')
+    expect(out.getCell('F3').value).toEqual({ formula: 'B3/2', result: 0.125 })
+    expect((await readSpreadsheet(path))[0].rows[0].slice(1, 3)).toEqual(['60%', '2 000.50 €'])
+  })
 })

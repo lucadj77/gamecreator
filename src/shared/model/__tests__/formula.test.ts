@@ -59,3 +59,22 @@ describe('espressioni con =', () => {
     expect(evaluateFormula('={nome}+1', f).error).toBeTruthy()
   })
 })
+
+describe('numeri con il formato del foglio', () => {
+  const f = { prob: '50%', costo: '1 234.50 €', forza: '3' }
+  const ev = (e: string): string => evaluateFormula(e, f).value
+
+  it('calcola con percentuali, valute e migliaia', () => {
+    expect(ev('{prob}*2')).toBe('1')
+    expect(ev('=({prob}*{forza})')).toBe('1.5')
+    expect(ev('={costo}+0.5')).toBe('1235')
+    expect(ev('=IF({prob}>0.4; "alta"; "bassa")')).toBe('alta')
+    expect(ev('=ROUND({costo})')).toBe('1235')
+  })
+
+  it('il valore resta com è scritto quando non si calcola', () => {
+    expect(ev('{prob}')).toBe('50%')
+    expect(ev('Probabilità {prob}')).toBe('Probabilità 50%')
+    expect(ev('=IF({forza}>1; {prob}; "")')).toBe('50%')
+  })
+})

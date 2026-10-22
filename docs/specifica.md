@@ -308,6 +308,7 @@ Scelta rivista il 2026-10-18: i calcoli stanno nel template, non nei set (vedi d
 - **Campi disponibili.** `{campo}` vale, nell'ordine di precedenza: il livello valore calcolato, la cella non vuota della riga, il valore del livello nel template. Senza dati (nell'editor) le formule mostrano il risultato con i valori del template. Una cella vuota lascia il valore del template; una cella con soli spazi lo svuota (per le colonne delle proprietà, come `titolo.size`, conta come vuota).
 - **Composizione.** Una formula senza `=` iniziale compone testo: `{nome}.png`, `Forza {forza}`. Se contiene `+ - * /` e il risultato è numerico, si calcola: `{forza}+2`.
 - **Espressione.** Con `=` iniziale è un'espressione come in Excel: `=IF({forza}>3; "Forte"; "Debole")`. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` o `,`. Funzioni (nomi in inglese): `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN` (quante volte un testo compare in un altro, senza badare alle maiuscole: `COUNTIN({risorse}; "legno")`).
+- **Numeri.** Un campo è un numero anche scritto come lo mostra un foglio: `1,5`, `50%` (vale 0,5), `1 234,50 €`, `1.234,5`. Nei calcoli e nei confronti vale il numero; dove non si calcola resta com'è scritto, quindi `=IF({forza}>1; {prob}; "")` dà `50%`.
 - I campi mancanti e gli errori sono segnalati sotto la carta e nel pannello proprietà.
 
 ## 8. Template e set

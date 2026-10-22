@@ -45,7 +45,7 @@ The Windows installer (1.2.0-beta.9 and later) already lets sandboxed agents rea
 
 1. Run `begin` before changing anything in the project, with `--note` saying in a few words what you are doing. If it fails because the app has unsaved changes, stop: tell the user to save (or reload) in the Naibi app, and start again only when they say so. Reading commands (`info`, `check`, `template`, `rows`, `render`) do not need `begin`.
 2. Run `info` and `notes` to learn the project before changing anything; the notes hold what the user wants remembered. Card numbers (`--card`, `#3` in `check`) are row numbers of the set, from 1.
-3. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets and the cells you do not change (formulas, dates, formatting) intact; a changed cell becomes plain text, or a number when it reads back the same.
+3. Change data with `rows` + `set-rows` (read the rows as JSON, edit, write them back). Never write the .xlsx/.ods file directly: `set-rows` keeps the other sheets and the cells you do not change (formulas, dates, formatting) intact; a changed cell becomes plain text, or a number when it reads back the same. Cells with a number format in Excel are read as Excel shows them (`50%`, `1 234.50 €`, decimal point, non-breaking space for thousands); writing `60%` or `3.50 €` back into such a cell stores the number and keeps the format.
 4. Rename sets and templates only with `rename-set` and `rename-template`: renaming files by hand breaks the references to them. Change templates, variables and styles by editing the JSON files. Keep the existing formatting style; keep unknown keys as they are. `set-rows`, `rename-set` and `rename-template` also refuse on their own (exit code 2) when the app has unsaved changes, or when the app is open on the project and you did not run `begin`.
 5. After every change run `check`, then `render` the cards you touched and look at the images. Fix what is wrong before reporting.
 6. Always run `end` when you have finished, also when you stop because of an error or a question for the user: until then the app stays locked. The app reloads the project by itself.
@@ -260,6 +260,7 @@ A layer with `source.kind = "formula"`, or a value layer, computes its value:
 - Without a leading `=` the expression composes text: `{name}.png`, `Strength {strength}`; with `+ - * /` and a numeric result it is computed: `{strength}+2`.
 - With a leading `=` it is an Excel-like expression: `=IF({strength}>3; "Strong"; "Weak")`. Strings in double quotes, comparisons `= <> < > <= >=`, `&` joins text, arguments separated by `;` or `,`. Functions: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN(text; part)`.
 - `{field}` is, in order of precedence: a computed value layer, the row's non-empty cell, the layer's template value; text and value variables work too.
+- A field is a number also when written the way a spreadsheet shows it: `1,5`, `50%` (0.5), `1 234.50 €`. Calculations and comparisons use the number; elsewhere the text stays as written.
 
 ## Language
 

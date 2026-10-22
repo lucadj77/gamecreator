@@ -4,11 +4,13 @@ import { basename, extname } from 'path'
 import ExcelJS from 'exceljs'
 import JSZip from 'jszip'
 import Papa from 'papaparse'
+import { addLocale, format, isDateFormat, isPercentFormat, isTextFormat } from 'numfmt'
 import type { DataFileLoss, Sheet } from '../../shared/project'
 import { odsTableNames, odsWithOnly, readOds, writeOds } from './ods'
 import { MessageError, msg } from '../../shared/messages'
 import { deletedPath } from './deleted'
 import { placeRows } from './rowSlots'
+import { readNumber } from '../../shared/model/number'
 
 export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   const ext = extname(path).toLowerCase()
@@ -35,8 +37,9 @@ export async function readXlsx(source: string | Buffer): Promise<Sheet[]> {
 }
 
 /**
- * Testo di una cella come lo vede chi la legge: una data come AAAA-MM-GG (con l'ora se non è
- * mezzanotte), non la stringa JavaScript che darebbe `text`
+ * Testo di una cella come lo vede chi la legge: un numero con il suo formato (50%, 1 234.50 €),
+ * una data come AAAA-MM-GG (con l'ora se non è mezzanotte), non la stringa JavaScript che
+ * darebbe `text`
  */
 export function cellText(cell: ExcelJS.Cell): string {
   // di una formula conta il risultato salvato nel file (da cell.result: cell.value perde FALSO)
@@ -45,7 +48,34 @@ export function cellText(cell: ExcelJS.Cell): string {
   // un errore (#DIV/0!, #N/A) si legge com'è scritto, VERO e FALSO come true e false
   if (r && typeof r === 'object' && 'error' in r) return String(r.error)
   if (typeof r === 'boolean') return String(r)
+  if (typeof r === 'number') return formatNumber(r, cell.numFmt) ?? cell.text ?? ''
   return cell.text ?? ''
+}
+
+// Il formato si applica con il punto per i decimali, come i numeri senza formato, e lo spazio
+// unificatore per le migliaia: 1 234.5 si rilegge come numero, 1,234 sarebbe 1,234
+addLocale({ group: '\u00a0', decimal: '.' }, 'zz')
+
+/** Formato di un numero da applicare: non quello generale, né di testo, né di data */
+function numberFormat(numFmt: string | undefined): string | null {
+  if (!numFmt || /^general$/i.test(numFmt.trim())) return null
+  try {
+    return isTextFormat(numFmt) || isDateFormat(numFmt) ? null : numFmt
+  } catch {
+    return null
+  }
+}
+
+/** Il numero come lo mostra il foglio con il formato della cella; null senza formato */
+function formatNumber(n: number, numFmt: string | undefined): string | null {
+  const f = numberFormat(numFmt)
+  if (!f) return null
+  try {
+    // i riempimenti e gli spazi di allineamento (_- e * nei formati contabili) non servono
+    return format(f, n, { locale: 'zz' }).trim() || null
+  } catch {
+    return null
+  }
 }
 
 function isoDate(d: Date): string {
@@ -225,7 +255,7 @@ function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
       const v = s.rows[k][i] ?? ''
       // una cella con lo stesso testo resta com'è: formula, data, testo formattato, collegamento
       if (cellText(cell) === v) return
-      cell.value = toCellValue(v)
+      cell.value = toCellValue(v, cell.numFmt)
     })
   })
   for (const r of clear) for (const c of columns) ws.getRow(r).getCell(c).value = null
@@ -233,9 +263,16 @@ function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
     for (const c of removed) ws.getRow(r).getCell(c).value = null
 }
 
-/** I numeri scritti come tali restano numeri nel foglio; "007" e simili restano testo */
-function toCellValue(v: string): string | number | null {
+/**
+ * I numeri scritti come tali restano numeri nel foglio; "007" e simili restano testo. In una
+ * cella con un formato numerico vale anche il numero scritto come lo mostra: 60% o 3,50 €. In
+ * una cella in percentuale 60 vale 60%, come quando lo si scrive in Excel.
+ */
+function toCellValue(v: string, numFmt?: string): string | number | null {
   if (v === '') return null
+  const f = numberFormat(numFmt)
+  const n = f ? readNumber(v) : null
+  if (f && n !== null) return isPercentFormat(f) && !v.trim().endsWith('%') ? n / 100 : n
   // solo se il numero si rilegge uguale: "1.50" e i numeri oltre le 15 cifre restano testo
   if (/^-?(0|[1-9]\d*)(\.\d+)?$/.test(v) && String(Number(v)) === v) return Number(v)
   return v

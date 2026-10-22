@@ -5,11 +5,11 @@ import type { DeletedContent, DeletedItem } from '../../shared/project'
 import { normalizeTemplate } from '../../shared/model/normalize'
 import { readSpreadsheet } from './spreadsheet'
 
-// Cestino del progetto: template, note e fogli eliminati finiscono in deleted/ con data e ora nel
+// Cestino del progetto: template, note, documenti e fogli eliminati finiscono in deleted/ con data e ora nel
 // nome (deleted.ts); da qui si elencano, si leggono per ripristinarli e si tolgono una volta
 // ripristinati.
 
-const NAME = /^(.+) (\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})\.(json|md|xlsx|ods)$/i
+const NAME = /^(.+) (\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})\.(doc\.md|json|md|xlsx|ods)$/i
 
 const dir = (folder: string): string => join(folder, 'deleted')
 
@@ -19,7 +19,8 @@ function parse(file: string): Omit<DeletedItem, 'columns'> | null {
   const ext = m[8].toLowerCase()
   return {
     file,
-    kind: ext === 'json' ? 'template' : ext === 'md' ? 'note' : 'sheet',
+    kind:
+      ext === 'json' ? 'template' : ext === 'md' ? 'note' : ext === 'doc.md' ? 'document' : 'sheet',
     name: m[1],
     date: `${m[2]}-${m[3]}-${m[4]}T${m[5]}:${m[6]}:${m[7]}Z`
   }
@@ -62,8 +63,8 @@ export async function listDeleted(folder: string): Promise<DeletedItem[]> {
 export async function readDeleted(folder: string, file: string): Promise<DeletedContent> {
   const item = checked(file)
   const path = join(dir(folder), file)
-  if (item.kind === 'note')
-    return { kind: 'note', name: item.name, text: await readFile(path, 'utf8') }
+  if (item.kind === 'note' || item.kind === 'document')
+    return { kind: item.kind, name: item.name, text: await readFile(path, 'utf8') }
   if (item.kind === 'template') {
     const raw = JSON.parse(await readFile(path, 'utf8'))
     return {

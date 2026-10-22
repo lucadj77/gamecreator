@@ -81,6 +81,12 @@ export interface BackupState {
   totalSize: number
 }
 
+/** Un file esportato di un documento, con il percorso dentro export/docs/ */
+export interface DocExportFile {
+  path: string
+  data: string | Uint8Array
+}
+
 export interface Api {
   /** Versione web (src/web): alcune funzioni ci sono solo nell'app desktop */
   readonly isWeb: boolean
@@ -120,6 +126,14 @@ export interface Api {
   saveNote(name: string, text: string, oldName?: string): Promise<void>
   /** Sposta la nota in deleted/ */
   deleteNote(name: string): Promise<void>
+  /** Scrive il documento docs/<name>.md; con oldName diverso lo rinomina */
+  saveDocument(name: string, text: string, oldName?: string): Promise<void>
+  /** Sposta il documento in deleted/ */
+  deleteDocument(name: string): Promise<void>
+  /** Scrive in export/docs/ i file esportati di un documento; restituisce la cartella */
+  exportDocumentFiles(files: DocExportFile[]): Promise<string>
+  /** PDF di una pagina HTML autonoma (solo desktop) */
+  documentPdf(html: string): Promise<Uint8Array>
   /** Cestino del progetto: elementi in deleted/, il contenuto di uno, e togliere i ripristinati */
   listDeleted(): Promise<DeletedItem[]>
   readDeleted(file: string): Promise<DeletedContent>

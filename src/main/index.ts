@@ -6,7 +6,9 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
 import { saveTemplate, trashTemplate } from './project/templates'
-import { saveNote, trashNote } from './project/notes'
+import { saveDocument, saveNote, trashDocument, trashNote } from './project/notes'
+import { writeDocumentExport } from './project/docExport'
+import { htmlToPdf } from './export/docPdf'
 import { dropDeleted, listDeleted, readDeleted } from './project/trash'
 import { readBackupVersion, readPrinted, savePrinted } from './project/versions'
 import { fetchGoogleSheet } from './project/googleSheets'
@@ -26,7 +28,13 @@ import {
 } from './protocol'
 import { MessageError, msg } from '../shared/messages'
 import type { Template } from '../shared/model/template'
-import type { BackupSettings, BackupState, Theme, TtcImportOptions } from '../shared/api'
+import type {
+  BackupSettings,
+  BackupState,
+  DocExportFile,
+  Theme,
+  TtcImportOptions
+} from '../shared/api'
 import type { PrintedState } from '../shared/project'
 import { defaultTarget, importTtc } from './import/ttc'
 import { runExport } from './export/run'
@@ -263,6 +271,26 @@ function registerIpc(): void {
     if (!folder) throw new MessageError(msg('template.noProject'))
     await trashNote(folder, name)
   })
+
+  ipcMain.handle('document:save', async (_, name: string, text: string, oldName?: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await saveDocument(folder, name, text, oldName)
+  })
+
+  ipcMain.handle('document:delete', async (_, name: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await trashDocument(folder, name)
+  })
+
+  ipcMain.handle('document:export-files', async (_, files: DocExportFile[]) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return writeDocumentExport(folder, files)
+  })
+
+  ipcMain.handle('document:pdf', (_, html: string) => htmlToPdf(html))
 
   ipcMain.handle('trash:list', async () => {
     const folder = getProjectFolder()

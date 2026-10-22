@@ -23,7 +23,7 @@ The Windows installer (1.2.0-beta.9 and later) already lets sandboxed agents rea
 | Command                                                                                             | What it does                                                                                                                                                                                                                                                                                    |
 | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `info <project>`                                                                                    | Sets (template, rows, cards, columns), templates and their layers, variables, styles, assets, export profiles                                                                                                                                                                                   |
-| `check <project> [--set S]`                                                                         | Lists the problems of every card: missing images or fonts, unknown variables, markup and formula errors. Exit code 1 if there are problems                                                                                                                                                      |
+| `check <project> [--set S]`                                                                         | Lists the problems of every card: missing images or fonts, unknown variables, markup and formula errors; without `--set`, also the problems of the documents. Exit code 1 if there are problems                                                                                                 |
 | `check-data <project>`                                                                              | How the data file is read: for each sheet the sets that use it, the columns their templates read and the sheet lacks, and problems (title above the headings, empty rows, merged cells, Excel errors, formulas without a saved result). Run it first on a data file the user brought from Excel |
 | `template <project> <name>`                                                                         | Layers of a template with position, size and where each value comes from. `--json` prints the full template                                                                                                                                                                                     |
 | `rows <project> <set> [--json\|--csv]`                                                              | The set's rows (tab-separated by default; `\n` stands for a line break inside a cell)                                                                                                                                                                                                           |
@@ -35,11 +35,12 @@ The Windows installer (1.2.0-beta.9 and later) already lets sandboxed agents rea
 | `export <project> --profile NAME`                                                                   | Runs an export profile saved in the project (PDF, images or Tabletop Simulator)                                                                                                                                                                                                                 |
 | `new <name> <parent folder>`                                                                        | Creates an empty project                                                                                                                                                                                                                                                                        |
 | `notes <project> [<name>]`                                                                          | The project notes (`notes/*.md`): the user's reminders and decisions about the project. Read them before working                                                                                                                                                                                |
+| `docs <project> [<name>]`                                                                           | The project documents (`docs/*.md`: rules, sell sheet, appendix), all or one, each followed by its problems (cards or images not found, unknown names)                                                                                                                                          |
 | `stats <project> <set> [--column C]`                                                                | How many cards (copies included) have each value of every column, or of one; sum, average, min and max of numeric columns. Use it to check balance                                                                                                                                              |
 | `begin <project> [--note TEXT]`                                                                     | Start of your work. Fails with exit code 3 if the Naibi app has unsaved changes in the project; otherwise the app locks itself                                                                                                                                                                  |
 | `end <project>`                                                                                     | End of your work: the app unlocks and reloads the project                                                                                                                                                                                                                                       |
 
-`info`, `check`, `template`, `stats` and `notes` accept `--json`.
+`info`, `check`, `template`, `stats`, `notes` and `docs` accept `--json`.
 
 ## Workflow
 
@@ -62,6 +63,7 @@ project/
   data/cards.xlsx        # one sheet per set (.xlsx, .ods, or .csv for a single set)
   templates/<name>.json  # one file per template
   notes/<name>.md        # project notes in Markdown, written by the user in the app
+  docs/<name>.md         # documents of the game (rules, sell sheet…) in Markdown, see below
   assets/                # images (svg, png, webp, jpg), any subfolder
   assets/fonts/          # project fonts (ttf, otf, woff, woff2)
   assets/sources.json    # origin and license of imported icons and fonts (written by the app)
@@ -252,6 +254,37 @@ Colours: hex (`#A33A2A`), the 148 CSS colour names, colour variables (`red` or `
 ### System variables
 
 Naibi fills these by itself; write them like fields, in text and in formulas: `{project.name}`, `{set.name}`, `{template.name}`, `{card.number}` (row in the set, from 1), `{set.rows}`, `{set.cards}` (cards with copies, sum of `amount`), `{card.copies}` (the card's `amount`), `{card.copy}` (copy being drawn, from 1; different per copy only in PDF and image exports with copies, and in TTS exports with `copiesIn: "sheet"`), `{card.side}` (`front` or `back`), `{date}` (today, `YYYY-MM-DD`). A field or project variable with the same name wins. Example footer: `{set.name} {card.number}/{set.rows}`.
+
+## Documents
+
+`docs/<name>.md` files are the documents of the game: rules, sell sheet, appendix, FAQ. The user writes them in the app's **Documents** section, with a live preview; you write them as files (between `begin` and `end`). They are Markdown: `#`, `##`, `###` headings, paragraphs separated by an empty line (a single line break joins the lines), `-` and `1.` lists (indent two spaces for a sub-item), `>` boxes, `|` tables with a `|---|` line under the header, `---` lines and fenced code. Inside the lines the card markup above works: styles, attributes, image variables and assets (`{sword}`), text and value variables, `{project.name}` and `{date}`; card fields do not.
+
+An image alone on a line shows a card of the project, drawn as it is now, so it follows changes to data and templates: `![Caption](card:Set/name=Wizard)` is the first card of the set whose `name` column is `Wizard` (exact, then ignoring case), `![](card:Set/3)` the card on row 3. Prefer a column with unique values to the row number, which changes when rows move. Options after `?`, joined by `&`: `side=back`, `width=40` (mm; default the real card size). Write `%29`, `%3F`, `%26` for `)`, `?`, `&` in the set name or value. Several images on one line sit side by side; `![](icons/map.png)` shows an image from assets. Page settings go at the very top, between two `---` lines, one `key: value` per line (omit those you keep at the default): `page` (`A4` default, `A5`, `Letter`), `margin` (mm, 18), `font` and `headingFont` (family name or `{variable}`; empty = default / same as text), `size` (pt, 11), `lineHeight` (1.4), `paragraphSpacing` (pt after each paragraph, 6), `align` (`left` or `justify`), `color` and `headingColor` (hex or project color name). Example:
+
+```
+---
+page: A5
+size: 10
+headingFont: Alegreya
+headingColor: red
+---
+```
+
+The app exports documents to `export/docs/` as PDF, standalone HTML or plain Markdown with PNG cards (button **Export** in the document); there is no CLI command for it yet, so ask the user to export.
+
+A card anatomy (the card with labels pointing at its parts) is a fenced block:
+
+````
+```anatomy
+card: Characters/name=Wizard?width=50
+- name: Name of the character
+- strength (left): Strength, added to the die roll
+```
+````
+
+`card:` takes the same reference as `card:` images (prefix optional). Each `- layer: label` line names a layer of the card's template (the column-like layer name) and its label; markup works in labels; `(left)`/`(right)` forces the side, otherwise the nearest side is used. `check` reports unknown layers.
+
+Run `docs` (or `check`) after writing: it lists the references that are not found, with their line.
 
 ## Formulas
 

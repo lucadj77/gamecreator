@@ -16,6 +16,7 @@ import {
 } from './cliParse'
 import { bindRow, rowToCard } from '../shared/model/bind'
 import { systemOfSet } from '../shared/model/system'
+import { documentProblems } from '../shared/model/document'
 import { isGenericFont } from '../shared/model/fonts'
 import { resolveAsset } from '../shared/model/assets'
 import type { Layer, Template } from '../shared/model/template'
@@ -89,6 +90,9 @@ Commands:
                                        with sum, average, min and max of numeric columns
   notes <project> [<name>]             The project notes (notes/*.md), all or one: the user's
                                        reminders, also for you; write them as Markdown files there
+  docs <project> [<name>]              The project documents (docs/*.md: rules, sell sheet,
+                                       appendix), all or one, with their problems (cards or
+                                       images not found); write them as Markdown files there
   begin <project> [--note TEXT]        Start working: fails (exit code 3) if the Naibi app has
                                        unsaved changes in the project, otherwise the app locks
                                        itself until 'end'
@@ -96,7 +100,7 @@ Commands:
   help                                 This text
 
 <project> is the project folder (the one with naibi.json).
-Add --json to info, check, check-data, template, stats and notes for machine-readable output.`
+Add --json to info, check, check-data, template, stats, notes and docs for machine-readable output.`
 
 const print = (s = ''): void => {
   process.stdout.write(s + '\n')
@@ -197,6 +201,7 @@ async function info(p: Parsed): Promise<number> {
     assets: project.assets,
     fonts: [...new Set(project.fonts.map((x) => x.family))],
     notes: (project.notes ?? []).map((n) => n.name),
+    documents: (project.documents ?? []).map((n) => n.name),
     unusedSheets: project.unusedSheets,
     warnings: project.warnings.map(messageText)
   }
@@ -228,6 +233,7 @@ async function info(p: Parsed): Promise<number> {
     `Assets: ${data.assets.length} files (${project.assets.filter((a) => /\.(svg|png|jpe?g|webp)$/i.test(a)).length} images); fonts: ${data.fonts.join(', ') || 'none'}`
   )
   if (data.notes.length) print(`Notes (notes/*.md): ${data.notes.join(', ')}`)
+  if (data.documents.length) print(`Documents (docs/*.md): ${data.documents.join(', ')}`)
   if (data.unusedSheets.length) print(`Sheets not linked to a set: ${data.unusedSheets.join(', ')}`)
   for (const w of data.warnings) print(`Warning: ${w}`)
   return 0
@@ -286,13 +292,20 @@ async function check(p: Parsed): Promise<number> {
         })
     })
   }
-  const total = general.length + report.length
-  if (p.flags.json) print(JSON.stringify({ warnings: general, cards: report }, null, 2))
+  // i documenti richiamano le carte di tutti i set: si controllano solo senza --set
+  const documents = only ? [] : documentReport(project)
+  const total = general.length + report.length + documents.length
+  if (p.flags.json) print(JSON.stringify({ warnings: general, cards: report, documents }, null, 2))
   else {
     for (const w of general) print(`Warning: ${w}`)
     for (const r of report)
       for (const pr of r.problems) print(`${r.set} #${r.card} (${r.label}): ${pr}`)
-    print(total ? `${report.length} cards with problems` : 'No problems found')
+    for (const d of documents) print(`docs/${d.document}.md line ${d.line}: ${d.problem}`)
+    print(
+      total
+        ? `${report.length} cards and ${documents.length} document lines with problems`
+        : 'No problems found'
+    )
   }
   return total ? 1 : 0
 }
@@ -681,6 +694,63 @@ async function stats(p: Parsed): Promise<number> {
   return 0
 }
 
+/** Problemi dei documenti (docs/*.md), con la riga in cui si trovano */
+function documentReport(
+  project: LoadedProject,
+  only?: string
+): { document: string; line: number; problem: string }[] {
+  const ctx = {
+    project: project.file.name,
+    sets: project.sets,
+    assets: project.assets,
+    styles: project.file.styles,
+    variables: project.file.variables,
+    templates: project.templates
+  }
+  return (project.documents ?? [])
+    .filter((d) => !only || d.name === only)
+    .flatMap((d) =>
+      documentProblems(d.text, ctx).map((pr) => ({
+        document: d.name,
+        line: d.text.slice(0, pr.from).split('\n').length,
+        problem: messageText(pr.message)
+      }))
+    )
+}
+
+/** Documenti del progetto (docs/*.md), tutti o uno, con i loro problemi */
+async function docs(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  const name = p.positional[1]
+  const list = (project.documents ?? []).filter((n) => !name || n.name === name)
+  if (name && !list.length) throw new CliError(`no document named "${name}"`)
+  const problems = documentReport(project, name)
+  if (p.flags.json) {
+    print(
+      JSON.stringify(
+        list.map((d) => ({
+          ...d,
+          problems: problems
+            .filter((x) => x.document === d.name)
+            .map(({ line, problem }) => ({ line, problem }))
+        })),
+        null,
+        2
+      )
+    )
+    return 0
+  }
+  if (!list.length) print('No documents. Write them as Markdown files in docs/ (docs/<name>.md).')
+  for (const d of list) {
+    print(`=== ${d.name} (docs/${d.name}.md) ===`)
+    print(d.text.trimEnd())
+    print()
+    for (const x of problems.filter((x) => x.document === d.name))
+      print(`Problem, line ${x.line}: ${x.problem}`)
+  }
+  return 0
+}
+
 /** Note del progetto (notes/*.md), tutte o una sola */
 async function notes(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
@@ -720,6 +790,7 @@ const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   export: exportProfile,
   new: create,
   notes,
+  docs,
   stats,
   'check-data': checkData,
   begin,

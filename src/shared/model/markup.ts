@@ -453,6 +453,16 @@ class InlineParser {
   }
 }
 
+/**
+ * Analizza un testo come un'unica riga, senza riconoscere titoli, elenchi e citazioni a inizio
+ * riga: serve dove i blocchi li ha già divisi qualcun altro (i documenti, model/document.ts)
+ */
+export function parseInline(src: string): { children: Inline[]; problems: MarkupProblem[] } {
+  const parser = new InlineParser(src)
+  const children = parser.parse(0, src.length)
+  return { children, problems: parser.problems }
+}
+
 /** Analizza il testo di un livello in paragrafi */
 export function parseMarkup(src: string): ParsedMarkup {
   const blocks: Block[] = []

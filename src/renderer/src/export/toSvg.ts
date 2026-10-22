@@ -370,7 +370,7 @@ async function inlineImages(svg: SVGSVGElement): Promise<void> {
   )
 }
 
-async function dataUri(url: string): Promise<string> {
+export async function dataUri(url: string): Promise<string> {
   try {
     const res = await fetch(url)
     if (!res.ok) return url
@@ -390,7 +390,7 @@ async function dataUri(url: string): Promise<string> {
  * @font-face dei font usati: quelli del progetto e quelli dell'app (Nunito). I font installati
  * sul computer non si possono includere: l'SVG li chiede per nome.
  */
-async function fontFaces(fonts: ProjectFont[], families: Set<string>): Promise<string> {
+export async function fontFaces(fonts: ProjectFont[], families: Set<string>): Promise<string> {
   const rules: string[] = []
   for (const f of fonts) {
     if (!families.has(f.family)) continue

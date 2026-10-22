@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.21
+
+### English
+
+- New **Documents** section in the sidebar, for the rules, a sell sheet, an appendix: Markdown text on the left, the page preview always visible on the right, saved as you type in `docs/<name>.md`. The text uses Naibi's markup, so `{heart}` draws the icon and `[text]{.keyword}` a style, as on the cards. **Insert card** chooses a card of the game and writes `![Wizard](card:Characters/name=Wizard)`: the document draws the card from the project, so it changes when the card changes. Problems (cards or images not found) are listed under the text and by `naibi check`; `naibi docs` shows the documents to an AI agent. **Card anatomy** draws a card with labels joined by lines to its parts (layers of the template), chosen in a window or written as an ` ```anatomy ` block; it is exported like the cards. **Table** fills in a table in a grid (also pasting from a spreadsheet) and edits the table where the cursor is. **Page** sets the page size, margins, text and heading fonts, text size, line spacing, space after paragraphs, alignment and colors; the preview shows the page at its real width. The settings are written at the top of the file, between two `---` lines, so an AI agent can change them too. **Export** saves the document in `export/docs/` as PDF (desktop only), as a single HTML file with cards, images and fonts inside, or as plain Markdown with the cards as PNG files.
+
+### Italiano
+
+- Nuova sezione **Documenti** nella barra laterale, per il regolamento, una sell sheet, un'appendice: a sinistra il testo in Markdown, a destra l'anteprima della pagina sempre visibile, con salvataggio mentre si scrive in `docs/<nome>.md`. Il testo usa il markup di Naibi, quindi `{cuore}` disegna l'icona e `[testo]{.keyword}` uno stile, come sulle carte. **Inserisci carta** sceglie una carta del gioco e scrive `![Mago](card:Personaggi/nome=Mago)`: il documento disegna la carta dal progetto, quindi cambia quando cambia la carta. I problemi (carte o immagini che non si trovano) compaiono sotto il testo e in `naibi check`; `naibi docs` mostra i documenti a un agente IA. **Anatomia carta** disegna una carta con le etichette collegate da una linea alle sue parti (i livelli del template), scelte in una finestra o scritte come blocco ` ```anatomy `; si esporta come le carte. **Tabella** compila una tabella in una griglia (anche incollando da un foglio di calcolo) e modifica quella dove si trova il cursore. **Pagina** imposta formato, margini, carattere del testo e dei titoli, dimensione del testo, interlinea, spazio dopo i paragrafi, allineamento e colori; l'anteprima mostra la pagina alla sua larghezza vera. Le impostazioni sono scritte in testa al file, tra due righe `---`, così le può cambiare anche un agente IA. **Esporta** salva il documento in `export/docs/` in PDF (solo nell'app per computer), in un unico file HTML con carte, immagini e font dentro, oppure in Markdown semplice con le carte come file PNG.
+
 ## 1.2.0-beta.20
 
 ### English

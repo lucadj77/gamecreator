@@ -1962,6 +1962,7 @@ function App(): React.JSX.Element {
                       project={project.file.name}
                       sets={project.sets}
                       templates={project.templates}
+                      fonts={project.fonts}
                       onChange={(text) => documents.change(openDocument, text)}
                       onRename={(to) =>
                         void documents

@@ -4685,3 +4685,23 @@ details.usages button.link {
   border-radius: 4px;
   overflow-wrap: anywhere;
 }
+
+.document-export-kinds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.document-export-kinds button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+  white-space: normal;
+}
+
+.document-export-kinds strong {
+  font-size: 15px;
+}

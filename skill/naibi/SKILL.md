@@ -270,6 +270,8 @@ headingColor: red
 ---
 ```
 
+The app exports documents to `export/docs/` as PDF, standalone HTML or plain Markdown with PNG cards (button **Export** in the document); there is no CLI command for it yet, so ask the user to export.
+
 Run `docs` (or `check`) after writing: it lists the references that are not found, with their line.
 
 ## Formulas

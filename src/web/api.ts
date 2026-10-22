@@ -6,6 +6,7 @@ import { MessageError, msg } from '../shared/messages'
 import { loadProject } from '../main/project/load'
 import { saveTemplate, trashTemplate } from '../main/project/templates'
 import { saveDocument, saveNote, trashDocument, trashNote } from '../main/project/notes'
+import { writeDocumentExport } from '../main/project/docExport'
 import { dropDeleted, listDeleted, readDeleted } from '../main/project/trash'
 import { readBackupVersion, readPrinted, savePrinted } from '../main/project/versions'
 import { fetchGoogleSheet } from '../main/project/googleSheets'
@@ -148,6 +149,8 @@ export const webApi: Api = {
   deleteNote: (name) => trashNote(projectFolder(), name),
   saveDocument: (name, text, oldName) => saveDocument(projectFolder(), name, text, oldName),
   deleteDocument: (name) => trashDocument(projectFolder(), name),
+  exportDocumentFiles: (files) => writeDocumentExport(projectFolder(), files),
+  documentPdf: desktopOnly,
   listDeleted: () => listDeleted(projectFolder()),
   readDeleted: (file) => readDeleted(projectFolder(), file),
   dropDeleted: (files) => dropDeleted(projectFolder(), files),

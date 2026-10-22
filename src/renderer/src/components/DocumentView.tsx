@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { isValidNoteName, type LoadedSet } from '../../../shared/project'
+import { isValidNoteName, type LoadedSet, type ProjectFont } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import {
   DOC_PAGES,
@@ -12,6 +12,8 @@ import { useI18n } from '../i18n/context'
 import { AssetsContext, StylesContext, VariablesContext } from '../render/assets'
 import DocumentPreview, { DOC_UNIT } from '../render/DocumentPreview'
 import DocumentSettingsPanel from './DocumentSettingsPanel'
+import DocumentExportDialog, { type DocExportKind } from './DocumentExportDialog'
+import { documentHtml, documentMarkdown } from '../export/documentExport'
 import InsertCardDialog from './InsertCardDialog'
 import MarkupTextarea from './MarkupTextarea'
 import { TrashIcon } from './icons'
@@ -28,6 +30,7 @@ interface Props {
   project: string
   sets: LoadedSet[]
   templates: Template[]
+  fonts: ProjectFont[]
   onChange(text: string): void
   onRename(name: string): void
   onDelete(): void
@@ -40,6 +43,7 @@ export default function DocumentView({
   project,
   sets,
   templates,
+  fonts,
   onChange,
   onRename,
   onDelete
@@ -51,6 +55,7 @@ export default function DocumentView({
   const [draftName, setDraftName] = useState(name)
   const [inserting, setInserting] = useState(false)
   const [pageOpen, setPageOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const editor = useRef<HTMLTextAreaElement | null>(null)
   const preview = useRef<HTMLDivElement>(null)
   /** Dove rimettere il cursore dopo un inserimento, quando il testo nuovo è arrivato */
@@ -97,6 +102,28 @@ export default function DocumentView({
       caret.current = null
     }
   }, [text])
+
+  /** Esporta dall'anteprima, mostrata per un momento senza riduzione: le carte si misurano così */
+  const exportAs = async (kind: DocExportKind): Promise<string> => {
+    const page = preview.current?.querySelector<HTMLElement>('.doc-page')
+    if (!page) throw new Error('no preview')
+    const zoomed = page.style.zoom
+    page.style.zoom = '1'
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+    try {
+      if (kind === 'md') {
+        const ctx = { project, sets, assets, styles, variables }
+        return await window.api.exportDocumentFiles(
+          await documentMarkdown(page, name, text, ctx, fonts)
+        )
+      }
+      const html = await documentHtml(page, name, settings, fonts)
+      const data = kind === 'pdf' ? await window.api.documentPdf(html) : html
+      return await window.api.exportDocumentFiles([{ path: `${name}.${kind}`, data }])
+    } finally {
+      page.style.zoom = zoomed
+    }
+  }
 
   /** L'anteprima segue il cursore: mostra il blocco che si sta scrivendo */
   const followCaret = (): void => {
@@ -146,6 +173,9 @@ export default function DocumentView({
         />
         <button onClick={() => setInserting(true)} title={t('documents.insertCardHint')}>
           {t('documents.insertCard')}
+        </button>
+        <button onClick={() => setExporting(true)} title={t('documents.exportHint')}>
+          {t('documents.export')}
         </button>
         <button
           className={pageOpen ? 'active' : ''}
@@ -220,6 +250,14 @@ export default function DocumentView({
           />
         )}
       </div>
+      {exporting && (
+        <DocumentExportDialog
+          name={name}
+          problems={problems.length}
+          onExport={exportAs}
+          onClose={() => setExporting(false)}
+        />
+      )}
       {inserting && (
         <InsertCardDialog
           sets={sets}

@@ -168,7 +168,14 @@ function Block({
       return (
         <div className="doc-figure">
           {b.images.map((img, k) => (
-            <Figure key={k} src={img.src} alt={img.alt} ctx={ctx} templates={templates} />
+            <Figure
+              key={k}
+              src={img.src}
+              alt={img.alt}
+              from={img.from}
+              ctx={ctx}
+              templates={templates}
+            />
           ))}
         </div>
       )
@@ -179,11 +186,14 @@ function Block({
 const Figure = memo(function Figure({
   src,
   alt,
+  from,
   ctx,
   templates
 }: {
   src: string
   alt: string
+  /** Posizione nel testo: l'esportazione ritrova così la carta disegnata */
+  from: number
   ctx: DocumentContext
   templates: Template[]
 }): React.JSX.Element {
@@ -197,7 +207,7 @@ const Figure = memo(function Figure({
     <AssetImage src={src} ctx={ctx} />
   )
   return (
-    <figure>
+    <figure data-from={from}>
       {content}
       {alt && (
         <figcaption>

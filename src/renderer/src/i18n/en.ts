@@ -808,6 +808,7 @@ export const en = {
   'note.invalidName':
     'Invalid note name: "{name}". It cannot start with a dot or contain \\ / : * ? " < > |',
   'note.exists': 'A note named "{name}" already exists',
+  'document.badExportPath': '"{path}" is not a path inside export/docs',
   'document.invalidName':
     'Invalid document name: "{name}". It cannot start with a dot or contain \\ / : * ? " < > |',
   'document.exists': 'A document named "{name}" already exists',
@@ -1226,6 +1227,20 @@ export const en = {
   'documents.headingColor': 'Heading color',
   'documents.pageHint': 'These settings are written at the top of the file, between two --- lines.',
   'documents.resetPage': 'Reset to default',
+  'documents.export': 'Export',
+  'documents.exportHint': 'Save the document as PDF, HTML or Markdown in export/docs',
+  'documents.export.pdf': 'PDF',
+  'documents.export.pdfHint': 'To print or send, with the page size and margins of the document',
+  'documents.export.html': 'HTML',
+  'documents.export.htmlHint': 'One web page, with cards, images and fonts inside the file',
+  'documents.export.md': 'Markdown',
+  'documents.export.mdHint':
+    'Plain text for other programs, with the cards as PNG and the images in a folder beside it',
+  'documents.exporting': 'Exporting…',
+  'documents.exported': 'Saved in {file}.',
+  'documents.openFolder': 'Open folder',
+  'documents.exportProblems':
+    'The document has problems ({n}), listed under the text: cards and images that are not found are left out.',
   'documents.insertCard': 'Insert card',
   'documents.insertCardHint':
     'Choose a card of the game: the document shows it as it is in the project, and follows its changes',

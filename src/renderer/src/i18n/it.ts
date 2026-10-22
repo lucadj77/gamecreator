@@ -818,6 +818,7 @@ export const it: Record<MessageKey, string> = {
   'note.invalidName':
     'Nome di nota non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
   'note.exists': 'Esiste già una nota "{name}"',
+  'document.badExportPath': '"{path}" non è un percorso dentro export/docs',
   'document.invalidName':
     'Nome di documento non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
   'document.exists': 'Esiste già un documento "{name}"',
@@ -1246,6 +1247,20 @@ export const it: Record<MessageKey, string> = {
   'documents.headingColor': 'Colore titoli',
   'documents.pageHint': 'Queste impostazioni sono scritte in testa al file, tra due righe ---.',
   'documents.resetPage': 'Torna ai valori di base',
+  'documents.export': 'Esporta',
+  'documents.exportHint': 'Salva il documento in PDF, HTML o Markdown in export/docs',
+  'documents.export.pdf': 'PDF',
+  'documents.export.pdfHint': 'Da stampare o inviare, con il formato e i margini del documento',
+  'documents.export.html': 'HTML',
+  'documents.export.htmlHint': 'Una pagina web, con carte, immagini e font dentro il file',
+  'documents.export.md': 'Markdown',
+  'documents.export.mdHint':
+    'Testo semplice per altri programmi, con le carte in PNG e le immagini in una cartella accanto',
+  'documents.exporting': 'Esportazione in corso…',
+  'documents.exported': 'Salvato in {file}.',
+  'documents.openFolder': 'Apri la cartella',
+  'documents.exportProblems':
+    'Il documento ha dei problemi ({n}), elencati sotto il testo: le carte e le immagini che non si trovano restano fuori.',
   'documents.insertCard': 'Inserisci carta',
   'documents.insertCardHint':
     "Scegli una carta del gioco: il documento la mostra com'è nel progetto e ne segue le modifiche",

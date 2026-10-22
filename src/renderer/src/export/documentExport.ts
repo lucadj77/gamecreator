@@ -246,6 +246,15 @@ export async function documentMarkdown(
         out.push(`![](${link(file)})`)
         break
       }
+      case 'setup': {
+        const svg = page.querySelector<SVGSVGElement>(`figure[data-from="${b.from}"] svg[xmlns]`)
+        if (!svg) break
+        cards++
+        const file = `${String(cards).padStart(2, '0')} setup.png`
+        files.push({ path: `${dir}/${file}`, data: await cardPng(svg, fonts) })
+        out.push(`![](${link(file)})`)
+        break
+      }
       case 'figure': {
         const imgs: string[] = []
         for (const img of b.images) {

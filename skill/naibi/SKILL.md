@@ -284,6 +284,22 @@ card: Characters/name=Wizard?width=50
 
 `card:` takes the same reference as `card:` images (prefix optional). Each `- layer: label` line names a layer of the card's template (the column-like layer name) and its label; markup works in labels; `(left)`/`(right)` forces the side, otherwise the nearest side is used. `check` reports unknown layers.
 
+A table setup diagram (how to lay out the game) is a fenced block, one element per line, sizes in mm from the top left corner:
+
+````
+```setup
+size 300x230
+zone 0,0 300x112 "Player 1"
+deck Characters/1?side=back 10,10 count=6 "Characters"
+card Characters/name=Wizard 165,10 rotate=90 "The wizard"
+text 165,85 width=80 "In the middle: **3** face-up cards"
+arrow 260,40 -> 290,40 "draw"
+image icons/coin.png 270,75 width=12
+```
+````
+
+`size WxH` is optional (without it the drawing fits its elements). Card references are as in `card:` images (prefix optional), with `%20` for spaces; `rotate` is 0, 90, 180 or 270 and a rotated card takes the turned box with `x,y` at its top left; a deck is drawn as a small stack (`count` defaults to 5). Text and labels go in double quotes (`\"` for a quote) and can use markup. Cards are usually 63x88 mm: leave room for labels (about 5 mm under a card). `check` reports bad lines and missing cards.
+
 Run `docs` (or `check`) after writing: it lists the references that are not found, with their line.
 
 ## Formulas

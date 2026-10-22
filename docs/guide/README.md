@@ -542,11 +542,27 @@ card: Characters/name=Wizard?width=50
 
 `card:` is the card, written as in card references (also with `side=back` and `width`). Each `- layer: label` line explains a layer; `(left)` or `(right)` after the name chooses the side. Labels can use markup. A layer the template does not have is reported under the text and by `naibi check`.
 
+**Table setup** draws how to set up the table, with the real cards of the project. In the window the buttons **Zone**, **Card**, **Deck**, **Text**, **Arrow** and **Image** add an element; cards and decks are chosen as in **Insert card**, images from assets. Click an element to select it and drag it to move it, or use the arrow keys (1 mm, 5 with Shift); the handle at the bottom right resizes zones, texts and images, the handles at the two ends move the ends of an arrow. On the right you change position and sizes in millimetres, the label, the number of cards in a deck and the rotation in steps of 90°; **Duplicate** and **Delete** do what they say. With nothing selected, **Fixed table size** gives the drawing a size in millimetres; without it, the drawing fits its elements. In the document the drawing shrinks to fit the page, and the labels stay readable. With the cursor inside a table setup, the same button opens it for editing. In the text it is a block like this, which you can also write by hand:
+
+````
+```setup
+size 300x230
+zone 0,0 300x112 "Player 1"
+deck Characters/1?side=back 10,10 count=6 "Characters"
+card Characters/name=Wizard 165,10 rotate=90 "The wizard"
+text 165,85 width=80 "In the middle: **{hand}** face-up cards"
+arrow 260,40 -> 290,40 "draw"
+image icons/coin.png 270,75 width=12
+```
+````
+
+Each line is an element, with sizes in millimetres from the top left corner: `zone x,y WxH "label"`, `card <card> x,y`, `deck <card> x,y count=N`, `text x,y width=W "text"`, `arrow x,y -> x2,y2 "label"`, `image <file> x,y width=W`. Cards and decks take `rotate=90` (also 180 and 270) and a label in quotes; the card is written as in card references, with `%20` for spaces. `size WxH` fixes the size of the table. Texts and labels can use markup. Lines that are not understood and cards that are not found are reported under the text and by `naibi check`.
+
 **Page** opens the document settings on the right: page size (A4, A5, Letter), margins, text and heading fonts, text size, line spacing, space after paragraphs, alignment (left or justified), and text and heading colors. The preview shows the page at its real width, scaled down if it does not fit. The settings are written at the top of the file, between two `---` lines, such as `size: 12` or `lineHeight: 1.6`: you can change them there too, and **Reset to default** removes them.
 
 **Export document…** saves the document in the project's `export/docs/` in three forms: **PDF**, to print or send, with the page size and margins of the document (desktop app only); **HTML**, one web page in a single file, with cards, images and fonts inside; **Markdown**, plain text for other programs, with the cards as 300 dpi PNG files and the images in a folder beside it (`<name> images`). Markdown keeps bold, italic and strikethrough; other styles are lost. Cards and images that are not found are left out, and the window reminds you when the document has problems.
 
-Below the text the problems are listed: cards that are not found, images not in assets, unknown names in braces; a click goes to that point of the text. `naibi check` reports them with those of the cards, and `naibi docs` shows the documents to an AI agent. For now documents are read only in the app: export to PDF, HTML and Markdown with images will come in a later version.
+Below the text the problems are listed: cards that are not found, images not in assets, unknown names in braces; a click goes to that point of the text. `naibi check` reports them with those of the cards, and `naibi docs` shows the documents to an AI agent.
 
 ## 13. Backup
 

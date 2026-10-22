@@ -5,6 +5,7 @@ import {
   DOC_PAGES,
   DOCUMENTS_DIR,
   documentProblems,
+  documentText,
   documentSettings,
   parseDocument,
   withDocumentSettings,
@@ -18,6 +19,8 @@ import DocumentExportDialog, { type DocExportKind } from './DocumentExportDialog
 import { documentHtml, documentMarkdown } from '../export/documentExport'
 import InsertCardDialog from './InsertCardDialog'
 import TableDialog, { type TableValue } from './TableDialog'
+import SetupDialog from './SetupDialog'
+import type { Setup } from '../../../shared/model/setup'
 import MarkupTextarea from './MarkupTextarea'
 import Menu from './Menu'
 
@@ -63,6 +66,10 @@ export default function DocumentView({
     from?: number
     to?: number
   } | null>(null)
+  /** Schema del tavolo aperto: nuovo, o quello del testo tra from e to */
+  const [setupEdit, setSetupEdit] = useState<{ value?: Setup; from?: number; to?: number } | null>(
+    null
+  )
   const [pageOpen, setPageOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
   /** La tabella aperta nello strumento: nuova, o quella del testo tra from e to */
@@ -147,6 +154,17 @@ export default function DocumentView({
         : parseDocument(text).find((b) => b.kind === 'anatomy' && b.from <= at && at <= b.to)
     if (found?.kind === 'anatomy') setAnatomyEdit({ value: found, from: found.from, to: found.to })
     else setAnatomyEdit({})
+  }
+
+  /** Apre lo schema del tavolo: quello dove sta il cursore, se c'è */
+  const openSetup = (): void => {
+    const at = lastCaret.current === null ? null : (editor.current?.selectionStart ?? null)
+    const found =
+      at === null
+        ? undefined
+        : parseDocument(text).find((b) => b.kind === 'setup' && b.from <= at && at <= b.to)
+    if (found?.kind === 'setup') setSetupEdit({ value: found, from: found.from, to: found.to })
+    else setSetupEdit({})
   }
 
   /** Riscrive il testo tra from e to, o inserisce un blocco al cursore */
@@ -253,6 +271,9 @@ export default function DocumentView({
         <button onClick={openAnatomy} title={t('documents.anatomyButtonHint')}>
           {t('documents.anatomy')}
         </button>
+        <button onClick={openSetup} title={t('documents.setupButtonHint')}>
+          {t('documents.setup')}
+        </button>
         <button onClick={openTable} title={t('documents.tableButtonHint')}>
           {t('documents.table')}
         </button>
@@ -346,6 +367,22 @@ export default function DocumentView({
             setTableEdit(null)
             putBlock(md, tableEdit.from, tableEdit.to)
           }}
+        />
+      )}
+      {setupEdit && (
+        <SetupDialog
+          initial={setupEdit.value}
+          sets={sets}
+          templates={templates}
+          project={project}
+          maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
+          font={(settings.size * 0.88 * 25.4) / 72}
+          display={(s) => documentText(s, { project, sets, assets, styles, variables })}
+          onSave={(md) => {
+            setSetupEdit(null)
+            putBlock(md, setupEdit.from, setupEdit.to)
+          }}
+          onClose={() => setSetupEdit(null)}
         />
       )}
       {anatomyEdit && (

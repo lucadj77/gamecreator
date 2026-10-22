@@ -5,6 +5,8 @@ import { resolveAsset } from '../../../shared/model/assets'
 import { imageVariable, palette, resolveColor, resolveFont } from '../../../shared/model/variables'
 import { msg } from '../../../shared/messages'
 import AnatomyDiagram from './AnatomyDiagram'
+import SetupDiagram from './SetupDiagram'
+import { setupView, setupWithText } from './setupGeometry'
 import { useBoundCard } from './useBoundCard'
 import {
   anatomyCardSource,
@@ -191,6 +193,26 @@ function Block({
                 font={settings.size * 0.88 * PT}
               />
             )}
+          </figure>
+        </div>
+      )
+    }
+    case 'setup': {
+      const setup = setupWithText(b, (s) => documentText(s, ctx))
+      const maxWidth = DOC_PAGES[settings.page][0] - 2 * settings.margin
+      const sets = ctx.sets ?? []
+      return (
+        <div className="doc-figure">
+          <figure data-from={b.from}>
+            <SetupDiagram
+              setup={setup}
+              view={setupView(setup, sets, templates, maxWidth, settings.size * 0.88 * PT)}
+              sets={sets}
+              templates={templates}
+              project={ctx.project}
+              unit={DOC_UNIT}
+              maxWidth={maxWidth}
+            />
           </figure>
         </div>
       )

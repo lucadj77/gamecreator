@@ -88,8 +88,13 @@ function convertForeignObject(fo: SVGForeignObjectElement, families: Set<string>
   const content = fo.firstElementChild as HTMLElement | null
   if (!content) return g
   const ancestors: SVGElement[] = []
-  for (let el = fo.parentElement; el && el.tagName.toLowerCase() !== 'svg'; el = el.parentElement)
-    ancestors.push(el as unknown as SVGElement)
+  // fino al disegno più esterno: anche le carte dentro un altro disegno (schema del tavolo)
+  for (
+    let el = fo.parentElement;
+    el instanceof SVGElement && el.ownerSVGElement;
+    el = el.parentElement
+  )
+    ancestors.push(el)
   const saved = ancestors.map((el) => el.style.transform)
   ancestors.forEach((el) => (el.style.transform = 'none'))
   try {

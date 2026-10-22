@@ -9,6 +9,7 @@ import type { GroupLayer, HAlign, Layer, Side, Template } from './template'
 import { worldBounds } from './geometry'
 import { arrangeGroup } from './arrange'
 import type { Bounds } from './edit'
+import { parseSetup, SETUP_FENCE, type Setup } from './setup'
 
 // Documenti del progetto (docs/<nome>.md): regolamento, sell sheet, appendici. Sono Markdown con
 // il markup di Naibi nel testo ({icona}, [testo]{.stile}) e le carte del progetto come immagini:
@@ -52,6 +53,8 @@ export type DocBlock = { from: number } & (
   | { kind: 'figure'; images: DocImage[] }
   /** Anatomia di una carta: la carta con le etichette collegate ai suoi livelli */
   | ({ kind: 'anatomy'; to: number } & Anatomy)
+  /** Schema della preparazione del tavolo (model/setup.ts) */
+  | ({ kind: 'setup'; to: number } & Setup)
 )
 
 /** Un'etichetta dell'anatomia: il livello che indica e il testo */
@@ -174,7 +177,14 @@ export function parseDocument(src: string): DocBlock[] {
       while (i < lines.length && !lines[i].trimStart().startsWith(fence[1])) body.push(lines[i++])
       const to = i < lines.length ? starts[i] + lines[i].length : src.length
       i++
-      if (fence[2].toLowerCase() === ANATOMY_FENCE)
+      if (fence[2].toLowerCase() === SETUP_FENCE)
+        blocks.push({
+          kind: 'setup',
+          ...parseSetup(body, starts.slice(first, first + body.length)),
+          from,
+          to
+        })
+      else if (fence[2].toLowerCase() === ANATOMY_FENCE)
         blocks.push({
           kind: 'anatomy',
           ...parseAnatomy(body, starts.slice(first, first + body.length)),
@@ -688,6 +698,20 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
         for (const img of b.images) {
           const problem = imageProblem(img.src, ctx)
           if (problem) out.push({ message: problem, from: img.from, to: img.to })
+        }
+        break
+      case 'setup':
+        out.push(...b.bad.map((r) => ({ message: msg('doc.setup.badLine'), ...r })))
+        for (const it of b.items) {
+          const problem =
+            it.kind === 'card' || it.kind === 'deck'
+              ? imageProblem(anatomyCardSource(it.card), ctx)
+              : it.kind === 'image'
+                ? imageProblem(it.src, ctx)
+                : null
+          if (problem) out.push({ message: problem, from: it.from, to: it.to })
+          if (it.kind === 'text') texts.push({ text: it.text, from: it.from })
+          if ('label' in it && it.label) texts.push({ text: it.label, from: it.from })
         }
         break
       case 'anatomy':

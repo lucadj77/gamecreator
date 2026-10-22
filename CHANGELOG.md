@@ -5,6 +5,22 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.23
+
+### English
+
+- Documents can show how to set up the table: **Table setup** opens an editor where you add zones, cards, decks, texts, arrows and images and drag them into place. Cards and decks are the real cards of the project, drawn as they are now; a deck is a small stack, and cards can be turned by 90°. Labels and texts can use markup and variables.
+- In the text the drawing is a ` ```setup ` block, one element per line in millimetres, which you can also write by hand or have an AI agent write (see the guide and `docs/formato.md`). With the cursor inside it, the same button opens it again. `naibi check` reports lines that are not understood and cards that are not found.
+- The drawing shrinks to fit the page and is exported like the rest of the document: in the PDF and HTML as a drawing, in Markdown as a PNG.
+- Fixed: in exports, the text of a card drawn rotated inside another drawing came out one letter per line.
+
+### Italiano
+
+- I documenti possono mostrare come preparare il tavolo: **Schema tavolo** apre un editor in cui si aggiungono zone, carte, mazzi, testi, frecce e immagini e si trascinano al loro posto. Carte e mazzi sono le carte vere del progetto, disegnate come sono ora; un mazzo è una piccola pila, e le carte si possono girare di 90°. Etichette e testi accettano il markup e le variabili.
+- Nel testo lo schema è un blocco ` ```setup `, un elemento per riga in millimetri, che si può anche scrivere a mano o far scrivere a un agente IA (vedi la guida e `docs/formato.md`). Con il cursore dentro, lo stesso tasto lo riapre. `naibi check` segnala le righe che non si capiscono e le carte che non si trovano.
+- Lo schema si riduce per stare nella pagina e si esporta con il resto del documento: nel PDF e nell'HTML come disegno, nel Markdown come PNG.
+- Corretto: nelle esportazioni, il testo di una carta disegnata ruotata dentro un altro disegno usciva con una lettera per riga.
+
 ## 1.2.0-beta.22
 
 ### English

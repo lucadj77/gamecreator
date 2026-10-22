@@ -35,7 +35,8 @@ function layerNames(layers: Layer[], depth = 0): { name: string; depth: number }
 /**
  * Sceglie una carta del progetto e scrive nel documento il riferimento ![nome](card:…), senza
  * doverne ricordare la sintassi. Con `anatomy` scrive invece l'anatomia della carta: si
- * scelgono i livelli da spiegare e il testo delle etichette.
+ * scelgono i livelli da spiegare e il testo delle etichette. Con `pick` sceglie soltanto la carta
+ * (per lo schema del tavolo) e restituisce il riferimento senza card:.
  */
 export default function InsertCardDialog({
   sets,
@@ -43,6 +44,7 @@ export default function InsertCardDialog({
   project,
   anatomy,
   initial,
+  pick,
   onInsert,
   onClose
 }: {
@@ -52,6 +54,8 @@ export default function InsertCardDialog({
   anatomy?: boolean
   /** L'anatomia da modificare */
   initial?: Anatomy
+  /** Sceglie solo la carta: il riferimento scritto ora, o '' per una nuova */
+  pick?: string
   /** Il testo da inserire: ![didascalia](card:…) o il blocco ```anatomy */
   onInsert(text: string): void
   onClose(): void
@@ -59,8 +63,9 @@ export default function InsertCardDialog({
   const { t } = useI18n()
   // la carta dell'anatomia da modificare, se si trova ancora
   const start = (() => {
-    if (!initial) return null
-    const ref = parseCardRef(anatomyCardSource(initial.card))
+    const card = initial?.card ?? pick
+    if (!card) return null
+    const ref = parseCardRef(anatomyCardSource(card))
     if (isMessage(ref)) return null
     const found = findCard(ref, sets)
     return isMessage(found) ? null : { ref, set: found.set.name, row: found.row }
@@ -127,27 +132,31 @@ export default function InsertCardDialog({
   const layers = template ? layerNames(side === 'front' ? template.front : template.back) : []
   const text = !ref
     ? ''
-    : anatomy
-      ? anatomySource(
-          cardRefSource(ref),
-          layers
-            .filter((l) => labels.has(l.name))
-            .map((l) => ({
-              layer: l.name,
-              label: labels.get(l.name)!.trim() || l.name,
-              side: initial?.callouts.find((c) => c.layer === l.name)?.side
-            }))
-        )
-      : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
+    : pick !== undefined
+      ? cardRefSource(ref).replace(/^card:/i, '')
+      : anatomy
+        ? anatomySource(
+            cardRefSource(ref),
+            layers
+              .filter((l) => labels.has(l.name))
+              .map((l) => ({
+                layer: l.name,
+                label: labels.get(l.name)!.trim() || l.name,
+                side: initial?.callouts.find((c) => c.layer === l.name)?.side
+              }))
+          )
+        : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
 
   return (
     <Dialog
       title={t(
-        anatomy
-          ? initial
-            ? 'documents.editAnatomy'
-            : 'documents.insertAnatomy'
-          : 'documents.insertCard'
+        pick !== undefined
+          ? 'documents.pickCard'
+          : anatomy
+            ? initial
+              ? 'documents.editAnatomy'
+              : 'documents.insertAnatomy'
+            : 'documents.insertCard'
       )}
       onClose={onClose}
     >
@@ -272,7 +281,7 @@ export default function InsertCardDialog({
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : pick !== undefined ? null : (
               <label>
                 {t('documents.caption')}
                 <input value={alt} onChange={(e) => setCaption(e.target.value)} />
@@ -288,7 +297,13 @@ export default function InsertCardDialog({
             disabled={!text || (anatomy && !labels.size)}
             onClick={() => onInsert(text)}
           >
-            {t(initial ? 'documents.saveAnatomy' : 'documents.insert')}
+            {t(
+              pick !== undefined
+                ? 'documents.pick'
+                : initial
+                  ? 'documents.saveAnatomy'
+                  : 'documents.insert'
+            )}
           </button>
         </div>
       </div>

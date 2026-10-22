@@ -7,6 +7,8 @@ import {
   documentText,
   findCard,
   parseCardRef,
+  anatomySource,
+  layerBounds,
   parseDocument,
   tableSource,
   withDocumentSettings
@@ -232,5 +234,61 @@ describe('tabelle', () => {
       ]
     })
     expect(src.slice(t.from, t.kind === 'table' ? t.to : 0)).toBe(md)
+  })
+})
+
+describe('anatomia della carta', () => {
+  const src = anatomySource('Personaggi/nome=Mago', [
+    { layer: 'nome', label: 'Il **nome**' },
+    { layer: 'forza', label: 'Forza', side: 'left' }
+  ])
+
+  it('si scrive e si rilegge', () => {
+    expect(src).toBe(
+      '```anatomy\ncard: Personaggi/nome=Mago\n- nome: Il **nome**\n- forza (left): Forza\n```'
+    )
+    const [b] = parseDocument(`${src}\n\nDopo`)
+    expect(b).toMatchObject({
+      kind: 'anatomy',
+      card: 'Personaggi/nome=Mago',
+      callouts: [
+        { layer: 'nome', label: 'Il **nome**' },
+        { layer: 'forza', label: 'Forza', side: 'left' }
+      ],
+      bad: [],
+      from: 0,
+      to: src.length
+    })
+  })
+
+  it('segnala righe, carte e livelli sbagliati', () => {
+    const templates = [
+      {
+        name: 'personaggio',
+        width: 63,
+        height: 88,
+        front: [
+          { type: 'text', name: 'nome', x: 6, y: 4, w: 51, h: 9, rotation: 0, anchor: 'center' }
+        ],
+        back: []
+      }
+    ] as never
+    const text = '```anatomy\ncard: Personaggi/1\n- nome: Nome\n- zampa: Zampa\nboh\n```'
+    const problems = documentProblems(text, { sets, templates })
+    expect(problems.map((p) => p.message.key)).toEqual([
+      'doc.anatomy.noLayer',
+      'doc.anatomy.badLine'
+    ])
+    expect(documentProblems('```anatomy\n- nome: x\n```', { sets })[0].message.key).toBe(
+      'doc.anatomy.noCard'
+    )
+  })
+
+  it('trova il riquadro del livello, anche ignorando le maiuscole', () => {
+    const layers = [
+      { type: 'text', name: 'Nome', x: 6, y: 4, w: 50, h: 10, rotation: 0, anchor: 'center' }
+    ] as never
+    expect(layerBounds(layers, 'nome')).toEqual({ x: 6, y: 4, w: 50, h: 10 })
+    expect(layerBounds(layers, 'altro')).toBeNull()
   })
 })

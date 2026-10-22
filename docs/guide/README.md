@@ -526,6 +526,19 @@ Cards are not copied into the document: Naibi draws them from the project, so a 
 
 **Table** opens a grid to fill in: the first row is the heading, each column has its own alignment, **+ Row** and **+ Column** make it bigger and × removes a row or a column. You can paste cells copied from Excel or another spreadsheet. With the cursor inside a table already written, the same button opens it for editing. In the text the table becomes Markdown with aligned columns.
 
+**Card anatomy** draws a card with labels that explain its parts, joined by a line to the layers of the template. In the window you choose the card as in **Insert card**, then tick the layers to explain and write a label for each. Each label goes on the side of the card nearest to its layer; card and labels shrink to fit the page. With the cursor inside an anatomy, the same button opens it for editing. In the text the anatomy is a block like this, which you can also write by hand:
+
+````
+```anatomy
+card: Characters/name=Wizard?width=50
+- name: Name of the character
+- strength: Strength, added to the die roll {sword}
+- text (left): **Ability**: once per turn
+```
+````
+
+`card:` is the card, written as in card references (also with `side=back` and `width`). Each `- layer: label` line explains a layer; `(left)` or `(right)` after the name chooses the side. Labels can use markup. A layer the template does not have is reported under the text and by `naibi check`.
+
 **Page** opens the document settings on the right: page size (A4, A5, Letter), margins, text and heading fonts, text size, line spacing, space after paragraphs, alignment (left or justified), and text and heading colors. The preview shows the page at its real width, scaled down if it does not fit. The settings are written at the top of the file, between two `---` lines, such as `size: 12` or `lineHeight: 1.6`: you can change them there too, and **Reset to default** removes them.
 
 **Export** saves the document in the project's `export/docs/` in three forms: **PDF**, to print or send, with the page size and margins of the document (desktop app only); **HTML**, one web page in a single file, with cards, images and fonts inside; **Markdown**, plain text for other programs, with the cards as 300 dpi PNG files and the images in a folder beside it (`<name> images`). Markdown keeps bold, italic and strikethrough; other styles are lost. Cards and images that are not found are left out, and the window reminds you when the document has problems.

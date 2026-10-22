@@ -822,6 +822,10 @@ export const en = {
   'doc.card.noValue': 'No card in "{set}" has {field} = "{value}"',
   'doc.setting.unknown': '"{name}" is not a page setting',
   'doc.setting.bad': '"{value}" is not a valid value for {name}',
+  'doc.anatomy.badLine':
+    'This line of the anatomy is not understood: write card: … or - layer: label',
+  'doc.anatomy.noCard': 'The anatomy has no card: line',
+  'doc.anatomy.noLayer': 'The template "{template}" has no layer "{layer}"',
   'doc.missingImage': 'The image "{name}" is not in assets',
   'doc.unknownRef': '{{name}} is not a variable or an image in assets',
   'doc.ambiguousRef': '{{name}} matches more than one file in assets: write the folder too',
@@ -1257,6 +1261,15 @@ export const en = {
   'documents.tableHint':
     'The first row is the heading. Cells can use markup, such as {heart} or **bold**. You can paste cells copied from a spreadsheet.',
   'documents.saveTable': 'Save table',
+  'documents.anatomy': 'Card anatomy',
+  'documents.anatomyButtonHint':
+    'A card with labels that explain its parts; with the cursor in an anatomy, edits it',
+  'documents.insertAnatomy': 'Card anatomy',
+  'documents.editAnatomy': 'Edit card anatomy',
+  'documents.anatomyHint':
+    'Tick the parts of the card to explain and write their labels. Labels go on the side nearest to each part.',
+  'documents.anatomyLabel': 'Label',
+  'documents.saveAnatomy': 'Save',
   'documents.insertCard': 'Insert card',
   'documents.insertCardHint':
     'Choose a card of the game: the document shows it as it is in the project, and follows its changes',

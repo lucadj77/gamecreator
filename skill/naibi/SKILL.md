@@ -272,6 +272,18 @@ headingColor: red
 
 The app exports documents to `export/docs/` as PDF, standalone HTML or plain Markdown with PNG cards (button **Export** in the document); there is no CLI command for it yet, so ask the user to export.
 
+A card anatomy (the card with labels pointing at its parts) is a fenced block:
+
+````
+```anatomy
+card: Characters/name=Wizard?width=50
+- name: Name of the character
+- strength (left): Strength, added to the die roll
+```
+````
+
+`card:` takes the same reference as `card:` images (prefix optional). Each `- layer: label` line names a layer of the card's template (the column-like layer name) and its label; markup works in labels; `(left)`/`(right)` forces the side, otherwise the nearest side is used. `check` reports unknown layers.
+
 Run `docs` (or `check`) after writing: it lists the references that are not found, with their line.
 
 ## Formulas

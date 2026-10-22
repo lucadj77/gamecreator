@@ -704,7 +704,8 @@ function documentReport(
     sets: project.sets,
     assets: project.assets,
     styles: project.file.styles,
-    variables: project.file.variables
+    variables: project.file.variables,
+    templates: project.templates
   }
   return (project.documents ?? [])
     .filter((d) => !only || d.name === only)

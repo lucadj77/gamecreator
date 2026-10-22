@@ -4684,6 +4684,7 @@ details.usages button.link {
   background: var(--bg);
   border-radius: 4px;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .document-export-kinds {
@@ -4738,4 +4739,40 @@ details.usages button.link {
 
 .table-dialog-header input {
   font-weight: 600;
+}
+
+.anatomy-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.anatomy-layer {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.dialog-form .anatomy-layer label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.anatomy-layer input[type='checkbox'] {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.anatomy-layer .muted,
+.anatomy-layers > p {
+  grid-column: 1 / -1;
+  margin: 0;
 }

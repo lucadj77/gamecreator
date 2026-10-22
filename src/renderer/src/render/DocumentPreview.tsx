@@ -1,19 +1,18 @@
 import { memo, useContext, useMemo } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
-import { bindRow } from '../../../shared/model/bind'
-import { systemOfSet } from '../../../shared/model/system'
 import { resolveAsset } from '../../../shared/model/assets'
 import { imageVariable, palette, resolveColor, resolveFont } from '../../../shared/model/variables'
+import { msg } from '../../../shared/messages'
+import AnatomyDiagram from './AnatomyDiagram'
+import { useBoundCard } from './useBoundCard'
 import {
+  anatomyCardSource,
   DOC_PAGES,
   documentSettings,
   documentText,
-  findCard,
   imageProblem,
   isCardSource,
-  isMessage,
-  parseCardRef,
   parseDocument,
   type DocBlock,
   type DocSettings,
@@ -22,13 +21,15 @@ import {
 import { useI18n } from '../i18n/context'
 import CardSvg from './CardSvg'
 import { MarkupInline } from './MarkupText'
-import { AssetsContext, StylesContext, VariablesContext, assetUrl, useBindContext } from './assets'
+import { AssetsContext, StylesContext, VariablesContext, assetUrl } from './assets'
 
 // Anteprima di un documento del progetto (model/document.ts): il Markdown come una pagina, con il
 // markup di Naibi nel testo e le carte disegnate dal progetto, come nell'esportazione.
 
 /** Pixel per millimetro: le carte si vedono alla loro misura vera (96 punti per pollice) */
 export const DOC_UNIT = 96 / 25.4
+/** mm in un punto tipografico */
+const PT = 25.4 / 72
 
 interface Props {
   text: string
@@ -96,7 +97,7 @@ export default function DocumentPreview({
             onPick?.(b.from)
           }}
         >
-          <Block block={b} ctx={ctx} templates={templates} />
+          <Block block={b} ctx={ctx} templates={templates} settings={settings} />
         </div>
       ))}
     </div>
@@ -106,12 +107,15 @@ export default function DocumentPreview({
 function Block({
   block: b,
   ctx,
-  templates
+  templates,
+  settings
 }: {
   block: DocBlock
+  settings: DocSettings
   ctx: DocumentContext
   templates: Template[]
 }): React.JSX.Element {
+  const { t } = useI18n()
   const inline = (s: string): React.JSX.Element => (
     <MarkupInline text={documentText(s, ctx)} unit={DOC_UNIT} />
   )
@@ -164,6 +168,33 @@ function Block({
           </tbody>
         </table>
       )
+    case 'anatomy': {
+      const problem = b.card
+        ? imageProblem(anatomyCardSource(b.card), ctx)
+        : msg('doc.anatomy.noCard')
+      return (
+        <div className="doc-figure">
+          <figure data-from={b.from}>
+            {problem ? (
+              <span className="doc-missing">{t(problem)}</span>
+            ) : (
+              <AnatomyDiagram
+                anatomy={{
+                  ...b,
+                  callouts: b.callouts.map((c) => ({ ...c, label: documentText(c.label, ctx) }))
+                }}
+                sets={ctx.sets ?? []}
+                templates={templates}
+                project={ctx.project}
+                unit={DOC_UNIT}
+                maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
+                font={settings.size * 0.88 * PT}
+              />
+            )}
+          </figure>
+        </div>
+      )
+    }
     case 'figure':
       return (
         <div className="doc-figure">
@@ -229,21 +260,7 @@ function CardImage({
   templates: Template[]
   project?: string
 }): React.JSX.Element | null {
-  const bindCtx = useBindContext()
-  const card = useMemo(() => {
-    const ref = parseCardRef(src)
-    if (isMessage(ref)) return null
-    const found = findCard(ref, sets)
-    if (isMessage(found)) return null
-    const { set, row } = found
-    const template = templates.find((x) => x.name === set.template)
-    if (!set.data || !template) return null
-    const bound = bindRow(set.data.headers, set.data.rows[row], template, templates, {
-      ...bindCtx,
-      system: { ...systemOfSet(project ?? '', set), number: row + 1 }
-    })
-    return { ref, template: bound.template }
-  }, [src, sets, templates, bindCtx, project])
+  const card = useBoundCard(src, sets, templates, project)
   if (!card) return null
   const tpl = card.template
   const scale = ((card.ref.width ?? tpl.width) / tpl.width) * DOC_UNIT

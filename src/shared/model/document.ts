@@ -5,7 +5,10 @@ import { substituteFields } from './bind'
 import { imageVariable, variableFields, type Variables } from './variables'
 import { resolveAsset } from './assets'
 import { today } from './system'
-import type { HAlign, Side } from './template'
+import type { GroupLayer, HAlign, Layer, Side, Template } from './template'
+import { worldBounds } from './geometry'
+import { arrangeGroup } from './arrange'
+import type { Bounds } from './edit'
 
 // Documenti del progetto (docs/<nome>.md): regolamento, sell sheet, appendici. Sono Markdown con
 // il markup di Naibi nel testo ({icona}, [testo]{.stile}) e le carte del progetto come immagini:
@@ -47,7 +50,96 @@ export type DocBlock = { from: number } & (
   | { kind: 'code'; text: string }
   /** Una riga con sole immagini: una o più carte (o immagini) affiancate */
   | { kind: 'figure'; images: DocImage[] }
+  /** Anatomia di una carta: la carta con le etichette collegate ai suoi livelli */
+  | ({ kind: 'anatomy'; to: number } & Anatomy)
 )
+
+/** Un'etichetta dell'anatomia: il livello che indica e il testo */
+export interface Callout {
+  layer: string
+  label: string
+  /** Lato dell'etichetta; di base quello più vicino al livello */
+  side?: 'left' | 'right'
+  /** Posizione della riga nel testo */
+  from: number
+  to: number
+}
+
+export interface Anatomy {
+  /** Riferimento alla carta, come in card: (anche senza il prefisso) */
+  card: string
+  cardFrom: number
+  callouts: Callout[]
+  /** Righe che non si capiscono */
+  bad: { from: number; to: number }[]
+}
+
+/** Il blocco ```anatomy: le sue righe sono card: … e - livello: etichetta */
+export const ANATOMY_FENCE = 'anatomy'
+const CALLOUT_LINE = /^\s*[-*]\s*(.+?)(?:\s*\((left|right)\))?\s*:\s*(.*)$/
+
+function parseAnatomy(lines: string[], starts: number[]): Anatomy {
+  const out: Anatomy = { card: '', cardFrom: -1, callouts: [], bad: [] }
+  lines.forEach((l, k) => {
+    const from = starts[k]
+    const to = from + l.length
+    if (!l.trim() || l.trim().startsWith('#')) return
+    const card = /^\s*card\s*:\s*(.*)$/i.exec(l)
+    if (card) {
+      out.card = card[1].trim()
+      out.cardFrom = from
+      return
+    }
+    const m = CALLOUT_LINE.exec(l)
+    if (m) {
+      out.callouts.push({
+        layer: m[1].trim(),
+        label: m[3].trim(),
+        ...(m[2] ? { side: m[2] as 'left' | 'right' } : {}),
+        from,
+        to
+      })
+    } else out.bad.push({ from, to })
+  })
+  return out
+}
+
+/** Testo del blocco anatomia di una carta */
+export function anatomySource(card: string, callouts: Omit<Callout, 'from' | 'to'>[]): string {
+  return [
+    '```' + ANATOMY_FENCE,
+    `card: ${card.replace(/^card:/i, '')}`,
+    ...callouts.map(
+      (c) => `- ${c.layer}${c.side ? ` (${c.side})` : ''}: ${c.label.replace(/\n/g, ' ')}`
+    ),
+    '```'
+  ].join('\n')
+}
+
+/**
+ * Riquadro sulla carta del livello con questo nome (anche in un gruppo, dove è disegnato), o
+ * null. Prima il nome esatto, poi senza badare alle maiuscole.
+ */
+export function layerBounds(layers: Layer[], name: string): Bounds | null {
+  const find = (
+    list: Layer[],
+    chain: GroupLayer[],
+    same: (a: string) => boolean
+  ): Bounds | null => {
+    for (const l of list) {
+      if (same(l.name) && l.type !== 'value') return worldBounds(l, chain)
+      if (l.type === 'group') {
+        const found = find(arrangeGroup(l).children, [...chain, l], same)
+        if (found) return found
+      }
+    }
+    return null
+  }
+  return (
+    find(layers, [], (a) => a === name) ??
+    find(layers, [], (a) => a.toLowerCase() === name.trim().toLowerCase())
+  )
+}
 
 const IMAGE = /!\[([^\]]*)\]\(([^)]*)\)/g
 const ONLY_IMAGES = /^\s*(?:!\[[^\]]*\]\([^)]*\)\s*)+$/
@@ -74,13 +166,22 @@ export function parseDocument(src: string): DocBlock[] {
       i++
       continue
     }
-    const fence = /^\s*(```|~~~)/.exec(line)
+    const fence = /^\s*(```|~~~)\s*([\w-]*)/.exec(line)
     if (fence) {
       const body: string[] = []
+      const first = i + 1
       i++
       while (i < lines.length && !lines[i].trimStart().startsWith(fence[1])) body.push(lines[i++])
+      const to = i < lines.length ? starts[i] + lines[i].length : src.length
       i++
-      blocks.push({ kind: 'code', text: body.join('\n'), from })
+      if (fence[2].toLowerCase() === ANATOMY_FENCE)
+        blocks.push({
+          kind: 'anatomy',
+          ...parseAnatomy(body, starts.slice(first, first + body.length)),
+          from,
+          to
+        })
+      else blocks.push({ kind: 'code', text: body.join('\n'), from })
       continue
     }
     const heading = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line)
@@ -433,6 +534,8 @@ export interface DocumentContext {
   assets?: string[]
   styles?: Record<string, string>
   variables?: Variables
+  /** Per controllare i livelli richiamati dalle anatomie delle carte */
+  templates?: Template[]
 }
 
 /**
@@ -587,6 +690,10 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
           if (problem) out.push({ message: problem, from: img.from, to: img.to })
         }
         break
+      case 'anatomy':
+        out.push(...anatomyProblems(b, ctx))
+        b.callouts.forEach((c) => texts.push({ text: c.label, from: c.from }))
+        break
     }
   }
   for (const { text, from } of texts) {
@@ -609,6 +716,32 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
       }
   }
   return out.sort((a, b) => a.from - b.from)
+}
+
+/** Il riferimento card: di un'anatomia, scritto con o senza il prefisso */
+export const anatomyCardSource = (card: string): string =>
+  isCardSource(card) ? card.trim() : CARD_PREFIX + card.trim()
+
+function anatomyProblems(b: Anatomy & { from: number }, ctx: DocumentContext): DocumentProblem[] {
+  const out: DocumentProblem[] = b.bad.map((r) => ({ message: msg('doc.anatomy.badLine'), ...r }))
+  if (!b.card) return [{ message: msg('doc.anatomy.noCard'), from: b.from, to: b.from + 3 }, ...out]
+  const at = { from: b.cardFrom, to: b.cardFrom + 5 + b.card.length }
+  const src = anatomyCardSource(b.card)
+  const problem = imageProblem(src, ctx)
+  if (problem) return [{ message: problem, ...at }, ...out]
+  const ref = parseCardRef(src)
+  const found = !isMessage(ref) && ctx.sets ? findCard(ref, ctx.sets) : null
+  const template =
+    found && !isMessage(found) ? ctx.templates?.find((x) => x.name === found.set.template) : null
+  if (!template || isMessage(ref)) return out
+  for (const c of b.callouts)
+    if (!layerBounds(template[ref.side], c.layer))
+      out.push({
+        message: msg('doc.anatomy.noLayer', { layer: c.layer, template: template.name }),
+        from: c.from,
+        to: c.to
+      })
+  return out
 }
 
 /** Perché un'immagine del documento non si può mostrare, o null se si trova */

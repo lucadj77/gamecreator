@@ -832,6 +832,10 @@ export const it: Record<MessageKey, string> = {
   'doc.card.noValue': 'Nessuna carta di "{set}" ha {field} = "{value}"',
   'doc.setting.unknown': '"{name}" non è un\'impostazione della pagina',
   'doc.setting.bad': '"{value}" non è un valore valido per {name}',
+  'doc.anatomy.badLine':
+    "Questa riga dell'anatomia non si capisce: scrivi card: … oppure - livello: etichetta",
+  'doc.anatomy.noCard': "L'anatomia non ha la riga card:",
+  'doc.anatomy.noLayer': 'Il template "{template}" non ha un livello "{layer}"',
   'doc.missingImage': 'L\'immagine "{name}" non è negli asset',
   'doc.unknownRef': "{{name}} non è una variabile né un'immagine negli asset",
   'doc.ambiguousRef': '{{name}} corrisponde a più file negli asset: scrivi anche la cartella',
@@ -1277,6 +1281,15 @@ export const it: Record<MessageKey, string> = {
   'documents.tableHint':
     "La prima riga è l'intestazione. Nelle celle si può usare il markup, come {cuore} o **grassetto**. Si possono incollare celle copiate da un foglio di calcolo.",
   'documents.saveTable': 'Salva la tabella',
+  'documents.anatomy': 'Anatomia carta',
+  'documents.anatomyButtonHint':
+    "Una carta con le etichette che ne spiegano le parti; con il cursore in un'anatomia, la modifica",
+  'documents.insertAnatomy': 'Anatomia della carta',
+  'documents.editAnatomy': "Modifica l'anatomia della carta",
+  'documents.anatomyHint':
+    'Spunta le parti della carta da spiegare e scrivi le etichette. Ogni etichetta va dal lato più vicino alla sua parte.',
+  'documents.anatomyLabel': 'Etichetta',
+  'documents.saveAnatomy': 'Salva',
   'documents.insertCard': 'Inserisci carta',
   'documents.insertCardHint':
     "Scegli una carta del gioco: il documento la mostra com'è nel progetto e ne segue le modifiche",

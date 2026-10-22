@@ -231,6 +231,21 @@ export async function documentMarkdown(
         )
         break
       }
+      case 'anatomy': {
+        // l'anatomia è un disegno solo: un PNG come le carte
+        const svg = page.querySelector<SVGSVGElement>(`figure[data-from="${b.from}"] svg[xmlns]`)
+        if (!svg) break
+        cards++
+        const file = `${String(cards).padStart(2, '0')} ${safeName(
+          b.card
+            .replace(/^card:/i, '')
+            .split('?')[0]
+            .replace(/\//g, ' ')
+        )}.png`
+        files.push({ path: `${dir}/${file}`, data: await cardPng(svg, fonts) })
+        out.push(`![](${link(file)})`)
+        break
+      }
       case 'figure': {
         const imgs: string[] = []
         for (const img of b.images) {

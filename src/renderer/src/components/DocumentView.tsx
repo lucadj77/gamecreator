@@ -7,7 +7,8 @@ import {
   documentProblems,
   documentSettings,
   parseDocument,
-  withDocumentSettings
+  withDocumentSettings,
+  type Anatomy
 } from '../../../shared/model/document'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, StylesContext, VariablesContext } from '../render/assets'
@@ -56,6 +57,12 @@ export default function DocumentView({
   const variables = useContext(VariablesContext)
   const [draftName, setDraftName] = useState(name)
   const [inserting, setInserting] = useState(false)
+  /** Anatomia aperta: nuova, o quella del testo tra from e to */
+  const [anatomyEdit, setAnatomyEdit] = useState<{
+    value?: Anatomy
+    from?: number
+    to?: number
+  } | null>(null)
   const [pageOpen, setPageOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
   /** La tabella aperta nello strumento: nuova, o quella del testo tra from e to */
@@ -85,10 +92,10 @@ export default function DocumentView({
   // gli errori del markup li elenca già il campo; qui carte, immagini e nomi che non si trovano
   const problems = useMemo(
     () =>
-      documentProblems(text, { project, sets, assets, styles, variables }).filter((p) =>
+      documentProblems(text, { project, sets, assets, styles, variables, templates }).filter((p) =>
         p.message.key.startsWith('doc.')
       ),
-    [text, project, sets, assets, styles, variables]
+    [text, project, sets, assets, styles, variables, templates]
   )
 
   const settings = useMemo(() => documentSettings(text).settings, [text])
@@ -128,6 +135,26 @@ export default function DocumentView({
         to: found.to
       })
     else setTableEdit({})
+  }
+
+  /** Apre l'anatomia della carta: quella dove sta il cursore, se c'è */
+  const openAnatomy = (): void => {
+    const at = lastCaret.current === null ? null : (editor.current?.selectionStart ?? null)
+    const found =
+      at === null
+        ? undefined
+        : parseDocument(text).find((b) => b.kind === 'anatomy' && b.from <= at && at <= b.to)
+    if (found?.kind === 'anatomy') setAnatomyEdit({ value: found, from: found.from, to: found.to })
+    else setAnatomyEdit({})
+  }
+
+  /** Riscrive il testo tra from e to, o inserisce un blocco al cursore */
+  const putBlock = (md: string, from?: number, to?: number): void => {
+    if (from === undefined || to === undefined) insertBlock(md)
+    else {
+      caret.current = from + md.length
+      onChange(text.slice(0, from) + md + text.slice(to))
+    }
   }
 
   /** Esporta dall'anteprima, mostrata per un momento senza riduzione: le carte si misurano così */
@@ -198,6 +225,9 @@ export default function DocumentView({
         />
         <button onClick={() => setInserting(true)} title={t('documents.insertCardHint')}>
           {t('documents.insertCard')}
+        </button>
+        <button onClick={openAnatomy} title={t('documents.anatomyButtonHint')}>
+          {t('documents.anatomy')}
         </button>
         <button onClick={openTable} title={t('documents.tableButtonHint')}>
           {t('documents.table')}
@@ -292,12 +322,22 @@ export default function DocumentView({
           onClose={() => setTableEdit(null)}
           onSave={(md) => {
             setTableEdit(null)
-            if (tableEdit.from === undefined || tableEdit.to === undefined) insertBlock(md)
-            else {
-              caret.current = tableEdit.from + md.length
-              onChange(text.slice(0, tableEdit.from) + md + text.slice(tableEdit.to))
-            }
+            putBlock(md, tableEdit.from, tableEdit.to)
           }}
+        />
+      )}
+      {anatomyEdit && (
+        <InsertCardDialog
+          anatomy
+          initial={anatomyEdit.value}
+          sets={sets}
+          templates={templates}
+          project={project}
+          onInsert={(md) => {
+            setAnatomyEdit(null)
+            putBlock(md, anatomyEdit.from, anatomyEdit.to)
+          }}
+          onClose={() => setAnatomyEdit(null)}
         />
       )}
       {inserting && (

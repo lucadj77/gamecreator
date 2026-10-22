@@ -526,6 +526,19 @@ Le carte non si copiano nel documento: Naibi le disegna dal progetto, quindi una
 
 **Tabella** apre una griglia da compilare: la prima riga è l'intestazione, ogni colonna ha il suo allineamento, **+ Riga** e **+ Colonna** la allargano e × toglie una riga o una colonna. Si possono incollare celle copiate da Excel o da un altro foglio di calcolo. Con il cursore dentro una tabella già scritta, lo stesso tasto la apre per modificarla. Nel testo la tabella diventa Markdown con le colonne allineate.
 
+**Anatomia carta** disegna una carta con le etichette che ne spiegano le parti, collegate da una linea ai livelli del template. Nella finestra si sceglie la carta come in **Inserisci carta**, poi si spuntano i livelli da spiegare e si scrive l'etichetta di ciascuno. Ogni etichetta va dal lato della carta più vicino al suo livello; carta ed etichette si riducono per stare nella pagina. Con il cursore dentro un'anatomia, lo stesso tasto la apre per modificarla. Nel testo l'anatomia è un blocco come questo, che si può anche scrivere a mano:
+
+````
+```anatomy
+card: Personaggi/nome=Mago?width=50
+- nome: Nome del personaggio
+- forza: Forza, si somma al tiro del dado {spada}
+- testo (left): **Abilità**: si usa una volta per turno
+```
+````
+
+`card:` è la carta, scritta come nei riferimenti alle carte (anche con `side=back` e `width`). Ogni riga `- livello: etichetta` spiega un livello; `(left)` o `(right)` dopo il nome sceglie il lato. Nelle etichette si può usare il markup. Un livello che il template non ha viene segnalato sotto il testo e da `naibi check`.
+
 **Pagina** apre a destra le impostazioni del documento: formato (A4, A5, Letter), margini, carattere del testo e dei titoli, dimensione del testo, interlinea, spazio dopo i paragrafi, allineamento (a sinistra o giustificato) e colore del testo e dei titoli. L'anteprima mostra la pagina alla sua larghezza vera, ridotta se non ci sta. Le impostazioni sono scritte in testa al file, tra due righe `---`, come `size: 12` o `lineHeight: 1.6`: si possono cambiare anche lì, e **Torna ai valori di base** le toglie.
 
 **Esporta** salva il documento in `export/docs/` del progetto in tre forme: **PDF**, da stampare o inviare, con il formato e i margini del documento (solo nell'app per computer); **HTML**, una pagina web in un solo file, con carte, immagini e font dentro; **Markdown**, testo semplice per altri programmi, con le carte in PNG a 300 dpi e le immagini in una cartella accanto (`<nome> images`). Nel Markdown restano grassetto, corsivo e barrato; gli altri stili si perdono. Le carte e le immagini che non si trovano restano fuori, e la finestra lo ricorda se il documento ha dei problemi.

@@ -1,9 +1,18 @@
 import { useMemo, useState } from 'react'
 import type { LoadedSet } from '../../../shared/project'
-import type { Side, Template } from '../../../shared/model/template'
+import { isDrawn, type Layer, type Side, type Template } from '../../../shared/model/template'
 import { bindRow } from '../../../shared/model/bind'
 import { systemOfSet } from '../../../shared/model/system'
-import { cardRefSource, type CardRef } from '../../../shared/model/document'
+import {
+  anatomySource,
+  cardRefSource,
+  findCard,
+  isMessage,
+  parseCardRef,
+  anatomyCardSource,
+  type Anatomy,
+  type CardRef
+} from '../../../shared/model/document'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import CardSvg from '../render/CardSvg'
@@ -13,26 +22,50 @@ import Segmented from './Segmented'
 /** Carte mostrate al massimo nella griglia: con un set grande si cerca per nome */
 const MAX_SHOWN = 60
 
+/** Nomi dei livelli disegnati, anche dentro i gruppi, con la profondità */
+function layerNames(layers: Layer[], depth = 0): { name: string; depth: number }[] {
+  return layers
+    .filter(isDrawn)
+    .flatMap((l) => [
+      { name: l.name, depth },
+      ...(l.type === 'group' ? layerNames(l.children, depth + 1) : [])
+    ])
+}
+
 /**
  * Sceglie una carta del progetto e scrive nel documento il riferimento ![nome](card:…), senza
- * doverne ricordare la sintassi
+ * doverne ricordare la sintassi. Con `anatomy` scrive invece l'anatomia della carta: si
+ * scelgono i livelli da spiegare e il testo delle etichette.
  */
 export default function InsertCardDialog({
   sets,
   templates,
   project,
+  anatomy,
+  initial,
   onInsert,
   onClose
 }: {
   sets: LoadedSet[]
   templates: Template[]
   project: string
-  /** Il testo da inserire: ![didascalia](card:…) */
+  anatomy?: boolean
+  /** L'anatomia da modificare */
+  initial?: Anatomy
+  /** Il testo da inserire: ![didascalia](card:…) o il blocco ```anatomy */
   onInsert(text: string): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
-  const [setName, setSetName] = useState('')
+  // la carta dell'anatomia da modificare, se si trova ancora
+  const start = (() => {
+    if (!initial) return null
+    const ref = parseCardRef(anatomyCardSource(initial.card))
+    if (isMessage(ref)) return null
+    const found = findCard(ref, sets)
+    return isMessage(found) ? null : { ref, set: found.set.name, row: found.row }
+  })()
+  const [setName, setSetName] = useState(start?.set ?? '')
   const bindCtx = useBindContext()
   const { usable, set, template, cards } = useMemo(() => {
     const usable = sets.filter((s) => s.data?.rows.length)
@@ -53,17 +86,21 @@ export default function InsertCardDialog({
   const headers = (set?.data?.headers ?? []).filter((h) => h && h !== 'amount' && !h.includes('.'))
 
   const [query, setQuery] = useState('')
-  const [row, setRow] = useState(0)
+  const [row, setRow] = useState(start?.row ?? 0)
   // di base si cerca la carta per il campo del nome: il riferimento regge se le righe cambiano ordine
   const defaultKey =
     (template?.labelField && headers.includes(template.labelField)
       ? template.labelField
       : headers[0]) ?? ''
-  const [keyChoice, setKey] = useState<string | null>(null)
+  const [keyChoice, setKey] = useState<string | null>(start ? (start.ref.field ?? '') : null)
   const key =
     keyChoice !== null && (keyChoice === '' || headers.includes(keyChoice)) ? keyChoice : defaultKey
-  const [side, setSide] = useState<Side>('front')
-  const [width, setWidth] = useState('')
+  const [side, setSide] = useState<Side>(start?.ref.side ?? 'front')
+  const [width, setWidth] = useState(start?.ref.width ? String(start.ref.width) : '')
+  /** Etichette dell'anatomia per livello; un livello senza voce non si spiega */
+  const [labels, setLabels] = useState<Map<string, string>>(
+    () => new Map(initial?.callouts.map((c) => [c.layer, c.label]) ?? [])
+  )
   const [caption, setCaption] = useState<string | null>(null)
 
   const shown = cards
@@ -87,10 +124,33 @@ export default function InsertCardDialog({
       }
     : null
   const alt = caption ?? cards[current]?.label ?? ''
-  const text = ref ? `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})` : ''
+  const layers = template ? layerNames(side === 'front' ? template.front : template.back) : []
+  const text = !ref
+    ? ''
+    : anatomy
+      ? anatomySource(
+          cardRefSource(ref),
+          layers
+            .filter((l) => labels.has(l.name))
+            .map((l) => ({
+              layer: l.name,
+              label: labels.get(l.name)!.trim() || l.name,
+              side: initial?.callouts.find((c) => c.layer === l.name)?.side
+            }))
+        )
+      : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
 
   return (
-    <Dialog title={t('documents.insertCard')} onClose={onClose}>
+    <Dialog
+      title={t(
+        anatomy
+          ? initial
+            ? 'documents.editAnatomy'
+            : 'documents.insertAnatomy'
+          : 'documents.insertCard'
+      )}
+      onClose={onClose}
+    >
       <div className="dialog-form insert-card">
         {!set ? (
           <p className="muted">{t('documents.noCards')}</p>
@@ -184,17 +244,51 @@ export default function InsertCardDialog({
                 {t(repeated ? 'documents.repeatedValue' : 'documents.emptyValue', { field: key })}
               </p>
             )}
-            <label>
-              {t('documents.caption')}
-              <input value={alt} onChange={(e) => setCaption(e.target.value)} />
-            </label>
+            {anatomy ? (
+              <div className="anatomy-layers">
+                <p className="muted small">{t('documents.anatomyHint')}</p>
+                {layers.map((l) => (
+                  <div key={l.name} className="anatomy-layer" style={{ paddingLeft: l.depth * 14 }}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={labels.has(l.name)}
+                        onChange={(e) => {
+                          const next = new Map(labels)
+                          if (e.target.checked) next.set(l.name, l.name)
+                          else next.delete(l.name)
+                          setLabels(next)
+                        }}
+                      />
+                      {l.name}
+                    </label>
+                    {labels.has(l.name) && (
+                      <input
+                        value={labels.get(l.name)}
+                        placeholder={t('documents.anatomyLabel')}
+                        onChange={(e) => setLabels(new Map(labels).set(l.name, e.target.value))}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <label>
+                {t('documents.caption')}
+                <input value={alt} onChange={(e) => setCaption(e.target.value)} />
+              </label>
+            )}
             <code className="insert-card-code">{text}</code>
           </>
         )}
         <div className="dialog-buttons">
           <button onClick={onClose}>{t('dialog.cancel')}</button>
-          <button className="primary" disabled={!text} onClick={() => onInsert(text)}>
-            {t('documents.insert')}
+          <button
+            className="primary"
+            disabled={!text || (anatomy && !labels.size)}
+            onClick={() => onInsert(text)}
+          >
+            {t(initial ? 'documents.saveAnatomy' : 'documents.insert')}
           </button>
         </div>
       </div>

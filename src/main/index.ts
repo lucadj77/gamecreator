@@ -285,7 +285,7 @@ function registerIpc(): void {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     try {
-      await saveData(folder, changes)
+      return await saveData(folder, changes)
     } finally {
       await markDataWritten()
     }

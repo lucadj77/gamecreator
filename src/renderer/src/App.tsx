@@ -805,16 +805,17 @@ function App(): React.JSX.Element {
     const removed = readOnlyData
       ? []
       : (project.diskSheets ?? []).filter((x) => !used.has(x) || trashedSheets.has(x))
-    // grafici e simili che il salvataggio toglierebbe dal file dati: prima si chiede
+    // grafici e simili che il salvataggio toglierebbe dal file dati: Naibi li tiene quando cambia
+    // solo celle, li perde quando deve riscrivere il file (fogli nuovi, rinominati o tolti)
     const losses = project.dataFileLosses ?? []
-    if (
-      (sheets.length || removed.length) &&
-      losses.length &&
-      !window.confirm(
+    const lossConfirm = (): boolean =>
+      window.confirm(
         t('save.dataLossConfirm', { what: losses.map((x) => t(`dataLoss.${x}`)).join(', ') })
       )
-    )
-      return
+    const restructure =
+      removed.length > 0 ||
+      sheets.some((x) => x.origin || !(project.diskSheets ?? []).includes(x.name))
+    if (restructure && losses.length && !lossConfirm()) return
     setError(null)
     setSaving(true)
     try {
@@ -840,16 +841,26 @@ function App(): React.JSX.Element {
               })
             }
         )
-      if (sheets.length || fileDirty || removed.length)
-        await window.api.saveData({ file: fileDirty ? project.file : undefined, sheets, removed })
+      let rewritten = false
+      if (sheets.length || fileDirty || removed.length) {
+        const changes = { file: fileDirty ? project.file : undefined, sheets, removed }
+        try {
+          // senza conferma il file non si riscrive tutto, se perderebbe qualcosa
+          ;({ rewritten } = await window.api.saveData({ ...changes, keepParts: !restructure }))
+        } catch (e) {
+          if (messageFromError(e).key !== 'save.needsRewrite') throw e
+          // i dati restano da salvare
+          if (!lossConfirm()) return
+          ;({ rewritten } = await window.api.saveData(changes))
+        }
+      }
       const onDisk = [
         ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
         ...project.unusedSheets
       ]
-      // dopo un salvataggio dei dati nel file non c'è più niente da perdere
-      const written = sheets.length > 0 || removed.length > 0
+      // dopo che il file è stato riscritto tutto non c'è più niente da perdere
       setProject(
-        (p) => p && { ...p, diskSheets: onDisk, ...(written ? { dataFileLosses: [] } : {}) }
+        (p) => p && { ...p, diskSheets: onDisk, ...(rewritten ? { dataFileLosses: [] } : {}) }
       )
       // i fogli rinominati ora hanno sul disco il nome nuovo
       if (sheets.some((x) => x.origin))

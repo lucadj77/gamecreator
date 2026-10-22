@@ -228,7 +228,7 @@ Il campo **Template**, in cima al modulo della carta, sceglie il template di una
 
 ### 5.5 Modificare il file in Excel
 
-Il file dei dati è un normale foglio di calcolo e si può modificare anche con Excel, LibreOffice o Numbers, a progetto chiuso o seguito da **Ricarica**. Al salvataggio Naibi riscrive solo le colonne con un'intestazione: formattazione delle celle, altri fogli e colonne senza intestazione restano come sono. Una cella con una formula di Excel resta una formula finché il risultato non cambia.
+Il file dei dati è un normale foglio di calcolo e si può modificare anche con Excel, LibreOffice o Numbers, a progetto chiuso o seguito da **Ricarica**. Al salvataggio Naibi riscrive solo le colonne con un'intestazione: formattazione delle celle, altri fogli e colonne senza intestazione restano come sono. Una cella con una formula di Excel resta una formula finché il risultato non cambia. Se parti da un file Excel che hai già, con formule e fogli di analisi, leggi [Usare un file Excel che hai già](excel-esistente.md).
 
 ### 5.6 Dati da Google Sheets
 

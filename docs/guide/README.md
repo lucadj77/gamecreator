@@ -228,7 +228,7 @@ The **Template** field, at the top of the card form, picks the template of a sin
 
 ### 5.5 Editing the file in Excel
 
-The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, with the project closed or followed by **Reload**. When saving, Naibi rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change.
+The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, with the project closed or followed by **Reload**. When saving, Naibi rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change. If you start from an Excel file you already have, with formulas and analysis sheets, read [Using an Excel file you already have](existing-excel.md).
 
 ### 5.6 Data from Google Sheets
 

@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.18
+
+### English
+
+- Saving a set whose sheet has empty rows between the cards no longer moves the cards up: each card goes back to its row, the empty rows stay where they are, and the columns Naibi does not use (notes, formulas) stay next to the right card. The same holds for .ods files. If the headings are not in row 1 (for example row 1 is empty), Naibi now also writes them back to the right row.
+- Help (F1), Formulas tab: every function has an example with its result.
+
+### Italiano
+
+- Salvando un set il cui foglio ha righe vuote tra le carte, le carte non salgono più: ognuna torna nella sua riga, le righe vuote restano dove sono e le colonne che Naibi non usa (note, formule) restano accanto alla carta giusta. Vale anche per i file .ods. Se le intestazioni non sono nella riga 1 (per esempio la riga 1 è vuota), Naibi ora le riscrive anche nella riga giusta.
+- Aiuto (F1), scheda Formule: ogni funzione ha un esempio con il suo risultato.
+
 ## 1.2.0-beta.17
 
 ### English

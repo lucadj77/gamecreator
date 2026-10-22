@@ -1,4 +1,5 @@
 import JSZip from 'jszip'
+import { placeRows } from './rowSlots'
 
 // Fogli di calcolo OpenDocument (.ods): un archivio zip con le tabelle in content.xml.
 // Si legge il testo delle celle come lo mostra il foglio; si scrive come per l'xlsx (vedi
@@ -383,9 +384,19 @@ function writeTable(xml: string, table: Tag, end: number, s: OdsSheet): string {
     .slice(lastRowEnd, end)
     .replace(/^(\s*<\/table:table-(header-rows|rows|row-group)>)+/, '')
 
-  // righe singole fino a quelle che servono: intestazione e una per carta,
+  // le carte tornano nelle righe che avevano dati (con una colonna con intestazione non vuota),
+  // le righe vuote in mezzo restano dove sono
+  const disk = readRows(xml, table)
+  const headed = (disk[0] ?? []).flatMap((h, i) => (h.trim() ? [i] : []))
+  const used = disk.flatMap((r, i) =>
+    i > 0 && headed.some((c) => (r[c] ?? '').trim() !== '') ? [i] : []
+  )
+  const { at, clear } = placeRows(used, s.rows.length, 0)
+  const byRow = new Map(at.map((r, k) => [r, s.rows[k]]))
+  const cleared = new Set(clear)
+  // righe singole fino a quelle che servono: intestazione, carte
   // e tutte quelle che hanno già dati: le carte tolte dal set vanno svuotate
-  const need = Math.max(s.rows.length + 1, readRows(xml, table).length, 1)
+  const need = Math.max(at.length ? at[at.length - 1] + 1 : 1, disk.length, 1)
   const rows: { open: string; tag: Tag | null }[] = []
   let rest = ''
   for (const r of rowTags) {
@@ -420,10 +431,12 @@ function writeTable(xml: string, table: Tag, end: number, s: OdsSheet): string {
           cells: Array.from({ length: width }, () => ({ raw: '<table:table-cell/>', text: '' })),
           rest: ''
         }
-    const values = i === 0 ? s.headers : s.rows[i - 1]
-    columns.forEach(
-      (c, k) => (cells[c] = { raw: cellXml(cells[c], values?.[k] ?? ''), text: values?.[k] ?? '' })
-    )
+    const values = i === 0 ? s.headers : (byRow.get(i) ?? (cleared.has(i) ? [] : null))
+    // una riga vuota in mezzo ai dati resta com'è
+    if (values)
+      columns.forEach(
+        (c, k) => (cells[c] = { raw: cellXml(cells[c], values[k] ?? ''), text: values[k] ?? '' })
+      )
     for (const c of removed) cells[c] = { raw: cellXml(cells[c], ''), text: '' }
     const open = r.open.endsWith('/>') ? r.open.slice(0, -2) + '>' : r.open
     return `${open}${cells.map((c) => c.raw).join('')}${cellRest}</table:table-row>`

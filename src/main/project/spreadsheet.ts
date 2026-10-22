@@ -7,6 +7,7 @@ import type { Sheet } from '../../shared/project'
 import { odsTableNames, odsWithOnly, readOds, writeOds } from './ods'
 import { MessageError, msg } from '../../shared/messages'
 import { deletedPath } from './deleted'
+import { placeRows } from './rowSlots'
 
 export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   const ext = extname(path).toLowerCase()
@@ -166,11 +167,24 @@ async function workbookBuffer(workbook: ExcelJS.Workbook): Promise<Buffer> {
 }
 
 function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
-  const head = ws.getRow(1)
+  // le intestazioni sono nella prima riga con dati, come in lettura
+  let headRow = 0
+  ws.eachRow({ includeEmpty: false }, (_, n) => {
+    if (!headRow) headRow = n
+  })
+  headRow ||= 1
+  const head = ws.getRow(headRow)
   const existing = new Map<string, number>()
   for (let c = 1; c <= ws.columnCount; c++) {
     const h = head.getCell(c).text?.trim()
     if (h) existing.set(h, c)
+  }
+  // righe che in lettura sono diventate carte: quelle con dati in una colonna con intestazione
+  const headed = [...existing.values()]
+  const used: number[] = []
+  for (let r = headRow + 1; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r)
+    if (headed.some((c) => cellText(row.getCell(c)).trim() !== '')) used.push(r)
   }
   let next = ws.columnCount + 1
   const columns = s.headers.map((h) => {
@@ -181,20 +195,20 @@ function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
   })
   // colonne tolte dal set: si svuotano, intestazione compresa
   const removed = [...existing.values()]
-  const last = Math.max(ws.rowCount, s.rows.length + 1)
-  for (let r = 2; r <= last; r++) {
+  const { at, clear } = placeRows(used, s.rows.length, headRow)
+  at.forEach((r, k) => {
     const row = ws.getRow(r)
-    const values = s.rows[r - 2]
     columns.forEach((c, i) => {
       const cell = row.getCell(c)
-      const v = values?.[i] ?? ''
+      const v = s.rows[k][i] ?? ''
       // una cella con lo stesso testo resta com'è: formula, data, testo formattato, collegamento
       if (cellText(cell) === v) return
       cell.value = toCellValue(v)
     })
-    for (const c of removed) row.getCell(c).value = null
-  }
-  for (const c of removed) head.getCell(c).value = null
+  })
+  for (const r of clear) for (const c of columns) ws.getRow(r).getCell(c).value = null
+  for (let r = headRow; r <= ws.rowCount; r++)
+    for (const c of removed) ws.getRow(r).getCell(c).value = null
 }
 
 /** I numeri scritti come tali restano numeri nel foglio; "007" e simili restano testo */

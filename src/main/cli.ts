@@ -35,6 +35,7 @@ import { loadProject } from './project/load'
 import { createProject } from './project/create'
 import { saveData } from './project/save'
 import { saveTemplate } from './project/templates'
+import { sharingSets } from '../shared/model/sharedSheets'
 import { renameSet } from '../shared/model/renameSet'
 import { renameTemplate } from '../shared/model/renameTemplate'
 import { isValidSheetName, setColumns } from '../shared/model/sheet'
@@ -392,7 +393,13 @@ async function pullSheets(p: Parsed): Promise<number> {
       print(`${tab.name}: no set with this name, skipped`)
       continue
     }
-    sheets.push({ ...tab, name: set.data?.name ?? set.sheet ?? set.name })
+    const name = set.data?.name ?? set.sheet ?? set.name
+    // due set con lo stesso foglio: vale la prima scheda
+    if (sheets.some((x) => x.name === name)) {
+      print(`${tab.name}: sheet "${name}" already filled by another tab, skipped`)
+      continue
+    }
+    sheets.push({ ...tab, name })
     print(`${tab.name} → ${set.name}: ${tab.rows.length} rows, columns ${tab.headers.join(', ')}`)
   }
   const file =
@@ -420,7 +427,15 @@ async function renameSetCommand(p: Parsed): Promise<number> {
   if (taken.includes(to)) throw new CliError(`a set or sheet called "${to}" already exists`)
   const index = project.sets.indexOf(set)
   const csv = project.file.dataFile.toLowerCase().endsWith('.csv')
-  const r = renameSet(project.file, project.sets, index, to, csv)
+  // un foglio usato anche da altri set tiene il suo nome
+  const r = renameSet(
+    project.file,
+    project.sets,
+    index,
+    to,
+    csv,
+    sharingSets(project.sets, index).length > 0
+  )
   const done = await backup(project)
   const sheet = r.sets[index].data
   await saveData(project.folder, { file: r.file, sheets: sheet?.origin ? [sheet] : [] })

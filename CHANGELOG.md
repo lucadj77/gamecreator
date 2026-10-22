@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.19
+
+### English
+
+- Several sets can use the same sheet, each with its own template: for example "Red troops" and "Yellow troops" drawn from one "Troops" sheet. In **New set**, under **Sheet**, the sheets already in use are listed as "Troops (data of Red troops)". A change to the data in one set applies to all the sets on the sheet; renaming one of them does not rename the sheet, and deleting one leaves the sheet in the file while another set uses it. The `naibi rename-set` command behaves the same way.
+
+### Italiano
+
+- Più set possono usare lo stesso foglio, ognuno col suo template: per esempio "Truppe rosse" e "Truppe gialle" dallo stesso foglio "Truppe". In **Nuovo set**, alla voce **Foglio**, i fogli già usati compaiono come "Truppe (dati di Truppe rosse)". Una modifica ai dati in un set vale per tutti i set del foglio; rinominarne uno non rinomina il foglio, ed eliminarne uno lascia il foglio nel file finché lo usa un altro set. Il comando `naibi rename-set` si comporta allo stesso modo.
+
 ## 1.2.0-beta.18
 
 ### English

@@ -58,6 +58,7 @@ In tutti e tre i casi, i calcoli che servono a una sola carta possono passare ne
 8. Nel progetto, nella barra laterale compare "Fogli non collegati a un set" con tutti i fogli del file.
 9. Crea un template. Per ogni livello che mostra un dato, in **Valore sulle carte** scegli **Colonna** e indica l'intestazione del foglio.
 10. **Nuovo set**: scegli il template e, in **Foglio**, il foglio "Truppe". Il set mostra subito le righe del foglio.
+    Per avere due mazzi con gli stessi dati e grafica diversa (truppe rosse e gialle), crea un secondo set, con un altro template, sullo stesso foglio: in **Foglio** è nel gruppo dei fogli già usati ([5.1](README.md#51-creare-un-set)).
 
 **Per aggiornare**
 

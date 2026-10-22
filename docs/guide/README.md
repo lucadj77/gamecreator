@@ -180,6 +180,8 @@ The + next to **Sets** asks for the name, the template and the sheet: a new shee
 
 ![The new set window](img/nuovo-set.png)
 
+The sheet can also be one already used by another set: the two sets share the rows and each draws them with its own template, for example "Red troops" and "Yellow troops" from the same "Troops" sheet. A change to the data made in one of them applies to every set on the sheet. The new set needs a name different from the sheet. Renaming a set with a shared sheet does not rename the sheet, and deleting it leaves the sheet in the file while another set uses it.
+
 ### 5.2 Table and grid
 
 A set opens in the **grid**, with the cards drawn; **Table** shows it as a spreadsheet.

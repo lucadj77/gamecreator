@@ -107,6 +107,10 @@ export const it: Record<MessageKey, string> = {
   'newSet.invalidName': 'Al massimo 31 caratteri, senza \\ / ? * [ ] :',
   'newSet.exists': 'Esiste già un set o un foglio con questo nome',
   'newSet.noTemplates': 'Crea prima un template.',
+  'newSet.sharedGroup': 'Fogli già usati (dati condivisi)',
+  'newSet.sharedOption': '{sheet} (dati di {set})',
+  'newSet.sharedNote':
+    'Il nuovo set usa le stesse righe: una modifica ai dati vale per tutti i set del foglio. Scegli un nome diverso dal foglio.',
   'newSet.columns': 'Il nuovo foglio avrà le colonne: {columns}',
   'addColumn.title': 'Aggiungi colonna',
   'addColumn.missing': 'Colonne che il template legge e che mancano nel foglio:',

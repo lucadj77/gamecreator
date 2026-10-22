@@ -58,6 +58,7 @@ In all three cases, calculations that concern a single card can move into the te
 8. In the project, the sidebar shows "Sheets not linked to a set" with all the sheets of the file.
 9. Create a template. For each layer that shows data, in **Value on cards** choose **Column** and give the sheet heading.
 10. **New set**: choose the template and, under **Sheet**, the "Troops" sheet. The set shows the rows of the sheet right away.
+    For two decks with the same data and a different look (red and yellow troops), create a second set, with another template, on the same sheet: under **Sheet** it is in the group of sheets already in use ([5.1](README.md#51-creating-a-set)).
 
 **To update**
 

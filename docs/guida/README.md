@@ -180,6 +180,8 @@ Il + accanto a **Set** chiede il nome, il template e il foglio: un foglio nuovo,
 
 ![La finestra del nuovo set](img/nuovo-set.png)
 
+Il foglio può essere anche uno già usato da un altro set: i due set condividono le righe e ognuno le disegna col suo template, per esempio "Truppe rosse" e "Truppe gialle" dallo stesso foglio "Truppe". Una modifica ai dati fatta in uno dei due vale per tutti i set del foglio. Il nuovo set deve avere un nome diverso dal foglio. Rinominare un set con il foglio condiviso non rinomina il foglio, ed eliminarlo lascia il foglio nel file finché lo usa un altro set.
+
 ### 5.2 Tabella e griglia
 
 Un set si apre nella **griglia**, con le carte disegnate; **Tabella** lo mostra come foglio di calcolo.

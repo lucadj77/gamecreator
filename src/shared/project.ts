@@ -23,6 +23,8 @@ export interface SetDefinition {
   hiddenColumns?: string[]
   /** Mostra anche i livelli fissi e con formula, in sola lettura */
   showComputed?: boolean
+  /** Nome del set nelle altre lingue del progetto, per codice della lingua */
+  names?: Record<string, string>
 }
 
 export interface ProjectFile {
@@ -46,6 +48,13 @@ export interface ProjectFile {
   googleSheet?: string
   /** Naibi non scrive nel file dati: i dati si modificano solo fuori (per esempio in Excel) */
   dataReadOnly?: boolean
+  /**
+   * Lingue del progetto, come codici (it, en, pt-BR): la prima è la principale. I testi tradotti
+   * stanno nelle colonne `campo@lingua` (vedi model/language.ts)
+   */
+  languages?: string[]
+  /** Nome del progetto nelle altre lingue, per codice della lingua */
+  names?: Record<string, string>
 }
 
 export interface Sheet {

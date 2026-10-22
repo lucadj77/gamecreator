@@ -67,7 +67,7 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 
 ![La finestra del progetto, con le parti numerate](img/progetto.png)
 
-1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), **Salva** (⌘S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**.
+1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), il menu della lingua delle carte (solo nei progetti con più lingue), **Salva** (⌘S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Lingue…** ([5.7](#57-carte-in-più-lingue)), **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**.
 2. **Set.** Un clic apre le carte del set; il numero è il totale delle carte, copie comprese.
 3. **Template.** Un clic apre il template nell'editor; accanto c'è il formato in millimetri.
 4. **Stili** di testo del progetto ([capitolo 7](#7-variabili-e-stili)).
@@ -241,6 +241,22 @@ Il file dei dati è un normale foglio di calcolo e si può modificare anche con 
 Se tieni i dati in un foglio Google, **Google Sheets…**, nel menu **Progetto**, li porta nel progetto. Nel foglio Google scegli **Condividi** → **Chiunque abbia il link** (lettore), copia il link e incollalo; **Scarica** legge tutte le schede. Ogni scheda va al set con lo stesso nome (senza badare a maiuscole); dal menu puoi sceglierne un altro o **non importare** la scheda. Se una scheda non ha alcune colonne del set, la finestra le elenca: dopo l'importazione quelle colonne non ci sono più. **Importa** sostituisce i dati dei set scelti (⌘Z annulla) e **Salva** li scrive nel file dei dati del progetto, che resta la copia locale: Naibi funziona anche senza rete.
 
 Il link resta nel progetto: la volta dopo basta aprire la finestra e premere **Scarica**. Un foglio non condiviso con il link non si può scaricare, e Naibi lo dice. Un'IA può fare lo stesso con `naibi pull-sheets`.
+
+### 5.7 Carte in più lingue
+
+Un progetto può stampare le stesse carte in più lingue. **Lingue…**, nel menu **Progetto**, apre la finestra delle lingue: la prima è la principale, quella in cui sono scritte le colonne di sempre. Con **Aggiungi lingua** scrivi il codice della lingua (en per l'inglese, fr per il francese, de per il tedesco…). Sotto, **Nomi tradotti** dà il nome del progetto e dei set nelle altre lingue: lo usano `{project.name}` e `{set.name}`. Lasciando spuntata la casella in fondo, **Salva** aggiunge ai fogli le colonne da tradurre.
+
+![La finestra delle lingue](img/lingue.png)
+
+La traduzione di una colonna sta in una colonna con lo stesso nome seguito da @ e dal codice della lingua: `nome@en` accanto a `nome`, `testo@en` accanto a `testo`. Le colonne con soli numeri non servono. Una cella tradotta vuota usa il testo della lingua principale, così puoi tradurre poco alla volta.
+
+Il menu accanto al nome del progetto, in alto, sceglie in che lingua mostrare le carte: griglia, anteprima, editor e documenti cambiano subito. Il doppio clic sulla carta modifica il testo tradotto, se la colonna c'è.
+
+![Le carte mostrate in inglese, con la colonna nome@en nella scheda della carta](img/lingua-carte.png)
+
+Si traduce solo ciò che si legge sulla carta. Nomi delle immagini, colori e formule che cominciano con `=` usano sempre i valori della lingua principale: una formula come `=IF({tipo}="Attacco"; ...)` funziona in ogni lingua senza cambiarla. Per avere un'immagine diversa in una lingua aggiungi la sua colonna tradotta, per esempio `icona@en`.
+
+In **Esporta…** scegli la lingua, o **Tutte le lingue**. La lingua principale va nella cartella di sempre, le altre in una sottocartella con il loro codice, per esempio `export/en`; i nomi dei file restano gli stessi. Un'IA fa lo stesso con `naibi render --lang en` e `naibi export --profile NOME --lang all`.
 
 ## 6. Testo e markup
 

@@ -222,6 +222,8 @@ interface JobBase {
   /** Nome del progetto: dà il nome al PDF unico e alla cartella in Tabletop Simulator */
   project: string
   sets: ExportSet[]
+  /** Lingua delle carte, se non è la principale: i file vanno nella sottocartella con il suo codice */
+  language?: string
 }
 
 export type ExportJob =

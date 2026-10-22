@@ -46,6 +46,7 @@ import { plainText } from '../../shared/model/markup'
 import { palette, resolveColor } from '../../shared/model/variables'
 import { msg } from '../../shared/messages'
 import type { Side, Template } from '../../shared/model/template'
+import { isLanguageCode } from '../../shared/model/language'
 
 // Esegue un'esportazione: prepara le scene, le fa disegnare alla finestra nascosta e scrive i file.
 // La finestra arriva da chi chiama (window.ts nell'app, un iframe nella versione web), così questo
@@ -95,6 +96,8 @@ interface Ctx {
   win: RenderWindow
   result: ExportResult
   progress: ExportProgress
+  /** Sottocartella della lingua delle carte, se non è la principale */
+  language?: string
 }
 
 export async function runExport(job: ExportJob, env: RunEnv): Promise<ExportResult> {
@@ -102,7 +105,14 @@ export async function runExport(job: ExportJob, env: RunEnv): Promise<ExportResu
   const sets = job.sets.filter((s) => s.cards.length)
   if (!sets.length) return result
   const win = await env.openWindow(env.context)
-  const ctx: Ctx = { env, win, result, progress: { done: 0, total: 0 } }
+  const ctx: Ctx = {
+    env,
+    win,
+    result,
+    progress: { done: 0, total: 0 },
+    // il codice diventa il nome di una cartella: solo un codice valido
+    ...(job.language && isLanguageCode(job.language) ? { language: job.language } : {})
+  }
   try {
     if (job.kind === 'images') await exportImages(ctx, job.options, sets)
     else if (job.kind === 'pdf') await exportPdf(ctx, job.options, sets, job.project)
@@ -125,7 +135,8 @@ function step(ctx: Ctx): void {
 }
 
 function outputFolder(ctx: Ctx, folder: string): string {
-  const out = folder.trim() ? resolve(folder) : join(ctx.env.projectFolder, 'export')
+  const base = folder.trim() ? resolve(folder) : join(ctx.env.projectFolder, 'export')
+  const out = ctx.language ? join(base, ctx.language) : base
   if (!ctx.result.folders.includes(out)) ctx.result.folders.push(out)
   return out
 }
@@ -272,10 +283,11 @@ async function exportTts(
 ): Promise<void> {
   const env = ctx.env
   const targets: string[] = []
-  if (o.destination !== 'tts') targets.push(join(env.projectFolder, 'export', 'tts'))
+  const lang = ctx.language ? [ctx.language] : []
+  if (o.destination !== 'tts') targets.push(join(env.projectFolder, 'export', ...lang, 'tts'))
   if (o.destination !== 'project') {
     const root = o.ttsFolder.trim() || defaultTtsFolder(env.platform, env.home, env.documents)
-    targets.push(join(root, safeName(project || 'Naibi')))
+    targets.push(join(root, safeName(project || 'Naibi'), ...lang))
   }
   for (const t of targets) if (!ctx.result.folders.includes(t)) ctx.result.folders.push(t)
 

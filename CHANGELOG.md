@@ -5,6 +5,22 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.25
+
+### English
+
+- Projects in several languages: **Languages…** in the **Project** menu sets the languages of the project (the first is the main one), the names of the project and of the sets in the other languages, and adds the columns to translate to the sheets. The translation of a column goes in a column such as `name@en`; an empty translated cell uses the main language.
+- A menu next to the project name shows the cards in another language: grid, preview, editor and documents. Double-clicking the card edits the translated text.
+- Only what is read is translated: image names, colours and formulas starting with `=` keep the values of the main language, so formulas work unchanged in every language. `{project.name}` and `{set.name}` use the translated names.
+- **Export…** has a **Language** choice, also **All languages**: other languages go to a subfolder named after their code (`export/en`), with the same file names. On the command line: `naibi render --lang en`, `naibi export --profile NAME --lang en|all`.
+
+### Italiano
+
+- Progetti in più lingue: **Lingue…** nel menu **Progetto** sceglie le lingue del progetto (la prima è la principale), i nomi del progetto e dei set nelle altre lingue, e aggiunge ai fogli le colonne da tradurre. La traduzione di una colonna va in una colonna come `nome@en`; una cella tradotta vuota usa la lingua principale.
+- Un menu accanto al nome del progetto mostra le carte in un'altra lingua: griglia, anteprima, editor e documenti. Il doppio clic sulla carta modifica il testo tradotto.
+- Si traduce solo ciò che si legge: nomi delle immagini, colori e formule che cominciano con `=` tengono i valori della lingua principale, così le formule funzionano in ogni lingua senza cambiarle. `{project.name}` e `{set.name}` usano i nomi tradotti.
+- **Esporta…** ha la scelta **Lingua**, anche **Tutte le lingue**: le altre lingue vanno in una sottocartella con il loro codice (`export/en`), con gli stessi nomi di file. Da riga di comando: `naibi render --lang en`, `naibi export --profile NOME --lang en|all`.
+
 ## 1.2.0-beta.24
 
 ### English

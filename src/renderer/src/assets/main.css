@@ -4961,3 +4961,70 @@ button.more-button {
   align-items: center;
   gap: 6px;
 }
+
+/* lingue del progetto */
+.languages-dialog {
+  min-width: 420px;
+  max-width: 640px;
+}
+
+.language-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.language-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.language-add {
+  display: flex;
+  gap: 8px;
+}
+
+.language-add input {
+  flex: 1;
+}
+
+.languages-dialog h3 {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.language-names {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.language-names th {
+  text-align: left;
+  font-weight: normal;
+  padding: 2px 8px 2px 0;
+  white-space: nowrap;
+}
+
+.language-names td {
+  padding: 2px 0;
+}
+
+.language-names input {
+  width: 100%;
+}
+
+.dialog-form label.language-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+
+.card-language {
+  max-width: 160px;
+}

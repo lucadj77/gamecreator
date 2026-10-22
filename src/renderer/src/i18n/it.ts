@@ -1671,6 +1671,32 @@ export const it: Record<MessageKey, string> = {
   'set.generate': 'Genera…',
   'app.googleSheets': 'Google Sheets…',
   'tip.googleSheets': 'Importa i dati dei set da un foglio Google condiviso con il link',
+  'app.languages': 'Lingue…',
+  'tip.languages': 'Lingue del progetto: nomi tradotti, colonne da tradurre',
+  'app.cardLanguage': 'Lingua delle carte',
+  'tip.cardLanguage':
+    'Lingua in cui si mostrano le carte: i testi tradotti vengono dalle colonne nome@lingua',
+  'languages.title': 'Lingue del progetto',
+  'languages.hint':
+    'La prima lingua è la principale: le colonne senza @ contengono i suoi testi. Le traduzioni di una colonna vanno in una colonna con lo stesso nome seguito da @ e dal codice della lingua, per esempio nome@en. Una cella tradotta vuota usa la lingua principale.',
+  'languages.main': 'lingua principale',
+  'languages.remove': 'Togli',
+  'languages.removeHint': 'Toglie la lingua dal progetto; le sue colonne restano nei fogli',
+  'languages.add': 'Aggiungi lingua',
+  'languages.codePlaceholder': 'Codice della lingua, per esempio en',
+  'languages.invalid': 'Usa un codice di due o tre lettere minuscole, per esempio en o pt-BR',
+  'languages.exists': 'Il progetto ha già questa lingua',
+  'languages.names': 'Nomi tradotti',
+  'languages.namesHint':
+    'Nomi del progetto e dei set nelle altre lingue, per {project.name} e {set.name}. Vuoto: il nome nella lingua principale.',
+  'languages.addColumns': 'Aggiungi ai fogli le colonne da tradurre ({n})',
+  'languages.columnsHint':
+    'Si aggiunge una colonna nome@lingua per ogni colonna letta da un livello di testo o valore.',
+  'languages.save': 'Salva',
+  'export.language': 'Lingua',
+  'export.allLanguages': 'Tutte le lingue',
+  'export.languageHint':
+    'Le altre lingue vanno in una sottocartella con il loro codice, per esempio export/en',
   'gsheets.title': 'Dati da Google Sheets',
   'gsheets.hint':
     'Condividi il foglio Google con «Chiunque abbia il link» (lettore) e incolla il link. Ogni scheda sostituisce i dati del set scelto, di solito quello con lo stesso nome; il file dati del progetto si aggiorna quando salvi. Il link resta nel progetto per la prossima importazione.',

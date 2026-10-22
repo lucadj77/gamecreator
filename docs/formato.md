@@ -80,6 +80,14 @@ Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 
 `export` (facoltativo) ricorda le opzioni dell'ultima esportazione, con una chiave per tipo: `images`, `pdf`, `tts`. La scrive l'app quando si esporta; i nomi delle opzioni sono in `src/shared/export.ts` e il loro significato in docs/specifica.md, sezione 9. Sotto `named` stanno i profili con nome, ciascuno con `name`, `kind` e `options`. La cartella `export/` del progetto contiene i file esportati e si può rigenerare.
 
+`languages` (facoltativo) elenca le lingue del progetto come codici di due o tre lettere, con una variante facoltativa (`pt-BR`); la prima è la principale, quella delle colonne senza `@`. Con meno di due lingue il progetto ha una lingua sola. `names` (facoltativo, nel progetto e in ogni set) dà il nome nelle altre lingue, per codice; un nome assente è quello della lingua principale. Vedi docs/specifica.md, 7.1.
+
+```json
+"languages": ["it", "en"],
+"names": { "en": "Siege" },
+"sets": [{ "name": "Eroi", "template": "eroe", "names": { "en": "Heroes" } }]
+```
+
 `order` (facoltativo) ricorda l'ordine scelto a mano trascinando le voci della barra laterale, con una chiave per elenco: `templates`, `styles`, `variables`. Senza la chiave l'elenco è in ordine alfabetico; i nomi che non compaiono vanno in fondo, in ordine alfabetico. L'ordine dei set è quello di `sets`. Sotto `groups` stanno i gruppi di stili e variabili nella barra laterale, per nome: `"groups": { "variables": { "oro": "Risorse" } }`; una voce assente non ha gruppo.
 
 ```json
@@ -92,6 +100,7 @@ Un campo della carta con lo stesso nome di una variabile vince sulla variabile.
 - `amount` indica il numero di copie (1 se vuoto o assente).
 - Un'intestazione con il nome di un pannello del template ne sostituisce il valore; `pannello.proprietà` sostituisce un'altra proprietà (per esempio `nome.color`).
 - Le celle vuote lasciano il valore del template.
+- `campo@lingua` (per esempio `nome@en`, `nome.size@en`) è la traduzione di `campo` in una delle lingue del progetto: vale solo quando le carte si mostrano in quella lingua, e una cella vuota lascia il valore della lingua principale.
 
 ### Perché xlsx
 

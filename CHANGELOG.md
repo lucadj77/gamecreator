@@ -10,10 +10,12 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - **Check data file…**, at the bottom of the sidebar, shows how Naibi reads each sheet of the data file: the sets that use it, the columns their templates read and the sheet lacks, and problems: a title above the headings, repeated headings, columns without a heading, merged cells, Excel errors, formulas without a saved result, empty rows between the data, and charts that a save would remove. It does not change the file. The `naibi check-data` command does the same.
+- From the same window, **Import a sheet from another file…** puts the rows of a sheet of another .xlsx, .ods or .csv file in place of those of a set. It first shows the new, removed and changed rows, matched by a column with all different values such as the name, and can keep the columns the file does not have; then it makes a backup of the project. The change can be undone with ⌘Z. Not in the web version yet.
 
 ### Italiano
 
 - **Controlla file dati…**, in fondo alla barra laterale, mostra come Naibi legge ogni foglio del file dei dati: i set che lo usano, le colonne che i loro template leggono e il foglio non ha, e le anomalie: un titolo sopra le intestazioni, intestazioni ripetute, colonne senza intestazione, celle unite, errori di Excel, formule senza risultato salvato, righe vuote tra i dati e i grafici che un salvataggio toglierebbe. Non modifica il file. Il comando `naibi check-data` fa lo stesso.
+- Dalla stessa finestra, **Importa un foglio da un altro file…** mette le righe di un foglio di un altro file .xlsx, .ods o .csv al posto di quelle di un set. Prima mostra le righe nuove, tolte e cambiate, riconosciute da una colonna con valori tutti diversi come il nome, e può tenere le colonne che il file non ha; poi fa un backup del progetto. La modifica si annulla con ⌘Z. Non ancora nella versione web.
 
 ## 1.2.0-beta.19
 

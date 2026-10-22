@@ -12,9 +12,12 @@ import { useI18n } from '../i18n/context'
  */
 export default function DataCheckDialog({
   project,
+  onImport,
   onClose
 }: {
   project: LoadedProject
+  /** Apre l'importazione di un foglio da un altro file */
+  onImport(): void
   onClose(): void
 }): React.JSX.Element {
   const { t } = useI18n()
@@ -88,6 +91,10 @@ export default function DataCheckDialog({
           ))}
         </div>
         <div className="dialog-buttons">
+          {/* nel browser non si può ancora leggere un altro file */}
+          {!window.api.isWeb && project.sets.length > 0 && (
+            <button onClick={onImport}>{t('import.open')}</button>
+          )}
           <button className="primary" onClick={onClose}>
             {t('dialog.close')}
           </button>

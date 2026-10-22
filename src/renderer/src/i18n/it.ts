@@ -139,6 +139,29 @@ export const it: Record<MessageKey, string> = {
   'check.emptyRows':
     'Righe vuote tra i dati: {rows}. Naibi le salta, e salvando restano dove sono.',
   'sidebar.checkData': 'Controlla file dati…',
+  'import.open': 'Importa un foglio da un altro file…',
+  'import.title': 'Importa un foglio da un altro file',
+  'import.hint':
+    'Le righe di un foglio di un altro file (.xlsx, .ods, .csv) prendono il posto di quelle di un set. Prima vedi cosa cambia; il file scelto non viene modificato.',
+  'import.chooseFile': 'Scegli il file…',
+  'import.otherFile': 'Un altro file…',
+  'import.noSheets': 'Il file non ha fogli con dati.',
+  'import.sheet': 'Foglio da importare',
+  'import.sheetOption': '{name} ({n} righe)',
+  'import.target': 'Nel set',
+  'import.byKey': 'Le righe si riconoscono dalla colonna {key}.',
+  'import.byPosition':
+    'Nessuna colonna ha valori tutti diversi in entrambi i fogli: le righe si confrontano per posizione.',
+  'import.rows': 'Righe: {before} prima, {after} dopo',
+  'import.added': 'Nuove ({n}): {names}',
+  'import.removed': 'Tolte ({n}): {names}',
+  'import.changed': 'Cambiate ({n}): {names}',
+  'import.unchanged': 'Uguali: {n}',
+  'import.newColumns': 'Colonne nuove: {columns}',
+  'import.keepColumns': 'Tieni le colonne che il file non ha: {columns}',
+  'import.backupNote':
+    'Prima di importare Naibi fa un backup del progetto. La modifica si annulla con ⌘Z e va salvata come le altre.',
+  'import.import': 'Importa',
   'newSet.title': 'Nuovo set',
   'newSet.template': 'Template',
   'newSet.sheet': 'Foglio',
@@ -1290,6 +1313,8 @@ export const it: Record<MessageKey, string> = {
     'Font Google con tutti gli alfabeti: la versione web salva solo quello latino (lettere accentate comprese)',
   'web.desktop.catalogs':
     "Aggiornamento dall'app dei cataloghi di game-icons.net e dei font Google",
+  'web.desktop.data':
+    'Partire da un file di dati che hai già, importare un foglio da un altro file e rileggere da solo il file dei dati quando cambia',
   'web.desktop.ai': 'Il comando naibi e la skill per gli agenti IA (Claude, Codex…)',
   'web.desktop.browser':
     'Indipendente dal browser: la versione web funziona solo con Chrome, Edge e Opera (in Brave dopo aver attivato brave://flags/#file-system-access-api), e chiede di nuovo il permesso sulla cartella ogni volta che riapri il sito',

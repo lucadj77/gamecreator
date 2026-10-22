@@ -151,6 +151,8 @@ export const webApi: Api = {
   dropDeleted: (files) => dropDeleted(projectFolder(), files),
   saveData: (changes) => saveData(projectFolder(), changes),
   reloadData: () => loadProject(projectFolder()),
+  // nel browser l'importazione da un altro file non c'è ancora: il pulsante è nascosto
+  chooseImportFile: async () => null,
   inspectData: async () => {
     const project = await loadProject(projectFolder())
     return inspectDataFile(join(projectFolder(), project.file.dataFile))

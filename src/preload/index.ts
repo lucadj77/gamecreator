@@ -24,6 +24,7 @@ const api: Api = {
   saveData: (changes) => ipcRenderer.invoke('data:save', changes),
   reloadData: () => ipcRenderer.invoke('project:reload-data'),
   inspectData: () => ipcRenderer.invoke('data:inspect'),
+  chooseImportFile: () => ipcRenderer.invoke('data:choose-import'),
   onDataFileChanged: (cb) => {
     const listener = (): void => cb()
     ipcRenderer.on('project:data-changed', listener)

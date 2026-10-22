@@ -112,6 +112,7 @@ import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import DataCheckDialog from './components/DataCheckDialog'
+import ImportSheetDialog from './components/ImportSheetDialog'
 import { renameSet } from '../../shared/model/renameSet'
 import { sharingSets, syncSharedSheets } from '../../shared/model/sharedSheets'
 import { changesData } from '../../shared/model/readOnlyData'
@@ -281,6 +282,8 @@ function App(): React.JSX.Element {
   const [dataChanged, setDataChanged] = useState(false)
   /** Finestra Controlla file dati aperta */
   const [checkingData, setCheckingData] = useState(false)
+  /** Finestra per importare un foglio da un altro file aperta */
+  const [importingSheet, setImportingSheet] = useState(false)
   const [history, setHistory] = useState<{
     past: DataSnapshot[]
     future: DataSnapshot[]
@@ -1161,6 +1164,25 @@ function App(): React.JSX.Element {
     } catch (e) {
       setError(messageFromError(e))
     }
+  }
+
+  /**
+   * Un foglio di un altro file al posto dei dati di un set: prima un backup del progetto com'è
+   * salvato, poi la modifica, che si annulla con ⌘Z e va salvata come le altre
+   */
+  const importSheetFromFile = async (setName: string, sheet: Sheet): Promise<void> => {
+    if (!project || dataLocked()) return
+    try {
+      await window.api.createBackup()
+    } catch (e) {
+      setError(messageFromError(e))
+      return
+    }
+    const index = project.sets.findIndex((s) => s.name === setName)
+    if (index < 0) return
+    updateSheet(index, sheet)
+    setSelected({ kind: 'set', index })
+    setImportingSheet(false)
   }
 
   /** Dati dal foglio Google: ogni scheda sostituisce i dati del suo set; ⌘Z annulla */
@@ -2065,7 +2087,24 @@ function App(): React.JSX.Element {
                 />
               )}
               {checkingData && project && (
-                <DataCheckDialog project={project} onClose={() => setCheckingData(false)} />
+                <DataCheckDialog
+                  project={project}
+                  onImport={() => {
+                    setCheckingData(false)
+                    setImportingSheet(true)
+                  }}
+                  onClose={() => setCheckingData(false)}
+                />
+              )}
+              {importingSheet && project && (
+                <ImportSheetDialog
+                  project={project}
+                  initialSet={
+                    selected.kind === 'set' ? project.sets[selected.index]?.name : undefined
+                  }
+                  onImport={(set, sheet) => void importSheetFromFile(set, sheet)}
+                  onClose={() => setImportingSheet(false)}
+                />
               )}
               {creatingSet && project && (
                 <NewSetDialog

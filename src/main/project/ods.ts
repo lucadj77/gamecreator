@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import { placeRows } from './rowSlots'
+import { readNumber } from '../../shared/model/number'
 
 // Fogli di calcolo OpenDocument (.ods): un archivio zip con le tabelle in content.xml.
 // Si legge il testo delle celle come lo mostra il foglio; si scrive come per l'xlsx (vedi
@@ -342,9 +343,19 @@ function withRepeat(raw: string, name: string, n: number): string {
 function cellXml(old: RawCell, v: string): string {
   // una cella con lo stesso testo resta com'è, con formula, formattazione e nota
   if (old.text === v) return old.raw
-  const style = attr(old.raw.slice(0, old.raw.indexOf('>') + 1), 'table:style-name')
+  const open = old.raw.slice(0, old.raw.indexOf('>') + 1)
+  const style = attr(open, 'table:style-name')
   const s = style ? ` table:style-name="${escape(style)}"` : ''
   if (v === '') return `<table:table-cell${s}/>`
+  // una cella numerica resta numerica anche scritta come la mostra il foglio: 60%, 3,50 €
+  const type = attr(open, 'office:value-type')
+  const n = readNumber(v)
+  if (n !== null && (type === 'float' || type === 'percentage' || type === 'currency')) {
+    const value = type === 'percentage' && !v.trim().endsWith('%') ? n / 100 : n
+    const currency = attr(open, 'office:currency')
+    const c = type === 'currency' && currency ? ` office:currency="${escape(currency)}"` : ''
+    return `<table:table-cell${s} office:value-type="${type}"${c} office:value="${value}"><text:p>${paragraph(v)}</text:p></table:table-cell>`
+  }
   // solo se il numero si rilegge uguale: "1.50" e i numeri oltre le 15 cifre restano testo
   if (/^-?(0|[1-9]\d*)(\.\d+)?$/.test(v) && String(Number(v)) === v)
     return `<table:table-cell${s} office:value-type="float" office:value="${v}"><text:p>${v}</text:p></table:table-cell>`

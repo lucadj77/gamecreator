@@ -5,6 +5,8 @@
 // - Espressione, se inizia con "=" come in Excel: =IF({forza}>3; "Forte"; "Debole").
 //   Vedi docs/specifica.md, "Formule".
 
+import { readNumber } from './number'
+
 export interface FormulaResult {
   value: string
   /** Campi citati che la riga non ha */
@@ -33,12 +35,15 @@ function formatNumber(n: number): string {
   return String(Math.round(n * 1e6) / 1e6)
 }
 
-/** Calcola un'espressione con + - * / e parentesi; null se non è un'espressione numerica */
+/**
+ * Calcola un'espressione con + - * / e parentesi; null se non è un'espressione numerica. Un
+ * numero può essere una percentuale, come la mostra il foglio: 50%*2 fa 1.
+ */
 export function arithmetic(src: string): number | null {
   const s = src.trim()
   // serve almeno un operatore o una cifra, e nient'altro che numeri e operatori
-  if (!s || !/^[\d\s+\-*/().,]+$/.test(s) || !/\d/.test(s)) return null
-  const tokens = s.match(/\d+(?:[.,]\d+)?|[-+*/()]/g) ?? []
+  if (!s || !/^[\d\s+\-*/().,%]+$/.test(s) || !/\d/.test(s)) return null
+  const tokens = s.match(/\d+(?:[.,]\d+)?%?|[-+*/()%]/g) ?? []
   let i = 0
   const peek = (): string | undefined => tokens[i]
   const expr = (): number => {
@@ -60,7 +65,7 @@ export function arithmetic(src: string): number | null {
       if (tokens[i++] !== ')') throw new Error('parenthesis')
       return v
     }
-    const n = Number(t?.replace(',', '.'))
+    const n = t === undefined ? NaN : (readNumber(t) ?? NaN)
     if (t === undefined || !Number.isFinite(n)) throw new Error('number')
     return n
   }
@@ -140,9 +145,10 @@ function tokenize(src: string): Token[] {
 function toNumber(v: Value): number {
   if (typeof v === 'number') return v
   if (typeof v === 'boolean') return v ? 1 : 0
-  const n = Number(v.trim().replace(',', '.'))
   if (v.trim() === '') return 0
-  if (!Number.isFinite(n)) throw new FormulaError(`"${v}" is not a number`)
+  // anche 50%, 1 234,50 €: come li mostra il foglio
+  const n = readNumber(v)
+  if (n === null) throw new FormulaError(`"${v}" is not a number`)
   return n
 }
 
@@ -159,19 +165,18 @@ function toBool(v: Value): boolean {
   return s !== '' && s !== '0' && s !== 'false' && s !== 'no'
 }
 
-/** Un valore di un campo è un numero se lo sembra, altrimenti testo */
+/**
+ * Un valore di un campo è un numero se lo sembra, altrimenti testo. 50% e 3,00 € restano testo,
+ * così un IF li restituisce come li mostra il foglio; i calcoli e i confronti li leggono come numeri.
+ */
 function fieldValue(raw: string): Value {
   const n = Number(raw.trim().replace(',', '.'))
   return raw.trim() !== '' && Number.isFinite(n) ? n : raw
 }
 
 function compare(a: Value, b: Value): number {
-  const na =
-    typeof a === 'number' ||
-    (typeof a === 'string' && Number.isFinite(Number(a.replace(',', '.'))) && a.trim() !== '')
-  const nb =
-    typeof b === 'number' ||
-    (typeof b === 'string' && Number.isFinite(Number(b.replace(',', '.'))) && b.trim() !== '')
+  const na = typeof a === 'number' || (typeof a === 'string' && readNumber(a) !== null)
+  const nb = typeof b === 'number' || (typeof b === 'string' && readNumber(b) !== null)
   if (na && nb) return toNumber(a) - toNumber(b)
   // il testo si confronta senza badare alle maiuscole, come in Excel
   return toText(a).localeCompare(toText(b), undefined, { sensitivity: 'base' })

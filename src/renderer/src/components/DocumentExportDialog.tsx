@@ -3,10 +3,10 @@ import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 
-// Esportazione di un documento: PDF da stampare, HTML in un solo file, Markdown con le immagini
-// in una cartella accanto. I file vanno in export/docs/ del progetto.
+// Esportazione di un documento: PDF da stampare, HTML in un solo file, Word da modificare,
+// Markdown con le immagini in una cartella accanto. I file vanno in export/docs/ del progetto.
 
-export type DocExportKind = 'pdf' | 'html' | 'md'
+export type DocExportKind = 'pdf' | 'html' | 'md' | 'docx'
 
 export default function DocumentExportDialog({
   name,
@@ -34,7 +34,9 @@ export default function DocumentExportDialog({
       .catch((e) => setError(messageFromError(e)))
       .finally(() => setBusy(null))
   }
-  const kinds: DocExportKind[] = window.api.isWeb ? ['html', 'md'] : ['pdf', 'html', 'md']
+  const kinds: DocExportKind[] = window.api.isWeb
+    ? ['html', 'docx', 'md']
+    : ['pdf', 'html', 'docx', 'md']
   const file = (kind: DocExportKind): string => (kind === 'md' ? `${name}.md` : `${name}.${kind}`)
   return (
     <Dialog title={t('documents.export')} onClose={onClose}>

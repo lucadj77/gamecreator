@@ -30,6 +30,8 @@ import {
 } from '../shared/export'
 import { buildSets } from '../shared/exportJob'
 import { runExport } from './export/run'
+import { renderDocument } from './export/docWindow'
+import { writeDocumentExport } from './project/docExport'
 import { ExportWindow } from './export/window'
 import { toCmyk } from './export/cmyk'
 import { loadProject } from './project/load'
@@ -93,6 +95,10 @@ Commands:
   docs <project> [<name>]              The project documents (docs/*.md: rules, sell sheet,
                                        appendix), all or one, with their problems (cards or
                                        images not found); write them as Markdown files there
+  export-doc <project> [<name>] [--format pdf|html|docx|md] [--out folder]
+                                       Export the documents, all or one, as in the app: PDF
+                                       (default), standalone HTML, Word (docx), or Markdown with
+                                       the cards as PNG files (default folder: export/docs)
   begin <project> [--note TEXT]        Start working: fails (exit code 3) if the Naibi app has
                                        unsaved changes in the project, otherwise the app locks
                                        itself until 'end'
@@ -751,6 +757,39 @@ async function docs(p: Parsed): Promise<number> {
   return 0
 }
 
+/** Esporta i documenti, tutti o uno, come il tasto Esporta documento dell'app */
+async function exportDoc(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  const name = p.positional[1]
+  const list = (project.documents ?? []).filter((d) => !name || d.name === name)
+  if (name && !list.length) throw new CliError(`no document named "${name}"`)
+  if (!list.length) throw new CliError('no documents in docs/')
+  const kind = typeof p.flags.format === 'string' ? p.flags.format : 'pdf'
+  if (kind !== 'pdf' && kind !== 'html' && kind !== 'md' && kind !== 'docx')
+    throw new CliError('--format: pdf, html, docx or md')
+  const out = typeof p.flags.out === 'string' ? resolve(p.flags.out) : undefined
+  const problems = documentReport(project, name)
+  for (const d of list) {
+    const files = await renderDocument({
+      project: project.file.name,
+      name: d.name,
+      text: d.text,
+      kind,
+      sets: project.sets,
+      templates: project.templates,
+      assets: project.assets,
+      fonts: project.fonts,
+      styles: project.file.styles ?? {},
+      variables: project.file.variables ?? {}
+    })
+    const dir = await writeDocumentExport(project.folder, files, out)
+    print(`${d.name}: ${files.length} files in ${dir}`)
+    for (const x of problems.filter((x) => x.document === d.name))
+      print(`Warning, line ${x.line}: ${x.problem}`)
+  }
+  return 0
+}
+
 /** Note del progetto (notes/*.md), tutte o una sola */
 async function notes(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
@@ -791,6 +830,7 @@ const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   new: create,
   notes,
   docs,
+  'export-doc': exportDoc,
   stats,
   'check-data': checkData,
   begin,

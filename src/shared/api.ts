@@ -3,12 +3,15 @@ import type {
   DeletedContent,
   DeletedItem,
   LoadedProject,
+  LoadedSet,
+  ProjectFont,
   PrintedState,
   ProjectFile,
   ProjectVersion,
   Sheet
 } from './project'
 import type { Template } from './model/template'
+import type { Variables } from './model/variables'
 import type { SheetInspection } from './dataCheck'
 import type { Message } from './messages'
 
@@ -85,6 +88,31 @@ export interface BackupState {
 export interface DocExportFile {
   path: string
   data: string | Uint8Array
+}
+
+/**
+ * Un documento da esportare nella finestra nascosta (comando naibi export-doc): il testo e quel
+ * che serve a disegnarlo. Per il PDF la pagina restituisce l'HTML, che il processo principale stampa.
+ */
+export interface DocRenderInput {
+  /** Nome del progetto, per le variabili di sistema */
+  project: string
+  name: string
+  text: string
+  kind: 'pdf' | 'html' | 'md' | 'docx'
+  sets: LoadedSet[]
+  templates: Template[]
+  assets: string[]
+  fonts: ProjectFont[]
+  styles: Record<string, string>
+  variables: Variables
+}
+
+/** File di un documento esportato, con i dati binari in base64 per passare tra i processi */
+export interface DocRenderFile {
+  path: string
+  text?: string
+  base64?: string
 }
 
 /** Voce del menu dell'app desktop, costruita dal renderer (che conosce lingua e stato) */

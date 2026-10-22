@@ -311,6 +311,8 @@ export const en = {
   'color.open': 'Choose a color',
   'color.title': 'Color',
   'color.eyedropper': 'Pick a color from the screen',
+  'color.none': 'None',
+  'color.noneHint': 'No colour (none): transparent',
   'color.project': 'Project colors',
   'color.recent': 'Recent colors',
   'color.noRecent': 'Colors you choose will appear here.',

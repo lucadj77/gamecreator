@@ -315,6 +315,8 @@ export const it: Record<MessageKey, string> = {
   'color.open': 'Scegli un colore',
   'color.title': 'Colore',
   'color.eyedropper': 'Prendi un colore dallo schermo',
+  'color.none': 'Nessuno',
+  'color.noneHint': 'Nessun colore (none): trasparente',
   'color.project': 'Colori del progetto',
   'color.recent': 'Colori recenti',
   'color.noRecent': 'Qui compaiono i colori che scegli.',

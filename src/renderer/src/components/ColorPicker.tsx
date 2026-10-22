@@ -253,6 +253,18 @@ function ColorPopover({
           <span style={{ background: hex }} />
         </span>
         <HexInput value={hex} onChange={(c) => applyRgb(c)} />
+        {/* nessun colore: si scrive none, che altrimenti andrebbe digitato a mano */}
+        <button
+          type="button"
+          className={'color-none' + (value.trim().toLowerCase() === 'none' ? ' on' : '')}
+          title={t('color.noneHint')}
+          onClick={() => {
+            setColor({ ...color, value: 'none' })
+            onChange('none')
+          }}
+        >
+          {t('color.none')}
+        </button>
       </div>
       <div className="color-row">
         <span className="color-mode">

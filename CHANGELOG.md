@@ -16,6 +16,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Renaming a set whose sheet is already in the data file asks whether to rename the sheet too: formulas in other sheets that refer to it would break.
 - Cells with an Excel error now read as the error (`#DIV/0!`, `#N/A`) instead of `[object Object]`, and FALSE reads as `false` instead of an empty cell.
 - A note that is already written opens in Preview; a new one opens ready for writing.
+- The colour picker has a **None** button: it writes `none` (no colour) without typing it.
 
 ### Italiano
 
@@ -26,6 +27,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Rinominando un set il cui foglio è già nel file dei dati, Naibi chiede se rinominare anche il foglio: le formule di altri fogli che lo citano si romperebbero.
 - Le celle con un errore di Excel ora si leggono come l'errore (`#DIV/0!`, `#N/D`) invece di `[object Object]`, e FALSO si legge `false` invece di una cella vuota.
 - Una nota già scritta si apre in Anteprima; una nuova si apre pronta per scrivere.
+- Il selettore del colore ha il pulsante **Nessuno**: scrive `none` (nessun colore) senza doverlo digitare.
 
 ## 1.2.0-beta.17
 

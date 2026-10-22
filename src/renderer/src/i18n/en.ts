@@ -808,6 +808,22 @@ export const en = {
   'note.invalidName':
     'Invalid note name: "{name}". It cannot start with a dot or contain \\ / : * ? " < > |',
   'note.exists': 'A note named "{name}" already exists',
+  'document.invalidName':
+    'Invalid document name: "{name}". It cannot start with a dot or contain \\ / : * ? " < > |',
+  'document.exists': 'A document named "{name}" already exists',
+  'doc.card.badRef':
+    '"{ref}" is not a card: write card:Set/number or card:Set/column=value, for example card:Characters/name=Wizard',
+  'doc.card.badOption':
+    'Unknown option "{option}" in "{ref}": use side=front or side=back, and width=40 (mm)',
+  'doc.card.noSet': 'There is no set named "{set}"',
+  'doc.card.noRow': 'The set "{set}" has no card {n}',
+  'doc.card.noField': 'The set "{set}" has no column "{field}"',
+  'doc.card.noValue': 'No card in "{set}" has {field} = "{value}"',
+  'doc.missingImage': 'The image "{name}" is not in assets',
+  'doc.unknownRef': '{{name}} is not a variable or an image in assets',
+  'doc.ambiguousRef': '{{name}} matches more than one file in assets: write the folder too',
+  'doc.missingVariableImage':
+    'The image variable {{name}} points to "{src}", which is not in assets',
   'template.deleteFailed':
     'Could not delete the template "{name}": {text}. Check that you can change the files in the project\'s templates folder.',
   'template.invalidName': '"{name}" cannot be used as a file name',
@@ -1178,6 +1194,38 @@ export const en = {
   'notes.placeholder': 'Write here in Markdown: # heading, - list, **bold**…',
   'notes.empty': 'The note is empty.',
   'notes.hint': 'Saved as you type in {file}.',
+  'sidebar.documents': 'Documents',
+  'sidebar.newDocument': 'New document',
+  'sidebar.noDocuments': 'Rules, sell sheet, appendix: text with the cards of the game, to export.',
+  'documents.newName': 'Rules',
+  'documents.nameHint': 'Name of the document: it is also the name of its file',
+  'documents.delete': 'Delete the document (it goes to the deleted folder)',
+  'documents.deleteConfirm': 'Delete the document "{name}"? It goes to the trash of the project.',
+  'documents.placeholder':
+    'Write in Markdown: # heading, - list, **bold**, | table |. {icon} draws an icon, [text]{.style} a style. Insert card adds a card of the game.',
+  'documents.empty': 'The document is empty.',
+  'documents.hint':
+    'Saved as you type in {file}. Click the preview to go to that point of the text.',
+  'documents.insertCard': 'Insert card',
+  'documents.insertCardHint':
+    'Choose a card of the game: the document shows it as it is in the project, and follows its changes',
+  'documents.noCards': 'No set has cards yet.',
+  'documents.set': 'Set',
+  'documents.search': 'Search',
+  'documents.searchHint': 'Name of the card',
+  'documents.more': '{n} more cards: search by name to find them.',
+  'documents.side': 'Side',
+  'documents.front': 'Front',
+  'documents.back': 'Back',
+  'documents.width': 'Width (mm)',
+  'documents.findBy': 'Find the card by',
+  'documents.byNumber': 'Row number',
+  'documents.repeatedValue':
+    'More cards have the same {field}: the card is found by its row number, which changes if the rows move.',
+  'documents.emptyValue':
+    'This card has no {field}: it is found by its row number, which changes if the rows move.',
+  'documents.caption': 'Caption',
+  'documents.insert': 'Insert',
   'sidebar.compact': 'Collapse panel to icons',
   'sidebar.expand': 'Expand panel',
   'sidebar.newVariable': 'New variable',
@@ -1573,13 +1621,14 @@ export const en = {
   'tip.trash': 'Deleted templates, sets and notes of the project: put them back',
   'trash.title': 'Trash',
   'trash.hint':
-    "Deleted templates, sets and notes stay in the project's deleted folder. Restore puts them back; a set needs its template. Restored templates and sets leave the trash when you save.",
+    "Deleted templates, sets, notes and documents stay in the project's deleted folder. Restore puts them back; a set needs its template. Restored templates and sets leave the trash when you save.",
   'trash.loading': 'Reading the trash…',
   'trash.empty': 'The trash is empty.',
   'trash.restore': 'Restore',
   'trash.template': 'Template of the restored set',
   'trash.kind.template': 'Template',
   'trash.kind.note': 'Note',
+  'trash.kind.document': 'Document',
   'trash.kind.sheet': 'Set',
   'trash.unknownFile': '"{file}" is not in the project trash',
   'set.textCheck': 'Check text…',

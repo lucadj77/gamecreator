@@ -1,0 +1,221 @@
+import { memo, useContext, useMemo } from 'react'
+import type { LoadedSet } from '../../../shared/project'
+import type { Template } from '../../../shared/model/template'
+import { bindRow } from '../../../shared/model/bind'
+import { systemOfSet } from '../../../shared/model/system'
+import { resolveAsset } from '../../../shared/model/assets'
+import { imageVariable } from '../../../shared/model/variables'
+import {
+  documentText,
+  findCard,
+  imageProblem,
+  isCardSource,
+  isMessage,
+  parseCardRef,
+  parseDocument,
+  type DocBlock,
+  type DocumentContext
+} from '../../../shared/model/document'
+import { useI18n } from '../i18n/context'
+import CardSvg from './CardSvg'
+import { MarkupInline } from './MarkupText'
+import { AssetsContext, StylesContext, VariablesContext, assetUrl, useBindContext } from './assets'
+
+// Anteprima di un documento del progetto (model/document.ts): il Markdown come una pagina, con il
+// markup di Naibi nel testo e le carte disegnate dal progetto, come nell'esportazione.
+
+/** Pixel per millimetro: le carte si vedono alla loro misura vera (96 punti per pollice) */
+export const DOC_UNIT = 96 / 25.4
+
+interface Props {
+  text: string
+  project: string
+  sets: LoadedSet[]
+  templates: Template[]
+  /** Posizione nel testo del blocco su cui si è fatto clic */
+  onPick?(from: number): void
+}
+
+export default function DocumentPreview({
+  text,
+  project,
+  sets,
+  templates,
+  onPick
+}: Props): React.JSX.Element {
+  const { t } = useI18n()
+  const assets = useContext(AssetsContext)
+  const styles = useContext(StylesContext)
+  const variables = useContext(VariablesContext)
+  const ctx = useMemo<DocumentContext>(
+    () => ({ project, sets, assets, styles, variables }),
+    [project, sets, assets, styles, variables]
+  )
+  const blocks = useMemo(() => parseDocument(text), [text])
+  return (
+    <div className="doc-page">
+      {!blocks.length && <p className="muted">{t('documents.empty')}</p>}
+      {/* chiave per posizione: scrivendo prima di una carta la carta non si ridisegna */}
+      {blocks.map((b, k) => (
+        <div
+          key={`${k}:${b.kind}`}
+          className="doc-block"
+          data-from={b.from}
+          onClick={(e) => {
+            // un clic su un collegamento o una selezione di testo non sposta il cursore
+            if (!window.getSelection()?.isCollapsed) return
+            e.stopPropagation()
+            onPick?.(b.from)
+          }}
+        >
+          <Block block={b} ctx={ctx} templates={templates} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function Block({
+  block: b,
+  ctx,
+  templates
+}: {
+  block: DocBlock
+  ctx: DocumentContext
+  templates: Template[]
+}): React.JSX.Element {
+  const inline = (s: string): React.JSX.Element => (
+    <MarkupInline text={documentText(s, ctx)} unit={DOC_UNIT} />
+  )
+  switch (b.kind) {
+    case 'heading': {
+      const H = `h${b.level}` as 'h1' | 'h2' | 'h3'
+      return <H>{inline(b.text)}</H>
+    }
+    case 'paragraph':
+      return <p>{inline(b.text)}</p>
+    case 'quote':
+      return <blockquote>{inline(b.text)}</blockquote>
+    case 'rule':
+      return <hr />
+    case 'code':
+      return <pre>{b.text}</pre>
+    case 'list':
+      return (
+        <div className="doc-list">
+          {b.items.map((it, k) => (
+            <div key={k} className="doc-item" style={{ marginLeft: `${it.depth * 1.4}em` }}>
+              <span className="doc-marker">{it.ordered ? `${it.number}.` : '•'}</span>
+              <span>{inline(it.text)}</span>
+            </div>
+          ))}
+        </div>
+      )
+    case 'table':
+      return (
+        <table>
+          <thead>
+            <tr>
+              {b.header.map((h, k) => (
+                <th key={k} style={{ textAlign: b.align[k] ?? undefined }}>
+                  {inline(h)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {b.rows.map((r, i) => (
+              <tr key={i}>
+                {r.map((c, k) => (
+                  <td key={k} style={{ textAlign: b.align[k] ?? undefined }}>
+                    {inline(c)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    case 'figure':
+      return (
+        <div className="doc-figure">
+          {b.images.map((img, k) => (
+            <Figure key={k} src={img.src} alt={img.alt} ctx={ctx} templates={templates} />
+          ))}
+        </div>
+      )
+  }
+}
+
+/** Una carta del progetto o un'immagine degli asset, con la didascalia */
+const Figure = memo(function Figure({
+  src,
+  alt,
+  ctx,
+  templates
+}: {
+  src: string
+  alt: string
+  ctx: DocumentContext
+  templates: Template[]
+}): React.JSX.Element {
+  const { t } = useI18n()
+  const problem = imageProblem(src, ctx)
+  const content = problem ? (
+    <span className="doc-missing">{t(problem)}</span>
+  ) : isCardSource(src) ? (
+    <CardImage src={src} sets={ctx.sets ?? []} templates={templates} project={ctx.project} />
+  ) : (
+    <AssetImage src={src} ctx={ctx} />
+  )
+  return (
+    <figure>
+      {content}
+      {alt && (
+        <figcaption>
+          <MarkupInline text={documentText(alt, ctx)} unit={DOC_UNIT} />
+        </figcaption>
+      )}
+    </figure>
+  )
+})
+
+function CardImage({
+  src,
+  sets,
+  templates,
+  project
+}: {
+  src: string
+  sets: LoadedSet[]
+  templates: Template[]
+  project?: string
+}): React.JSX.Element | null {
+  const bindCtx = useBindContext()
+  const card = useMemo(() => {
+    const ref = parseCardRef(src)
+    if (isMessage(ref)) return null
+    const found = findCard(ref, sets)
+    if (isMessage(found)) return null
+    const { set, row } = found
+    const template = templates.find((x) => x.name === set.template)
+    if (!set.data || !template) return null
+    const bound = bindRow(set.data.headers, set.data.rows[row], template, templates, {
+      ...bindCtx,
+      system: { ...systemOfSet(project ?? '', set), number: row + 1 }
+    })
+    return { ref, template: bound.template }
+  }, [src, sets, templates, bindCtx, project])
+  if (!card) return null
+  const tpl = card.template
+  const scale = ((card.ref.width ?? tpl.width) / tpl.width) * DOC_UNIT
+  return <CardSvg template={tpl} side={card.ref.side} scale={scale} />
+}
+
+function AssetImage({ src, ctx }: { src: string; ctx: DocumentContext }): React.JSX.Element {
+  if (/^https?:\/\//i.test(src)) return <img src={src} alt="" />
+  const name = src.replace(/^\{(.*)\}$/, '$1')
+  const v = imageVariable(name, ctx.variables)
+  const r = resolveAsset(v ? v.src : name, ctx.assets ?? [])
+  return r.ok ? <img src={assetUrl(r.path)} alt="" /> : <span className="doc-missing">{src}</span>
+}

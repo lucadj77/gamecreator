@@ -818,6 +818,22 @@ export const it: Record<MessageKey, string> = {
   'note.invalidName':
     'Nome di nota non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
   'note.exists': 'Esiste già una nota "{name}"',
+  'document.invalidName':
+    'Nome di documento non valido: "{name}". Non può cominciare con un punto né contenere \\ / : * ? " < > |',
+  'document.exists': 'Esiste già un documento "{name}"',
+  'doc.card.badRef':
+    '"{ref}" non è una carta: scrivi card:Set/numero o card:Set/colonna=valore, per esempio card:Personaggi/nome=Mago',
+  'doc.card.badOption':
+    'Opzione sconosciuta "{option}" in "{ref}": usa side=front o side=back, e width=40 (mm)',
+  'doc.card.noSet': 'Non c\'è un set "{set}"',
+  'doc.card.noRow': 'Il set "{set}" non ha la carta {n}',
+  'doc.card.noField': 'Il set "{set}" non ha la colonna "{field}"',
+  'doc.card.noValue': 'Nessuna carta di "{set}" ha {field} = "{value}"',
+  'doc.missingImage': 'L\'immagine "{name}" non è negli asset',
+  'doc.unknownRef': "{{name}} non è una variabile né un'immagine negli asset",
+  'doc.ambiguousRef': '{{name}} corrisponde a più file negli asset: scrivi anche la cartella',
+  'doc.missingVariableImage':
+    'La variabile immagine {{name}} indica "{src}", che non è negli asset',
   'template.deleteFailed':
     'Non è stato possibile eliminare il template "{name}": {text}. Controlla di poter modificare i file nella cartella templates del progetto.',
   'template.invalidName': '"{name}" non si può usare come nome di file',
@@ -1196,6 +1212,39 @@ export const it: Record<MessageKey, string> = {
   'notes.placeholder': 'Scrivi qui in Markdown: # titolo, - elenco, **grassetto**…',
   'notes.empty': 'La nota è vuota.',
   'notes.hint': 'Si salva mentre scrivi in {file}.',
+  'sidebar.documents': 'Documenti',
+  'sidebar.newDocument': 'Nuovo documento',
+  'sidebar.noDocuments':
+    'Regolamento, sell sheet, appendice: testi con le carte del gioco, da esportare.',
+  'documents.newName': 'Regolamento',
+  'documents.nameHint': 'Nome del documento: è anche il nome del suo file',
+  'documents.delete': 'Elimina il documento (va nella cartella deleted)',
+  'documents.deleteConfirm': 'Eliminare il documento "{name}"? Va nel cestino del progetto.',
+  'documents.placeholder':
+    "Scrivi in Markdown: # titolo, - elenco, **grassetto**, | tabella |. {icona} disegna un'icona, [testo]{.stile} uno stile. Inserisci carta aggiunge una carta del gioco.",
+  'documents.empty': 'Il documento è vuoto.',
+  'documents.hint':
+    "Si salva mentre scrivi in {file}. Un clic sull'anteprima porta a quel punto del testo.",
+  'documents.insertCard': 'Inserisci carta',
+  'documents.insertCardHint':
+    "Scegli una carta del gioco: il documento la mostra com'è nel progetto e ne segue le modifiche",
+  'documents.noCards': 'Nessun set ha ancora delle carte.',
+  'documents.set': 'Set',
+  'documents.search': 'Cerca',
+  'documents.searchHint': 'Nome della carta',
+  'documents.more': 'Altre {n} carte: cerca per nome per trovarle.',
+  'documents.side': 'Lato',
+  'documents.front': 'Fronte',
+  'documents.back': 'Retro',
+  'documents.width': 'Larghezza (mm)',
+  'documents.findBy': 'Trova la carta per',
+  'documents.byNumber': 'Numero di riga',
+  'documents.repeatedValue':
+    'Più carte hanno lo stesso {field}: la carta si trova per numero di riga, che cambia se le righe si spostano.',
+  'documents.emptyValue':
+    'Questa carta non ha {field}: si trova per numero di riga, che cambia se le righe si spostano.',
+  'documents.caption': 'Didascalia',
+  'documents.insert': 'Inserisci',
   'sidebar.compact': 'Riduci il pannello a icone',
   'sidebar.expand': 'Mostra il pannello',
   'sidebar.newVariable': 'Nuova variabile',
@@ -1595,13 +1644,14 @@ export const it: Record<MessageKey, string> = {
   'tip.trash': 'Template, set e note eliminati dal progetto: rimetterli al loro posto',
   'trash.title': 'Cestino',
   'trash.hint':
-    'Template, set e note eliminati restano nella cartella deleted del progetto. Ripristina li rimette nel progetto; un set ha bisogno del suo template. Template e set ripristinati escono dal cestino quando si salva.',
+    'Template, set, note e documenti eliminati restano nella cartella deleted del progetto. Ripristina li rimette nel progetto; un set ha bisogno del suo template. Template e set ripristinati escono dal cestino quando si salva.',
   'trash.loading': 'Lettura del cestino…',
   'trash.empty': 'Il cestino è vuoto.',
   'trash.restore': 'Ripristina',
   'trash.template': 'Template del set ripristinato',
   'trash.kind.template': 'Template',
   'trash.kind.note': 'Nota',
+  'trash.kind.document': 'Documento',
   'trash.kind.sheet': 'Set',
   'trash.unknownFile': '"{file}" non è nel cestino del progetto',
   'set.textCheck': 'Controlla testi…',

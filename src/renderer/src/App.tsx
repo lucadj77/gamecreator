@@ -101,7 +101,8 @@ import {
   PencilIcon,
   TrashIcon,
   VariablesIcon,
-  NotesIcon
+  NotesIcon,
+  DocumentsIcon
 } from './components/icons'
 import TemplateEditor, { EDITOR_UNDO } from './editor/TemplateEditor'
 import { Dialog, NewTemplateDialog } from './editor/dialogs'
@@ -139,6 +140,8 @@ import Tooltip from './components/Tooltip'
 import SidebarPreview from './components/SidebarPreview'
 import { useSidebarPreview } from './components/useSidebarPreview'
 import NotePanel from './components/NotePanel'
+import DocumentView from './components/DocumentView'
+import { useDocuments } from './components/useDocuments'
 import { BUILTIN_STYLES, parseAttrs, serializeAttrs } from '../../shared/model/markup'
 import { LANGUAGES, useI18n, type Language } from './i18n/context'
 import { THEMES, applyTheme, loadTheme } from './theme/theme'
@@ -165,7 +168,10 @@ type View = 'table' | 'grid'
 /** Stato dei dati per ⌘Z; i template solo quando li ha cambiati una rinomina */
 type DataSnapshot = { sets: LoadedSet[]; file: ProjectFile; templates?: Template[] }
 const COALESCE_MS = 1200
-type Selected = { kind: 'set'; index: number } | { kind: 'template'; name: string }
+type Selected =
+  | { kind: 'set'; index: number }
+  | { kind: 'template'; name: string }
+  | { kind: 'document'; name: string }
 
 /** Ridisegna la miniatura per la schermata di ingresso; un errore non disturba il lavoro */
 function updateThumbnail(project: LoadedProject, onlyIfMissing: boolean): void {
@@ -328,7 +334,9 @@ function App(): React.JSX.Element {
       setSelected((s) =>
         s.kind === 'set'
           ? { kind: 'set', index: s.index < loaded.sets.length ? s.index : 0 }
-          : loaded.templates.some((tpl) => tpl.name === s.name)
+          : (s.kind === 'template' ? loaded.templates : (loaded.documents ?? [])).some(
+                (x) => x.name === s.name
+              )
             ? s
             : { kind: 'set', index: 0 }
       )
@@ -750,6 +758,24 @@ function App(): React.JSX.Element {
     setOpenNote(null)
   }
 
+  const documents = useDocuments(project, setProject, setError)
+  const openDocument = selected.kind === 'document' ? selected.name : null
+  // lasciando un documento le modifiche in attesa si scrivono subito
+  useEffect(() => {
+    if (!openDocument) return undefined
+    return () => documents.flush(openDocument)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openDocument])
+  const newDocument = async (): Promise<void> => {
+    const name = await documents.create(t('documents.newName'))
+    if (name) setSelected({ kind: 'document', name })
+  }
+  const deleteDocument = async (name: string): Promise<void> => {
+    if (!window.confirm(t('documents.deleteConfirm', { name }))) return
+    await documents.remove(name)
+    setSelected({ kind: 'set', index: 0 })
+  }
+
   /** Crea, modifica, rinomina (con `oldName`) o elimina (v null) una variabile del progetto */
   const saveVariable = (
     name: string,
@@ -1136,6 +1162,10 @@ function App(): React.JSX.Element {
           [...notes, { name, text: c.text }].sort((a, b) => a.name.localeCompare(b.name))
         )
         setOpenNote(name)
+      } else if (c.kind === 'document') {
+        const name = await documents.restore(c.name, c.text)
+        await window.api.dropDeleted([item.file])
+        setSelected({ kind: 'document', name })
       } else if (c.kind === 'template') {
         const name = free(c.template.name, templateNames())
         const tpl: Template = { ...c.template, name }
@@ -1438,6 +1468,7 @@ function App(): React.JSX.Element {
     ['templates', <TemplateIcon key="templates" />, t('sidebar.templates')],
     ['styles', <StylesIcon key="styles" />, t('sidebar.styles')],
     ['variables', <VariablesIcon key="variables" />, t('sidebar.variables')],
+    ['documents', <DocumentsIcon key="documents" />, t('sidebar.documents')],
     ['notes', <NotesIcon key="notes" />, t('sidebar.notes')]
   ]
   const sidebar =
@@ -1681,6 +1712,38 @@ function App(): React.JSX.Element {
             )}
           </SidebarSection>
           <SidebarSection
+            id="documents"
+            icon={<DocumentsIcon />}
+            title={t('sidebar.documents')}
+            open={!closedSections.has('documents')}
+            onToggle={(open) => setSectionClosed('documents', !open)}
+            actions={
+              <button
+                className="icon-btn"
+                title={t('sidebar.newDocument')}
+                onClick={() => void newDocument()}
+              >
+                +
+              </button>
+            }
+          >
+            <ul>
+              {(project.documents ?? []).map((d) => (
+                <li key={d.name}>
+                  <button
+                    className={openDocument === d.name ? 'active' : ''}
+                    onClick={() => setSelected({ kind: 'document', name: d.name })}
+                  >
+                    <span>{d.name}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {!project.documents?.length && (
+              <p className="muted small">{t('sidebar.noDocuments')}</p>
+            )}
+          </SidebarSection>
+          <SidebarSection
             id="notes"
             icon={<NotesIcon />}
             title={t('sidebar.notes')}
@@ -1888,7 +1951,26 @@ function App(): React.JSX.Element {
                       )}
                     </>
                   )}
-                  {editing ? (
+                  {openDocument && project.documents?.some((d) => d.name === openDocument) ? (
+                    <DocumentView
+                      key={openDocument}
+                      name={openDocument}
+                      text={project.documents.find((d) => d.name === openDocument)?.text ?? ''}
+                      others={project.documents
+                        .map((d) => d.name)
+                        .filter((n) => n !== openDocument)}
+                      project={project.file.name}
+                      sets={project.sets}
+                      templates={project.templates}
+                      onChange={(text) => documents.change(openDocument, text)}
+                      onRename={(to) =>
+                        void documents
+                          .rename(openDocument, to)
+                          .then((ok) => ok && setSelected({ kind: 'document', name: to }))
+                      }
+                      onDelete={() => void deleteDocument(openDocument)}
+                    />
+                  ) : editing ? (
                     <TemplateEditor
                       key={`${editing.name}:${editorRev}`}
                       template={editing}

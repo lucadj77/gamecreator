@@ -12,7 +12,7 @@ import { projectFilePath } from './projectFile'
 import { readSpreadsheet, xlsxLosses } from './spreadsheet'
 import { listAssets } from './assets'
 import { readProjectFonts } from './fonts'
-import { readNotes } from './notes'
+import { readDocuments, readNotes } from './notes'
 import { readSources } from '../library/sources'
 import { duplicateNames, normalizeTemplate } from '../../shared/model/normalize'
 import { resolveTemplates } from '../../shared/model/inherit'
@@ -80,6 +80,7 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     fonts: await readProjectFonts(folder, assets),
     sources: await readSources(folder),
     notes: await readNotes(folder),
+    documents: await readDocuments(folder),
     dataFileLosses,
     warnings
   }

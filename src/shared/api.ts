@@ -120,6 +120,10 @@ export interface Api {
   saveNote(name: string, text: string, oldName?: string): Promise<void>
   /** Sposta la nota in deleted/ */
   deleteNote(name: string): Promise<void>
+  /** Scrive il documento docs/<name>.md; con oldName diverso lo rinomina */
+  saveDocument(name: string, text: string, oldName?: string): Promise<void>
+  /** Sposta il documento in deleted/ */
+  deleteDocument(name: string): Promise<void>
   /** Cestino del progetto: elementi in deleted/, il contenuto di uno, e togliere i ripristinati */
   listDeleted(): Promise<DeletedItem[]>
   readDeleted(file: string): Promise<DeletedContent>

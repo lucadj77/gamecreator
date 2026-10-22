@@ -4,6 +4,7 @@ import {
   BLOCK_STYLE,
   isBox,
   mergeAttrs,
+  parseInline,
   parseMarkup,
   resolveStyles,
   type Attrs,
@@ -68,6 +69,18 @@ export default function MarkupText({
       ))}
     </>
   )
+}
+
+/**
+ * Una riga di markup senza paragrafi, in HTML normale: il testo di un titolo, di una voce o di
+ * una cella dei documenti. `unit` sono i pixel per millimetro.
+ */
+export function MarkupInline({ text, unit }: { text: string; unit: number }): React.JSX.Element {
+  const styles = useContext(StylesContext)
+  const variables = useContext(VariablesContext)
+  const pal = useMemo(() => palette(variables), [variables])
+  const { children } = parseInline(text)
+  return <Inlines list={children} k={{ unit, ratio: 1, pal, vars: variables }} styles={styles} />
 }
 
 function BlockView({

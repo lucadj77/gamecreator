@@ -6,7 +6,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
 import { saveTemplate, trashTemplate } from './project/templates'
-import { saveNote, trashNote } from './project/notes'
+import { saveDocument, saveNote, trashDocument, trashNote } from './project/notes'
 import { dropDeleted, listDeleted, readDeleted } from './project/trash'
 import { readBackupVersion, readPrinted, savePrinted } from './project/versions'
 import { fetchGoogleSheet } from './project/googleSheets'
@@ -262,6 +262,18 @@ function registerIpc(): void {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
     await trashNote(folder, name)
+  })
+
+  ipcMain.handle('document:save', async (_, name: string, text: string, oldName?: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await saveDocument(folder, name, text, oldName)
+  })
+
+  ipcMain.handle('document:delete', async (_, name: string) => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    await trashDocument(folder, name)
   })
 
   ipcMain.handle('trash:list', async () => {

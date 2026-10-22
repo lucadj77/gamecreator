@@ -122,6 +122,15 @@ export function NotesIcon(): React.JSX.Element {
   )
 }
 
+/** Documenti: un libretto aperto, come un regolamento */
+export function DocumentsIcon(): React.JSX.Element {
+  return (
+    <Outline>
+      <path d="M8 4c-1.5-1.2-3.5-1.5-6-1.3v10c2.5-.2 4.5.1 6 1.3 1.5-1.2 3.5-1.5 6-1.3v-10c-2.5-.2-4.5.1-6 1.3zM8 4v10" />
+    </Outline>
+  )
+}
+
 /** Riduce il pannello a icone, o lo riapre: un pannello con la colonna laterale */
 export function PanelIcon(): React.JSX.Element {
   return (

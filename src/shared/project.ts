@@ -82,6 +82,8 @@ export interface LoadedProject {
   sources: Sources
   /** Note del progetto, da notes/*.md */
   notes: ProjectNote[]
+  /** Documenti del progetto (regolamento, sell sheet…), da docs/*.md: vedi model/document.ts */
+  documents?: ProjectNote[]
   /** Cosa toglie dal file dati il primo salvataggio dei dati (solo .xlsx) */
   dataFileLosses?: DataFileLoss[]
   warnings: Message[]
@@ -103,8 +105,8 @@ export interface PrintedState {
 export interface DeletedItem {
   /** Nome del file in deleted/ */
   file: string
-  kind: 'template' | 'note' | 'sheet'
-  /** Nome del template, della nota o del foglio */
+  kind: 'template' | 'note' | 'document' | 'sheet'
+  /** Nome del template, della nota, del documento o del foglio */
   name: string
   /** Quando è stato eliminato, ISO */
   date: string
@@ -115,15 +117,19 @@ export interface DeletedItem {
 export type DeletedContent =
   | { kind: 'template'; template: Template }
   | { kind: 'note'; name: string; text: string }
+  | { kind: 'document'; name: string; text: string }
   | { kind: 'sheet'; sheet: Sheet }
 
-/** Una nota del progetto: notes/<name>.md */
+/** Una nota del progetto (notes/<name>.md) o un documento (docs/<name>.md) */
 export interface ProjectNote {
   name: string
   text: string
 }
 
-/** Nome di una nota: è anche il nome del file, senza caratteri vietati nei nomi di file */
+/**
+ * Nome di una nota o di un documento: è anche il nome del file, senza caratteri vietati nei nomi
+ * di file
+ */
 export function isValidNoteName(name: string): boolean {
   return /^[^\\/:*?"<>|.][^\\/:*?"<>|]*$/.test(name) && name.trim() === name
 }

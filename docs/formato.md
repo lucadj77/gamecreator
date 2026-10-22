@@ -8,6 +8,7 @@ progetto/
   data/carte.xlsx       # un foglio per set (oppure un .csv per un solo set)
   templates/<nome>.json # i template delle carte
   notes/<nome>.md       # note del progetto in Markdown, scritte nell'app o con un editor qualsiasi
+  docs/<nome>.md        # documenti del progetto (regolamento, sell sheet…) in Markdown
   assets/               # immagini e icone
   assets/icons/         # icone importate da game-icons.net
   assets/fonts/         # font del progetto (ttf, otf, woff, woff2)
@@ -15,6 +16,8 @@ progetto/
 ```
 
 Le note in `notes/` sono appunti liberi: l'app le mostra nella sezione **Note** della barra laterale e le salva mentre si scrive; un'IA le legge con `naibi notes` (vedi [cli.md](cli.md)). Una nota eliminata va in `deleted/`.
+
+I documenti in `docs/` sono i testi che accompagnano il gioco (regolamento, sell sheet, appendici): l'app li mostra nella sezione **Documenti** con l'anteprima accanto e li salva mentre si scrive. Sono Markdown (titoli `#`, `##` e `###`, paragrafi separati da una riga vuota, elenchi, citazioni `>`, tabelle con `|`, linee `---`, blocchi di codice), con il markup di Naibi dentro le righe (vedi [specifica.md](specifica.md), 2.1), le variabili di testo e valore e `{project.name}` e `{date}`. Un'immagine `![didascalia](sorgente)` da sola su una riga (più immagini sulla stessa riga stanno affiancate) mostra un file degli asset o, con una sorgente `card:`, una carta del progetto disegnata com'è adesso: `card:<set>/<n>` è la carta della riga n (da 1), `card:<set>/<colonna>=<valore>` la prima carta con quel valore nella colonna (prima uguale, poi senza badare alle maiuscole). Dopo `?`, unite da `&`, le opzioni `side=front|back` e `width=<mm>` (di base la larghezza vera della carta). Nel nome del set e nel valore `%29`, `%3F` e `%26` stanno per `)`, `?` e `&`. Un documento eliminato va in `deleted/` con estensione `.doc.md`. `naibi docs` li mostra a un'IA, `naibi check` ne segnala i riferimenti che non si trovano.
 
 `assets/sources.json` si scrive quando si importano icone o si scaricano font dall'app: per ogni file (percorso relativo ad `assets/`) indica tipo (`icon` o `font`), fonte, identificativo, autore, licenza in forma SPDX (`CC-BY-3.0`, `OFL-1.1`…), indirizzo e data di importazione. Serve a comporre i crediti; le voci dei file che non esistono più si tolgono alla scrittura successiva. I file aggiunti a mano non compaiono.
 

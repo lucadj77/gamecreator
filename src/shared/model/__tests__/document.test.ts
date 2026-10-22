@@ -1,0 +1,180 @@
+import { describe, expect, it } from 'vitest'
+import {
+  cardRefSource,
+  documentProblems,
+  documentText,
+  findCard,
+  parseCardRef,
+  parseDocument
+} from '../document'
+import type { LoadedSet } from '../../project'
+
+const sets: LoadedSet[] = [
+  {
+    name: 'Personaggi',
+    template: 'personaggio',
+    data: {
+      name: 'Personaggi',
+      headers: ['nome', 'forza'],
+      rows: [
+        ['Mago', '2'],
+        ['Guerriero', '5']
+      ]
+    }
+  }
+]
+
+describe('documenti: blocchi', () => {
+  it('riconosce titoli, paragrafi, elenchi, citazioni, righe e codice', () => {
+    const src = [
+      '# Regole',
+      '',
+      'Prima riga',
+      'stesso paragrafo.',
+      '',
+      '## Preparazione',
+      '- uno',
+      '  - dentro',
+      '- due',
+      '',
+      '3. tre',
+      '4. quattro',
+      '',
+      '> Nota **importante**',
+      '',
+      '---',
+      '```',
+      '{non markup}',
+      '```',
+      '#### Quarto livello'
+    ].join('\n')
+    const blocks = parseDocument(src)
+    expect(blocks.map((b) => b.kind)).toEqual([
+      'heading',
+      'paragraph',
+      'heading',
+      'list',
+      'list',
+      'quote',
+      'rule',
+      'code',
+      'heading'
+    ])
+    expect(blocks[1]).toMatchObject({ text: 'Prima riga stesso paragrafo.' })
+    expect(blocks[3]).toMatchObject({
+      items: [
+        { text: 'uno', depth: 0, ordered: false },
+        { text: 'dentro', depth: 1 },
+        { text: 'due', depth: 0 }
+      ]
+    })
+    expect(blocks[4]).toMatchObject({
+      items: [
+        { text: 'tre', number: 3 },
+        { text: 'quattro', number: 4 }
+      ]
+    })
+    expect(blocks[7]).toMatchObject({ text: '{non markup}' })
+    expect(blocks[8]).toMatchObject({ level: 3, text: 'Quarto livello' })
+  })
+
+  it('una riga con sole immagini è una figura, con la posizione di ogni immagine', () => {
+    const src = 'Testo\n\n![Mago](card:Personaggi/1) ![](card:Personaggi/2?side=back)'
+    const [, fig] = parseDocument(src)
+    expect(fig.kind).toBe('figure')
+    if (fig.kind !== 'figure') return
+    expect(fig.images.map((i) => [i.alt, i.src])).toEqual([
+      ['Mago', 'card:Personaggi/1'],
+      ['', 'card:Personaggi/2?side=back']
+    ])
+    expect(src.slice(fig.images[0].from, fig.images[0].to)).toBe('![Mago](card:Personaggi/1)')
+  })
+
+  it('legge le tabelle con allineamento e \\| nelle celle', () => {
+    const [t] = parseDocument('| Carta | Costo |\n|:--|--:|\n| Mago | 2 \\| 3 |\n| Re |')
+    expect(t).toMatchObject({
+      kind: 'table',
+      header: ['Carta', 'Costo'],
+      align: ['left', 'right'],
+      rows: [
+        ['Mago', '2 | 3'],
+        ['Re', '']
+      ]
+    })
+  })
+
+  it('va a capo con due spazi o \\ a fine riga', () => {
+    const [p] = parseDocument('uno  \ndue\\\ntre')
+    expect(p).toMatchObject({ text: 'uno\ndue\ntre' })
+  })
+})
+
+describe('documenti: carte', () => {
+  it('legge i riferimenti alle carte', () => {
+    expect(parseCardRef('card:Personaggi/2')).toEqual({ set: 'Personaggi', row: 2, side: 'front' })
+    expect(parseCardRef('card:Carte rare/nome=Re%20nero?side=back&width=40')).toEqual({
+      set: 'Carte rare',
+      field: 'nome',
+      value: 'Re nero',
+      side: 'back',
+      width: 40
+    })
+    expect(parseCardRef('card:Personaggi')).toMatchObject({ key: 'doc.card.badRef' })
+    expect(parseCardRef('card:Personaggi/1?zoom=2')).toMatchObject({ key: 'doc.card.badOption' })
+  })
+
+  it('scrive i riferimenti in modo che si rileggano uguali', () => {
+    const ref = { set: 'P', field: 'nome', value: 'A (b)?', side: 'back' as const, width: 30 }
+    expect(cardRefSource(ref)).toBe('card:P/nome=A (b%29%3F?side=back&width=30')
+    expect(parseCardRef(cardRefSource(ref))).toEqual(ref)
+  })
+
+  it('trova la carta per numero o per valore di un campo, senza badare alle maiuscole', () => {
+    expect(findCard({ set: 'personaggi', row: 2, side: 'front' }, sets)).toMatchObject({ row: 1 })
+    expect(
+      findCard({ set: 'Personaggi', field: 'NOME', value: 'guerriero', side: 'front' }, sets)
+    ).toMatchObject({ row: 1 })
+    expect(findCard({ set: 'Mostri', row: 1, side: 'front' }, sets)).toMatchObject({
+      key: 'doc.card.noSet'
+    })
+    expect(findCard({ set: 'Personaggi', row: 3, side: 'front' }, sets)).toMatchObject({
+      key: 'doc.card.noRow'
+    })
+    expect(
+      findCard({ set: 'Personaggi', field: 'nome', value: 'Re', side: 'front' }, sets)
+    ).toMatchObject({ key: 'doc.card.noValue' })
+  })
+})
+
+describe('documenti: testo e controllo', () => {
+  it('sostituisce le variabili di testo e i collegamenti', () => {
+    const variables = { vita: { type: 'text' as const, text: '3 vite' } }
+    expect(
+      documentText('Hai {vita} in {project.name}, vedi [qui](https://x.it)', {
+        project: 'Farmony',
+        variables
+      })
+    ).toBe('Hai 3 vite in Farmony, vedi [qui]{underline}')
+  })
+
+  it('segnala carte, immagini, stili e nomi che non si trovano', () => {
+    const src = [
+      'Ottieni {cuore} e {mistero} con [x]{.nessuno}',
+      '',
+      '![](card:Personaggi/9) ![](card:Personaggi/1) ![](icone/nulla.png)'
+    ].join('\n')
+    const problems = documentProblems(src, {
+      sets,
+      assets: ['icons/cuore.svg'],
+      styles: {}
+    })
+    expect(problems.map((p) => p.message.key).sort()).toEqual([
+      'doc.card.noRow',
+      'doc.missingImage',
+      'doc.unknownRef',
+      'markup.unknownStyle'
+    ])
+    const row = problems.find((p) => p.message.key === 'doc.card.noRow')!
+    expect(src.slice(row.from, row.to)).toBe('![](card:Personaggi/9)')
+  })
+})

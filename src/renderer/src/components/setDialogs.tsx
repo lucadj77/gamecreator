@@ -10,6 +10,7 @@ export function NewSetDialog({
   templates,
   existing,
   unusedSheets,
+  usedSheets = [],
   onCreate,
   onClose
 }: {
@@ -17,6 +18,8 @@ export function NewSetDialog({
   /** Nomi già usati da set e fogli */
   existing: string[]
   unusedSheets: string[]
+  /** Fogli già usati da un set: il nuovo set ne condivide i dati */
+  usedSheets?: { sheet: string; set: string }[]
   onCreate(name: string, template: string, sheet: string | null): void
   onClose(): void
 }): React.JSX.Element {
@@ -25,11 +28,12 @@ export function NewSetDialog({
   const [template, setTemplate] = useState(templates[0]?.name ?? '')
   // foglio esistente non collegato, oppure '' per crearne uno nuovo
   const [sheet, setSheet] = useState('')
+  const shared = usedSheets.some((x) => x.sheet === sheet)
   const error = !name
     ? null
     : !isValidSheetName(name)
       ? t('newSet.invalidName')
-      : existing.includes(name) && name !== sheet
+      : existing.includes(name) && (name !== sheet || shared)
         ? t('newSet.exists')
         : null
   const valid = !!name && !error && !!template
@@ -60,14 +64,15 @@ export function NewSetDialog({
           </select>
         </label>
         {!templates.length && <p className="field-error">{t('newSet.noTemplates')}</p>}
-        {unusedSheets.length > 0 && (
+        {(unusedSheets.length > 0 || usedSheets.length > 0) && (
           <label>
             {t('newSet.sheet')}
             <select
               value={sheet}
               onChange={(e) => {
                 setSheet(e.target.value)
-                if (e.target.value && !name) setName(e.target.value)
+                const used = usedSheets.some((x) => x.sheet === e.target.value)
+                if (e.target.value && !name && !used) setName(e.target.value)
               }}
             >
               <option value="">{t('newSet.newSheet')}</option>
@@ -76,9 +81,19 @@ export function NewSetDialog({
                   {s}
                 </option>
               ))}
+              {usedSheets.length > 0 && (
+                <optgroup label={t('newSet.sharedGroup')}>
+                  {usedSheets.map((x) => (
+                    <option key={x.sheet} value={x.sheet}>
+                      {t('newSet.sharedOption', { sheet: x.sheet, set: x.set })}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </label>
         )}
+        {shared && <p className="muted small">{t('newSet.sharedNote')}</p>}
         {!sheet && tpl && (
           <p className="muted small">
             {t('newSet.columns', { columns: templateColumns(tpl).join(', ') })}

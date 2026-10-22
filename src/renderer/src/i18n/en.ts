@@ -103,6 +103,10 @@ export const en = {
   'newSet.invalidName': 'Up to 31 characters, without \\ / ? * [ ] :',
   'newSet.exists': 'A set or sheet with this name already exists',
   'newSet.noTemplates': 'Create a template first.',
+  'newSet.sharedGroup': 'Sheets already in use (shared data)',
+  'newSet.sharedOption': '{sheet} (data of {set})',
+  'newSet.sharedNote':
+    'The new set uses the same rows: a change to the data applies to every set on the sheet. Choose a name different from the sheet.',
   'newSet.columns': 'The new sheet will have the columns: {columns}',
   'addColumn.title': 'Add column',
   'addColumn.missing': 'Columns the template reads that this sheet lacks:',

@@ -112,6 +112,7 @@ import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import { renameSet } from '../../shared/model/renameSet'
+import { sharingSets, syncSharedSheets } from '../../shared/model/sharedSheets'
 import { renameTemplate } from '../../shared/model/renameTemplate'
 import CardSvg from './render/CardSvg'
 import {
@@ -194,7 +195,18 @@ function App(): React.JSX.Element {
     setTheme(th)
     applyTheme(th)
   }
-  const [project, setProject] = useState<LoadedProject | null>(null)
+  const [project, setProjectState] = useState<LoadedProject | null>(null)
+  // i set che condividono un foglio ricevono ognuno le modifiche ai dati fatte dagli altri
+  const setProject = useCallback(
+    (u: React.SetStateAction<LoadedProject | null>): void =>
+      setProjectState((prev) => {
+        const next = typeof u === 'function' ? u(prev) : u
+        if (!prev || !next || next.sets === prev.sets) return next
+        const sets = syncSharedSheets(prev.sets, next.sets)
+        return sets === next.sets ? next : { ...next, sets }
+      }),
+    []
+  )
   useRegisterFonts(project?.fonts)
   // la versione installata resta visibile nel titolo della finestra
   const projectName = project?.file.name
@@ -202,7 +214,7 @@ function App(): React.JSX.Element {
     document.title = [projectName, `Naibi ${__APP_VERSION__}`].filter(Boolean).join(' — ')
   }, [projectName])
   // icone e font importati: gli asset cambiano senza ricaricare il progetto
-  useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [])
+  useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [setProject])
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
   /** Nota aperta nel pannello accanto alla schermata */
   const [openNote, setOpenNote] = useState<string | null>(null)
@@ -302,7 +314,7 @@ function App(): React.JSX.Element {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [setProject])
 
   // Un'IA che lavora con il comando naibi (vedi docs/cli.md): `naibi begin` legge da qui se ci sono
   // modifiche non salvate; mentre lavora l'app è bloccata, quando finisce si ricarica il progetto
@@ -349,7 +361,7 @@ function App(): React.JSX.Element {
       return { ...p, templates: synced.templates }
     })
     setDirty((d) => (d.has(tpl.name) ? d : new Set(d).add(tpl.name)))
-  }, [])
+  }, [setProject])
 
   /** Nuovo template derivato: uguale al base finché non lo si modifica */
   const deriveTemplate = (from: string, name: string): void => {
@@ -592,7 +604,7 @@ function App(): React.JSX.Element {
       })
       setFileDirty(true)
     },
-    []
+    [setProject]
   )
 
   // Note del progetto: si scrivono subito su disco, poco dopo l'ultima modifica, senza passare dal
@@ -691,9 +703,15 @@ function App(): React.JSX.Element {
 
   const saveAll = async (): Promise<void> => {
     if (!project || saving) return
-    const sheets = project.sets
-      .map((x) => x.data)
-      .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
+    // un foglio condiviso da più set si scrive una volta
+    const sheets = [
+      ...new Map(
+        project.sets
+          .map((x) => x.data)
+          .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
+          .map((d) => [d.name, d])
+      ).values()
+    ]
     // fogli sul disco che nessun set usa più (set eliminati): escono dal file dati
     const used = new Set([
       ...project.sets.flatMap((x) => (x.data ? [x.data.name, x.data.origin ?? ''] : [])),
@@ -788,8 +806,11 @@ function App(): React.JSX.Element {
     }
     const tpl = project.templates.find((x) => x.name === template) ?? null
     // un foglio non collegato si riprende dal file con le sue righe; si rilegge al salvataggio
+    // un foglio già usato da un altro set si condivide: stessi dati, template diverso
     const data: Sheet = sheetName
-      ? (project.unusedData?.find((x) => x.name === sheetName) ?? newSheet(sheetName, tpl))
+      ? (project.sets.find((x) => x.data?.name === sheetName)?.data ??
+        project.unusedData?.find((x) => x.name === sheetName) ??
+        newSheet(sheetName, tpl))
       : newSheet(name, tpl)
     const def = { name, template, ...(data.name !== name ? { sheet: data.name } : {}) }
     setHistory((h) => ({
@@ -870,10 +891,12 @@ function App(): React.JSX.Element {
     const csv = project.file.dataFile.toLowerCase().endsWith('.csv')
     // un foglio già nel file può essere citato da formule di altri fogli: si chiede se rinominarlo
     const onDisk = !!before && !set.sheet && (project.diskSheets ?? []).includes(before.name)
+    // un foglio condiviso con altri set tiene il suo nome
     const keepSheet =
-      !csv &&
-      onDisk &&
-      !window.confirm(t('sidebar.renameSheetConfirm', { sheet: before.name, name }))
+      sharingSets(project.sets, index).length > 0 ||
+      (!csv &&
+        onDisk &&
+        !window.confirm(t('sidebar.renameSheetConfirm', { sheet: before.name, name })))
     const { file, sets } = renameSet(project.file, project.sets, index, name, csv, keepSheet)
     // come per i template: la cronologia riparte, perché i passi precedenti hanno il nome
     // vecchio e, dopo un salvataggio, annullare ricreerebbe il foglio da capo
@@ -902,7 +925,8 @@ function App(): React.JSX.Element {
       future: [],
       at: 0
     }))
-    const sheet = set.data
+    // un foglio che altri set usano ancora resta nel file
+    const sheet = sharingSets(project.sets, index).length ? null : set.data
     setProject({
       ...project,
       sets: project.sets.filter((_, i) => i !== index),
@@ -1933,6 +1957,13 @@ function App(): React.JSX.Element {
                     ...project.unusedSheets
                   ]}
                   unusedSheets={project.unusedSheets}
+                  usedSheets={[
+                    ...new Map(
+                      project.sets.flatMap((x) =>
+                        x.data ? [[x.data.name, { sheet: x.data.name, set: x.name }] as const] : []
+                      )
+                    ).values()
+                  ]}
                   onCreate={createSet}
                   onClose={() => setCreatingSet(false)}
                 />

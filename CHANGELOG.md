@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.21
+
+### English
+
+- New **Documents** section in the sidebar, for the rules, a sell sheet, an appendix: Markdown text on the left, the page preview always visible on the right, saved as you type in `docs/<name>.md`. The text uses Naibi's markup, so `{heart}` draws the icon and `[text]{.keyword}` a style, as on the cards. **Insert card** chooses a card of the game and writes `![Wizard](card:Characters/name=Wizard)`: the document draws the card from the project, so it changes when the card changes. Problems (cards or images not found) are listed under the text and by `naibi check`; `naibi docs` shows the documents to an AI agent. Export to PDF, HTML and Markdown will come in a later version.
+
+### Italiano
+
+- Nuova sezione **Documenti** nella barra laterale, per il regolamento, una sell sheet, un'appendice: a sinistra il testo in Markdown, a destra l'anteprima della pagina sempre visibile, con salvataggio mentre si scrive in `docs/<nome>.md`. Il testo usa il markup di Naibi, quindi `{cuore}` disegna l'icona e `[testo]{.keyword}` uno stile, come sulle carte. **Inserisci carta** sceglie una carta del gioco e scrive `![Mago](card:Personaggi/nome=Mago)`: il documento disegna la carta dal progetto, quindi cambia quando cambia la carta. I problemi (carte o immagini che non si trovano) compaiono sotto il testo e in `naibi check`; `naibi docs` mostra i documenti a un agente IA. L'esportazione in PDF, HTML e Markdown arriverà con una prossima versione.
+
 ## 1.2.0-beta.20
 
 ### English
@@ -13,7 +23,6 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - From the same window, **Import a sheet from another file…** puts the rows of a sheet of another .xlsx, .ods or .csv file in place of those of a set. It first shows the new, removed and changed rows, matched by a column with all different values such as the name, and can keep the columns the file does not have; then it makes a backup of the project. The change can be undone with ⌘Z. Not in the web version yet.
 - Numbers in .xlsx files are read with the cell's number format, as Excel shows them: 0.5 formatted as a percentage arrives as `50%`, 1234.5 formatted as currency as `1 234.50 €` (always with a decimal point, and a space for thousands). Formulas in templates read these values as numbers (`{chance}*2`, `=IF({cost}>1000; …)`); typing `60%` or `3.50 €` in Naibi writes the number back to the cell, keeping its format, in .ods files too.
 - Saving the data of a set in an .xlsx file now changes only the changed cells and leaves the rest of the file as it was, so charts, pivot tables and anything else Naibi does not know stay, in every sheet. Naibi still rewrites the whole file, and asks first if it would lose something, when a set is added, renamed or deleted. After a save Excel recalculates the formulas when it opens the file.
-- New **Documents** section in the sidebar, for the rules, a sell sheet, an appendix: Markdown text on the left, the page preview always visible on the right, saved as you type in `docs/<name>.md`. The text uses Naibi's markup, so `{heart}` draws the icon and `[text]{.keyword}` a style, as on the cards. **Insert card** chooses a card of the game and writes `![Wizard](card:Characters/name=Wizard)`: the document draws the card from the project, so it changes when the card changes. Problems (cards or images not found) are listed under the text and by `naibi check`; `naibi docs` shows the documents to an AI agent. Export to PDF, HTML and Markdown will come in a later version.
 
 ### Italiano
 
@@ -21,7 +30,6 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Dalla stessa finestra, **Importa un foglio da un altro file…** mette le righe di un foglio di un altro file .xlsx, .ods o .csv al posto di quelle di un set. Prima mostra le righe nuove, tolte e cambiate, riconosciute da una colonna con valori tutti diversi come il nome, e può tenere le colonne che il file non ha; poi fa un backup del progetto. La modifica si annulla con ⌘Z. Non ancora nella versione web.
 - I numeri dei file .xlsx si leggono con il formato della cella, come li mostra Excel: 0,5 in percentuale arriva come `50%`, 1234,5 in valuta come `1 234.50 €` (sempre con il punto per i decimali e lo spazio per le migliaia). Le formule dei template leggono questi valori come numeri (`{probabilità}*2`, `=IF({costo}>1000; …)`); scrivendo `60%` o `3,50 €` in Naibi nella cella torna il numero, con il suo formato, anche nei file .ods.
 - Salvando i dati di un set in un file .xlsx Naibi ora cambia solo le celle modificate e lascia il resto del file com'era: grafici, tabelle pivot e tutto ciò che Naibi non conosce restano, in tutti i fogli. Il file viene ancora riscritto tutto, con una domanda prima se si perderebbe qualcosa, quando si aggiunge, rinomina o elimina un set. Dopo un salvataggio Excel ricalcola le formule quando apre il file.
-- Nuova sezione **Documenti** nella barra laterale, per il regolamento, una sell sheet, un'appendice: a sinistra il testo in Markdown, a destra l'anteprima della pagina sempre visibile, con salvataggio mentre si scrive in `docs/<nome>.md`. Il testo usa il markup di Naibi, quindi `{cuore}` disegna l'icona e `[testo]{.keyword}` uno stile, come sulle carte. **Inserisci carta** sceglie una carta del gioco e scrive `![Mago](card:Personaggi/nome=Mago)`: il documento disegna la carta dal progetto, quindi cambia quando cambia la carta. I problemi (carte o immagini che non si trovano) compaiono sotto il testo e in `naibi check`; `naibi docs` mostra i documenti a un agente IA. L'esportazione in PDF, HTML e Markdown arriverà con una prossima versione.
 
 ## 1.2.0-beta.19
 

@@ -8,9 +8,13 @@ import type { DocExportFile } from '../../shared/api'
 
 export const DOC_EXPORT_DIR = 'docs'
 
-/** Scrive i file in export/docs/ e restituisce la cartella */
-export async function writeDocumentExport(folder: string, files: DocExportFile[]): Promise<string> {
-  const dir = join(folder, 'export', DOC_EXPORT_DIR)
+/** Scrive i file in export/docs/ (o in `out`) e restituisce la cartella */
+export async function writeDocumentExport(
+  folder: string,
+  files: DocExportFile[],
+  out?: string
+): Promise<string> {
+  const dir = out ?? join(folder, 'export', DOC_EXPORT_DIR)
   for (const f of files) {
     const parts = f.path.split('/')
     // solo percorsi dentro la cartella

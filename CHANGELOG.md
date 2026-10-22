@@ -5,6 +5,18 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.24
+
+### English
+
+- Documents export to Word: **Export document…** has a new **Word** choice that saves a `.docx` file to edit in Word or LibreOffice. Headings, lists, tables and quotes become Word styles; page size, margins, fonts, line spacing and colors come from the document's page settings; cards, card anatomies, table setups and images are pictures at 300 dpi; bold, italic, colors and icons in the text are kept.
+- New command `naibi export-doc <project> [<name>] [--format pdf|html|docx|md] [--out folder]`: it exports the documents, all or one, without opening the app, the same way as **Export document…**. An AI agent can now write a rulebook and check the PDF by itself.
+
+### Italiano
+
+- I documenti si esportano in Word: **Esporta documento…** ha la nuova scelta **Word**, che salva un file `.docx` da modificare in Word o LibreOffice. Titoli, elenchi, tabelle e citazioni diventano stili di Word; formato pagina, margini, caratteri, interlinea e colori vengono dalle impostazioni della pagina del documento; carte, anatomie, schemi del tavolo e immagini sono figure a 300 dpi; grassetto, corsivo, colori e icone nel testo restano.
+- Nuovo comando `naibi export-doc <progetto> [<nome>] [--format pdf|html|docx|md] [--out cartella]`: esporta i documenti, tutti o uno, senza aprire l'app, come **Esporta documento…**. Un agente IA ora può scrivere un regolamento e controllarne il PDF da solo.
+
 ## 1.2.0-beta.23
 
 ### English

@@ -17,6 +17,7 @@ import DocumentPreview, { DOC_UNIT } from '../render/DocumentPreview'
 import DocumentSettingsPanel from './DocumentSettingsPanel'
 import DocumentExportDialog, { type DocExportKind } from './DocumentExportDialog'
 import { documentHtml, documentMarkdown } from '../export/documentExport'
+import { documentDocx } from '../export/documentDocx'
 import InsertCardDialog from './InsertCardDialog'
 import TableDialog, { type TableValue } from './TableDialog'
 import SetupDialog from './SetupDialog'
@@ -188,6 +189,12 @@ export default function DocumentView({
         const ctx = { project, sets, assets, styles, variables }
         return await window.api.exportDocumentFiles(
           await documentMarkdown(page, name, text, ctx, fonts)
+        )
+      }
+      if (kind === 'docx') {
+        const ctx = { project, sets, assets, styles, variables }
+        return await window.api.exportDocumentFiles(
+          await documentDocx(page, name, text, ctx, settings, fonts)
         )
       }
       const html = await documentHtml(page, name, settings, fonts)

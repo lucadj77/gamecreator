@@ -321,7 +321,7 @@ async function inlinesMd(
 }
 
 /** PNG di una carta disegnata, alla sua misura nel documento e a 300 punti per pollice */
-async function cardPng(svg: SVGSVGElement, fonts: ProjectFont[]): Promise<Uint8Array> {
+export async function cardPng(svg: SVGSVGElement, fonts: ProjectFont[]): Promise<Uint8Array> {
   const text = await svgOfCard(svg, fonts, null)
   // le misure dell'elemento sono in pixel a 96 punti per pollice
   const w = Math.round((Number(svg.getAttribute('width')) / 96) * PNG_DPI)

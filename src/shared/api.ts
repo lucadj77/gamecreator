@@ -87,6 +87,28 @@ export interface DocExportFile {
   data: string | Uint8Array
 }
 
+/** Voce del menu dell'app desktop, costruita dal renderer (che conosce lingua e stato) */
+export interface AppMenuItem {
+  /** Comando mandato al renderer quando si sceglie la voce */
+  id?: string
+  label?: string
+  /** Ruolo standard di Electron (copia, incolla, esci…) al posto di un comando */
+  role?: string
+  type?: 'separator'
+  /** Scorciatoia da mostrare */
+  accelerator?: string
+  /** La scorciatoia la gestisce già il renderer: il menu la mostra soltanto */
+  showOnly?: boolean
+  enabled?: boolean
+  /** Voce nascosta: serve solo per una seconda scorciatoia */
+  visible?: boolean
+}
+
+export interface AppMenu {
+  label: string
+  items: AppMenuItem[]
+}
+
 export interface Api {
   /** Versione web (src/web): alcune funzioni ci sono solo nell'app desktop */
   readonly isWeb: boolean
@@ -244,6 +266,10 @@ export interface Api {
   onAgentLock(cb: (lock: AgentLock | null) => void): () => void
   /** Toglie il blocco lasciato da un'IA che non ha chiuso il lavoro */
   unlockAgent(): Promise<void>
+  /** Imposta il menu dell'app desktop (nel web non c'è) */
+  setAppMenu(menus: AppMenu[]): void
+  /** Chiamato quando si sceglie una voce del menu dell'app, con il suo id */
+  onMenuCommand(cb: (id: string) => void): () => void
   /** Solo nella finestra nascosta che disegna le esportazioni */
   exportPage: ExportPageApi
 }

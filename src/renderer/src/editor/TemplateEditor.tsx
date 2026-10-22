@@ -11,7 +11,8 @@ import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
-import { ImageIcon, PencilIcon, TrashIcon } from '../components/icons'
+import { ImageIcon } from '../components/icons'
+import Menu, { type MenuItem } from '../components/Menu'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
 import PropertiesPanel from './PropertiesPanel'
@@ -33,11 +34,8 @@ interface Props {
   onOpen?(name: string): void
   /** Rende il derivato un template normale */
   onDetach?(): void
-  /** Duplica, crea un derivato, elimina il template */
-  onDuplicate?(): void
-  onDerive?(): void
-  onDelete?(): void
-  onRename?(): void
+  /** Rinomina, duplica, deriva, elimina: il menu ⋯ accanto al nome */
+  menu?: MenuItem[]
   /** Dice se ci sono passi da annullare o ripetere: i pulsanti stanno nella barra dell'app */
   onHistory?(h: { undo: boolean; redo: boolean }): void
 }
@@ -55,10 +53,7 @@ export default function TemplateEditor({
   base = null,
   onOpen,
   onDetach,
-  onDuplicate,
-  onDerive,
-  onDelete,
-  onRename,
+  menu,
   onHistory
 }: Props): React.JSX.Element {
   const { t } = useI18n()
@@ -278,6 +273,7 @@ export default function TemplateEditor({
     <div className="editor">
       <div className="editor-toolbar">
         <h1>{state.template.name}</h1>
+        {menu && <Menu className="more-button" label="⋯" title={t('app.more')} items={menu} />}
         {state.template.extends && (
           <span className="derived-from">
             {t('inherit.derivedFrom')}{' '}
@@ -293,20 +289,6 @@ export default function TemplateEditor({
             </button>
           </span>
         )}
-        <span className="item-actions">
-          <button title={t('tip.renameTemplate')} onClick={onRename}>
-            <PencilIcon /> {t('rename.ok')}
-          </button>
-          <button title={t('tip.duplicateTemplate')} onClick={onDuplicate}>
-            ⧉ {t('sidebar.duplicate')}
-          </button>
-          <button title={t('inherit.derive')} onClick={onDerive}>
-            ↳ {t('inherit.deriveShort')}
-          </button>
-          <button title={t('tip.deleteTemplate')} onClick={onDelete}>
-            <TrashIcon /> {t('sidebar.delete')}
-          </button>
-        </span>
         <div className="tool-group">
           {tools.map(([icon, run, label]) => (
             <button key={label} className="tool" title={label} onClick={run}>

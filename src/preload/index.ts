@@ -91,6 +91,12 @@ const api: Api = {
     return () => ipcRenderer.removeListener('agent:lock', listener)
   },
   unlockAgent: () => ipcRenderer.invoke('agent:unlock'),
+  setAppMenu: (menus) => ipcRenderer.send('menu:set', menus),
+  onMenuCommand: (cb) => {
+    const listener = (_: unknown, id: string): void => cb(id)
+    ipcRenderer.on('menu:command', listener)
+    return () => ipcRenderer.removeListener('menu:command', listener)
+  },
   exportPage: {
     onContext: (cb) => ipcRenderer.on('export:context', (_, c) => cb(c)),
     onScene: (cb) => ipcRenderer.on('export:scene', (_, id, scene) => cb(id, scene)),

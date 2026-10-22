@@ -19,7 +19,7 @@ import { documentHtml, documentMarkdown } from '../export/documentExport'
 import InsertCardDialog from './InsertCardDialog'
 import TableDialog, { type TableValue } from './TableDialog'
 import MarkupTextarea from './MarkupTextarea'
-import { TrashIcon } from './icons'
+import Menu from './Menu'
 
 // Un documento del progetto (docs/<nome>.md: regolamento, sell sheet, appendice): a sinistra il
 // testo in Markdown con il markup di Naibi, a destra l'anteprima sempre visibile, con le carte
@@ -73,6 +73,7 @@ export default function DocumentView({
   } | null>(null)
   const editor = useRef<HTMLTextAreaElement | null>(null)
   const preview = useRef<HTMLDivElement>(null)
+  const nameInput = useRef<HTMLInputElement>(null)
   /** Dove rimettere il cursore dopo un inserimento, quando il testo nuovo è arrivato */
   const caret = useRef<number | null>(null)
   /** Ultima posizione del cursore nel testo; prima di scrivere si inserisce in fondo */
@@ -213,6 +214,7 @@ export default function DocumentView({
     <section className="content document-view">
       <div className="document-head">
         <input
+          ref={nameInput}
           className={nameError ? 'document-name invalid' : 'document-name'}
           value={draftName}
           title={nameError ?? t('documents.nameHint')}
@@ -223,6 +225,28 @@ export default function DocumentView({
             if (e.key === 'Escape') setDraftName(name)
           }}
         />
+        <Menu
+          className="more-button"
+          label="⋯"
+          title={t('app.more')}
+          items={[
+            {
+              label: t('documents.rename'),
+              title: t('documents.nameHint'),
+              onClick: () => {
+                nameInput.current?.focus()
+                nameInput.current?.select()
+              }
+            },
+            'sep',
+            {
+              label: t('documents.deleteShort'),
+              title: t('documents.delete'),
+              danger: true,
+              onClick: onDelete
+            }
+          ]}
+        />
         <button onClick={() => setInserting(true)} title={t('documents.insertCardHint')}>
           {t('documents.insertCard')}
         </button>
@@ -232,9 +256,7 @@ export default function DocumentView({
         <button onClick={openTable} title={t('documents.tableButtonHint')}>
           {t('documents.table')}
         </button>
-        <button onClick={() => setExporting(true)} title={t('documents.exportHint')}>
-          {t('documents.export')}
-        </button>
+        <span className="sep" />
         <button
           className={pageOpen ? 'active' : ''}
           onClick={() => setPageOpen((o) => !o)}
@@ -242,8 +264,8 @@ export default function DocumentView({
         >
           {t('documents.page')}
         </button>
-        <button className="icon-btn" title={t('documents.delete')} onClick={onDelete}>
-          <TrashIcon />
+        <button onClick={() => setExporting(true)} title={t('documents.exportHint')}>
+          {t('documents.exportButton')}
         </button>
       </div>
       <div className={pageOpen ? 'document-body with-settings' : 'document-body'}>

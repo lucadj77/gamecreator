@@ -5,6 +5,26 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.22
+
+### English
+
+- The buttons are reorganized so that the top bar fits in the window again (before, at 1440 pixels the language choice was cut off). The top bar now has undo and redo, **Save**, **Export…**, a **Project** menu with the commands used less often (**Backup…**, **Trash…**, **Google Sheets…**, **Reload from disk**, **Close project**), **Help** and ⚙.
+- ⚙, on every screen including the start screen, holds the interface size, theme, language and **AI tools…**.
+- Rename, duplicate, delete and, for templates, derive are in a ⋯ menu next to the name of the open set or template. The same menu opens from the ⋯ of an item in the sidebar and with a right click on it.
+- The buttons of a set are in groups: cards (**+ Card**, **Duplicate**, **Generate…**, **Split image…**), columns (**+ Column**, **Columns**), a **Checks** menu (**Statistics…**, **Compare…**, **Check texts…**) and **Delete** last, away from **+ Card**. Filter and sort have their own row.
+- In a document, **Rename** and **Delete** are in the ⋯ next to the title; the export button is now **Export document…**, to tell it from the export of the cards.
+- The desktop app has its own menu (File, Edit, View, Help) with the same commands and their shortcuts; on Windows and Linux it appears with the Alt key. ⌘+, ⌘− and ⌘0 change the interface size.
+
+### Italiano
+
+- I pulsanti sono riordinati perché la barra in alto stia di nuovo nella finestra (prima, a 1440 pixel la scelta della lingua era tagliata). La barra in alto ora ha annulla e ripristina, **Salva**, **Esporta…**, un menu **Progetto** con i comandi usati di rado (**Backup…**, **Cestino…**, **Google Sheets…**, **Ricarica dal disco**, **Chiudi progetto**), **Aiuto** e ⚙.
+- ⚙, in ogni schermata compresa quella di ingresso, contiene dimensione dell'interfaccia, tema, lingua e **Strumenti IA…**.
+- Rinomina, duplica, elimina e, per i template, deriva stanno in un menu ⋯ accanto al nome del set o del template aperto. Lo stesso menu si apre dal ⋯ di una voce della barra laterale e con il tasto destro sulla voce.
+- I pulsanti di un set sono in gruppi: carte (**+ Carta**, **Duplica**, **Genera…**, **Dividi immagine…**), colonne (**+ Colonna**, **Colonne**), un menu **Controlli** (**Statistiche…**, **Confronta…**, **Controlla testi…**) ed **Elimina** per ultimo, lontano da **+ Carta**. Filtro e ordinamento hanno una riga propria.
+- In un documento **Rinomina** ed **Elimina** stanno nel ⋯ accanto al titolo; il pulsante di esportazione ora è **Esporta documento…**, per distinguerlo dall'esportazione delle carte.
+- L'app per computer ha un suo menu (File, Modifica, Vista, Aiuto) con gli stessi comandi e le loro scorciatoie; su Windows e Linux compare con il tasto Alt. ⌘+, ⌘− e ⌘0 cambiano la dimensione dell'interfaccia.
+
 ## 1.2.0-beta.21
 
 ### English

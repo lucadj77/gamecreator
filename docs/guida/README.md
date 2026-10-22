@@ -51,10 +51,9 @@ All'avvio Naibi mostra la schermata di ingresso.
 - **Nuovo progetto…** crea una cartella vuota con la struttura di un progetto.
 - **Apri progetto…** apre una cartella che contiene `naibi.json`.
 - **Importa da Tabletop Creator…** converte un progetto di Tabletop Creator ([capitolo 14](#14-importare-da-tabletop-creator)).
-- **Strumenti IA…** prepara un agente IA a lavorare sui progetti ([capitolo 15](#15-lavorare-con-un-agente-ia)).
 - **Progetti recenti** mostra fino a 24 progetti, con la prima carta come miniatura. La × toglie un progetto dall'elenco senza cancellare la cartella.
 
-In alto a destra si scelgono la dimensione dell'interfaccia, il tema (chiaro, scuro o quello del sistema) e la lingua (inglese o italiano).
+Il pulsante ⚙ in alto a destra, in ogni schermata, apre le impostazioni: la dimensione dell'interfaccia, il tema (chiaro, scuro o quello del sistema), la lingua (inglese o italiano) e **Strumenti IA…**, che prepara un agente IA a lavorare sui progetti ([capitolo 15](#15-lavorare-con-un-agente-ia)).
 
 Quando esce una versione nuova, all'avvio compare una striscia in cima alla finestra: **Novità** mostra cosa cambia, **Aggiorna e riavvia** scarica la versione nuova, la installa e riapre Naibi. Questo vale per Naibi installato con il setup su Windows, per l'AppImage su Linux e sul Mac per l'app in Applicazioni (o in un'altra cartella in cui puoi scrivere); se ci sono modifiche non salvate Naibi lo chiede prima. La versione portatile di Windows, il pacchetto .deb e un'app aperta dal disco scaricato hanno invece **Scarica**, che apre la pagina da cui scaricarla; lo stesso succede se l'aggiornamento automatico non riesce. **Salta questa versione** non la segnala più, **Ricordamelo più tardi** la nasconde fino al prossimo avvio.
 
@@ -68,7 +67,7 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 
 ![La finestra del progetto, con le parti numerate](img/progetto.png)
 
-1. **Barra in alto.** Nome e cartella del progetto, annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), **Esporta…**, **Backup…**, **Strumenti IA…**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)), **Salva** (⌘S), **Ricarica** (rilegge il progetto dal disco, perdendo le modifiche non salvate) e **Chiudi**.
+1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), **Salva** (⌘S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**.
 2. **Set.** Un clic apre le carte del set; il numero è il totale delle carte, copie comprese.
 3. **Template.** Un clic apre il template nell'editor; accanto c'è il formato in millimetri.
 4. **Stili** di testo del progetto ([capitolo 7](#7-variabili-e-stili)).
@@ -77,9 +76,11 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 7. **Anteprima** della carta selezionata, fronte o retro. **Modifica template** apre il template della carta, cioè quello del set o quello scelto per la carta; **Ingrandisci** apre la carta grande con il modulo accanto.
 8. **Campi della carta** selezionata, modificabili come le celle della tabella.
 
-Accanto al nome del set o del template aperto ci sono i pulsanti per rinominarlo, duplicarlo, eliminarlo e, per un template, crearne un derivato. Rinominando un set cambia nome anche il suo foglio nel file dei dati (se il foglio è già nel file Naibi prima chiede, perché le formule di altri fogli che lo citano si romperebbero); rinominando un template cambia nome il suo file, e il nome nuovo va nei set, nei derivati e nella colonna `template` delle carte che lo usano. I file cambiano nome quando si salva. Un template eliminato va nella cartella `deleted` del progetto. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero. **Cestino…** nella barra in alto elenca quello che c'è in `deleted` (template, set, note e documenti, dal più recente) e **Ripristina** rimette un elemento nel progetto: un set prende il template scelto (Naibi propone quello con più colonne in comune), un nome già usato riceve un numero. Template e set ripristinati escono dal cestino quando si salva. Le voci della barra laterale si riordinano trascinandole; il + accanto a ciascun titolo crea un elemento nuovo. Stili e variabili si dividono in gruppi con il campo **Gruppo** della loro finestra: le voci di un gruppo stanno sotto il suo titolo, che si chiude e si apre con un clic, dopo quelle senza gruppo. Una voce trascinata sul titolo di un gruppo entra nel gruppo; trascinata su un'altra voce prende il gruppo di quella voce (anche nessuno). Con più di 12 voci compare sopra l'elenco un campo per filtrarle per nome. Nella finestra di uno stile o di una variabile, **Dove si usa** elenca i template (con i livelli), i set (con i numeri delle carte) e le altre variabili e stili che lo richiamano; un clic su un template o su un set lo apre. Soffermando il mouse su una voce compare un'anteprima: le prime carte di un set, fronte e retro di un template, una frase con lo stile, l'icona o il colore di una variabile. Nella sezione **Note** si tengono appunti sul progetto: il + crea una nota, un clic la apre in un pannello accanto a qualsiasi schermata, dove si scrive in Markdown (con **Anteprima** per vederla formattata) e si rinomina dal titolo. Una nota già scritta si apre in **Anteprima**, una nuova pronta per scrivere. Le note si salvano da sole mentre si scrive, come file `notes/<nome>.md` del progetto; il cestino le sposta in `deleted`. Un'IA che lavora sul progetto le legge con `naibi notes`. Il pulsante in alto a sinistra riduce la barra a sole icone, e le frecce accanto ai titoli dei pannelli li spostano dall'altro lato della finestra.
+Il pulsante ⋯ accanto al nome del set o del template aperto apre un menu per rinominarlo, duplicarlo, eliminarlo e, per un template, crearne un derivato (**Deriva**). Lo stesso menu si apre dal ⋯ che compare passando col mouse su una voce della barra laterale, o con il tasto destro sulla voce. Rinominando un set cambia nome anche il suo foglio nel file dei dati (se il foglio è già nel file Naibi prima chiede, perché le formule di altri fogli che lo citano si romperebbero); rinominando un template cambia nome il suo file, e il nome nuovo va nei set, nei derivati e nella colonna `template` delle carte che lo usano. I file cambiano nome quando si salva. Un template eliminato va nella cartella `deleted` del progetto. Anche il foglio di un set eliminato, al salvataggio, esce dal file dei dati e va in `deleted` come file a sé, così il suo nome torna libero. **Cestino…**, nel menu **Progetto**, elenca quello che c'è in `deleted` (template, set, note e documenti, dal più recente) e **Ripristina** rimette un elemento nel progetto: un set prende il template scelto (Naibi propone quello con più colonne in comune), un nome già usato riceve un numero. Template e set ripristinati escono dal cestino quando si salva. Le voci della barra laterale si riordinano trascinandole; il + accanto a ciascun titolo crea un elemento nuovo. Stili e variabili si dividono in gruppi con il campo **Gruppo** della loro finestra: le voci di un gruppo stanno sotto il suo titolo, che si chiude e si apre con un clic, dopo quelle senza gruppo. Una voce trascinata sul titolo di un gruppo entra nel gruppo; trascinata su un'altra voce prende il gruppo di quella voce (anche nessuno). Con più di 12 voci compare sopra l'elenco un campo per filtrarle per nome. Nella finestra di uno stile o di una variabile, **Dove si usa** elenca i template (con i livelli), i set (con i numeri delle carte) e le altre variabili e stili che lo richiamano; un clic su un template o su un set lo apre. Soffermando il mouse su una voce compare un'anteprima: le prime carte di un set, fronte e retro di un template, una frase con lo stile, l'icona o il colore di una variabile. Nella sezione **Note** si tengono appunti sul progetto: il + crea una nota, un clic la apre in un pannello accanto a qualsiasi schermata, dove si scrive in Markdown (con **Anteprima** per vederla formattata) e si rinomina dal titolo. Una nota già scritta si apre in **Anteprima**, una nuova pronta per scrivere. Le note si salvano da sole mentre si scrive, come file `notes/<nome>.md` del progetto; il cestino le sposta in `deleted`. Un'IA che lavora sul progetto le legge con `naibi notes`. Il pulsante in alto a sinistra riduce la barra a sole icone, e le frecce accanto ai titoli dei pannelli li spostano dall'altro lato della finestra.
 
 Le modifiche restano in memoria finché non si salva. Il pulsante **Salva** diventa **Salvato** quando non c'è nulla da scrivere.
+
+Nell'app per computer gli stessi comandi stanno anche nel menu dell'app (sul Mac nella barra in cima allo schermo, su Windows e Linux con il tasto Alt): **File** (apri, salva, esporta, backup, cestino, Google Sheets, ricarica, chiudi), **Modifica**, **Vista** (dimensione dell'interfaccia con ⌘+, ⌘− e ⌘0, schermo intero) e **Aiuto**.
 
 ## 4. Disegnare un template
 
@@ -213,6 +214,8 @@ Ordinamento e filtro cambiano solo la vista: il foglio e l'esportazione restano 
 
 ![Carte ordinate per forza e filtrate](img/ordina-filtra.png)
 
+I controlli sul set stanno nel menu **Controlli** della riga dei pulsanti.
+
 **Statistiche…** mostra quante carte hanno ogni valore di una colonna, anche di un livello con formula, con una barra per confrontarli: serve a bilanciare il set (per esempio quante carte per costo). Per le colonne di numeri dà anche somma, media, minimo e massimo. Le copie della colonna `amount` contano, a meno di togliere la spunta; con un filtro attivo contano solo le carte filtrate.
 
 **Controlla testi…** cerca, in tutte le carte del set, fronte e retro, i testi che non stanno nel loro riquadro: quelli che escono, quelli tagliati e quelli che anche ridotti alla dimensione minima non ci stanno. L'elenco dice carta, faccia e livelli; un clic seleziona la carta. Nella griglia le carte con un testo che non sta hanno un segno arancione accanto al nome.
@@ -235,7 +238,7 @@ Il file dei dati è un normale foglio di calcolo e si può modificare anche con 
 
 ### 5.6 Dati da Google Sheets
 
-Se tieni i dati in un foglio Google, **Google Sheets…** nella barra in alto li porta nel progetto. Nel foglio Google scegli **Condividi** → **Chiunque abbia il link** (lettore), copia il link e incollalo; **Scarica** legge tutte le schede. Ogni scheda va al set con lo stesso nome (senza badare a maiuscole); dal menu puoi sceglierne un altro o **non importare** la scheda. Se una scheda non ha alcune colonne del set, la finestra le elenca: dopo l'importazione quelle colonne non ci sono più. **Importa** sostituisce i dati dei set scelti (⌘Z annulla) e **Salva** li scrive nel file dei dati del progetto, che resta la copia locale: Naibi funziona anche senza rete.
+Se tieni i dati in un foglio Google, **Google Sheets…**, nel menu **Progetto**, li porta nel progetto. Nel foglio Google scegli **Condividi** → **Chiunque abbia il link** (lettore), copia il link e incollalo; **Scarica** legge tutte le schede. Ogni scheda va al set con lo stesso nome (senza badare a maiuscole); dal menu puoi sceglierne un altro o **non importare** la scheda. Se una scheda non ha alcune colonne del set, la finestra le elenca: dopo l'importazione quelle colonne non ci sono più. **Importa** sostituisce i dati dei set scelti (⌘Z annulla) e **Salva** li scrive nel file dei dati del progetto, che resta la copia locale: Naibi funziona anche senza rete.
 
 Il link resta nel progetto: la volta dopo basta aprire la finestra e premere **Scarica**. Un foglio non condiviso con il link non si può scaricare, e Naibi lo dice. Un'IA può fare lo stesso con `naibi pull-sheets`.
 
@@ -505,7 +508,7 @@ I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul compute
 
 ## 12. Documenti
 
-Nella sezione **Documenti** della barra laterale si scrivono i testi che accompagnano il gioco: il regolamento, una sell sheet, un'appendice, le domande frequenti. Il + crea un documento, un clic lo apre al posto del set o del template aperto. A sinistra si scrive, a destra l'anteprima mostra la pagina mentre si scrive e segue il cursore; un clic su un punto dell'anteprima porta il cursore a quel punto del testo. Il nome si cambia dal titolo, il cestino sposta il documento in `deleted`. I documenti si salvano da soli mentre si scrive, come file `docs/<nome>.md` del progetto, e si possono scrivere anche con un altro editor o da un agente IA.
+Nella sezione **Documenti** della barra laterale si scrivono i testi che accompagnano il gioco: il regolamento, una sell sheet, un'appendice, le domande frequenti. Il + crea un documento, un clic lo apre al posto del set o del template aperto. A sinistra si scrive, a destra l'anteprima mostra la pagina mentre si scrive e segue il cursore; un clic su un punto dell'anteprima porta il cursore a quel punto del testo. Il nome si cambia dal titolo; il ⋯ accanto al titolo ha **Rinomina** ed **Elimina**, che sposta il documento in `deleted`. I documenti si salvano da soli mentre si scrive, come file `docs/<nome>.md` del progetto, e si possono scrivere anche con un altro editor o da un agente IA.
 
 Il testo è Markdown, con il markup di Naibi del [capitolo 6](#6-testo-e-markup) dentro le righe:
 
@@ -541,13 +544,13 @@ card: Personaggi/nome=Mago?width=50
 
 **Pagina** apre a destra le impostazioni del documento: formato (A4, A5, Letter), margini, carattere del testo e dei titoli, dimensione del testo, interlinea, spazio dopo i paragrafi, allineamento (a sinistra o giustificato) e colore del testo e dei titoli. L'anteprima mostra la pagina alla sua larghezza vera, ridotta se non ci sta. Le impostazioni sono scritte in testa al file, tra due righe `---`, come `size: 12` o `lineHeight: 1.6`: si possono cambiare anche lì, e **Torna ai valori di base** le toglie.
 
-**Esporta** salva il documento in `export/docs/` del progetto in tre forme: **PDF**, da stampare o inviare, con il formato e i margini del documento (solo nell'app per computer); **HTML**, una pagina web in un solo file, con carte, immagini e font dentro; **Markdown**, testo semplice per altri programmi, con le carte in PNG a 300 dpi e le immagini in una cartella accanto (`<nome> images`). Nel Markdown restano grassetto, corsivo e barrato; gli altri stili si perdono. Le carte e le immagini che non si trovano restano fuori, e la finestra lo ricorda se il documento ha dei problemi.
+**Esporta documento…** salva il documento in `export/docs/` del progetto in tre forme: **PDF**, da stampare o inviare, con il formato e i margini del documento (solo nell'app per computer); **HTML**, una pagina web in un solo file, con carte, immagini e font dentro; **Markdown**, testo semplice per altri programmi, con le carte in PNG a 300 dpi e le immagini in una cartella accanto (`<nome> images`). Nel Markdown restano grassetto, corsivo e barrato; gli altri stili si perdono. Le carte e le immagini che non si trovano restano fuori, e la finestra lo ricorda se il documento ha dei problemi.
 
 Sotto il testo compaiono i problemi: carte che non si trovano, immagini che non sono negli asset, nomi tra graffe sconosciuti; un clic porta al punto del testo. `naibi check` li segnala insieme a quelli delle carte, e `naibi docs` mostra i documenti a un agente IA. Per ora i documenti si leggono solo nell'app: l'esportazione in PDF, HTML e Markdown con le immagini arriverà con una prossima versione.
 
 ## 13. Backup
 
-**Backup…** apre i backup del progetto. Di base l'app crea un backup automatico all'apertura del progetto (al massimo uno all'ora) e ne tiene gli ultimi 10; quelli fatti con **Crea un backup ora** non si cancellano da soli.
+**Backup…**, nel menu **Progetto**, apre i backup del progetto. Di base l'app crea un backup automatico all'apertura del progetto (al massimo uno all'ora) e ne tiene gli ultimi 10; quelli fatti con **Crea un backup ora** non si cancellano da soli.
 
 I backup stanno fuori dal progetto, di base in `Documenti/Naibi/Backup`. Le immagini si salvano una sola volta per tutti i backup del progetto, quindi un backup in più occupa poco spazio. **Ripristina…** estrae il backup in una cartella nuova accanto al progetto e la apre: il progetto attuale non viene toccato.
 
@@ -567,7 +570,7 @@ Al termine l'app elenca ciò che non ha potuto convertire, per esempio le masche
 
 Un agente IA che esegue comandi sul computer (per esempio Claude Code, Codex o Cursor) può leggere e modificare i progetti Naibi, cercare i problemi e disegnare le carte per controllarle. Gli serve la **skill** di Naibi, un testo di istruzioni.
 
-**Strumenti IA…**, nella schermata di ingresso e nella barra del progetto, mostra la skill con il comando `naibi` di questo computer già inserito:
+**Strumenti IA…**, nel menu ⚙ di ogni schermata (e nel menu **Aiuto** dell'app per computer), mostra la skill con il comando `naibi` di questo computer già inserito:
 
 1. **Copia la skill**.
 2. Incollala nell'agente e chiedigli di installarla come skill (o come istruzioni del progetto, se non gestisce le skill). In alternativa **Salva come file…** la scrive in una cartella di skill; Claude Code le legge da `.claude/skills` nella cartella utente o in un progetto.
@@ -605,6 +608,7 @@ Su Windows e Linux ⌘ è Ctrl.
 | ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ |
 | ovunque       | ⌘S                    | salva template, dati e impostazioni                                                                          |
 | set           | ⌘Z, ⇧⌘Z               | annulla e ripete le modifiche ai dati                                                                        |
+| ovunque       | ⌘+, ⌘−, ⌘0            | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
 | set           | ⌘A, Esc               | seleziona tutte le carte, torna a una sola                                                                   |
 | tabella       | Alt+Invio             | a capo dentro una cella                                                                                      |
 | testo         | `{`, poi ↑ ↓, Invio   | suggerimenti di campi e variabili                                                                            |

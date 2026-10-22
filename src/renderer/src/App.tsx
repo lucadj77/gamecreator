@@ -1,4 +1,6 @@
 import AiToolsDialog from './components/AiToolsDialog'
+import Menu, { type MenuItem } from './components/Menu'
+import { useContextMenu } from './components/useContextMenu'
 import { findUsages } from '../../shared/model/usages'
 import type { UsagesNav } from './components/UsagesSection'
 import AgentLockOverlay from './components/AgentLockOverlay'
@@ -98,8 +100,6 @@ import {
   SetsIcon,
   StylesIcon,
   TemplateIcon,
-  PencilIcon,
-  TrashIcon,
   VariablesIcon,
   NotesIcon,
   DocumentsIcon
@@ -136,6 +136,7 @@ import ImportTtcDialog from './components/ImportTtcDialog'
 import StartScreen from './components/StartScreen'
 import { thumbnailTemplate } from '../../shared/model/thumbnail'
 import UpdateNotice from './components/UpdateNotice'
+import { checkForUpdateNow } from './components/updateCheck'
 import Tooltip from './components/Tooltip'
 import SidebarPreview from './components/SidebarPreview'
 import { useSidebarPreview } from './components/useSidebarPreview'
@@ -153,6 +154,7 @@ const FILTER_FROM = 12
 const NO_VARIABLES: Variables = {}
 const UI_ZOOM_KEY = 'uiZoom'
 const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
+const WEBSITE = 'https://github.com/lucadj77/naibi'
 
 function loadUiZoom(): number {
   try {
@@ -257,6 +259,7 @@ function App(): React.JSX.Element {
   >([])
   const [aiTools, setAiTools] = useState(false)
   const [help, setHelp] = useState(false)
+  const contextMenu = useContextMenu()
   // F1 apre l'aiuto da qualsiasi schermata
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -1541,6 +1544,7 @@ function App(): React.JSX.Element {
                   <button
                     className={selected.kind === 'set' && i === selected.index ? 'active' : ''}
                     onClick={() => setSelected({ kind: 'set', index: i })}
+                    onContextMenu={(e) => contextMenu.open(e, setMenu(i))}
                     {...sidebarPreview.bind({ kind: 'set', index: i })}
                   >
                     <span>
@@ -1553,17 +1557,10 @@ function App(): React.JSX.Element {
                   </button>
                   <button
                     className="icon-btn item-dup"
-                    title={t('sidebar.duplicate')}
-                    onClick={() => setDuplicating({ kind: 'set', index: i })}
+                    title={t('app.more')}
+                    onClick={(e) => contextMenu.open(e, setMenu(i))}
                   >
-                    ⧉
-                  </button>
-                  <button
-                    className="icon-btn item-dup"
-                    title={t('sidebar.delete')}
-                    onClick={() => deleteSet(i)}
-                  >
-                    <TrashIcon />
+                    ⋯
                   </button>
                 </li>
               ))}
@@ -1599,6 +1596,7 @@ function App(): React.JSX.Element {
                       selected.kind === 'template' && selected.name === tpl.name ? 'active' : ''
                     }
                     onClick={() => setSelected({ kind: 'template', name: tpl.name })}
+                    onContextMenu={(e) => contextMenu.open(e, templateMenu(tpl.name))}
                     {...sidebarPreview.bind({ kind: 'template', name: tpl.name })}
                   >
                     <span>
@@ -1616,24 +1614,10 @@ function App(): React.JSX.Element {
                   </button>
                   <button
                     className="icon-btn item-dup"
-                    title={t('inherit.derive')}
-                    onClick={() => setDeriving(tpl.name)}
+                    title={t('app.more')}
+                    onClick={(e) => contextMenu.open(e, templateMenu(tpl.name))}
                   >
-                    ↳
-                  </button>
-                  <button
-                    className="icon-btn item-dup"
-                    title={t('sidebar.duplicate')}
-                    onClick={() => setDuplicating({ kind: 'template', name: tpl.name })}
-                  >
-                    ⧉
-                  </button>
-                  <button
-                    className="icon-btn item-dup"
-                    title={t('sidebar.delete')}
-                    onClick={() => deleteTemplate(tpl.name)}
-                  >
-                    <TrashIcon />
+                    ⋯
                   </button>
                 </li>
               ))}
@@ -1796,43 +1780,232 @@ function App(): React.JSX.Element {
       )
     )
 
-  /** Dimensione dell'interfaccia, tema e lingua: nella schermata di ingresso e nel progetto */
+  /**
+   * Azioni su un set o un template: le stesse nel ⋯ della barra laterale, col tasto destro
+   * e nel ⋯ accanto al nome aperto
+   */
+  const setMenu = (index: number): MenuItem[] => [
+    { label: t('rename.ok'), title: t('tip.renameSet'), onClick: () => setRenamingSet(index) },
+    {
+      label: t('sidebar.duplicate'),
+      title: t('tip.duplicateSet'),
+      onClick: () => setDuplicating({ kind: 'set', index })
+    },
+    'sep',
+    {
+      label: t('sidebar.delete'),
+      title: t('tip.deleteSet'),
+      danger: true,
+      onClick: () => deleteSet(index)
+    }
+  ]
+  const templateMenu = (name: string): MenuItem[] => [
+    {
+      label: t('rename.ok'),
+      title: t('tip.renameTemplate'),
+      onClick: () => setRenamingTemplate(name)
+    },
+    {
+      label: t('sidebar.duplicate'),
+      title: t('tip.duplicateTemplate'),
+      onClick: () => setDuplicating({ kind: 'template', name })
+    },
+    {
+      label: t('inherit.deriveShort'),
+      title: t('inherit.derive'),
+      onClick: () => setDeriving(name)
+    },
+    'sep',
+    {
+      label: t('sidebar.delete'),
+      title: t('tip.deleteTemplate'),
+      danger: true,
+      onClick: () => deleteTemplate(name)
+    }
+  ]
+
+  /** Comandi del progetto usati di rado: nel menu Progetto e nel menu dell'app */
+  const projectMenu: MenuItem[] = [
+    { label: t('app.backup'), title: t('tip.backup'), onClick: () => setBackingUp(true) },
+    { label: t('app.trash'), title: t('tip.trash'), onClick: () => setTrashOpen(true) },
+    {
+      label: t('app.googleSheets'),
+      title: t('tip.googleSheets'),
+      onClick: () => setSheetsOpen(true)
+    },
+    'sep',
+    {
+      label: t('app.reloadFromDisk'),
+      title: t('tip.reload'),
+      onClick: () => project && discardOk() && load(project.folder)
+    },
+    { label: t('app.closeProjectLong'), title: t('tip.closeProject'), onClick: closeProject }
+  ]
+
+  // menu dell'app desktop: le stesse voci della barra, con le scorciatoie accanto
+  const menuCommands: Record<string, () => void> = {
+    open: () => void open(),
+    save: () => void saveAll(),
+    export: () => setExporting(true),
+    backup: () => setBackingUp(true),
+    trash: () => setTrashOpen(true),
+    sheets: () => setSheetsOpen(true),
+    reload: () => project && discardOk() && load(project.folder),
+    close: closeProject,
+    uiBigger: () =>
+      changeUiZoom(UI_ZOOMS[Math.min(UI_ZOOMS.indexOf(uiZoom) + 1, UI_ZOOMS.length - 1)]),
+    uiSmaller: () => changeUiZoom(UI_ZOOMS[Math.max(UI_ZOOMS.indexOf(uiZoom) - 1, 0)]),
+    uiReset: () => changeUiZoom(1),
+    help: () => setHelp(true),
+    aiTools: () => setAiTools(true),
+    updates: checkForUpdateNow,
+    website: () => window.open(WEBSITE)
+  }
+  const commandsRef = useRef(menuCommands)
+  useEffect(() => {
+    commandsRef.current = menuCommands
+  })
+  useEffect(() => window.api.onMenuCommand((id) => commandsRef.current[id]?.()), [])
+  const hasProject = !!project
+  const canSave = hasProject && anyDirty && !saving
+  useEffect(() => {
+    if (window.api.isWeb) return
+    const sep = { type: 'separator' as const }
+    const isMac = navigator.userAgent.includes('Mac')
+    window.api.setAppMenu([
+      {
+        label: t('menu.file'),
+        items: [
+          { id: 'open', label: t('menu.openProject') },
+          sep,
+          {
+            id: 'save',
+            label: t('app.save'),
+            accelerator: 'CmdOrCtrl+S',
+            showOnly: true,
+            enabled: canSave
+          },
+          { id: 'export', label: t('app.export'), enabled: hasProject },
+          sep,
+          { id: 'backup', label: t('app.backup'), enabled: hasProject },
+          { id: 'trash', label: t('app.trash'), enabled: hasProject },
+          { id: 'sheets', label: t('app.googleSheets'), enabled: hasProject },
+          sep,
+          { id: 'reload', label: t('app.reloadFromDisk'), enabled: hasProject },
+          { id: 'close', label: t('app.closeProjectLong'), enabled: hasProject },
+          ...(isMac ? [] : [sep, { role: 'quit', label: t('menu.quit') }])
+        ]
+      },
+      {
+        label: t('menu.edit'),
+        items: [
+          { role: 'undo', label: t('menu.undo') },
+          { role: 'redo', label: t('menu.redo') },
+          sep,
+          { role: 'cut', label: t('menu.cut') },
+          { role: 'copy', label: t('menu.copy') },
+          { role: 'paste', label: t('menu.paste') },
+          { role: 'selectAll', label: t('menu.selectAll') }
+        ]
+      },
+      {
+        label: t('menu.view'),
+        items: [
+          { id: 'uiBigger', label: t('menu.uiBigger'), accelerator: 'CmdOrCtrl+Plus' },
+          // ⌘= per le tastiere in cui + vuole il Maiuscolo
+          { id: 'uiBigger', label: t('menu.uiBigger'), accelerator: 'CmdOrCtrl+=', visible: false },
+          { id: 'uiSmaller', label: t('menu.uiSmaller'), accelerator: 'CmdOrCtrl+-' },
+          { id: 'uiReset', label: t('menu.uiReset'), accelerator: 'CmdOrCtrl+0' },
+          sep,
+          { role: 'togglefullscreen', label: t('menu.fullScreen') },
+          { role: 'toggleDevTools', label: t('menu.devTools') }
+        ]
+      },
+      {
+        label: t('menu.help'),
+        items: [
+          { id: 'help', label: t('app.help'), accelerator: 'F1', showOnly: true },
+          { id: 'aiTools', label: t('app.aiTools') },
+          sep,
+          { id: 'updates', label: t('update.check') },
+          { id: 'website', label: t('menu.website') }
+        ]
+      }
+    ])
+  }, [t, hasProject, canSave])
+
+  /** Menu ⚙: dimensione dell'interfaccia, tema, lingua e strumenti IA, in ogni schermata */
   const settings = (
-    <span className="app-settings">
-      {/* nel browser l'ingrandimento è quello del browser stesso */}
-      {!window.api.isWeb && (
-        <label className="muted" title={t('app.uiSizeHint')}>
-          {t('app.uiSize')}{' '}
-          <select value={uiZoom} onChange={(e) => changeUiZoom(Number(e.target.value))}>
-            {UI_ZOOMS.map((z) => (
-              <option key={z} value={z}>
-                {Math.round(z * 100)}%
-              </option>
-            ))}
-          </select>
-        </label>
+    <Menu className="settings-button" label="⚙" title={t('app.settings')} alignRight>
+      {(close) => (
+        <>
+          <div className="settings-menu">
+            {/* nel browser l'ingrandimento è quello del browser stesso */}
+            {!window.api.isWeb && (
+              <>
+                <label className="muted" htmlFor="ui-size" title={t('app.uiSizeHint')}>
+                  {t('app.uiSize')}
+                </label>
+                <select
+                  id="ui-size"
+                  value={uiZoom}
+                  onChange={(e) => changeUiZoom(Number(e.target.value))}
+                >
+                  {UI_ZOOMS.map((z) => (
+                    <option key={z} value={z}>
+                      {Math.round(z * 100)}%
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+            <label className="muted" htmlFor="ui-theme">
+              {t('app.theme')}
+            </label>
+            <select
+              id="ui-theme"
+              value={theme}
+              onChange={(e) => changeTheme(e.target.value as Theme)}
+            >
+              {THEMES.map((th) => (
+                <option key={th} value={th}>
+                  {t(`app.theme.${th}`)}
+                </option>
+              ))}
+            </select>
+            <label className="muted" htmlFor="ui-language">
+              {t('app.language')}
+            </label>
+            <select
+              id="ui-language"
+              value={lang}
+              onChange={(e) => setLang(e.target.value as Language)}
+            >
+              {Object.entries(LANGUAGES).map(([code, name]) => (
+                <option key={code} value={code}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {!window.api.isWeb && (
+            <>
+              <div className="menu-sep" />
+              <button
+                className="menu-item"
+                title={t('tip.aiTools')}
+                onClick={() => {
+                  close()
+                  setAiTools(true)
+                }}
+              >
+                {t('app.aiTools')}
+              </button>
+            </>
+          )}
+        </>
       )}
-      <label className="muted">
-        {t('app.theme')}{' '}
-        <select value={theme} onChange={(e) => changeTheme(e.target.value as Theme)}>
-          {THEMES.map((th) => (
-            <option key={th} value={th}>
-              {t(`app.theme.${th}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="muted">
-        {t('app.language')}{' '}
-        <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
-          {Object.entries(LANGUAGES).map(([code, name]) => (
-            <option key={code} value={code}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </label>
-    </span>
+    </Menu>
   )
 
   return (
@@ -1842,6 +2015,7 @@ function App(): React.JSX.Element {
           <SaveStyleContext.Provider value={project ? saveStyle : null}>
             <div className="app">
               <Tooltip />
+              {contextMenu.node}
               {!window.api.isWeb && <UpdateNotice dirty={anyDirty} />}
               {help && <HelpDialog onClose={() => setHelp(false)} />}
               {project && !sidebarCompact && (
@@ -1854,10 +2028,9 @@ function App(): React.JSX.Element {
               )}
               {project && (
                 <header className="toolbar">
-                  <span className="project-name">{project.file.name}</span>
-                  <span className="project-path">{project.folder}</span>
-                  {loading && <span className="muted">{t('app.loading')}</span>}
-                  <span className="spacer" />
+                  <span className="project-name" title={project.folder}>
+                    {project.file.name}
+                  </span>
                   {/* annulla e ripeti valgono per ciò che è aperto: l'editor o i dati */}
                   <span className="tool-group">
                     <button
@@ -1877,45 +2050,29 @@ function App(): React.JSX.Element {
                       ↷
                     </button>
                   </span>
+                  {loading && <span className="muted">{t('app.loading')}</span>}
+                  <span className="spacer" />
+                  {/* dal più usato al meno usato; ciò che serve di rado sta nel menu Progetto */}
+                  <button
+                    className="primary"
+                    disabled={!anyDirty || saving}
+                    title={t('app.saveHint')}
+                    onClick={saveAll}
+                  >
+                    {anyDirty ? t('app.save') : t('app.saved')}
+                  </button>
                   <button onClick={() => setExporting(true)} title={t('tip.export')}>
                     {t('app.export')}
                   </button>
-                  <button onClick={() => setBackingUp(true)} title={t('tip.backup')}>
-                    {t('app.backup')}
-                  </button>
-                  <button onClick={() => setTrashOpen(true)} title={t('tip.trash')}>
-                    {t('app.trash')}
-                  </button>
-                  <button onClick={() => setSheetsOpen(true)} title={t('tip.googleSheets')}>
-                    {t('app.googleSheets')}
-                  </button>
-                  {!window.api.isWeb && (
-                    <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
-                      {t('app.aiTools')}
-                    </button>
-                  )}
+                  <Menu
+                    label={`${t('app.projectMenu')} ▾`}
+                    title={t('tip.projectMenu')}
+                    alignRight
+                    items={projectMenu}
+                  />
                   <button onClick={() => setHelp(true)} title={t('tip.help')}>
                     {t('app.help')}
                   </button>
-                  <span className="toolbar-group">
-                    <button
-                      className="primary"
-                      disabled={!anyDirty || saving}
-                      title={t('app.saveHint')}
-                      onClick={saveAll}
-                    >
-                      {anyDirty ? t('app.save') : t('app.saved')}
-                    </button>
-                    <button
-                      onClick={() => discardOk() && load(project.folder)}
-                      title={t('tip.reload')}
-                    >
-                      {t('app.reload')}
-                    </button>
-                    <button onClick={closeProject} title={t('tip.closeProject')}>
-                      {t('app.closeProject')}
-                    </button>
-                  </span>
                   {settings}
                 </header>
               )}
@@ -1981,10 +2138,7 @@ function App(): React.JSX.Element {
                       base={baseOf(project.templates, editing)}
                       onOpen={(name) => setSelected({ kind: 'template', name })}
                       onDetach={() => detachTemplate(editing.name)}
-                      onDuplicate={() => setDuplicating({ kind: 'template', name: editing.name })}
-                      onDerive={() => setDeriving(editing.name)}
-                      onDelete={() => deleteTemplate(editing.name)}
-                      onRename={() => setRenamingTemplate(editing.name)}
+                      menu={templateMenu(editing.name)}
                       onHistory={setEditorHistory}
                     />
                   ) : current ? (
@@ -1998,16 +2152,7 @@ function App(): React.JSX.Element {
                         updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
                       }
                       onEditTemplate={(name) => setSelected({ kind: 'template', name })}
-                      onDuplicateSet={() =>
-                        setDuplicating({
-                          kind: 'set',
-                          index: selected.kind === 'set' ? selected.index : 0
-                        })
-                      }
-                      onDeleteSet={() => deleteSet(selected.kind === 'set' ? selected.index : 0)}
-                      onRenameSet={() =>
-                        setRenamingSet(selected.kind === 'set' ? selected.index : 0)
-                      }
+                      menu={setMenu(selected.kind === 'set' ? selected.index : 0)}
 
                       onChangeTemplate={(name) =>
                         setTemplate(selected.kind === 'set' ? selected.index : 0, name)
@@ -2348,9 +2493,7 @@ function SetView({
   templates,
   onChange,
   onEditTemplate,
-  onDuplicateSet,
-  onDeleteSet,
-  onRenameSet,
+  menu,
   onChangeTemplate,
   onChangeColumns,
   compare,
@@ -2371,9 +2514,8 @@ function SetView({
   /** Apre nell'editor un template: quello del set o quello di una carta */
   onEditTemplate(name: string): void
   /** Duplica ed elimina il set */
-  onDuplicateSet(): void
-  onDeleteSet(): void
-  onRenameSet(): void
+  /** Rinomina, duplica, elimina: il menu ⋯ accanto al nome */
+  menu: MenuItem[]
   /** Confronto attivo: con che cosa e quali righe sono nuove o cambiate */
   compare: { label: string; rows: number[] } | null
   onCompare(): void
@@ -2797,17 +2939,7 @@ function SetView({
       <section className="content" ref={contentRef}>
         <div className="set-header">
           <h1>{set.name}</h1>
-          <span className="item-actions">
-            <button title={t('tip.renameSet')} onClick={onRenameSet}>
-              <PencilIcon /> {t('set.renameSet')}
-            </button>
-            <button title={t('tip.duplicateSet')} onClick={onDuplicateSet}>
-              ⧉ {t('set.duplicateSet')}
-            </button>
-            <button title={t('tip.deleteSet')} onClick={onDeleteSet}>
-              <TrashIcon /> {t('set.deleteSet')}
-            </button>
-          </span>
+          <Menu className="more-button" label="⋯" title={t('app.more')} items={menu} />
 
           <span className="muted set-template">
             {t('set.templateLabel')}
@@ -2853,55 +2985,66 @@ function SetView({
             onChange={setView}
           />
         </div>
+        {/* carte, struttura del foglio, controlli; Elimina in fondo, lontano da + Carta */}
         <div className="set-actions">
-          <button onClick={addCard} title={t('tip.addCard')}>
-            {t('set.addCard')}
-          </button>
-          <button disabled={none} onClick={duplicate} title={t('tip.duplicateCards')}>
-            {t('set.duplicate')}
-          </button>
-          <button disabled={none} onClick={remove} title={t('tip.deleteCards')}>
-            {t('set.delete')}
-          </button>
-          <button onClick={() => setGenerating(true)} title={t('tip.generateCards')}>
-            {t('set.generate')}
-          </button>
-          <button disabled={!template} onClick={() => setSplitting(true)} title={t('tip.split')}>
-            {t('set.split')}
-          </button>
-          <span className="sep" />
-          <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
-            {t('set.addColumn')}
-          </button>
-          <button onClick={() => setShowStats(true)} title={t('tip.stats')}>
-            {t('set.stats')}
-          </button>
-          <button onClick={onCompare} title={t('tip.compare')}>
-            {t('set.compare')}
-          </button>
-          <button
-            disabled={!template}
-            onClick={() => setCheckingText(true)}
-            title={t('tip.textCheck')}
-          >
-            {t('set.textCheck')}
-          </button>
-          <ColumnsMenu
-            columns={allColumns}
-            hidden={hidden}
-            showComputed={!!set.showComputed}
-            onChange={onChangeColumns}
-            onReset={() => {
-              onChangeColumns({
-                hiddenColumns: defaultHiddenColumns(allColumns, template, [
-                  ...new Set(rowTemplates)
-                ]),
-                showComputed: false
-              })
-              setDetails(new Set())
-            }}
-          />
-          <span className="sep" />
+          <span className="action-group">
+            <button onClick={addCard} title={t('tip.addCard')}>
+              {t('set.addCard')}
+            </button>
+            <button disabled={none} onClick={duplicate} title={t('tip.duplicateCards')}>
+              {t('set.duplicate')}
+            </button>
+            <button onClick={() => setGenerating(true)} title={t('tip.generateCards')}>
+              {t('set.generate')}
+            </button>
+            <button disabled={!template} onClick={() => setSplitting(true)} title={t('tip.split')}>
+              {t('set.split')}
+            </button>
+          </span>
+          <span className="action-group">
+            <button onClick={() => setAddingColumn(true)} title={t('tip.addColumn')}>
+              {t('set.addColumn')}
+            </button>
+            <ColumnsMenu
+              columns={allColumns}
+              hidden={hidden}
+              showComputed={!!set.showComputed}
+              onChange={onChangeColumns}
+              onReset={() => {
+                onChangeColumns({
+                  hiddenColumns: defaultHiddenColumns(allColumns, template, [
+                    ...new Set(rowTemplates)
+                  ]),
+                  showComputed: false
+                })
+                setDetails(new Set())
+              }}
+            />
+          </span>
+          <span className="action-group">
+            <Menu
+              label={`${t('set.checks')} ▾`}
+              title={t('tip.checks')}
+              items={[
+                { label: t('set.stats'), title: t('tip.stats'), onClick: () => setShowStats(true) },
+                { label: t('set.compare'), title: t('tip.compare'), onClick: onCompare },
+                {
+                  label: t('set.textCheck'),
+                  title: t('tip.textCheck'),
+                  disabled: !template,
+                  onClick: () => setCheckingText(true)
+                }
+              ]}
+            />
+          </span>
+          <span className="action-group">
+            <button disabled={none} onClick={remove} title={t('tip.deleteCards')}>
+              {t('set.delete')}
+            </button>
+          </span>
+        </div>
+        {/* vista: filtro e ordine non cambiano i dati finché non si applica l'ordine */}
+        <div className="set-actions set-view-row">
           <input
             type="search"
             className="row-filter"

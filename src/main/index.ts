@@ -1,4 +1,5 @@
-import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme, net } from 'electron'
+import { app, shell, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, net } from 'electron'
+import type { MenuItemConstructorOptions } from 'electron'
 import { existsSync } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { basename, dirname, join, resolve } from 'path'
@@ -29,6 +30,8 @@ import {
 import { MessageError, msg } from '../shared/messages'
 import type { Template } from '../shared/model/template'
 import type {
+  AppMenu,
+  AppMenuItem,
   BackupSettings,
   BackupState,
   DocExportFile,
@@ -549,6 +552,29 @@ function registerIpc(): void {
     if (folder) await writeAppState(folder, dirty)
   })
   ipcMain.handle('agent:unlock', () => stateFolder && endAgent(stateFolder))
+
+  // menu dell'app: lo descrive il renderer, che conosce la lingua e cosa è aperto
+  ipcMain.on('menu:set', (e, menus: AppMenu[]) => {
+    const toItem = (item: AppMenuItem): MenuItemConstructorOptions => {
+      if (item.type === 'separator') return { type: 'separator' }
+      if (item.role)
+        return { role: item.role as MenuItemConstructorOptions['role'], label: item.label }
+      return {
+        label: item.label,
+        enabled: item.enabled !== false,
+        visible: item.visible !== false,
+        accelerator: item.accelerator,
+        // la scorciatoia la gestisce la pagina: il menu non deve rubarla
+        registerAccelerator: !item.showOnly,
+        click: () => e.sender.send('menu:command', item.id)
+      }
+    }
+    const template: MenuItemConstructorOptions[] = [
+      ...(process.platform === 'darwin' ? [{ role: 'appMenu' as const }] : []),
+      ...menus.map((m) => ({ label: m.label, submenu: m.items.map(toItem) }))
+    ]
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+  })
 
   // il renderer segue prefers-color-scheme, che Chromium ricava da themeSource
   ipcMain.on('theme:set', (_, theme: Theme) => {

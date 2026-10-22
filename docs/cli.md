@@ -52,6 +52,6 @@ Il backup fatto da `set-rows`, `pull-sheets`, `rename-set` e `rename-template` v
 
 La skill è in [skill/naibi/SKILL.md](../skill/naibi/SKILL.md), in inglese: spiega il formato del progetto, il markup, le formule e il modo di lavorare (`info`, poi le modifiche, poi `check` e `render` per controllare). Il segnaposto `{{NAIBI_COMMAND}}` indica come lanciare il comando.
 
-Nell'app il pulsante **Strumenti IA…** (schermata di ingresso e barra in alto) mostra la skill con il comando di questo computer già inserito. Si può copiare e incollare nell'agente, chiedendogli di installarla, oppure salvare come file in `<cartella>/naibi/SKILL.md`; Claude Code legge le skill da `~/.claude/skills` o da `.claude/skills` dentro un progetto. Solo le istruzioni intorno alla skill sono tradotte.
+Nell'app **Strumenti IA…** (nel menu ⚙ di ogni schermata) mostra la skill con il comando di questo computer già inserito. Si può copiare e incollare nell'agente, chiedendogli di installarla, oppure salvare come file in `<cartella>/naibi/SKILL.md`; Claude Code legge le skill da `~/.claude/skills` o da `.claude/skills` dentro un progetto. Solo le istruzioni intorno alla skill sono tradotte.
 
 Quando cambia il formato del progetto va aggiornata anche la skill.

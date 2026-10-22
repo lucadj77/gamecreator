@@ -2,6 +2,7 @@ import { readFile, rename, writeFile } from 'fs/promises'
 import { join } from 'path'
 import type { ProjectFile, Sheet } from '../../shared/project'
 import { projectFilePath } from './projectFile'
+import { MessageError, msg } from '../../shared/messages'
 import { keepDeletedSheets, writeSpreadsheet } from './spreadsheet'
 
 export interface DataChanges {
@@ -20,6 +21,10 @@ export async function saveData(folder: string, changes: DataChanges): Promise<vo
   const current: ProjectFile = JSON.parse(await readFile(target, 'utf8'))
   const data = join(folder, current.dataFile)
   const removed = changes.removed ?? []
+  // in sola lettura il file dati non si tocca, qualunque cosa chieda il renderer
+  const readOnly = (changes.file ?? current).dataReadOnly
+  if (readOnly && (changes.sheets.length || removed.length))
+    throw new MessageError(msg('data.readOnly'))
   // la copia in deleted/ prima di toglierli: se non riesce il file dati resta com'era
   await keepDeletedSheets(folder, data, removed)
   if (changes.sheets.length || removed.length) await writeSpreadsheet(data, changes.sheets, removed)

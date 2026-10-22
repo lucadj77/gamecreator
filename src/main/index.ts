@@ -14,6 +14,7 @@ import { installUpdate, updateMode } from './updater'
 import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
+import { markDataWritten, watchDataFile } from './project/watchData'
 import {
   getProjectFolder,
   handleAssetProtocol,
@@ -186,10 +187,15 @@ function registerIpc(): void {
     return result.canceled ? null : result.filePaths[0]
   })
 
-  ipcMain.handle('project:load', async (_, folder: string) => {
+  ipcMain.handle('project:load', async (event, folder: string) => {
     const project = await loadProject(folder)
     setProjectFolder(folder)
     projectName = project.file.name || folder
+    // un cambiamento del file dati fatto fuori da Naibi si segnala alla finestra
+    const sender = event.sender
+    await watchDataFile(join(folder, project.file.dataFile), () => {
+      if (!sender.isDestroyed()) sender.send('project:data-changed')
+    })
     // il backup automatico non ritarda l'apertura, e un errore non la impedisce
     readBackupSettings(backupSettingsFile())
       .then(async (settings) => {
@@ -275,7 +281,18 @@ function registerIpc(): void {
   ipcMain.handle('data:save', async (_, changes: DataChanges) => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
-    await saveData(folder, changes)
+    try {
+      await saveData(folder, changes)
+    } finally {
+      await markDataWritten()
+    }
+  })
+
+  // solo i dati, senza backup né elenco dei recenti: dopo un cambiamento fatto fuori da Naibi
+  ipcMain.handle('project:reload-data', async () => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    return loadProject(folder)
   })
 
   let cancelExport = false

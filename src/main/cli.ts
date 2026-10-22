@@ -168,6 +168,7 @@ async function info(p: Parsed): Promise<number> {
     name: f.name,
     folder: project.folder,
     dataFile: f.dataFile,
+    dataReadOnly: !!f.dataReadOnly,
     sets: project.sets.map((s) => ({
       name: s.name,
       template: s.template,
@@ -198,7 +199,7 @@ async function info(p: Parsed): Promise<number> {
     return 0
   }
   print(`Project: ${data.name}  (${data.folder})`)
-  print(`Data file: ${data.dataFile}`)
+  print(`Data file: ${data.dataFile}${data.dataReadOnly ? ' (read-only)' : ''}`)
   print('Sets:')
   for (const s of data.sets)
     print(
@@ -340,9 +341,18 @@ async function checkWritable(folder: string): Promise<void> {
   if (app && !(await readAgentLock(folder))) throw new CliError(NOT_BEGUN)
 }
 
+/** Con il file dati in sola lettura (dataReadOnly in naibi.json) i dati si cambiano solo fuori */
+function checkDataWritable(project: LoadedProject): void {
+  if (project.file.dataReadOnly)
+    throw new CliError(
+      `the data file ${project.file.dataFile} is read-only (dataReadOnly in naibi.json): change the data in the file itself`
+    )
+}
+
 async function setRows(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
   await checkWritable(project.folder)
+  checkDataWritable(project)
   const set = findSet(project, p.positional[1])
   const file = p.positional[2]
   if (!file) throw new CliError('missing .csv or .json file')
@@ -379,6 +389,7 @@ async function backup(project: LoadedProject): Promise<() => void> {
 async function pullSheets(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
   await checkWritable(project.folder)
+  checkDataWritable(project)
   const link = p.positional[1]?.trim() || project.file.googleSheet
   if (!link) throw new CliError('no Google Sheets link: pass one, it is then saved in the project')
   const tabs = await fetchGoogleSheet(link)
@@ -434,7 +445,7 @@ async function renameSetCommand(p: Parsed): Promise<number> {
     index,
     to,
     csv,
-    sharingSets(project.sets, index).length > 0
+    sharingSets(project.sets, index).length > 0 || !!project.file.dataReadOnly
   )
   const done = await backup(project)
   const sheet = r.sets[index].data

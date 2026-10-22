@@ -4277,3 +4277,25 @@ details.usages button.link {
 .dialog:has(.gsheets-dialog) {
   max-width: min(680px, 94vw);
 }
+
+/* sola lettura del file dati: in fondo alla barra laterale e accanto al conteggio delle carte */
+.data-readonly {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.readonly-badge {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--warning-bg);
+  color: var(--text);
+}
+
+.banner.data-changed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

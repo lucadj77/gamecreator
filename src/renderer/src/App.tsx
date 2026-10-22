@@ -22,7 +22,7 @@ import type {
   ProjectNote,
   Sheet
 } from '../../shared/project'
-import { messageFromError, type Message } from '../../shared/messages'
+import { messageFromError, msg, type Message } from '../../shared/messages'
 import { bindRow, computedValues, rowToCard, type BoundCard } from '../../shared/model/bind'
 import { systemOfSet } from '../../shared/model/system'
 import {
@@ -113,6 +113,7 @@ import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
 import { renameSet } from '../../shared/model/renameSet'
 import { sharingSets, syncSharedSheets } from '../../shared/model/sharedSheets'
+import { changesData } from '../../shared/model/readOnlyData'
 import { renameTemplate } from '../../shared/model/renameTemplate'
 import CardSvg from './render/CardSvg'
 import {
@@ -195,13 +196,19 @@ function App(): React.JSX.Element {
     setTheme(th)
     applyTheme(th)
   }
+  const [error, setError] = useState<Message | null>(null)
   const [project, setProjectState] = useState<LoadedProject | null>(null)
-  // i set che condividono un foglio ricevono ognuno le modifiche ai dati fatte dagli altri
+  // i set che condividono un foglio ricevono ognuno le modifiche ai dati fatte dagli altri;
+  // con il file dati in sola lettura una modifica ai dati non passa
   const setProject = useCallback(
     (u: React.SetStateAction<LoadedProject | null>): void =>
       setProjectState((prev) => {
         const next = typeof u === 'function' ? u(prev) : u
         if (!prev || !next || next.sets === prev.sets) return next
+        if (next.folder === prev.folder && next.file.dataReadOnly && changesData(prev, next)) {
+          queueMicrotask(() => setError(msg('data.readOnly')))
+          return prev
+        }
         const sets = syncSharedSheets(prev.sets, next.sets)
         return sets === next.sets ? next : { ...next, sets }
       }),
@@ -218,7 +225,6 @@ function App(): React.JSX.Element {
   const [selected, setSelected] = useState<Selected>({ kind: 'set', index: 0 })
   /** Nota aperta nel pannello accanto alla schermata */
   const [openNote, setOpenNote] = useState<string | null>(null)
-  const [error, setError] = useState<Message | null>(null)
   const [loading, setLoading] = useState(false)
   /** Template modificati e non ancora salvati */
   const [dirty, setDirty] = useState<Set<string>>(new Set())
@@ -270,6 +276,8 @@ function App(): React.JSX.Element {
   const [trashedSheets, setTrashedSheets] = useState<Set<string>>(new Set())
   /** file di progetto da riscrivere (set nuovi) */
   const [fileDirty, setFileDirty] = useState(false)
+  /** Il file dati è cambiato fuori da Naibi e non si è ancora riletto */
+  const [dataChanged, setDataChanged] = useState(false)
   const [history, setHistory] = useState<{
     past: DataSnapshot[]
     future: DataSnapshot[]
@@ -277,7 +285,15 @@ function App(): React.JSX.Element {
     at: number
   }>({ past: [], future: [], at: 0 })
   const [saving, setSaving] = useState(false)
-  const anyDirty = dirty.size > 0 || dirtySheets.size > 0 || fileDirty
+  const readOnlyData = !!project?.file.dataReadOnly
+  // in sola lettura i fogli non si salvano: una modifica rifiutata non chiede di salvare
+  const anyDirty = dirty.size > 0 || (dirtySheets.size > 0 && !readOnlyData) || fileDirty
+  /** Vero, con un avviso, se il file dati è in sola lettura e quindi l'azione non si fa */
+  const dataLocked = (): boolean => {
+    if (!project?.file.dataReadOnly) return false
+    setError(msg('data.readOnly'))
+    return true
+  }
   const [sidebarWidth, setSidebarWidth] = usePanelWidth('sidebar.v2', 260)
   const [sidebarSide, toggleSidebarSide] = usePanelSide('sidebar', 'left')
   const [sidebarCompact, setSidebarCompact] = usePanelCompact('sidebar')
@@ -293,7 +309,9 @@ function App(): React.JSX.Element {
     setError(null)
     try {
       const loaded = await window.api.loadProject(folder)
-      setProject(loaded)
+      // un progetto letto dal disco sostituisce tutto: niente controlli sui dati
+      setProjectState(loaded)
+      setDataChanged(false)
       setDirty(new Set())
       setDirtySheets(new Set())
       setTrashedSheets(new Set())
@@ -314,7 +332,63 @@ function App(): React.JSX.Element {
     } finally {
       setLoading(false)
     }
-  }, [setProject])
+  }, [])
+
+  /** Rilegge solo i dati, quando il file dati è cambiato fuori da Naibi; i template restano */
+  const reloadData = useCallback(async () => {
+    try {
+      const loaded = await window.api.reloadData()
+      setDataChanged(false)
+      setError(null)
+      setProjectState((p) =>
+        p?.folder !== loaded.folder
+          ? p
+          : {
+              ...p,
+              sets: p.sets.map((s) => ({
+                ...s,
+                data: loaded.sets.find((x) => x.name === s.name)?.data ?? null
+              })),
+              unusedSheets: loaded.unusedSheets,
+              unusedData: loaded.unusedData,
+              diskSheets: loaded.diskSheets,
+              dataFileLosses: loaded.dataFileLosses
+            }
+      )
+      // i passi da annullare hanno i dati di prima
+      setHistory({ past: [], future: [], at: 0 })
+      setDirtySheets(new Set())
+    } catch (e) {
+      setError(messageFromError(e))
+    }
+  }, [])
+  // senza modifiche ai dati da salvare si rilegge subito; altrimenti si chiede (banner)
+  const canReloadData =
+    !fileDirty && trashedSheets.size === 0 && (dirtySheets.size === 0 || readOnlyData)
+  const canReloadRef = useRef(canReloadData)
+  useEffect(() => {
+    canReloadRef.current = canReloadData
+  }, [canReloadData])
+  useEffect(
+    () =>
+      window.api.onDataFileChanged(() =>
+        canReloadRef.current ? void reloadData() : setDataChanged(true)
+      ),
+    [reloadData]
+  )
+
+  /** Sola lettura del file dati: si attiva solo senza modifiche ai dati da salvare */
+  const setDataReadOnly = (on: boolean): void => {
+    if (!project) return
+    if (on && (dirtySheets.size > 0 || trashedSheets.size > 0)) {
+      setError(msg('data.saveFirst'))
+      return
+    }
+    const file: ProjectFile = { ...project.file, dataReadOnly: true }
+    if (!on) delete file.dataReadOnly
+    setProject({ ...project, file })
+    setFileDirty(true)
+  }
 
   // Un'IA che lavora con il comando naibi (vedi docs/cli.md): `naibi begin` legge da qui se ci sono
   // modifiche non salvate; mentre lavora l'app è bloccata, quando finisce si ricarica il progetto
@@ -349,19 +423,22 @@ function App(): React.JSX.Element {
     setSelected({ kind: 'set', index: 0 })
   }
 
-  const updateTemplate = useCallback((tpl: Template) => {
-    setProject((p) => {
-      if (!p) return p
-      // i derivati seguono subito il base; quelli che cambiano per una rinomina vanno salvati
-      const synced = syncDerived(
-        p.templates,
-        p.templates.map((x) => (x.name === tpl.name ? tpl : x))
-      )
-      if (synced.changed.length) setDirty((d) => new Set([...d, ...synced.changed]))
-      return { ...p, templates: synced.templates }
-    })
-    setDirty((d) => (d.has(tpl.name) ? d : new Set(d).add(tpl.name)))
-  }, [setProject])
+  const updateTemplate = useCallback(
+    (tpl: Template) => {
+      setProject((p) => {
+        if (!p) return p
+        // i derivati seguono subito il base; quelli che cambiano per una rinomina vanno salvati
+        const synced = syncDerived(
+          p.templates,
+          p.templates.map((x) => (x.name === tpl.name ? tpl : x))
+        )
+        if (synced.changed.length) setDirty((d) => new Set([...d, ...synced.changed]))
+        return { ...p, templates: synced.templates }
+      })
+      setDirty((d) => (d.has(tpl.name) ? d : new Set(d).add(tpl.name)))
+    },
+    [setProject]
+  )
 
   /** Nuovo template derivato: uguale al base finché non lo si modifica */
   const deriveTemplate = (from: string, name: string): void => {
@@ -395,7 +472,7 @@ function App(): React.JSX.Element {
 
   /** Modifica del foglio di un set; le modifiche ravvicinate con la stessa chiave si annullano insieme */
   const updateSheet = (index: number, sheet: Sheet, key?: string): void => {
-    if (!project) return
+    if (!project || dataLocked()) return
     const now = Date.now()
     const coalesce = key !== undefined && key === history.key && now - history.at < COALESCE_MS
     setHistory((h) => ({
@@ -703,21 +780,25 @@ function App(): React.JSX.Element {
 
   const saveAll = async (): Promise<void> => {
     if (!project || saving) return
-    // un foglio condiviso da più set si scrive una volta
-    const sheets = [
-      ...new Map(
-        project.sets
-          .map((x) => x.data)
-          .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
-          .map((d) => [d.name, d])
-      ).values()
-    ]
+    // un foglio condiviso da più set si scrive una volta; in sola lettura nessuno
+    const sheets = readOnlyData
+      ? []
+      : [
+          ...new Map(
+            project.sets
+              .map((x) => x.data)
+              .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
+              .map((d) => [d.name, d])
+          ).values()
+        ]
     // fogli sul disco che nessun set usa più (set eliminati): escono dal file dati
     const used = new Set([
       ...project.sets.flatMap((x) => (x.data ? [x.data.name, x.data.origin ?? ''] : [])),
       ...project.unusedSheets
     ])
-    const removed = (project.diskSheets ?? []).filter((x) => !used.has(x) || trashedSheets.has(x))
+    const removed = readOnlyData
+      ? []
+      : (project.diskSheets ?? []).filter((x) => !used.has(x) || trashedSheets.has(x))
     // grafici e simili che il salvataggio toglierebbe dal file dati: prima si chiede
     const losses = project.dataFileLosses ?? []
     if (
@@ -798,7 +879,7 @@ function App(): React.JSX.Element {
   }
 
   const createSet = (name: string, template: string, sheetName: string | null): void => {
-    if (!project) return
+    if (!project || (!sheetName && dataLocked())) return
     if (project.file.dataFile.toLowerCase().endsWith('.csv')) {
       setError({ key: 'save.csvOneSheet' })
       setCreatingSet(false)
@@ -857,7 +938,7 @@ function App(): React.JSX.Element {
       : []
 
   const duplicateSet = (index: number, name: string): void => {
-    if (!project) return
+    if (!project || dataLocked()) return
     const src = project.sets[index]
     if (project.file.dataFile.toLowerCase().endsWith('.csv')) {
       setError({ key: 'save.csvOneSheet' })
@@ -894,6 +975,7 @@ function App(): React.JSX.Element {
     // un foglio condiviso con altri set tiene il suo nome
     const keepSheet =
       sharingSets(project.sets, index).length > 0 ||
+      !!project.file.dataReadOnly ||
       (!csv &&
         onDisk &&
         !window.confirm(t('sidebar.renameSheetConfirm', { sheet: before.name, name })))
@@ -926,11 +1008,20 @@ function App(): React.JSX.Element {
       at: 0
     }))
     // un foglio che altri set usano ancora resta nel file
-    const sheet = sharingSets(project.sets, index).length ? null : set.data
+    const shared = sharingSets(project.sets, index).length > 0
+    // in sola lettura il foglio resta nel file, tra quelli non collegati
+    const kept = !shared && project.file.dataReadOnly ? set.data : null
+    const sheet = shared || kept ? null : set.data
     setProject({
       ...project,
       sets: project.sets.filter((_, i) => i !== index),
-      file: { ...project.file, sets: project.file.sets.filter((_, i) => i !== index) }
+      file: { ...project.file, sets: project.file.sets.filter((_, i) => i !== index) },
+      ...(kept
+        ? {
+            unusedSheets: [...project.unusedSheets, kept.name],
+            unusedData: [...(project.unusedData ?? []), kept]
+          }
+        : {})
     })
     if (sheet) {
       setDirtySheets((d) => {
@@ -1040,6 +1131,7 @@ function App(): React.JSX.Element {
         setRestored((r) => [...r, { file: item.file, kind: 'template', name }])
         setSelected({ kind: 'template', name })
       } else {
+        if (dataLocked()) return
         if (project.file.dataFile.toLowerCase().endsWith('.csv')) {
           setError({ key: 'save.csvOneSheet' })
           return
@@ -1070,7 +1162,7 @@ function App(): React.JSX.Element {
 
   /** Dati dal foglio Google: ogni scheda sostituisce i dati del suo set; ⌘Z annulla */
   const importGoogleSheet = (link: string, imports: SheetImport[]): void => {
-    if (!project) return
+    if (!project || dataLocked()) return
     setHistory((h) => ({
       past: [...h.past.slice(-99), { sets: project.sets, file: project.file }],
       future: [],
@@ -1590,6 +1682,14 @@ function App(): React.JSX.Element {
               {t('sidebar.unusedSheets', { names: project.unusedSheets.join(', ') })}
             </p>
           )}
+          <label className="muted small data-readonly" title={t('data.readOnlyHint')}>
+            <input
+              type="checkbox"
+              checked={readOnlyData}
+              onChange={(e) => setDataReadOnly(e.target.checked)}
+            />
+            {t('data.readOnlyLabel', { file: project.file.dataFile.split('/').pop() ?? '' })}
+          </label>
         </nav>
       )
     )
@@ -1719,6 +1819,15 @@ function App(): React.JSX.Element {
               )}
 
               {project && error && <div className="banner error">{t(error)}</div>}
+              {project && dataChanged && !canReloadData && (
+                <div className="banner warning data-changed">
+                  {t('data.changedOutside')}
+                  <button onClick={() => discardOk() && load(project.folder)}>
+                    {t('app.reload')}
+                  </button>
+                  <button onClick={() => setDataChanged(false)}>{t('data.ignore')}</button>
+                </div>
+              )}
               {project?.warnings.map((w, i) => (
                 <div key={i} className="banner warning">
                   {t(w)}
@@ -1761,6 +1870,7 @@ function App(): React.JSX.Element {
                       key={project.sets.indexOf(current)}
                       set={current}
                       projectName={project.file.name}
+                      readOnly={readOnlyData}
                       templates={project.templates}
                       onChange={(sheet, key) =>
                         updateSheet(selected.kind === 'set' ? selected.index : 0, sheet, key)
@@ -2092,6 +2202,7 @@ function App(): React.JSX.Element {
 function SetView({
   set,
   projectName,
+  readOnly,
   templates,
   onChange,
   onEditTemplate,
@@ -2107,6 +2218,8 @@ function SetView({
   set: LoadedSet
   /** Nome del progetto, per {project.name} */
   projectName: string
+  /** File dati in sola lettura: le modifiche ai dati non passano */
+  readOnly: boolean
   templates: Template[]
   onChange(sheet: Sheet, key?: string): void
   /** Assegna al set un altro template */
@@ -2570,6 +2683,11 @@ function SetView({
               ))}
             </select>
             · {t('set.counts', { rows: sheet.rows.length, cards: countCards(sheet) })}
+            {readOnly && (
+              <span className="readonly-badge" title={t('data.readOnlyHint')}>
+                {t('data.readOnlyBadge')}
+              </span>
+            )}
           </span>
           <span className="spacer" />
           {view === 'grid' && (

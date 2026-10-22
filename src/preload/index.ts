@@ -22,6 +22,12 @@ const api: Api = {
   readDeleted: (file) => ipcRenderer.invoke('trash:read', file),
   dropDeleted: (files) => ipcRenderer.invoke('trash:drop', files),
   saveData: (changes) => ipcRenderer.invoke('data:save', changes),
+  reloadData: () => ipcRenderer.invoke('project:reload-data'),
+  onDataFileChanged: (cb) => {
+    const listener = (): void => cb()
+    ipcRenderer.on('project:data-changed', listener)
+    return () => ipcRenderer.removeListener('project:data-changed', listener)
+  },
   setUiZoom: (factor) => webFrame.setZoomFactor(factor),
   setTheme: (theme) => ipcRenderer.send('theme:set', theme),
   runExport: (job, context) => ipcRenderer.invoke('export:run', job, context),

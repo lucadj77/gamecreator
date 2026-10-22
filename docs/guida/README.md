@@ -230,7 +230,7 @@ Il campo **Template**, in cima al modulo della carta, sceglie il template di una
 
 ### 5.5 Modificare il file in Excel
 
-Il file dei dati è un normale foglio di calcolo e si può modificare anche con Excel, LibreOffice o Numbers, a progetto chiuso o seguito da **Ricarica**. Al salvataggio Naibi riscrive solo le colonne con un'intestazione: formattazione delle celle, altri fogli e colonne senza intestazione restano come sono. Una cella con una formula di Excel resta una formula finché il risultato non cambia. Se parti da un file Excel che hai già, con formule e fogli di analisi, leggi [Usare un file Excel che hai già](excel-esistente.md).
+Il file dei dati è un normale foglio di calcolo e si può modificare anche con Excel, LibreOffice o Numbers, anche con il progetto aperto: quando salvi il file, Naibi lo rilegge da solo. Se in Naibi ci sono modifiche ai dati non ancora salvate, invece, compare un avviso con **Ricarica** e **Ignora**. Per modificare i dati solo fuori da Naibi, spunta **in sola lettura** accanto al nome del file, in fondo alla barra laterale, e salva: Naibi non scrive più nel file dei dati, le modifiche ai dati nella griglia e nella scheda della carta vengono rifiutate e accanto al conteggio delle carte compare _sola lettura_. Template, anteprime ed esportazioni funzionano come sempre. Al salvataggio Naibi riscrive solo le colonne con un'intestazione: formattazione delle celle, altri fogli e colonne senza intestazione restano come sono. Una cella con una formula di Excel resta una formula finché il risultato non cambia. Se parti da un file Excel che hai già, con formule e fogli di analisi, leggi [Usare un file Excel che hai già](excel-esistente.md).
 
 ### 5.6 Dati da Google Sheets
 

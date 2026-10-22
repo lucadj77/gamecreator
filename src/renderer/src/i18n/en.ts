@@ -95,6 +95,16 @@ export const en = {
   'table.removeColumnConfirm': 'Remove the column “{column}” and its values?',
   'table.rowHint': 'Click to select (Shift or ⌘ for several), drag to reorder',
   'table.empty': 'No cards yet. Add one with + Card.',
+  'data.readOnly':
+    'The data file is read-only: change the data in the file (for example in Excel), save, and Naibi reads it again by itself. Read-only can be turned off at the bottom of the sidebar.',
+  'data.saveFirst': 'Save or undo the changes to the data first, then turn on read-only.',
+  'data.readOnlyLabel': '{file} read-only',
+  'data.readOnlyHint':
+    'Naibi never writes to the data file: cards are changed only in the file, for example in Excel. Templates, previews and exports work as usual.',
+  'data.readOnlyBadge': 'read-only',
+  'data.changedOutside':
+    'The data file was changed outside Naibi. Reloading loses the unsaved changes.',
+  'data.ignore': 'Ignore',
   'newSet.title': 'New set',
   'newSet.template': 'Template',
   'newSet.sheet': 'Sheet',

@@ -42,6 +42,8 @@ L'app e un agente non devono modificare lo stesso progetto insieme, altrimenti u
 
 Se l'agente si ferma senza `end`, nell'avviso c'è **Sblocca ora**. `set-rows`, `pull-sheets`, `rename-set` e `rename-template` rifiutano anche da soli (codice di uscita 2) se l'app ha modifiche non salvate, e anche se l'app è aperta sul progetto senza che sia stato fatto `begin`: altrimenti il prossimo salvataggio dell'app cancellerebbe le loro modifiche. I due file iniziano con il punto, quindi restano fuori dai backup; un `.naibi-app` lasciato da un'app chiusa male non conta, perché il suo processo non c'è più. Su un disco condiviso tra più computer il file dell'app conta solo se è stato aggiornato negli ultimi 5 minuti (l'app lo riscrive ogni 30 secondi).
 
+Se in `naibi.json` c'è `"dataReadOnly": true` (il file dei dati in sola lettura, impostato nell'app), `set-rows` e `pull-sheets` rifiutano, e `rename-set` rinomina il set ma non il foglio.
+
 Il backup fatto da `set-rows`, `pull-sheets`, `rename-set` e `rename-template` va nella stessa cartella dei backup automatici dell'app, con le stesse impostazioni (cartella e numero di backup da tenere).
 
 ## Skill per gli agenti

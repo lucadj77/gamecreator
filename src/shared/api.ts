@@ -125,6 +125,10 @@ export interface Api {
   dropDeleted(files: string[]): Promise<void>
   /** Salva i fogli modificati e, se cambiati i set, il file di progetto */
   saveData(changes: { file?: ProjectFile; sheets: Sheet[]; removed?: string[] }): Promise<void>
+  /** Rilegge il progetto aperto senza backup: serve per i dati cambiati fuori da Naibi */
+  reloadData(): Promise<LoadedProject>
+  /** Chiamato quando il file dati cambia fuori da Naibi; nel browser non arriva mai */
+  onDataFileChanged(cb: () => void): () => void
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */
   setUiZoom(factor: number): void
   /** Tema chiaro, scuro o quello del sistema: vale anche per menu e controlli nativi */

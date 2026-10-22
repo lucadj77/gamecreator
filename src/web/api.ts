@@ -149,6 +149,8 @@ export const webApi: Api = {
   readDeleted: (file) => readDeleted(projectFolder(), file),
   dropDeleted: (files) => dropDeleted(projectFolder(), files),
   saveData: (changes) => saveData(projectFolder(), changes),
+  reloadData: () => loadProject(projectFolder()),
+  onDataFileChanged: () => () => undefined,
   // l'ingrandimento è quello del browser (Ctrl + e Ctrl −)
   setUiZoom: () => undefined,
   setTheme: () => undefined,

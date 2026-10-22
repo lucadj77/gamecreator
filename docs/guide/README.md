@@ -230,7 +230,7 @@ The **Template** field, at the top of the card form, picks the template of a sin
 
 ### 5.5 Editing the file in Excel
 
-The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, with the project closed or followed by **Reload**. When saving, Naibi rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change. If you start from an Excel file you already have, with formulas and analysis sheets, read [Using an Excel file you already have](existing-excel.md).
+The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, even with the project open: when you save the file, Naibi reads it again by itself. If Naibi has unsaved changes to the data, a notice with **Reload** and **Ignore** appears instead. To edit the data only outside Naibi, tick **read-only** next to the file name at the bottom of the sidebar and save: Naibi no longer writes to the data file, changes to the data in the grid and in the card panel are refused and _read-only_ appears next to the card count. Templates, previews and exports work as usual. When saving, Naibi rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change. If you start from an Excel file you already have, with formulas and analysis sheets, read [Using an Excel file you already have](existing-excel.md).
 
 ### 5.6 Data from Google Sheets
 

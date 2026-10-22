@@ -10,10 +10,14 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 ### English
 
 - Several sets can use the same sheet, each with its own template: for example "Red troops" and "Yellow troops" drawn from one "Troops" sheet. In **New set**, under **Sheet**, the sheets already in use are listed as "Troops (data of Red troops)". A change to the data in one set applies to all the sets on the sheet; renaming one of them does not rename the sheet, and deleting one leaves the sheet in the file while another set uses it. The `naibi rename-set` command behaves the same way.
+- When the data file is changed outside Naibi (Excel, LibreOffice, the `naibi` command), Naibi reads it again by itself. If Naibi has unsaved changes to the data, a notice offers **Reload** or **Ignore** instead.
+- The data file can be set to **read-only**, with the checkbox at the bottom of the sidebar: Naibi then never writes to it. Changes to the data are refused, renaming a set keeps the sheet name, deleting a set leaves its sheet in the file, and `naibi set-rows` and `naibi pull-sheets` refuse too. This suits a data file that you edit in Excel, with formulas and charts that a save from Naibi would lose.
 
 ### Italiano
 
 - Più set possono usare lo stesso foglio, ognuno col suo template: per esempio "Truppe rosse" e "Truppe gialle" dallo stesso foglio "Truppe". In **Nuovo set**, alla voce **Foglio**, i fogli già usati compaiono come "Truppe (dati di Truppe rosse)". Una modifica ai dati in un set vale per tutti i set del foglio; rinominarne uno non rinomina il foglio, ed eliminarne uno lascia il foglio nel file finché lo usa un altro set. Il comando `naibi rename-set` si comporta allo stesso modo.
+- Quando il file dei dati viene modificato fuori da Naibi (Excel, LibreOffice, il comando `naibi`), Naibi lo rilegge da solo. Se in Naibi ci sono modifiche ai dati non salvate, compare invece un avviso con **Ricarica** e **Ignora**.
+- Il file dei dati si può mettere **in sola lettura**, con la casella in fondo alla barra laterale: Naibi non ci scrive mai. Le modifiche ai dati vengono rifiutate, rinominare un set non rinomina il foglio, eliminare un set lascia il foglio nel file, e anche `naibi set-rows` e `naibi pull-sheets` rifiutano. È pensato per un file dei dati che modifichi in Excel, con formule e grafici che un salvataggio di Naibi perderebbe.
 
 ## 1.2.0-beta.18
 

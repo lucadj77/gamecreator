@@ -88,6 +88,7 @@ Older projects have `gamecreator.json` instead of `naibi.json`; the format is th
 }
 ```
 
+- `dataReadOnly: true` means the user edits the data only in the data file itself (e.g. in Excel): `set-rows` and `pull-sheets` refuse, and you must not write the data file; change templates instead, or ask the user to edit the spreadsheet.
 - `sets[].sheet` is optional (default: the set's name). Several sets may name the same sheet: they share its rows and each draws them with its own template; `rename-set` then keeps the sheet's name. `sets[].hiddenColumns` (columns hidden in the app's table) and `sets[].showComputed` (also show fixed and formula layers, read only) are view preferences only; they never change the cards. A set's template is `templates/<template>.json`.
 - `styles`: name → markup attributes. `heading1`, `heading2` and `note` always exist and can be redefined.
 - `variables`: `image` (`src` file name; optional `tint`, `scale` (height relative to the line, 1 = normal), `raise` (% of the line), `rotate` (degrees), `flip` (`h`, `v`, `hv`), `opacity` 0-1), `text` (markup that replaces `{name}`), `color` (usable by name in every colour property, which also accepts `{field}` to take a card field such as a value layer; redefining a CSS colour name such as `red` changes it everywhere), `value` (constant text or number, also usable in formulas).

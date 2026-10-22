@@ -99,6 +99,16 @@ export const it: Record<MessageKey, string> = {
   'table.removeColumnConfirm': 'Eliminare la colonna “{column}” con i suoi valori?',
   'table.rowHint': 'Clic per selezionare (Maiuscolo o ⌘ per più righe), trascina per spostare',
   'table.empty': 'Nessuna carta. Aggiungine una con + Carta.',
+  'data.readOnly':
+    'Il file dei dati è in sola lettura: modifica i dati nel file (per esempio in Excel), salva, e Naibi li rilegge da solo. La sola lettura si toglie in fondo alla barra laterale.',
+  'data.saveFirst': 'Prima salva o annulla le modifiche ai dati, poi attiva la sola lettura.',
+  'data.readOnlyLabel': '{file} in sola lettura',
+  'data.readOnlyHint':
+    'Naibi non scrive mai nel file dei dati: le carte si modificano solo nel file, per esempio in Excel. Template, anteprime ed esportazioni funzionano come sempre.',
+  'data.readOnlyBadge': 'sola lettura',
+  'data.changedOutside':
+    'Il file dei dati è stato modificato fuori da Naibi. Ricaricando si perdono le modifiche non salvate.',
+  'data.ignore': 'Ignora',
   'newSet.title': 'Nuovo set',
   'newSet.template': 'Template',
   'newSet.sheet': 'Foglio',

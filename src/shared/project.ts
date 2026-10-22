@@ -44,6 +44,8 @@ export interface ProjectFile {
   order?: ListOrder
   /** Link del foglio Google da cui si importano i dati dei set */
   googleSheet?: string
+  /** Naibi non scrive nel file dati: i dati si modificano solo fuori (per esempio in Excel) */
+  dataReadOnly?: boolean
 }
 
 export interface Sheet {

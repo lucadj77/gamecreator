@@ -12,6 +12,7 @@ const ITEMS = [
   'web.desktop.fonts',
   'web.desktop.catalogs',
   'web.desktop.ai',
+  'web.desktop.data',
   'web.desktop.browser'
 ] as const
 

@@ -134,6 +134,29 @@ export const en = {
   'check.emptyRows':
     'Empty rows between the data: {rows}. Naibi skips them, and they stay where they are when saving.',
   'sidebar.checkData': 'Check data file…',
+  'import.open': 'Import a sheet from another file…',
+  'import.title': 'Import a sheet from another file',
+  'import.hint':
+    'The rows of a sheet of another file (.xlsx, .ods, .csv) replace those of a set. You see first what changes; the chosen file is not modified.',
+  'import.chooseFile': 'Choose the file…',
+  'import.otherFile': 'Another file…',
+  'import.noSheets': 'The file has no sheets with data.',
+  'import.sheet': 'Sheet to import',
+  'import.sheetOption': '{name} ({n} rows)',
+  'import.target': 'Into the set',
+  'import.byKey': 'Rows are matched by the column {key}.',
+  'import.byPosition':
+    'No column has all different values in both sheets: rows are compared by position.',
+  'import.rows': 'Rows: {before} before, {after} after',
+  'import.added': 'New ({n}): {names}',
+  'import.removed': 'Removed ({n}): {names}',
+  'import.changed': 'Changed ({n}): {names}',
+  'import.unchanged': 'Unchanged: {n}',
+  'import.newColumns': 'New columns: {columns}',
+  'import.keepColumns': 'Keep the columns the file does not have: {columns}',
+  'import.backupNote':
+    'Before importing Naibi makes a backup of the project. The change can be undone with ⌘Z and is saved like the others.',
+  'import.import': 'Import',
   'newSet.title': 'New set',
   'newSet.template': 'Template',
   'newSet.sheet': 'Sheet',
@@ -1269,6 +1292,8 @@ export const en = {
   'web.desktop.fonts':
     'Google Fonts with every alphabet: the web version saves only the Latin one (accented letters included)',
   'web.desktop.catalogs': 'Updating the game-icons.net and Google Fonts catalogs from the app',
+  'web.desktop.data':
+    'Starting from a data file you already have, importing a sheet from another file and reading the data file again by itself when it changes',
   'web.desktop.ai': 'The naibi command and the skill for AI agents (Claude, Codex…)',
   'web.desktop.browser':
     'Independent of the browser: the web version works only in Chrome, Edge and Opera (in Brave after turning on brave://flags/#file-system-access-api), and asks again for permission on the folder each time you open the site',

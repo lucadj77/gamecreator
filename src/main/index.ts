@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme, net } from 'electron'
 import { existsSync } from 'fs'
 import { mkdir, readFile, writeFile } from 'fs/promises'
-import { dirname, join, resolve } from 'path'
+import { basename, dirname, join, resolve } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { loadProject } from './project/load'
@@ -16,6 +16,7 @@ import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from
 import { saveData, type DataChanges } from './project/save'
 import { markDataWritten, watchDataFile } from './project/watchData'
 import { inspectDataFile } from './project/inspect'
+import { readSpreadsheet } from './project/spreadsheet'
 import { projectFilePath } from './project/projectFile'
 import {
   getProjectFolder,
@@ -288,6 +289,17 @@ function registerIpc(): void {
     } finally {
       await markDataWritten()
     }
+  })
+
+  // Importare un foglio da un altro file: si sceglie il file e se ne leggono i fogli
+  ipcMain.handle('data:choose-import', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [{ name: 'Excel, OpenDocument, CSV', extensions: ['xlsx', 'ods', 'csv'] }]
+    })
+    if (result.canceled) return null
+    const path = result.filePaths[0]
+    return { file: basename(path), sheets: await readSpreadsheet(path) }
   })
 
   // Controlla file dati: il file dati del progetto aperto, letto così com'è

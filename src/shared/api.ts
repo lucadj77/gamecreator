@@ -130,6 +130,8 @@ export interface Api {
   reloadData(): Promise<LoadedProject>
   /** Controlla file dati: com'è fatto ogni foglio del file dati del progetto aperto */
   inspectData(): Promise<SheetInspection[]>
+  /** Sceglie un altro file di dati e ne legge i fogli, per importarne uno in un set; null se annullato */
+  chooseImportFile(): Promise<{ file: string; sheets: Sheet[] } | null>
   /** Chiamato quando il file dati cambia fuori da Naibi; nel browser non arriva mai */
   onDataFileChanged(cb: () => void): () => void
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */

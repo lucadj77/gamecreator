@@ -23,6 +23,7 @@ const api: Api = {
   dropDeleted: (files) => ipcRenderer.invoke('trash:drop', files),
   saveData: (changes) => ipcRenderer.invoke('data:save', changes),
   reloadData: () => ipcRenderer.invoke('project:reload-data'),
+  inspectData: () => ipcRenderer.invoke('data:inspect'),
   onDataFileChanged: (cb) => {
     const listener = (): void => cb()
     ipcRenderer.on('project:data-changed', listener)

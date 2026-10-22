@@ -109,6 +109,36 @@ export const it: Record<MessageKey, string> = {
   'data.changedOutside':
     'Il file dei dati è stato modificato fuori da Naibi. Ricaricando si perdono le modifiche non salvate.',
   'data.ignore': 'Ignora',
+  'check.title': 'Controlla file dati',
+  'check.intro':
+    'Come Naibi legge {file}: per ogni foglio, i set che lo usano e cosa potrebbe non andare. Il controllo non modifica il file.',
+  'check.readOnly': 'Il file è in sola lettura.',
+  'check.reading': 'Lettura del file…',
+  'check.losses':
+    'Il file contiene {what}: un salvataggio dei dati da Naibi li toglie. Con la sola lettura il file non viene mai scritto.',
+  'check.missingSheet': 'Il set {set} usa il foglio "{sheet}", che nel file non c\'è.',
+  'check.linked': 'usato da {sets}',
+  'check.unlinked': 'non collegato a un set',
+  'check.rows': '{n} righe',
+  'check.missingColumns':
+    'Il template {template} del set {set} legge colonne che il foglio non ha: {columns}. Le carte usano il valore del template.',
+  'check.ok': 'Nessun problema trovato.',
+  'check.emptySheet': 'Il foglio è vuoto.',
+  'check.titleAbove':
+    'La riga {row} sembra un titolo, ma Naibi la prende per la riga delle intestazioni. Togli il titolo o usa un foglio con le intestazioni nella prima riga.',
+  'check.headerRow': 'Le intestazioni sono nella riga {row}: le righe sopra sono vuote.',
+  'check.noRows': 'Ci sono le intestazioni ma nessuna riga di dati.',
+  'check.duplicateHeaders':
+    'Intestazioni ripetute: {names}. Per le carte conta una sola delle colonne con lo stesso nome.',
+  'check.errors':
+    "Celle con un errore di Excel: {cells}. Sulle carte compare il codice dell'errore.",
+  'check.noResult':
+    'Formule senza risultato salvato: {cells}. Naibi le legge vuote: apri e salva il file in Excel per calcolarle.',
+  'check.merged': "Celle unite: {cells}. Naibi ripete il valore in ogni cella dell'unione.",
+  'check.unnamedColumns': 'Colonne con dati ma senza intestazione: {columns}. Naibi le ignora.',
+  'check.emptyRows':
+    'Righe vuote tra i dati: {rows}. Naibi le salta, e salvando restano dove sono.',
+  'sidebar.checkData': 'Controlla file dati…',
   'newSet.title': 'Nuovo set',
   'newSet.template': 'Template',
   'newSet.sheet': 'Foglio',

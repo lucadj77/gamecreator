@@ -1,6 +1,6 @@
 import { app, shell, BrowserWindow, dialog, ipcMain, nativeTheme, net } from 'electron'
 import { existsSync } from 'fs'
-import { mkdir, writeFile } from 'fs/promises'
+import { mkdir, readFile, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -15,6 +15,8 @@ import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
 import { markDataWritten, watchDataFile } from './project/watchData'
+import { inspectDataFile } from './project/inspect'
+import { projectFilePath } from './project/projectFile'
 import {
   getProjectFolder,
   handleAssetProtocol,
@@ -286,6 +288,14 @@ function registerIpc(): void {
     } finally {
       await markDataWritten()
     }
+  })
+
+  // Controlla file dati: il file dati del progetto aperto, letto così com'è
+  ipcMain.handle('data:inspect', async () => {
+    const folder = getProjectFolder()
+    if (!folder) throw new MessageError(msg('template.noProject'))
+    const file = JSON.parse(await readFile(await projectFilePath(folder), 'utf8'))
+    return inspectDataFile(join(folder, file.dataFile))
   })
 
   // solo i dati, senza backup né elenco dei recenti: dopo un cambiamento fatto fuori da Naibi

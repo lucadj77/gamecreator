@@ -111,6 +111,7 @@ import ColumnsMenu from './components/ColumnsMenu'
 import InlineEditor, { type InlineEdit } from './components/InlineEditor'
 import ValueInfo from './components/ValueInfo'
 import { AddColumnDialog, DuplicateDialog, NewSetDialog } from './components/setDialogs'
+import DataCheckDialog from './components/DataCheckDialog'
 import { renameSet } from '../../shared/model/renameSet'
 import { sharingSets, syncSharedSheets } from '../../shared/model/sharedSheets'
 import { changesData } from '../../shared/model/readOnlyData'
@@ -278,6 +279,8 @@ function App(): React.JSX.Element {
   const [fileDirty, setFileDirty] = useState(false)
   /** Il file dati è cambiato fuori da Naibi e non si è ancora riletto */
   const [dataChanged, setDataChanged] = useState(false)
+  /** Finestra Controlla file dati aperta */
+  const [checkingData, setCheckingData] = useState(false)
   const [history, setHistory] = useState<{
     past: DataSnapshot[]
     future: DataSnapshot[]
@@ -1690,6 +1693,9 @@ function App(): React.JSX.Element {
             />
             {t('data.readOnlyLabel', { file: project.file.dataFile.split('/').pop() ?? '' })}
           </label>
+          <button className="data-check-btn" onClick={() => setCheckingData(true)}>
+            {t('sidebar.checkData')}
+          </button>
         </nav>
       )
     )
@@ -2057,6 +2063,9 @@ function App(): React.JSX.Element {
                   }}
                   onClose={() => setDeriving(null)}
                 />
+              )}
+              {checkingData && project && (
+                <DataCheckDialog project={project} onClose={() => setCheckingData(false)} />
               )}
               {creatingSet && project && (
                 <NewSetDialog

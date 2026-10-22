@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.20
+
+### English
+
+- **Check data file…**, at the bottom of the sidebar, shows how Naibi reads each sheet of the data file: the sets that use it, the columns their templates read and the sheet lacks, and problems: a title above the headings, repeated headings, columns without a heading, merged cells, Excel errors, formulas without a saved result, empty rows between the data, and charts that a save would remove. It does not change the file. The `naibi check-data` command does the same.
+
+### Italiano
+
+- **Controlla file dati…**, in fondo alla barra laterale, mostra come Naibi legge ogni foglio del file dei dati: i set che lo usano, le colonne che i loro template leggono e il foglio non ha, e le anomalie: un titolo sopra le intestazioni, intestazioni ripetute, colonne senza intestazione, celle unite, errori di Excel, formule senza risultato salvato, righe vuote tra i dati e i grafici che un salvataggio toglierebbe. Non modifica il file. Il comando `naibi check-data` fa lo stesso.
+
 ## 1.2.0-beta.19
 
 ### English

@@ -11,6 +11,7 @@ import { readBackupVersion, readPrinted, savePrinted } from '../main/project/ver
 import { fetchGoogleSheet } from '../main/project/googleSheets'
 import { createProject } from '../main/project/create'
 import { saveData } from '../main/project/save'
+import { inspectDataFile } from '../main/project/inspect'
 import { saveExportProfiles } from '../main/project/exportProfiles'
 import { runExport } from '../main/export/run'
 import { fontCatalog, iconCatalog } from '../main/library/catalogs'
@@ -150,6 +151,10 @@ export const webApi: Api = {
   dropDeleted: (files) => dropDeleted(projectFolder(), files),
   saveData: (changes) => saveData(projectFolder(), changes),
   reloadData: () => loadProject(projectFolder()),
+  inspectData: async () => {
+    const project = await loadProject(projectFolder())
+    return inspectDataFile(join(projectFolder(), project.file.dataFile))
+  },
   onDataFileChanged: () => () => undefined,
   // l'ingrandimento è quello del browser (Ctrl + e Ctrl −)
   setUiZoom: () => undefined,

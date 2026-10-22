@@ -4776,3 +4776,111 @@ details.usages button.link {
   grid-column: 1 / -1;
   margin: 0;
 }
+
+/* ——— menu a discesa (Progetto, impostazioni, ⋯ di set e template) ——— */
+
+.menu-panel {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  max-width: 360px;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
+.menu-panel .menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.menu-panel .menu-item:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.menu-panel .menu-item.danger {
+  color: #e5484d;
+}
+
+.menu-shortcut {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.menu-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}
+
+button.menu-button.active {
+  background: var(--accent-soft);
+}
+
+/* impostazioni nel menu ⚙: un'etichetta e il suo valore per riga */
+.settings-menu {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 6px 8px;
+}
+
+.settings-menu select {
+  width: 100%;
+  min-width: 140px;
+}
+
+.toolbar .settings-button,
+.start-header .settings-button {
+  font-size: 16px;
+  padding: 3px 10px;
+}
+
+/* ⋯ accanto al nome del set, del template o del documento */
+button.more-button {
+  padding: 2px 10px;
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: 1px;
+}
+
+.document-head .sep,
+.set-actions .sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+/* i gruppi della riga azioni vanno a capo interi, separati da una linea */
+.set-actions .action-group {
+  display: inline-flex;
+  gap: 6px;
+  padding-right: 8px;
+  border-right: 1px solid var(--border);
+}
+
+.set-actions .action-group:last-child {
+  padding-right: 0;
+  border-right: none;
+}
+
+/* un po' meno margine dentro i pulsanti: a 1440 pixel con l'anteprima aperta la riga sta su una linea */
+.set-actions .action-group button {
+  padding-left: 10px;
+  padding-right: 10px;
+}

@@ -53,8 +53,6 @@ export const en = {
   'tip.duplicateTemplate': 'Duplicate the template',
   'tip.deleteTemplate': 'Delete the template',
   'inherit.deriveShort': 'Derive',
-  'set.duplicateSet': 'Duplicate set',
-  'set.renameSet': 'Rename set',
   'tip.renameSet':
     'Change the name of the set; its sheet in the data file is renamed when you save',
   'rename.setTitle': 'Rename set',
@@ -62,7 +60,6 @@ export const en = {
   'rename.templateTitle': 'Rename template',
   'tip.renameTemplate':
     'Change the name of the template, also in the sets, derived templates and cards that use it; its file is renamed when you save',
-  'set.deleteSet': 'Delete set',
   'cardForm.title': 'Card {n}',
   'cardForm.multiTitle': '{n} cards selected',
   'cardForm.multiHint':
@@ -1384,7 +1381,6 @@ export const en = {
   'app.emptyProject':
     'The project is empty. Start with a template, the layout of a card; then create a set with the cards that use it.',
   'app.noSets': 'Now create a set: a sheet of the data file with the cards of one template.',
-  'app.closeProject': 'Close',
   'tip.closeProject': 'Close the project and go back to the start screen',
   'tip.newProject': 'Create an empty project in a new folder',
   'start.newProject': 'New project…',
@@ -1793,7 +1789,37 @@ export const en = {
   'update.checking': 'Checking for updates…',
   'update.latest': 'You have the latest version of Naibi.',
   'update.failed': 'Could not check for updates: no connection to GitHub.',
-  'update.allVersions': 'All versions'
+  'update.allVersions': 'All versions',
+  'app.settings': 'Settings',
+  'app.projectMenu': 'Project',
+  'tip.projectMenu': 'Backup, trash, Google Sheets, reload and close the project',
+  'app.reloadFromDisk': 'Reload from disk',
+  'app.closeProjectLong': 'Close project',
+  'app.more': 'More actions',
+  'set.checks': 'Checks',
+  'tip.checks': 'Statistics, compare with a previous version, text check',
+  'documents.rename': 'Rename',
+  'documents.deleteShort': 'Delete',
+  'menu.file': 'File',
+  'menu.edit': 'Edit',
+  'menu.view': 'View',
+  'menu.help': 'Help',
+  'menu.openProject': 'Open project…',
+  'menu.uiBigger': 'Larger interface',
+  'menu.uiSmaller': 'Smaller interface',
+  'menu.uiReset': 'Normal interface size',
+  'menu.whatsNew': "What's new",
+  'menu.website': 'Naibi on GitHub',
+  'documents.exportButton': 'Export document…',
+  'menu.undo': 'Undo',
+  'menu.redo': 'Redo',
+  'menu.cut': 'Cut',
+  'menu.copy': 'Copy',
+  'menu.paste': 'Paste',
+  'menu.selectAll': 'Select all',
+  'menu.fullScreen': 'Full screen',
+  'menu.devTools': 'Developer tools',
+  'menu.quit': 'Quit Naibi'
 }
 
 export type MessageKey = keyof typeof en

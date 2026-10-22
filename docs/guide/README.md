@@ -51,10 +51,9 @@ When it starts, Naibi shows the start screen.
 - **New project…** creates an empty folder with the structure of a project.
 - **Open project…** opens a folder that contains `naibi.json`. Projects created when the app was called GameCreator (`gamecreator.json`) open too.
 - **Import from Tabletop Creator…** converts a Tabletop Creator project ([chapter 14](#14-importing-from-tabletop-creator)).
-- **AI tools…** prepares an AI agent to work on projects ([chapter 15](#15-working-with-an-ai-agent)).
 - **Recent projects** shows up to 24 projects, with their first card as thumbnail. The × removes a project from the list without deleting the folder.
 
-At the top right you choose the interface size, the theme (light, dark or the system's) and the language (English or Italian).
+The ⚙ button at the top right, on every screen, opens the settings: the interface size, the theme (light, dark or the system's), the language (English or Italian) and **AI tools…**, which prepares an AI agent to work on projects ([chapter 15](#15-working-with-an-ai-agent)).
 
 When a new version is out, a strip appears at the top of the window at startup: **What's new** shows what changes, **Update and restart** downloads the new version, installs it and reopens Naibi. This works for Naibi installed with the setup on Windows, for the AppImage on Linux, and on the Mac for the app in Applications (or another folder you can write to); if there are unsaved changes Naibi asks first. The Windows portable version, the .deb package and an app opened from the downloaded disk image have **Download** instead, which opens the page to download it; the same happens if the automatic update fails. **Skip this version** stops showing it, **Remind me later** hides it until the next start.
 
@@ -68,7 +67,7 @@ A new project is empty: the app suggests creating a template first, then a set t
 
 ![The project window, with numbered parts](img/progetto.png)
 
-1. **Top bar.** Project name and folder, undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), **Export…**, **Backup…**, **AI tools…**, **Help** (F1, [chapter 6](#6-text-and-markup)), **Save** (⌘S), **Reload** (reads the project from disk again, losing unsaved changes) and **Close**.
+1. **Top bar.** Project name (hover it to see the folder), undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), **Save** (⌘S), **Export…**, the **Project** menu, **Help** (F1, [chapter 6](#6-text-and-markup)) and ⚙ for the settings. The **Project** menu holds the commands used less often: **Backup…**, **Trash…**, **Google Sheets…**, **Reload from disk** (reads the project again, losing unsaved changes) and **Close project**.
 2. **Sets.** A click opens the cards of the set; the number is the total of cards, copies included.
 3. **Templates.** A click opens the template in the editor; next to it is the format in millimeters.
 4. Project text **styles** ([chapter 7](#7-variables-and-styles)).
@@ -77,9 +76,11 @@ A new project is empty: the app suggests creating a template first, then a set t
 7. **Preview** of the selected card, front or back. **Edit template** opens the card's template, that is the set's or the one chosen for the card; **Enlarge** opens the card large with the form next to it.
 8. **Fields of the selected card**, editable like the table cells.
 
-Next to the name of the open set or template are the buttons to rename it, duplicate it, delete it and, for a template, create a derived one. Renaming a set also renames its sheet in the data file (if the sheet is already in the file Naibi asks first, because formulas in other sheets that refer to it would break); renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the cards that use it. Files are renamed when you save. A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…** in the toolbar lists what is in `deleted` (templates, sets, notes and documents, newest first) and **Restore** puts an item back in the project: a set gets the template you choose (Naibi proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Styles and variables can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with card numbers) and the other variables and styles that refer to it; clicking a template or set opens it. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The **Notes** section holds notes about the project: the + creates a note, a click opens it in a panel beside any screen, where you write in Markdown (**Preview** shows it formatted) and rename it from its title. A note already written opens in **Preview**, a new one ready for writing. Notes save themselves as you type, as `notes/<name>.md` files of the project; the bin moves them to `deleted`. An AI working on the project reads them with `naibi notes`. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
+The ⋯ button next to the name of the open set or template opens a menu to rename it, duplicate it, delete it and, for a template, create a derived one (**Derive**). The same menu opens from the ⋯ that appears when you hover an item in the sidebar, or with a right click on the item. Renaming a set also renames its sheet in the data file (if the sheet is already in the file Naibi asks first, because formulas in other sheets that refer to it would break); renaming a template renames its file, and the new name goes into the sets, derived templates and `template` column of the cards that use it. Files are renamed when you save. A deleted template goes to the project's `deleted` folder. The sheet of a deleted set also leaves the data file when you save and goes to `deleted` as a file of its own, so its name is free again. **Trash…**, in the **Project** menu, lists what is in `deleted` (templates, sets, notes and documents, newest first) and **Restore** puts an item back in the project: a set gets the template you choose (Naibi proposes the one with most columns in common), a name already taken gets a number. Restored templates and sets leave the trash when you save. Sidebar items are reordered by dragging them; the + next to each heading creates a new item. Styles and variables can be split into groups with the **Group** field of their window: the items of a group sit under its heading, which closes and opens with a click, after the items without a group. An item dragged onto a group heading joins that group; dragged onto another item, it takes that item's group (or none). With more than 12 items, a field above the list filters them by name. In the window of a style or variable, **Where it is used** lists the templates (with their layers), the sets (with card numbers) and the other variables and styles that refer to it; clicking a template or set opens it. Hovering over an item shows a preview: the first cards of a set, the front and back of a template, a sentence in a style, the icon or color of a variable. The **Notes** section holds notes about the project: the + creates a note, a click opens it in a panel beside any screen, where you write in Markdown (**Preview** shows it formatted) and rename it from its title. A note already written opens in **Preview**, a new one ready for writing. Notes save themselves as you type, as `notes/<name>.md` files of the project; the bin moves them to `deleted`. An AI working on the project reads them with `naibi notes`. The button at the top left collapses the sidebar to icons, and the arrows next to panel headings move panels to the other side of the window.
 
 Changes stay in memory until you save. The **Save** button reads **Saved** when there is nothing to write.
+
+In the desktop app the same commands are also in the app menu (on the Mac in the bar at the top of the screen, on Windows and Linux with the Alt key): **File** (open, save, export, backup, trash, Google Sheets, reload, close), **Edit**, **View** (interface size with ⌘+, ⌘− and ⌘0, full screen) and **Help**.
 
 ## 4. Designing a template
 
@@ -213,6 +214,8 @@ Sorting and filtering change only the view: the sheet and the export stay as the
 
 ![Cards sorted by strength and filtered](img/ordina-filtra.png)
 
+The checks on the set are in the **Checks** menu of the button row.
+
 **Statistics…** shows how many cards have each value of a column, also of a formula layer, with a bar to compare them: useful to balance the set (for example how many cards per cost). For numeric columns it also gives sum, average, minimum and maximum. Copies from the `amount` column count, unless you untick the box; with an active filter only the filtered cards count.
 
 **Check text…** looks, on every card of the set, front and back, for texts that do not fit in their box: those that spill out, those cut off and those that do not fit even shrunk to the minimum size. The list gives card, side and layers; a click selects the card. In the grid, cards with text that does not fit have an orange mark next to their name.
@@ -235,7 +238,7 @@ The data file is an ordinary spreadsheet and can also be edited with Excel, Libr
 
 ### 5.6 Data from Google Sheets
 
-If you keep the data in a Google sheet, **Google Sheets…** in the top bar brings it into the project. In the Google sheet choose **Share** → **Anyone with the link** (viewer), copy the link and paste it; **Download** reads all the tabs. Each tab goes to the set with the same name (ignoring case); from the menu you can pick another one or **do not import** the tab. If a tab lacks some columns of the set, the window lists them: after the import those columns are gone. **Import** replaces the data of the chosen sets (⌘Z undoes it) and **Save** writes them to the project's data file, which stays the local copy: Naibi works without a network too.
+If you keep the data in a Google sheet, **Google Sheets…**, in the **Project** menu, brings it into the project. In the Google sheet choose **Share** → **Anyone with the link** (viewer), copy the link and paste it; **Download** reads all the tabs. Each tab goes to the set with the same name (ignoring case); from the menu you can pick another one or **do not import** the tab. If a tab lacks some columns of the set, the window lists them: after the import those columns are gone. **Import** replaces the data of the chosen sets (⌘Z undoes it) and **Save** writes them to the project's data file, which stays the local copy: Naibi works without a network too.
 
 The link stays in the project: next time just open the window and press **Download**. A sheet not shared by link cannot be downloaded, and Naibi says so. An AI can do the same with `naibi pull-sheets`.
 
@@ -505,7 +508,7 @@ Sheets are referenced by local addresses, so the deck works on the computer that
 
 ## 12. Documents
 
-The **Documents** section of the sidebar holds the texts that go with the game: the rules, a sell sheet, an appendix, a FAQ. The + creates a document, a click opens it in place of the open set or template. You write on the left; on the right the preview shows the page as you type and follows the cursor, and a click on a point of the preview moves the cursor to that point of the text. The name changes from the title, the bin moves the document to `deleted`. Documents save themselves as you type, as `docs/<name>.md` files in the project, so another editor or an AI agent can write them too.
+The **Documents** section of the sidebar holds the texts that go with the game: the rules, a sell sheet, an appendix, a FAQ. The + creates a document, a click opens it in place of the open set or template. You write on the left; on the right the preview shows the page as you type and follows the cursor, and a click on a point of the preview moves the cursor to that point of the text. The name changes from the title; the ⋯ next to the title has **Rename** and **Delete**, which moves the document to `deleted`. Documents save themselves as you type, as `docs/<name>.md` files in the project, so another editor or an AI agent can write them too.
 
 The text is Markdown, with Naibi's markup from [chapter 6](#6-text-and-markup) inside the lines:
 
@@ -541,13 +544,13 @@ card: Characters/name=Wizard?width=50
 
 **Page** opens the document settings on the right: page size (A4, A5, Letter), margins, text and heading fonts, text size, line spacing, space after paragraphs, alignment (left or justified), and text and heading colors. The preview shows the page at its real width, scaled down if it does not fit. The settings are written at the top of the file, between two `---` lines, such as `size: 12` or `lineHeight: 1.6`: you can change them there too, and **Reset to default** removes them.
 
-**Export** saves the document in the project's `export/docs/` in three forms: **PDF**, to print or send, with the page size and margins of the document (desktop app only); **HTML**, one web page in a single file, with cards, images and fonts inside; **Markdown**, plain text for other programs, with the cards as 300 dpi PNG files and the images in a folder beside it (`<name> images`). Markdown keeps bold, italic and strikethrough; other styles are lost. Cards and images that are not found are left out, and the window reminds you when the document has problems.
+**Export document…** saves the document in the project's `export/docs/` in three forms: **PDF**, to print or send, with the page size and margins of the document (desktop app only); **HTML**, one web page in a single file, with cards, images and fonts inside; **Markdown**, plain text for other programs, with the cards as 300 dpi PNG files and the images in a folder beside it (`<name> images`). Markdown keeps bold, italic and strikethrough; other styles are lost. Cards and images that are not found are left out, and the window reminds you when the document has problems.
 
 Below the text the problems are listed: cards that are not found, images not in assets, unknown names in braces; a click goes to that point of the text. `naibi check` reports them with those of the cards, and `naibi docs` shows the documents to an AI agent. For now documents are read only in the app: export to PDF, HTML and Markdown with images will come in a later version.
 
 ## 13. Backup
 
-**Backup…** opens the project's backups. By default the app makes an automatic backup when the project opens (at most once an hour) and keeps the last 10; those made with **Back up now** are never deleted automatically.
+**Backup…**, in the **Project** menu, opens the project's backups. By default the app makes an automatic backup when the project opens (at most once an hour) and keeps the last 10; those made with **Back up now** are never deleted automatically.
 
 Backups are kept outside the project, by default in `Documents/Naibi/Backup`. Images are stored once for all backups of the project, so one more backup takes little space. **Restore…** extracts the backup into a new folder next to the project and opens it: the current project is not touched.
 
@@ -567,7 +570,7 @@ At the end the app lists what it could not convert, for example image masks and 
 
 An AI agent that runs commands on your computer (for example Claude Code, Codex or Cursor) can read and change Naibi projects, look for problems and draw the cards to check them. It needs the Naibi **skill**, a text of instructions.
 
-**AI tools…**, on the start screen and in the project bar, shows the skill with this computer's `naibi` command already filled in:
+**AI tools…**, in the ⚙ menu of every screen (and in the **Help** menu of the desktop app), shows the skill with this computer's `naibi` command already filled in:
 
 1. **Copy the skill**.
 2. Paste it into the agent and ask it to install it as a skill (or as project instructions, if it has no skills). Alternatively **Save as file…** writes it into a skills folder; Claude Code reads them from `.claude/skills` in your home folder or in a project.
@@ -605,6 +608,7 @@ On Windows and Linux ⌘ is Ctrl.
 | ------------ | -------------------- | --------------------------------------------------------------------------------------------- |
 | anywhere     | ⌘S                   | save templates, data and settings                                                             |
 | set          | ⌘Z, ⇧⌘Z              | undo and redo data changes                                                                    |
+| anywhere     | ⌘+, ⌘−, ⌘0           | enlarge, shrink and reset the interface (desktop app)                                         |
 | set          | ⌘A, Esc              | select all cards, go back to one                                                              |
 | table        | Alt+Enter            | new line inside a cell                                                                        |
 | text         | `{`, then ↑ ↓, Enter | field and variable suggestions                                                                |

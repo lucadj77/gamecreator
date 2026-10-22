@@ -273,6 +273,8 @@ export const webApi: Api = {
   },
   onAgentLock: () => () => undefined,
   unlockAgent: async () => undefined,
+  setAppMenu: () => undefined,
+  onMenuCommand: () => () => undefined,
   exportPage: exportPageApi() ?? {
     onContext: () => undefined,
     onScene: () => undefined,

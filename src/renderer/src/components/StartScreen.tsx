@@ -6,7 +6,6 @@ import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import appIcon from '../assets/app-icon.png'
-import AiToolsDialog from './AiToolsDialog'
 import DesktopFeaturesDialog from './DesktopFeaturesDialog'
 import { WhatsNewDialog } from './UpdateNotice'
 import { checkForUpdateNow } from './updateCheck'
@@ -38,7 +37,6 @@ export default function StartScreen({
   const [recent, setRecent] = useState<RecentProject[] | null>(null)
   const [creating, setCreating] = useState(false)
   const [about, setAbout] = useState(false)
-  const [aiTools, setAiTools] = useState(false)
   const [version, setVersion] = useState<string | null>(null)
   const [whatsNew, setWhatsNew] = useState(false)
   const [desktop, setDesktop] = useState(false)
@@ -96,11 +94,6 @@ export default function StartScreen({
           <button onClick={onImport} title={t('tip.importTtc')}>
             {t('start.importTtc')}
           </button>
-          {!window.api.isWeb && (
-            <button onClick={() => setAiTools(true)} title={t('tip.aiTools')}>
-              {t('app.aiTools')}
-            </button>
-          )}
           <button onClick={onHelp} title={t('tip.help')}>
             {t('app.help')}
           </button>
@@ -165,7 +158,6 @@ export default function StartScreen({
       )}
       {about && <AboutDialog onClose={() => setAbout(false)} />}
       {desktop && <DesktopFeaturesDialog onClose={() => setDesktop(false)} />}
-      {aiTools && <AiToolsDialog onClose={() => setAiTools(false)} />}
       {creating && (
         <NewProjectDialog
           onCreate={(folder) => {

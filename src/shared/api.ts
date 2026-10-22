@@ -124,8 +124,16 @@ export interface Api {
   listDeleted(): Promise<DeletedItem[]>
   readDeleted(file: string): Promise<DeletedContent>
   dropDeleted(files: string[]): Promise<void>
-  /** Salva i fogli modificati e, se cambiati i set, il file di progetto */
-  saveData(changes: { file?: ProjectFile; sheets: Sheet[]; removed?: string[] }): Promise<void>
+  /**
+   * Salva i fogli modificati e, se cambiati i set, il file di progetto. Con keepParts rifiuta
+   * (save.needsRewrite) di riscrivere tutto un xlsx che perderebbe grafici e simili.
+   */
+  saveData(changes: {
+    file?: ProjectFile
+    sheets: Sheet[]
+    removed?: string[]
+    keepParts?: boolean
+  }): Promise<{ rewritten: boolean }>
   /** Rilegge il progetto aperto senza backup: serve per i dati cambiati fuori da Naibi */
   reloadData(): Promise<LoadedProject>
   /** Controlla file dati: com'è fatto ogni foglio del file dati del progetto aperto */

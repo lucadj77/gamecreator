@@ -115,7 +115,7 @@ export const it: Record<MessageKey, string> = {
   'check.readOnly': 'Il file è in sola lettura.',
   'check.reading': 'Lettura del file…',
   'check.losses':
-    'Il file contiene {what}: un salvataggio dei dati da Naibi li toglie. Con la sola lettura il file non viene mai scritto.',
+    'Il file contiene {what}. Naibi li tiene quando modifica le celle, ma li toglie quando deve riscrivere tutto il file: aggiungendo, rinominando o eliminando un set. Con la sola lettura il file non viene mai scritto.',
   'check.missingSheet': 'Il set {set} usa il foglio "{sheet}", che nel file non c\'è.',
   'check.linked': 'usato da {sets}',
   'check.unlinked': 'non collegato a un set',
@@ -862,7 +862,9 @@ export const it: Record<MessageKey, string> = {
     'La carta usa il template "{name}", che ha misure diverse da quello del set',
   'load.missingSheet': 'Il set "{set}" non trova il foglio "{sheet}"',
   'save.dataLossConfirm':
-    'Il file dei dati contiene {what}: salvando i dati dei set Naibi li toglie da tutto il file, anche dai fogli non collegati. Salvare comunque?',
+    'Il file dei dati contiene {what}. Per salvare queste modifiche Naibi deve riscrivere tutto il file, e li toglie ovunque, anche dai fogli non collegati. Salvare comunque?',
+  'save.needsRewrite':
+    'Non salvato: Naibi dovrebbe riscrivere tutto il file dei dati e toglierebbe grafici o altre parti che non sa scrivere.',
   'dataLoss.charts': 'grafici',
   'dataLoss.pivotTables': 'tabelle pivot',
   'dataLoss.slicers': 'filtri dati e sequenze temporali',

@@ -111,7 +111,7 @@ export const en = {
   'check.readOnly': 'The file is read-only.',
   'check.reading': 'Reading the file…',
   'check.losses':
-    'The file contains {what}: a data save from Naibi removes them. With read-only the file is never written.',
+    'The file contains {what}. Naibi keeps them when it changes cells, but removes them when it has to rewrite the whole file: adding, renaming or deleting a set. With read-only the file is never written.',
   'check.missingSheet': 'The set {set} uses the sheet "{sheet}", which is not in the file.',
   'check.linked': 'used by {sets}',
   'check.unlinked': 'not linked to a set',
@@ -850,7 +850,9 @@ export const en = {
     'The card uses template "{name}", which has a different size from the set\'s',
   'load.missingSheet': 'Set "{set}" cannot find sheet "{sheet}"',
   'save.dataLossConfirm':
-    'The data file contains {what}: saving the set data, Naibi removes them from the whole file, unlinked sheets included. Save anyway?',
+    'The data file contains {what}. To save these changes Naibi has to rewrite the whole file, and removes them everywhere, unlinked sheets included. Save anyway?',
+  'save.needsRewrite':
+    'Not saved: Naibi would have to rewrite the whole data file and would remove charts or other parts it cannot write.',
   'dataLoss.charts': 'charts',
   'dataLoss.pivotTables': 'pivot tables',
   'dataLoss.slicers': 'slicers and timelines',

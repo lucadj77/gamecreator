@@ -11,6 +11,7 @@ import { MessageError, msg } from '../../shared/messages'
 import { deletedPath } from './deleted'
 import { placeRows } from './rowSlots'
 import { readNumber } from '../../shared/model/number'
+import { patchXlsx, type CellEdit } from './xlsxPatch'
 
 export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   const ext = extname(path).toLowerCase()
@@ -105,21 +106,37 @@ function toSheet(name: string, table: string[][]): Sheet {
   }
 }
 
+export interface WriteOptions {
+  /**
+   * Se l'xlsx si può salvare solo riscrivendolo tutto e così perderebbe grafici o altro (vedi
+   * xlsxLosses), invece di scrivere si rifiuta con l'errore save.needsRewrite
+   */
+  keepParts?: boolean
+}
+
 /**
  * Scrive i fogli modificati nel file dati. Nell'xlsx si riscrivono solo le celle delle colonne
  * con intestazione: formattazione, altri fogli e colonne senza intestazione restano. Una cella
- * con formula resta formula se il suo risultato non è cambiato.
+ * con formula resta formula se il suo risultato non è cambiato. Restituisce true se l'xlsx è
+ * stato riscritto tutto con exceljs, e ha quindi perso ciò che exceljs non conosce.
  */
 export async function writeSpreadsheet(
   path: string,
   sheets: Sheet[],
-  removed: string[] = []
-): Promise<void> {
+  removed: string[] = [],
+  options: WriteOptions = {}
+): Promise<boolean> {
   const ext = extname(path).toLowerCase()
-  if (ext === '.xlsx') return writeXlsx(path, sheets, removed)
+  if (ext === '.xlsx') return writeXlsx(path, sheets, removed, options)
   // un csv ha un solo foglio: eliminando il set il file resta
-  if (ext === '.csv') return sheets.length ? writeCsv(path, sheets) : undefined
-  if (ext === '.ods') return writeOdsFile(path, sheets, removed)
+  if (ext === '.csv') {
+    if (sheets.length) await writeCsv(path, sheets)
+    return false
+  }
+  if (ext === '.ods') {
+    await writeOdsFile(path, sheets, removed)
+    return false
+  }
   throw new MessageError(msg('load.unsupportedDataFile', { ext }))
 }
 
@@ -157,8 +174,28 @@ export async function keepDeletedSheets(
   return out
 }
 
-async function writeXlsx(path: string, sheets: Sheet[], removed: string[]): Promise<void> {
-  const workbook = (await exists(path)) ? await readWorkbook(path) : new ExcelJS.Workbook()
+async function writeXlsx(
+  path: string,
+  sheets: Sheet[],
+  removed: string[],
+  options: WriteOptions
+): Promise<boolean> {
+  const data = (await exists(path)) ? await readFile(path) : null
+  const workbook = data ? await readWorkbook(data) : new ExcelJS.Workbook()
+  // se cambiano solo celle di fogli che ci sono già si scrivono quelle, direttamente nell'xml,
+  // e il resto del file resta com'era; fogli nuovi, rinominati o tolti richiedono exceljs
+  if (data && !removed.length && sheets.every((s) => !s.origin && workbook.getWorksheet(s.name))) {
+    const edits = new Map(
+      sheets.map((s) => [s.name, planWorksheet(workbook.getWorksheet(s.name)!, s)])
+    )
+    const patched = await patchXlsx(data, edits)
+    if (patched) {
+      if (patched !== data) await writeAtomic(path, patched)
+      return false
+    }
+  }
+  if (data && options.keepParts && (await xlsxLosses(data)).length)
+    throw new MessageError(msg('save.needsRewrite'))
   // prima si tolgono i fogli dei set eliminati: un set può prenderne il nome
   for (const name of removed) {
     const ws = workbook.getWorksheet(name)
@@ -174,9 +211,16 @@ async function writeXlsx(path: string, sheets: Sheet[], removed: string[]): Prom
   }
   // un file senza fogli non si apre
   if (!workbook.worksheets.length) workbook.addWorksheet('Sheet1')
-  // scrittura in un file temporaneo e rinomina: un errore a metà non rovina il file
+  // come nella scrittura diretta: Excel ricalcola le formule che dipendono dalle celle cambiate
+  workbook.calcProperties.fullCalcOnLoad = true
+  await writeAtomic(path, await workbookBuffer(workbook))
+  return true
+}
+
+/** Scrittura in un file temporaneo e rinomina: un errore a metà non rovina il file */
+async function writeAtomic(path: string, data: Buffer): Promise<void> {
   const tmp = path + '.tmp'
-  await writeFile(tmp, await workbookBuffer(workbook))
+  await writeFile(tmp, data)
   await rename(tmp, path)
 }
 
@@ -219,6 +263,23 @@ async function workbookBuffer(workbook: ExcelJS.Workbook): Promise<Buffer> {
 }
 
 function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
+  for (const e of planWorksheet(ws, s)) ws.getRow(e.row).getCell(e.col).value = e.value
+}
+
+/**
+ * Celle da cambiare perché il foglio abbia i dati del set: solo quelle il cui testo cambia. Le
+ * stesse modifiche valgono per exceljs e per la scrittura diretta nell'xml (xlsxPatch.ts).
+ */
+function planWorksheet(ws: ExcelJS.Worksheet, s: Sheet): CellEdit[] {
+  const edits: CellEdit[] = []
+  const set = (row: number, col: number, value: CellEdit['value']): void => {
+    edits.push({ row, col, value })
+  }
+  // una cella già vuota non si tocca
+  const clearCell = (row: number, col: number): void => {
+    const v = ws.getRow(row).getCell(col).value
+    if (v !== null && v !== undefined) set(row, col, null)
+  }
   // le intestazioni sono nella prima riga con dati, come in lettura
   let headRow = 0
   ws.eachRow({ includeEmpty: false }, (_, n) => {
@@ -241,7 +302,7 @@ function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
   let next = ws.columnCount + 1
   const columns = s.headers.map((h) => {
     const c = existing.get(h) ?? next++
-    head.getCell(c).value = h
+    if (cellText(head.getCell(c)) !== h) set(headRow, c, h)
     existing.delete(h)
     return c
   })
@@ -255,12 +316,12 @@ function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
       const v = s.rows[k][i] ?? ''
       // una cella con lo stesso testo resta com'è: formula, data, testo formattato, collegamento
       if (cellText(cell) === v) return
-      cell.value = toCellValue(v, cell.numFmt)
+      set(r, c, toCellValue(v, cell.numFmt))
     })
   })
-  for (const r of clear) for (const c of columns) ws.getRow(r).getCell(c).value = null
-  for (let r = headRow; r <= ws.rowCount; r++)
-    for (const c of removed) ws.getRow(r).getCell(c).value = null
+  for (const r of clear) for (const c of columns) clearCell(r, c)
+  for (let r = headRow; r <= ws.rowCount; r++) for (const c of removed) clearCell(r, c)
+  return edits
 }
 
 /**

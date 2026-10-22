@@ -12,10 +12,20 @@ export interface DataChanges {
   sheets: Sheet[]
   /** Fogli dei set eliminati: escono dal file dati e vanno in deleted/ */
   removed?: string[]
+  /**
+   * Rifiuta (save.needsRewrite) un salvataggio che riscriverebbe tutto l'xlsx perdendo grafici e
+   * simili: chi salva chiede prima conferma e riprova senza
+   */
+  keepParts?: boolean
+}
+
+export interface SaveResult {
+  /** Il file dati è stato riscritto tutto: ciò che exceljs non conosce non c'è più */
+  rewritten: boolean
 }
 
 /** Salva i fogli e, se serve, il file di progetto; prima i dati, così un set nuovo ha già il foglio */
-export async function saveData(folder: string, changes: DataChanges): Promise<void> {
+export async function saveData(folder: string, changes: DataChanges): Promise<SaveResult> {
   // il file dati si legge dal progetto su disco: il renderer non sceglie dove scrivere
   const target = await projectFilePath(folder)
   const current: ProjectFile = JSON.parse(await readFile(target, 'utf8'))
@@ -27,11 +37,15 @@ export async function saveData(folder: string, changes: DataChanges): Promise<vo
     throw new MessageError(msg('data.readOnly'))
   // la copia in deleted/ prima di toglierli: se non riesce il file dati resta com'era
   await keepDeletedSheets(folder, data, removed)
-  if (changes.sheets.length || removed.length) await writeSpreadsheet(data, changes.sheets, removed)
+  const rewritten =
+    changes.sheets.length || removed.length
+      ? await writeSpreadsheet(data, changes.sheets, removed, { keepParts: changes.keepParts })
+      : false
   if (changes.file) {
     changes.file.dataFile = current.dataFile
     const tmp = target + '.tmp'
     await writeFile(tmp, JSON.stringify(changes.file, null, 2) + '\n', 'utf8')
     await rename(tmp, target)
   }
+  return { rewritten }
 }

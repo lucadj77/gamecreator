@@ -62,15 +62,47 @@ describe('ods', () => {
     expect(tables[0].rows).toEqual([
       ['amount', 'nome', 'forza', 'testo'],
       ['2', 'Cavaliere', '4', 'Attacca'],
+      // le righe vuote in mezzo ai dati restano: la carta non sale
+      [],
+      [],
       ['', 'Drago  & co', '5']
     ])
     const xml = await (await JSZip.loadAsync(out)).file('content.xml')!.async('string')
     // formula e nota della cella rimasta uguale ci sono ancora; le righe vuote in fondo restano
-    // ripetute, e la carta tolta dal set è stata svuotata
+    // ripetute
     expect(xml).toContain('table:formula="of:=1+3"')
     expect(xml).toContain('<office:annotation>')
     expect(xml).toContain('table:number-rows-repeated="1048570"')
     expect(xml).toContain('<text:p>Drago <text:s text:c="1"/>&amp; co</text:p>')
+  })
+
+  it("svuota la riga di una carta tolta e accoda le nuove dopo l'ultima con dati", async () => {
+    const out = await writeOds(await sample(), [
+      { name: 'Carte', headers: ['amount', 'nome', 'forza'], rows: [['2', 'Cavaliere', '4']] }
+    ])
+    expect((await readOds(out))[0].rows).toEqual([
+      ['amount', 'nome', 'forza'],
+      ['2', 'Cavaliere', '4']
+    ])
+    const more = await writeOds(await sample(), [
+      {
+        name: 'Carte',
+        headers: ['amount', 'nome', 'forza'],
+        rows: [
+          ['2', 'Cavaliere', '4'],
+          ['', 'Drago  rosso', 'a\nb'],
+          ['1', 'Mago', '3']
+        ]
+      }
+    ])
+    expect((await readOds(more))[0].rows).toEqual([
+      ['amount', 'nome', 'forza'],
+      ['2', 'Cavaliere', '4'],
+      [],
+      [],
+      ['', 'Drago  rosso', 'a\nb'],
+      ['1', 'Mago', '3']
+    ])
   })
 
   it('rinomina la tabella di un set rinominato tenendone il contenuto', async () => {

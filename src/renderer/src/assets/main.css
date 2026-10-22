@@ -3564,6 +3564,17 @@ select.from-template {
   height: 100%;
 }
 
+.color-none {
+  height: 30px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.color-none.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
 .color-hex {
   flex: 1;
   min-width: 0;

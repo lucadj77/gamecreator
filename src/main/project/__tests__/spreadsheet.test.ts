@@ -4,7 +4,7 @@ import { join } from 'path'
 import ExcelJS from 'exceljs'
 import { describe, expect, it } from 'vitest'
 import { saveData } from '../save'
-import { readSpreadsheet, writeSpreadsheet } from '../spreadsheet'
+import { readSpreadsheet, writeSpreadsheet, xlsxLosses } from '../spreadsheet'
 
 async function workbook(path: string): Promise<void> {
   const wb = new ExcelJS.Workbook()
@@ -146,5 +146,80 @@ describe('celle che non cambiano', () => {
     expect((await readSpreadsheet(path))[0].rows).toEqual([
       ['ab', '2024-02-01 10:30', '12345678901234567890', '2.5']
     ])
+  })
+
+  it('lascia al loro posto le righe vuote in mezzo ai dati', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    const path = join(dir, 'dati.xlsx')
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet('Set')
+    // intestazioni nella riga 2, una riga vuota tra a e b, una nota senza intestazione
+    ws.getRow(2).values = ['nome', 'valore', null, null]
+    ws.getRow(3).values = ['a', 1, null, 'nota a']
+    ws.getRow(5).values = ['b', 2, null, 'nota b']
+    ws.getRow(6).values = ['c', 3, null, 'nota c']
+    ws.getCell('C5').value = { formula: 'B5*2', result: 4 }
+    await wb.xlsx.writeFile(path)
+    const [sheet] = await readSpreadsheet(path)
+    expect(sheet.headers).toEqual(['nome', 'valore'])
+    expect(sheet.rows).toEqual([
+      ['a', '1'],
+      ['b', '2'],
+      ['c', '3']
+    ])
+    // si cambia un valore e si toglie l'ultima carta
+    await writeSpreadsheet(path, [
+      {
+        ...sheet,
+        rows: [
+          ['a', '1'],
+          ['b', '20']
+        ]
+      }
+    ])
+    const out = new ExcelJS.Workbook()
+    await out.xlsx.readFile(path)
+    const o = out.getWorksheet('Set')!
+    expect(o.getCell('A1').value).toBeNull()
+    expect(o.getCell('A2').value).toBe('nome')
+    expect(o.getCell('A4').value).toBeNull()
+    expect(o.getCell('A5').value).toBe('b')
+    expect(o.getCell('B5').value).toBe(20)
+    expect(o.getCell('C5').formula).toBe('B5*2')
+    expect(o.getCell('D5').value).toBe('nota b')
+    expect(o.getCell('A6').value).toBeNull()
+    expect(o.getCell('D6').value).toBe('nota c')
+    // una carta nuova va dopo l'ultima riga con dati
+    await writeSpreadsheet(path, [
+      {
+        ...sheet,
+        rows: [
+          ['a', '1'],
+          ['b', '20'],
+          ['d', '4']
+        ]
+      }
+    ])
+    expect((await readSpreadsheet(path))[0].rows).toEqual([
+      ['a', '1'],
+      ['b', '20'],
+      ['d', '4']
+    ])
+    const again = new ExcelJS.Workbook()
+    await again.xlsx.readFile(path)
+    expect(again.getWorksheet('Set')!.getCell('A6').value).toBe('d')
+  })
+
+  it('legge errori e valori logici come li scrive il foglio; sa che i grafici si perderebbero', async () => {
+    const chart = join(__dirname, 'fixtures', 'chart.xlsx')
+    const [sheet] = await readSpreadsheet(chart)
+    expect(sheet.rows).toEqual([
+      ['a', '1', '#DIV/0!', 'true'],
+      ['b', '2', '#N/A', 'false']
+    ])
+    expect(await xlsxLosses(chart)).toEqual(['charts'])
+    const dir = await mkdtemp(join(tmpdir(), 'gc-'))
+    await workbook(join(dir, 'dati.xlsx'))
+    expect(await xlsxLosses(join(dir, 'dati.xlsx'))).toEqual([])
   })
 })

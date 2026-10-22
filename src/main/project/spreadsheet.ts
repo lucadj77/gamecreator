@@ -2,11 +2,13 @@ import { readFile, rename, writeFile } from 'fs/promises'
 import { exists } from '../fs'
 import { basename, extname } from 'path'
 import ExcelJS from 'exceljs'
+import JSZip from 'jszip'
 import Papa from 'papaparse'
-import type { Sheet } from '../../shared/project'
+import type { DataFileLoss, Sheet } from '../../shared/project'
 import { odsTableNames, odsWithOnly, readOds, writeOds } from './ods'
 import { MessageError, msg } from '../../shared/messages'
 import { deletedPath } from './deleted'
+import { placeRows } from './rowSlots'
 
 export async function readSpreadsheet(path: string): Promise<Sheet[]> {
   const ext = extname(path).toLowerCase()
@@ -37,14 +39,12 @@ export async function readXlsx(source: string | Buffer): Promise<Sheet[]> {
  * mezzanotte), non la stringa JavaScript che darebbe `text`
  */
 export function cellText(cell: ExcelJS.Cell): string {
-  const v = cell.value
-  const date =
-    v instanceof Date
-      ? v
-      : v && typeof v === 'object' && 'result' in v && v.result instanceof Date
-        ? v.result
-        : null
-  if (date) return isoDate(date)
+  // di una formula conta il risultato salvato nel file (da cell.result: cell.value perde FALSO)
+  const r = cell.type === ExcelJS.ValueType.Formula ? cell.result : cell.value
+  if (r instanceof Date) return isoDate(r)
+  // un errore (#DIV/0!, #N/A) si legge com'è scritto, VERO e FALSO come true e false
+  if (r && typeof r === 'object' && 'error' in r) return String(r.error)
+  if (typeof r === 'boolean') return String(r)
   return cell.text ?? ''
 }
 
@@ -150,6 +150,29 @@ async function writeXlsx(path: string, sheets: Sheet[], removed: string[]): Prom
   await rename(tmp, path)
 }
 
+/** Parti di un .xlsx che exceljs non riscrive, per tipo */
+const LOST_PARTS: [DataFileLoss, RegExp][] = [
+  ['charts', /^xl\/(charts|chartsheets)\//],
+  ['pivotTables', /^xl\/(pivotTables|pivotCache)\//],
+  ['slicers', /^xl\/(slicers|slicerCaches|timelines|timelineCaches)\//],
+  ['macros', /^xl\/vbaProject\.bin$/],
+  ['externalLinks', /^xl\/externalLinks\//]
+]
+
+/**
+ * Cosa si perderebbe riscrivendo il file dati .xlsx: grafici, tabelle pivot e altro che exceljs
+ * non conosce e che al salvataggio sparisce da tutto il file, non solo dai fogli dei set.
+ */
+export async function xlsxLosses(source: string | Buffer): Promise<DataFileLoss[]> {
+  const data = typeof source === 'string' ? await readFile(source) : source
+  const zip = await JSZip.loadAsync(data)
+  const present = LOST_PARTS.filter(([, re]) => Object.keys(zip.files).some((f) => re.test(f)))
+  if (!present.length) return []
+  const after = await JSZip.loadAsync(await workbookBuffer(await readWorkbook(data)))
+  const kept = Object.keys(after.files)
+  return present.filter(([, re]) => !kept.some((f) => re.test(f))).map(([kind]) => kind)
+}
+
 /**
  * Si legge e si scrive l'xlsx come dati, non con readFile/writeFile di exceljs: così lo stesso
  * codice funziona anche nella versione web, dove i file passano dal browser
@@ -166,11 +189,24 @@ async function workbookBuffer(workbook: ExcelJS.Workbook): Promise<Buffer> {
 }
 
 function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
-  const head = ws.getRow(1)
+  // le intestazioni sono nella prima riga con dati, come in lettura
+  let headRow = 0
+  ws.eachRow({ includeEmpty: false }, (_, n) => {
+    if (!headRow) headRow = n
+  })
+  headRow ||= 1
+  const head = ws.getRow(headRow)
   const existing = new Map<string, number>()
   for (let c = 1; c <= ws.columnCount; c++) {
     const h = head.getCell(c).text?.trim()
     if (h) existing.set(h, c)
+  }
+  // righe che in lettura sono diventate carte: quelle con dati in una colonna con intestazione
+  const headed = [...existing.values()]
+  const used: number[] = []
+  for (let r = headRow + 1; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r)
+    if (headed.some((c) => cellText(row.getCell(c)).trim() !== '')) used.push(r)
   }
   let next = ws.columnCount + 1
   const columns = s.headers.map((h) => {
@@ -181,20 +217,20 @@ function writeWorksheet(ws: ExcelJS.Worksheet, s: Sheet): void {
   })
   // colonne tolte dal set: si svuotano, intestazione compresa
   const removed = [...existing.values()]
-  const last = Math.max(ws.rowCount, s.rows.length + 1)
-  for (let r = 2; r <= last; r++) {
+  const { at, clear } = placeRows(used, s.rows.length, headRow)
+  at.forEach((r, k) => {
     const row = ws.getRow(r)
-    const values = s.rows[r - 2]
     columns.forEach((c, i) => {
       const cell = row.getCell(c)
-      const v = values?.[i] ?? ''
+      const v = s.rows[k][i] ?? ''
       // una cella con lo stesso testo resta com'è: formula, data, testo formattato, collegamento
       if (cellText(cell) === v) return
       cell.value = toCellValue(v)
     })
-    for (const c of removed) row.getCell(c).value = null
-  }
-  for (const c of removed) head.getCell(c).value = null
+  })
+  for (const r of clear) for (const c of columns) ws.getRow(r).getCell(c).value = null
+  for (let r = headRow; r <= ws.rowCount; r++)
+    for (const c of removed) ws.getRow(r).getCell(c).value = null
 }
 
 /** I numeri scritti come tali restano numeri nel foglio; "007" e simili restano testo */

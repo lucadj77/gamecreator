@@ -63,4 +63,11 @@ describe('renameSet', () => {
     expect(csv.file.sets[0].sheet).toBe('Eroi')
     expect(csv.sets[0]).toMatchObject({ name: 'Personaggi', sheet: 'Eroi', data: sheet('Eroi') })
   })
+
+  it('con keepSheet il foglio tiene il suo nome', () => {
+    const p = project()
+    const out = renameSet(p.file, p.sets, 0, 'Personaggi', false, true)
+    expect(out.file.sets[0]).toMatchObject({ name: 'Personaggi', sheet: 'Eroi' })
+    expect(out.sets[0].data).toEqual(sheet('Eroi'))
+  })
 })

@@ -70,16 +70,26 @@ const KEYS: [string, MessageKey][] = [
   ['F1', 'help.keys.help']
 ]
 
-function Table({ rows }: { rows: [string, string][] }): React.JSX.Element {
+/** Righe di codice e spiegazione, con un esempio facoltativo in una terza colonna */
+function Table({
+  rows
+}: {
+  rows: ([string, string] | [string, string, string])[]
+}): React.JSX.Element {
   return (
     <table className="help-table">
       <tbody>
-        {rows.map(([code, text]) => (
+        {rows.map(([code, text, example]) => (
           <tr key={code}>
             <td>
               <code>{code}</code>
             </td>
             <td>{text}</td>
+            {example !== undefined && (
+              <td>
+                <code>{example}</code>
+              </td>
+            )}
           </tr>
         ))}
       </tbody>
@@ -174,7 +184,14 @@ export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.
                 ]}
               />
               <h3>{t('help.functions')}</h3>
-              <Table rows={FUNCTIONS.map((f) => [f, t(`help.fn.${f}` as MessageKey)])} />
+              <p>{t('help.examplesIntro')}</p>
+              <Table
+                rows={FUNCTIONS.map((f) => [
+                  f,
+                  t(`help.fn.${f}` as MessageKey),
+                  t(`help.ex.${f}` as MessageKey)
+                ])}
+              />
             </>
           )}
           {tab === 'keys' && (

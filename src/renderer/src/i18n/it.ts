@@ -117,6 +117,8 @@ export const it: Record<MessageKey, string> = {
   'addColumn.exists': 'La colonna esiste già',
   'addColumn.invalid': 'Le graffe non sono ammesse nei nomi delle colonne',
   'sidebar.delete': 'Elimina',
+  'sidebar.renameSheetConfirm':
+    'Rinominare anche il foglio "{sheet}" nel file dei dati in "{name}"? Le formule di altri fogli che lo citano smetterebbero di funzionare. Annulla per lasciare al foglio il suo nome.',
   'sidebar.deleteSetConfirm':
     'Eliminare il set "{name}"? Al salvataggio il suo foglio esce dal file dei dati e va nella cartella deleted del progetto, da cui si può recuperare.',
   'sidebar.deleteTemplateConfirm':
@@ -313,6 +315,8 @@ export const it: Record<MessageKey, string> = {
   'color.open': 'Scegli un colore',
   'color.title': 'Colore',
   'color.eyedropper': 'Prendi un colore dallo schermo',
+  'color.none': 'Nessuno',
+  'color.noneHint': 'Nessun colore (none): trasparente',
   'color.project': 'Colori del progetto',
   'color.recent': 'Colori recenti',
   'color.noRecent': 'Qui compaiono i colori che scegli.',
@@ -790,6 +794,13 @@ export const it: Record<MessageKey, string> = {
   'inherit.cardTemplateSize':
     'La carta usa il template "{name}", che ha misure diverse da quello del set',
   'load.missingSheet': 'Il set "{set}" non trova il foglio "{sheet}"',
+  'save.dataLossConfirm':
+    'Il file dei dati contiene {what}: salvando i dati dei set Naibi li toglie da tutto il file, anche dai fogli non collegati. Salvare comunque?',
+  'dataLoss.charts': 'grafici',
+  'dataLoss.pivotTables': 'tabelle pivot',
+  'dataLoss.slicers': 'filtri dati e sequenze temporali',
+  'dataLoss.macros': 'macro',
+  'dataLoss.externalLinks': 'collegamenti ad altri file',
   'load.missingTemplate': 'Il set "{set}" usa il template "{template}", che non esiste',
   'load.duplicateLayers': 'Template "{template}": nomi di livello ripetuti ({names})',
   'load.duplicateTemplate':
@@ -1358,6 +1369,24 @@ export const it: Record<MessageKey, string> = {
   'help.fn.CONCAT': 'Unisce i testi',
   'help.fn.ISBLANK': 'Vero se il valore è vuoto',
   'help.fn.COUNTIN': 'Quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")',
+  'help.examplesIntro':
+    'Gli esempi usano una carta con forza 4, difesa 2, nome Drago, costo "oro oro legno" e nota vuota.',
+  'help.ex.IF': '=IF({forza}>3; "Forte"; "Debole") → Forte',
+  'help.ex.AND': '=IF(AND({forza}>3; {difesa}>1); "Sì"; "No") → Sì',
+  'help.ex.OR': '=OR({forza}>3; {difesa}>3) → true',
+  'help.ex.NOT': '=NOT({forza}>3) → false',
+  'help.ex.MIN': '=MIN({forza}; {difesa}) → 2',
+  'help.ex.MAX': '=MAX({forza}; {difesa}; 3) → 4',
+  'help.ex.ABS': '=ABS({difesa}-{forza}) → 2',
+  'help.ex.ROUND': '=ROUND({forza}/3; 1) → 1.3',
+  'help.ex.FLOOR': '=FLOOR({forza}/3) → 1',
+  'help.ex.CEILING': '=CEILING({forza}/3) → 2',
+  'help.ex.UPPER': '=UPPER({nome}) → DRAGO',
+  'help.ex.LOWER': '=LOWER({nome}) → drago',
+  'help.ex.LEN': '=LEN({nome}) → 5',
+  'help.ex.CONCAT': '=CONCAT({nome}; " "; {forza}) → Drago 4',
+  'help.ex.ISBLANK': '=IF(ISBLANK({nota}); "-"; {nota}) → -',
+  'help.ex.COUNTIN': '=COUNTIN({costo}; "oro") → 2',
   'help.keysIntro': 'Su Windows e Linux ⌘ è Ctrl.',
   'help.keys.save': 'Salva template, dati e impostazioni',
   'help.keys.undo': "Annulla e ripete (nei set e nell'editor)",
@@ -1579,6 +1608,10 @@ export const it: Record<MessageKey, string> = {
   'newProject.dataFile': 'File dei dati',
   'newProject.xlsx': 'Excel (.xlsx), consigliato',
   'newProject.ods': 'OpenDocument (.ods)',
+  'newProject.existing': 'Un file che hai già (.xlsx, .ods, .csv)…',
+  'newProject.existingFile': 'File',
+  'newProject.existingNote':
+    'Naibi lavora su una copia del file, nella cartella data del progetto: l\'originale non cambia. I fogli si collegano ai set con Nuovo set. Prima leggi "Usare un file Excel che hai già" nella guida.',
   'newProject.notEmpty': 'La cartella {folder} esiste già e non è vuota.',
   'update.available': 'È disponibile Naibi {version}.',
   'update.whatsNew': 'Novità',

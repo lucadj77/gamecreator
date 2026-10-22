@@ -1,6 +1,6 @@
 import { readFile, readdir } from 'fs/promises'
 import { exists } from '../fs'
-import { basename, join } from 'path'
+import { basename, extname, join } from 'path'
 import {
   FORMAT_VERSION,
   PROJECT_FILE,
@@ -9,7 +9,7 @@ import {
   type Sheet
 } from '../../shared/project'
 import { projectFilePath } from './projectFile'
-import { readSpreadsheet } from './spreadsheet'
+import { readSpreadsheet, xlsxLosses } from './spreadsheet'
 import { listAssets } from './assets'
 import { readProjectFonts } from './fonts'
 import { readNotes } from './notes'
@@ -63,6 +63,11 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
   }
 
   const assets = await listAssets(folder)
+  // un file che non si riesce a riscrivere lo dirà il salvataggio
+  const dataFileLosses =
+    extname(dataPath).toLowerCase() === '.xlsx' && (await exists(dataPath))
+      ? await xlsxLosses(dataPath).catch(() => [])
+      : []
   return {
     folder,
     file,
@@ -75,6 +80,7 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     fonts: await readProjectFonts(folder, assets),
     sources: await readSources(folder),
     notes: await readNotes(folder),
+    dataFileLosses,
     warnings
   }
 }

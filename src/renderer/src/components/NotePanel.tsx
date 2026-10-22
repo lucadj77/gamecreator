@@ -29,7 +29,8 @@ export default function NotePanel({
   onClose
 }: Props): React.JSX.Element {
   const { t } = useI18n()
-  const [mode, setMode] = useState<'edit' | 'preview'>('edit')
+  // una nota già scritta si apre in anteprima, una nuova (vuota) per scriverla
+  const [mode, setMode] = useState<'edit' | 'preview'>(text.trim() ? 'preview' : 'edit')
   // il pannello si ricrea con un'altra nota o un nome nuovo (key), quindi basta lo stato iniziale
   const [draftName, setDraftName] = useState(name)
 

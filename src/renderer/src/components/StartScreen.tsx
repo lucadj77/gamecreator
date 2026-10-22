@@ -191,7 +191,9 @@ function NewProjectDialog({
   const [parent, setParent] = useState(() => localStorage.getItem(PARENT_KEY) ?? '')
   const [error, setError] = useState<Message | null>(null)
   const [busy, setBusy] = useState(false)
-  const [data, setData] = useState<'xlsx' | 'ods'>('xlsx')
+  // 'existing': il file dei dati è la copia di un file che c'è già
+  const [data, setData] = useState<'xlsx' | 'ods' | 'existing'>('xlsx')
+  const [existing, setExisting] = useState('')
 
   useEffect(() => {
     if (parent) return
@@ -206,7 +208,10 @@ function NewProjectDialog({
     setBusy(true)
     setError(null)
     try {
-      const folder = await window.api.createProject(name, parent.trim(), data)
+      const folder =
+        data === 'existing'
+          ? await window.api.createProject(name, parent.trim(), undefined, existing)
+          : await window.api.createProject(name, parent.trim(), data)
       localStorage.setItem(PARENT_KEY, parent.trim())
       onCreate(folder)
     } catch (e) {
@@ -221,7 +226,7 @@ function NewProjectDialog({
         className="dialog-form new-project"
         onSubmit={(e) => {
           e.preventDefault()
-          if (target && !busy) create()
+          if (target && !busy && (data !== 'existing' || existing)) create()
         }}
       >
         <label>
@@ -252,11 +257,30 @@ function NewProjectDialog({
         </label>
         <label>
           {t('newProject.dataFile')}
-          <select value={data} onChange={(e) => setData(e.target.value as 'xlsx' | 'ods')}>
+          <select value={data} onChange={(e) => setData(e.target.value as typeof data)}>
             <option value="xlsx">{t('newProject.xlsx')}</option>
             <option value="ods">{t('newProject.ods')}</option>
+            {!window.api.isWeb && <option value="existing">{t('newProject.existing')}</option>}
           </select>
         </label>
+        {data === 'existing' && (
+          <label>
+            {t('newProject.existingFile')}
+            <span className="field-control">
+              <input value={existing} title={existing} readOnly />
+              <button
+                type="button"
+                onClick={async () => {
+                  const f = await window.api.chooseDataFile()
+                  if (f) setExisting(f)
+                }}
+              >
+                {t('export.choose')}
+              </button>
+            </span>
+          </label>
+        )}
+        {data === 'existing' && <p className="field-note">{t('newProject.existingNote')}</p>}
         <p className="field-note">
           {target ? t('newProject.folder', { folder: target }) : t('newProject.hint')}
         </p>
@@ -265,7 +289,11 @@ function NewProjectDialog({
           <button type="button" onClick={onClose}>
             {t('dialog.cancel')}
           </button>
-          <button type="submit" className="primary" disabled={!target || busy}>
+          <button
+            type="submit"
+            className="primary"
+            disabled={!target || busy || (data === 'existing' && !existing)}
+          >
             {t('newTemplate.create')}
           </button>
         </div>

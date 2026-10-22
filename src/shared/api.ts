@@ -98,7 +98,18 @@ export interface Api {
   /** Cartella proposta per i progetti nuovi */
   defaultProjectsFolder(): Promise<string>
   /** Crea un progetto vuoto in <parent>/<nome> e ne restituisce la cartella */
-  createProject(name: string, parent: string, data?: 'xlsx' | 'ods'): Promise<string>
+  /**
+   * Crea un progetto; con `existing` il file dei dati è una copia di quel file (.xlsx, .ods, .csv)
+   * invece di un file nuovo
+   */
+  createProject(
+    name: string,
+    parent: string,
+    data?: 'xlsx' | 'ods',
+    existing?: string
+  ): Promise<string>
+  /** Sceglie un file di dati che c'è già (.xlsx, .ods, .csv); null se l'utente annulla */
+  chooseDataFile(): Promise<string | null>
   loadProject(folder: string): Promise<LoadedProject>
   /** Salva il template nel progetto aperto */
   saveTemplate(template: Template): Promise<void>

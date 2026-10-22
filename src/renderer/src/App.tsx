@@ -691,6 +691,25 @@ function App(): React.JSX.Element {
 
   const saveAll = async (): Promise<void> => {
     if (!project || saving) return
+    const sheets = project.sets
+      .map((x) => x.data)
+      .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
+    // fogli sul disco che nessun set usa più (set eliminati): escono dal file dati
+    const used = new Set([
+      ...project.sets.flatMap((x) => (x.data ? [x.data.name, x.data.origin ?? ''] : [])),
+      ...project.unusedSheets
+    ])
+    const removed = (project.diskSheets ?? []).filter((x) => !used.has(x) || trashedSheets.has(x))
+    // grafici e simili che il salvataggio toglierebbe dal file dati: prima si chiede
+    const losses = project.dataFileLosses ?? []
+    if (
+      (sheets.length || removed.length) &&
+      losses.length &&
+      !window.confirm(
+        t('save.dataLossConfirm', { what: losses.map((x) => t(`dataLoss.${x}`)).join(', ') })
+      )
+    )
+      return
     setError(null)
     setSaving(true)
     try {
@@ -716,22 +735,17 @@ function App(): React.JSX.Element {
               })
             }
         )
-      const sheets = project.sets
-        .map((x) => x.data)
-        .filter((d): d is Sheet => !!d && dirtySheets.has(d.name))
-      // fogli sul disco che nessun set usa più (set eliminati): escono dal file dati
-      const used = new Set([
-        ...project.sets.flatMap((x) => (x.data ? [x.data.name, x.data.origin ?? ''] : [])),
-        ...project.unusedSheets
-      ])
-      const removed = (project.diskSheets ?? []).filter((x) => !used.has(x) || trashedSheets.has(x))
       if (sheets.length || fileDirty || removed.length)
         await window.api.saveData({ file: fileDirty ? project.file : undefined, sheets, removed })
       const onDisk = [
         ...project.sets.flatMap((x) => (x.data ? [x.data.name] : [])),
         ...project.unusedSheets
       ]
-      setProject((p) => p && { ...p, diskSheets: onDisk })
+      // dopo un salvataggio dei dati nel file non c'è più niente da perdere
+      const written = sheets.length > 0 || removed.length > 0
+      setProject(
+        (p) => p && { ...p, diskSheets: onDisk, ...(written ? { dataFileLosses: [] } : {}) }
+      )
       // i fogli rinominati ora hanno sul disco il nome nuovo
       if (sheets.some((x) => x.origin))
         setProject(
@@ -851,9 +865,16 @@ function App(): React.JSX.Element {
   /** Nuovo nome di un set; il foglio dei dati prende lo stesso nome al salvataggio */
   const renameSetAt = (index: number, name: string): void => {
     if (!project) return
-    const before = project.sets[index].data
+    const set = project.sets[index]
+    const before = set.data
     const csv = project.file.dataFile.toLowerCase().endsWith('.csv')
-    const { file, sets } = renameSet(project.file, project.sets, index, name, csv)
+    // un foglio già nel file può essere citato da formule di altri fogli: si chiede se rinominarlo
+    const onDisk = !!before && !set.sheet && (project.diskSheets ?? []).includes(before.name)
+    const keepSheet =
+      !csv &&
+      onDisk &&
+      !window.confirm(t('sidebar.renameSheetConfirm', { sheet: before.name, name }))
+    const { file, sets } = renameSet(project.file, project.sets, index, name, csv, keepSheet)
     // come per i template: la cronologia riparte, perché i passi precedenti hanno il nome
     // vecchio e, dopo un salvataggio, annullare ricreerebbe il foglio da capo
     setHistory({ past: [], future: [], at: 0 })

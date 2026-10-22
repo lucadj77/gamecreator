@@ -55,7 +55,7 @@ In tutti e tre i casi, i calcoli che servono a una sola carta possono passare ne
 
 6. **Nuovo progetto**: in **File dei dati** scegli **Un file che hai già** e indica il tuo file. Naibi ne mette una copia nella cartella `data` del progetto; da qui in poi lavori su quella copia.
 7. Per un progetto che esiste già: chiudi Naibi, copia il file nella cartella `data` del progetto e cambia `dataFile` in `naibi.json`, per esempio `"data/gioco.xlsx"`.
-8. Nel progetto, nella barra laterale compare "Fogli non collegati a un set" con tutti i fogli del file.
+8. Nel progetto, nella barra laterale compare "Fogli non collegati a un set" con tutti i fogli del file. **Controlla file dati…**, in fondo alla barra laterale, dice per ogni foglio cosa potrebbe non andare: titoli sopra le intestazioni, celle unite, errori, formule senza risultato, righe vuote.
 9. Crea un template. Per ogni livello che mostra un dato, in **Valore sulle carte** scegli **Colonna** e indica l'intestazione del foglio.
 10. **Nuovo set**: scegli il template e, in **Foglio**, il foglio "Truppe". Il set mostra subito le righe del foglio.
     Per avere due mazzi con gli stessi dati e grafica diversa (truppe rosse e gialle), crea un secondo set, con un altro template, sullo stesso foglio: in **Foglio** è nel gruppo dei fogli già usati ([5.1](README.md#51-creare-un-set)).

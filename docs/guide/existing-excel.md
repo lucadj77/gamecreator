@@ -55,7 +55,7 @@ In all three cases, calculations that concern a single card can move into the te
 
 6. **New project**: under **Data file** choose **A file you already have** and pick your file. Naibi puts a copy in the project's `data` folder; from then on you work on that copy.
 7. For a project that already exists: close Naibi, copy the file into the project's `data` folder and change `dataFile` in `naibi.json`, for example `"data/game.xlsx"`.
-8. In the project, the sidebar shows "Sheets not linked to a set" with all the sheets of the file.
+8. In the project, the sidebar shows "Sheets not linked to a set" with all the sheets of the file. **Check data file…**, at the bottom of the sidebar, says for each sheet what might be wrong: titles above the headings, merged cells, errors, formulas without a result, empty rows.
 9. Create a template. For each layer that shows data, in **Value on cards** choose **Column** and give the sheet heading.
 10. **New set**: choose the template and, under **Sheet**, the "Troops" sheet. The set shows the rows of the sheet right away.
     For two decks with the same data and a different look (red and yellow troops), create a second set, with another template, on the same sheet: under **Sheet** it is in the group of sheets already in use ([5.1](README.md#51-creating-a-set)).

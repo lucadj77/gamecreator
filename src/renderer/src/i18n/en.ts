@@ -105,6 +105,35 @@ export const en = {
   'data.changedOutside':
     'The data file was changed outside Naibi. Reloading loses the unsaved changes.',
   'data.ignore': 'Ignore',
+  'check.title': 'Check data file',
+  'check.intro':
+    'How Naibi reads {file}: for each sheet, the sets that use it and what might be wrong. The check does not change the file.',
+  'check.readOnly': 'The file is read-only.',
+  'check.reading': 'Reading the file…',
+  'check.losses':
+    'The file contains {what}: a data save from Naibi removes them. With read-only the file is never written.',
+  'check.missingSheet': 'The set {set} uses the sheet "{sheet}", which is not in the file.',
+  'check.linked': 'used by {sets}',
+  'check.unlinked': 'not linked to a set',
+  'check.rows': '{n} rows',
+  'check.missingColumns':
+    'The template {template} of the set {set} reads columns the sheet does not have: {columns}. The cards use the template value.',
+  'check.ok': 'No problems found.',
+  'check.emptySheet': 'The sheet is empty.',
+  'check.titleAbove':
+    'Row {row} looks like a title, but Naibi takes it as the heading row. Remove the title or use a sheet with the headings in the first row.',
+  'check.headerRow': 'The headings are in row {row}: the rows above are empty.',
+  'check.noRows': 'There are headings but no data rows.',
+  'check.duplicateHeaders':
+    'Repeated headings: {names}. Only one of the columns with the same name counts for the cards.',
+  'check.errors': 'Cells with an Excel error: {cells}. The cards show the error code.',
+  'check.noResult':
+    'Formulas without a saved result: {cells}. Naibi reads them as empty: open and save the file in Excel to calculate them.',
+  'check.merged': 'Merged cells: {cells}. Naibi repeats the value in every cell of the merge.',
+  'check.unnamedColumns': 'Columns with data but no heading: {columns}. Naibi ignores them.',
+  'check.emptyRows':
+    'Empty rows between the data: {rows}. Naibi skips them, and they stay where they are when saving.',
+  'sidebar.checkData': 'Check data file…',
   'newSet.title': 'New set',
   'newSet.template': 'Template',
   'newSet.sheet': 'Sheet',

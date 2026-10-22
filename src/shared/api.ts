@@ -9,6 +9,7 @@ import type {
   Sheet
 } from './project'
 import type { Template } from './model/template'
+import type { SheetInspection } from './dataCheck'
 import type { Message } from './messages'
 
 /** Un'IA sta lavorando sul progetto: vedi main/project/agentLock.ts */
@@ -127,6 +128,8 @@ export interface Api {
   saveData(changes: { file?: ProjectFile; sheets: Sheet[]; removed?: string[] }): Promise<void>
   /** Rilegge il progetto aperto senza backup: serve per i dati cambiati fuori da Naibi */
   reloadData(): Promise<LoadedProject>
+  /** Controlla file dati: com'è fatto ogni foglio del file dati del progetto aperto */
+  inspectData(): Promise<SheetInspection[]>
   /** Chiamato quando il file dati cambia fuori da Naibi; nel browser non arriva mai */
   onDataFileChanged(cb: () => void): () => void
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */

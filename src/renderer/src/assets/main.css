@@ -4299,3 +4299,42 @@ details.usages button.link {
   align-items: center;
   gap: 8px;
 }
+
+/* Controlla file dati */
+.data-check-btn {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.data-check {
+  max-width: 640px;
+}
+
+.data-check-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.data-check-sheet h3 {
+  margin: 12px 0 4px;
+  font-size: 1em;
+}
+
+.data-check-note {
+  margin: 4px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.data-check-note.warning {
+  background: var(--warning-bg);
+}
+
+.data-check-note.info {
+  background: var(--accent-soft);
+}
+
+.data-check-note.ok {
+  color: var(--muted, inherit);
+}

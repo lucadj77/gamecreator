@@ -34,6 +34,8 @@ import { toCmyk } from './export/cmyk'
 import { loadProject } from './project/load'
 import { createProject } from './project/create'
 import { saveData } from './project/save'
+import { inspectDataFile } from './project/inspect'
+import { checkDataFile } from '../shared/model/dataCheck'
 import { saveTemplate } from './project/templates'
 import { sharingSets } from '../shared/model/sharedSheets'
 import { renameSet } from '../shared/model/renameSet'
@@ -63,6 +65,10 @@ Commands:
   info <project>                       Summary: sets, templates, variables, styles, assets
   check <project> [--set S]            Problems on every card (missing images, fonts, markup,
                                        formulas); exit code 1 if there are any
+  check-data <project>                 How the data file is read: for each sheet the sets that
+                                       use it, the columns their templates read and the sheet
+                                       lacks, and problems (title above the headings, empty rows,
+                                       merged cells, errors, formulas without a result)
   template <project> <name>            Layers of a template, with their data source
   rows <project> <set> [--csv|--json]  Rows of a set's sheet (default: tab-separated)
   set-rows <project> <set> <file>      Replace a set's rows with a .csv or .json file
@@ -90,7 +96,7 @@ Commands:
   help                                 This text
 
 <project> is the project folder (the one with naibi.json).
-Add --json to info, check, template, stats and notes for machine-readable output.`
+Add --json to info, check, check-data, template, stats and notes for machine-readable output.`
 
 const print = (s = ''): void => {
   process.stdout.write(s + '\n')
@@ -601,6 +607,43 @@ async function begin(p: Parsed): Promise<number> {
   return 0
 }
 
+/** Controlla file dati: il file dati com'è scritto e cosa ne fanno i set (come nell'app) */
+async function checkData(p: Parsed): Promise<number> {
+  const project = await open(p.positional[0])
+  const check = checkDataFile(
+    project,
+    await inspectDataFile(join(project.folder, project.file.dataFile))
+  )
+  if (p.flags.json) {
+    print(JSON.stringify(check, null, 2))
+    return 0
+  }
+  print(`Data file: ${project.file.dataFile}${project.file.dataReadOnly ? ' (read-only)' : ''}`)
+  const losses = project.dataFileLosses ?? []
+  if (losses.length)
+    print(
+      messageText({
+        key: 'check.losses',
+        params: { what: losses.map((x) => messageText({ key: `dataLoss.${x}` })).join(', ') }
+      })
+    )
+  for (const m of check.missingSheets) print(messageText({ key: 'check.missingSheet', params: m }))
+  for (const { sheet, sets, notes } of check.sheets) {
+    const used = sets.length
+      ? `used by ${sets.map((s) => s.name).join(', ')}`
+      : 'not linked to a set'
+    print(`\n=== ${sheet.name}: ${used}; ${sheet.dataRows} rows ===`)
+    for (const s of sets.filter((x) => x.missing.length))
+      print(
+        `- ${messageText({ key: 'check.missingColumns', params: { set: s.name, template: s.template, columns: s.missing.join(', ') } })}`
+      )
+    for (const n of notes)
+      print(`- ${n.level === 'warning' ? '[!] ' : ''}${messageText(n.message)}`)
+    if (!notes.length && !sets.some((x) => x.missing.length)) print('- No problems found.')
+  }
+  return 0
+}
+
 /** Statistiche delle colonne di un set: carte per valore, somma e media dei numeri */
 async function stats(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
@@ -678,6 +721,7 @@ const COMMANDS: Record<string, (p: Parsed) => Promise<number>> = {
   new: create,
   notes,
   stats,
+  'check-data': checkData,
   begin,
   end
 }

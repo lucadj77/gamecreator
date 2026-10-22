@@ -57,7 +57,8 @@ export function parseDocument(src: string): DocBlock[] {
     pos += l.length + 1
   }
   const blocks: DocBlock[] = []
-  let i = 0
+  // le impostazioni della pagina in testa non sono testo
+  let i = frontMatterLines(lines)
   const blank = (l: string | undefined): boolean => l === undefined || l.trim() === ''
   while (i < lines.length) {
     const line = lines[i]
@@ -247,6 +248,154 @@ function splitRow(line: string): string[] {
   return cells
 }
 
+// ——— Pagina ———
+
+/** Aspetto della pagina, scritto in testa al documento tra due righe --- */
+export interface DocSettings {
+  page: DocPage
+  /** Margini in mm */
+  margin: number
+  /** Famiglia del testo; vuota per quella di base */
+  font: string
+  /** Famiglia dei titoli; vuota per quella del testo */
+  headingFont: string
+  /** Corpo del testo in punti */
+  size: number
+  /** Interlinea, in multipli del corpo */
+  lineHeight: number
+  /** Spazio dopo ogni paragrafo, in punti */
+  paragraphSpacing: number
+  align: 'left' | 'justify'
+  color: string
+  /** Colore dei titoli; vuoto per quello del testo */
+  headingColor: string
+}
+
+export type DocPage = 'A4' | 'A5' | 'Letter'
+
+/** Larghezza e altezza delle pagine in mm */
+export const DOC_PAGES: Record<DocPage, [number, number]> = {
+  A4: [210, 297],
+  A5: [148, 210],
+  Letter: [215.9, 279.4]
+}
+
+export const DEFAULT_DOC_SETTINGS: DocSettings = {
+  page: 'A4',
+  margin: 18,
+  font: '',
+  headingFont: '',
+  size: 11,
+  lineHeight: 1.4,
+  paragraphSpacing: 6,
+  align: 'left',
+  color: '#1d1d1f',
+  headingColor: ''
+}
+
+const SETTING_KEYS = Object.keys(DEFAULT_DOC_SETTINGS) as (keyof DocSettings)[]
+const FRONT_LINE = /^\s*([A-Za-z][\w-]*)\s*:(.*)$/
+
+/** Righe occupate dalle impostazioni in testa (--- chiave: valore ---), 0 se non ci sono */
+function frontMatterLines(lines: string[]): number {
+  if (lines[0]?.trim() !== '---') return 0
+  for (let k = 1; k < lines.length; k++) {
+    const l = lines[k]
+    if (l.trim() === '---') return k + 1
+    if (l.trim() && !l.trim().startsWith('#') && !FRONT_LINE.test(l)) return 0
+  }
+  return 0
+}
+
+/** Un valore valido per l'impostazione, o null */
+function settingValue<K extends keyof DocSettings>(key: K, raw: string): DocSettings[K] | null {
+  const v = raw
+    .trim()
+    .replace(/^(["'])(.*)\1$/, '$2')
+    .trim()
+  const num = (min: number, max: number): number | null => {
+    const n = Number(v.replace(',', '.'))
+    return v !== '' && Number.isFinite(n) && n >= min && n <= max ? n : null
+  }
+  let out: unknown
+  switch (key) {
+    case 'page':
+      out = (Object.keys(DOC_PAGES) as DocPage[]).find((p) => p.toLowerCase() === v.toLowerCase())
+      break
+    case 'margin':
+      out = num(0, 60)
+      break
+    case 'size':
+      out = num(5, 30)
+      break
+    case 'lineHeight':
+      out = num(0.8, 3)
+      break
+    case 'paragraphSpacing':
+      out = num(0, 40)
+      break
+    case 'align':
+      out = v === 'left' || v === 'justify' ? v : null
+      break
+    default:
+      out = v
+  }
+  return (out ?? null) as DocSettings[K] | null
+}
+
+/** Impostazioni della pagina scritte in testa al documento, con quelle scritte male */
+export function documentSettings(src: string): {
+  settings: DocSettings
+  problems: DocumentProblem[]
+} {
+  const settings = { ...DEFAULT_DOC_SETTINGS }
+  const problems: DocumentProblem[] = []
+  const lines = src.replace(/\r\n?/g, '\n').split('\n')
+  const end = frontMatterLines(lines)
+  let pos = lines[0].length + 1
+  for (let k = 1; k < end - 1; k++) {
+    const l = lines[k]
+    const at = { from: pos, to: pos + l.length }
+    pos += l.length + 1
+    const m = FRONT_LINE.exec(l)
+    if (!m || l.trim().startsWith('#')) continue
+    const key = SETTING_KEYS.find((x) => x.toLowerCase() === m[1].toLowerCase())
+    if (!key) {
+      problems.push({ message: msg('doc.setting.unknown', { name: m[1] }), ...at })
+      continue
+    }
+    const value = settingValue(key, m[2])
+    if (value === null)
+      problems.push({ message: msg('doc.setting.bad', { name: key, value: m[2].trim() }), ...at })
+    else (settings as Record<string, unknown>)[key] = value
+  }
+  return { settings, problems }
+}
+
+/**
+ * Il documento con le impostazioni cambiate: si riscrive solo la testa; quelle tornate al valore
+ * di base si tolgono, e senza impostazioni la testa sparisce
+ */
+export function withDocumentSettings(src: string, change: Partial<DocSettings>): string {
+  const lines = src.replace(/\r\n?/g, '\n').split('\n')
+  const end = frontMatterLines(lines)
+  const head = end ? lines.slice(1, end - 1) : []
+  let body = lines.slice(end).join('\n')
+  for (const key of Object.keys(change) as (keyof DocSettings)[]) {
+    const value = change[key]
+    const at = head.findIndex((l) => FRONT_LINE.exec(l)?.[1].toLowerCase() === key.toLowerCase())
+    const keep = value !== undefined && value !== DEFAULT_DOC_SETTINGS[key]
+    const line = `${key}: ${value}`
+    if (at >= 0) {
+      if (keep) head[at] = line
+      else head.splice(at, 1)
+    } else if (keep) head.push(line)
+  }
+  if (!head.some((l) => l.trim())) return end ? body.replace(/^\n+/, '') : body
+  if (!end) body = '\n' + body
+  return ['---', ...head, '---', body].join('\n')
+}
+
 // ——— Testo ———
 
 /** Ciò che il testo di un documento richiama del progetto */
@@ -387,7 +536,7 @@ export interface DocumentProblem {
  * {nomi} sconosciuti
  */
 export function documentProblems(src: string, ctx: DocumentContext): DocumentProblem[] {
-  const out: DocumentProblem[] = []
+  const out: DocumentProblem[] = [...documentSettings(src).problems]
   const texts: { text: string; from: number }[] = []
   for (const b of parseDocument(src)) {
     switch (b.kind) {

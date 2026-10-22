@@ -4401,6 +4401,37 @@ details.usages button.link {
   gap: 12px;
 }
 
+.document-body.with-settings {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 260px;
+}
+
+.document-settings.properties {
+  width: auto;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.document-settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.document-settings-head h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.document-settings > button {
+  align-self: flex-start;
+}
+
 .document-editor {
   display: flex;
   flex-direction: column;
@@ -4468,14 +4499,12 @@ details.usages button.link {
 }
 
 .doc-page {
-  max-width: 180mm;
+  /* misure, caratteri e colori arrivano dalle impostazioni del documento (pageStyle) */
+  box-sizing: border-box;
+  flex-shrink: 0;
   margin: 0 auto;
-  padding: 14mm 12mm;
   background: #ffffff;
-  color: #1d1d1f;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-  font-size: 11pt;
-  line-height: 1.45;
 }
 
 .doc-block {
@@ -4487,18 +4516,21 @@ details.usages button.link {
 .doc-page h3 {
   line-height: 1.2;
   margin: 1.1em 0 0.4em;
+  font-family: var(--doc-heading-font);
+  color: var(--doc-heading-color);
+  text-align: left;
 }
 
 .doc-page h1 {
-  font-size: 20pt;
+  font-size: 1.8em;
 }
 
 .doc-page h2 {
-  font-size: 15pt;
+  font-size: 1.36em;
 }
 
 .doc-page h3 {
-  font-size: 12.5pt;
+  font-size: 1.14em;
 }
 
 .doc-page .doc-block:first-child > :first-child {
@@ -4506,21 +4538,21 @@ details.usages button.link {
 }
 
 .doc-page p {
-  margin: 0 0 0.6em;
+  margin: 0 0 var(--doc-spacing);
 }
 
 .doc-page blockquote {
-  margin: 0 0 0.6em;
+  margin: 0 0 var(--doc-spacing);
   padding: 0.5em 0.8em;
   border-left: 3px solid #b8b8b2;
   background: #f3f3f0;
 }
 
 .doc-page pre {
-  margin: 0 0 0.6em;
+  margin: 0 0 var(--doc-spacing);
   padding: 0.5em 0.8em;
   background: #f3f3f0;
-  font-size: 9.5pt;
+  font-size: 0.86em;
   white-space: pre-wrap;
 }
 
@@ -4531,7 +4563,7 @@ details.usages button.link {
 }
 
 .doc-list {
-  margin: 0 0 0.6em;
+  margin: 0 0 var(--doc-spacing);
 }
 
 .doc-item {
@@ -4592,7 +4624,7 @@ details.usages button.link {
 }
 
 .doc-figure figcaption {
-  font-size: 9.5pt;
+  font-size: 0.86em;
   color: #55555a;
   text-align: center;
 }
@@ -4602,7 +4634,7 @@ details.usages button.link {
   padding: 0.4em 0.7em;
   border: 1px dashed #e5484d;
   color: #c4282d;
-  font-size: 9.5pt;
+  font-size: 0.86em;
 }
 
 /* scelta della carta da inserire in un documento */

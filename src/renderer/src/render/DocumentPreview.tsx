@@ -4,8 +4,10 @@ import type { Template } from '../../../shared/model/template'
 import { bindRow } from '../../../shared/model/bind'
 import { systemOfSet } from '../../../shared/model/system'
 import { resolveAsset } from '../../../shared/model/assets'
-import { imageVariable } from '../../../shared/model/variables'
+import { imageVariable, palette, resolveColor, resolveFont } from '../../../shared/model/variables'
 import {
+  DOC_PAGES,
+  documentSettings,
   documentText,
   findCard,
   imageProblem,
@@ -14,6 +16,7 @@ import {
   parseCardRef,
   parseDocument,
   type DocBlock,
+  type DocSettings,
   type DocumentContext
 } from '../../../shared/model/document'
 import { useI18n } from '../i18n/context'
@@ -32,8 +35,31 @@ interface Props {
   project: string
   sets: LoadedSet[]
   templates: Template[]
+  /** Riduzione della pagina per farla stare nello spazio, 1 alla misura vera */
+  zoom?: number
   /** Posizione nel testo del blocco su cui si è fatto clic */
   onPick?(from: number): void
+}
+
+/** Lo stile della pagina dalle impostazioni in testa al documento */
+function pageStyle(s: DocSettings, variables: DocumentContext['variables']): React.CSSProperties {
+  const pal = palette(variables)
+  const family = (f: string): string | undefined =>
+    f.trim() ? `'${resolveFont(f, variables)}', sans-serif` : undefined
+  return {
+    width: `${DOC_PAGES[s.page][0]}mm`,
+    padding: `${s.margin}mm`,
+    fontFamily: family(s.font),
+    fontSize: `${s.size}pt`,
+    lineHeight: s.lineHeight,
+    textAlign: s.align,
+    color: resolveColor(s.color, pal),
+    ['--doc-heading-font' as string]: family(s.headingFont) ?? 'inherit',
+    ['--doc-heading-color' as string]: s.headingColor
+      ? resolveColor(s.headingColor, pal)
+      : 'inherit',
+    ['--doc-spacing' as string]: `${s.paragraphSpacing}pt`
+  }
 }
 
 export default function DocumentPreview({
@@ -41,6 +67,7 @@ export default function DocumentPreview({
   project,
   sets,
   templates,
+  zoom = 1,
   onPick
 }: Props): React.JSX.Element {
   const { t } = useI18n()
@@ -52,8 +79,9 @@ export default function DocumentPreview({
     [project, sets, assets, styles, variables]
   )
   const blocks = useMemo(() => parseDocument(text), [text])
+  const settings = useMemo(() => documentSettings(text).settings, [text])
   return (
-    <div className="doc-page">
+    <div className="doc-page" style={{ ...pageStyle(settings, variables), zoom }}>
       {!blocks.length && <p className="muted">{t('documents.empty')}</p>}
       {/* chiave per posizione: scrivendo prima di una carta la carta non si ridisegna */}
       {blocks.map((b, k) => (

@@ -524,6 +524,8 @@ The text is Markdown, with Naibi's markup from [chapter 6](#6-text-and-markup) i
 
 Cards are not copied into the document: Naibi draws them from the project, so a change to the data or the template shows in the document at once. **Insert card** opens a window where you choose the set and the card (search by name), the side, the width in millimetres (empty for the real size) and the caption, and writes the reference at the cursor. By hand you write `card:Set/3` for the card on row 3, or `card:Set/column=value` for the card with that value in a column; after a `?` add `side=back` for the back and `width=40` for the width, joined by `&`, as in `card:Characters/name=Wizard?side=back&width=40`. A column value, like the name, is safer than the number, which changes when the rows are reordered. Several images on the same line of text sit side by side.
 
+**Page** opens the document settings on the right: page size (A4, A5, Letter), margins, text and heading fonts, text size, line spacing, space after paragraphs, alignment (left or justified), and text and heading colors. The preview shows the page at its real width, scaled down if it does not fit. The settings are written at the top of the file, between two `---` lines, such as `size: 12` or `lineHeight: 1.6`: you can change them there too, and **Reset to default** removes them.
+
 Below the text the problems are listed: cards that are not found, images not in assets, unknown names in braces; a click goes to that point of the text. `naibi check` reports them with those of the cards, and `naibi docs` shows the documents to an AI agent. For now documents are read only in the app: export to PDF, HTML and Markdown with images will come in a later version.
 
 ## 13. Backup

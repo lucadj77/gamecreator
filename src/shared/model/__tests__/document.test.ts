@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   cardRefSource,
+  DEFAULT_DOC_SETTINGS,
   documentProblems,
+  documentSettings,
   documentText,
   findCard,
   parseCardRef,
-  parseDocument
+  parseDocument,
+  withDocumentSettings
 } from '../document'
 import type { LoadedSet } from '../../project'
 
@@ -176,5 +179,33 @@ describe('documenti: testo e controllo', () => {
     ])
     const row = problems.find((p) => p.message.key === 'doc.card.noRow')!
     expect(src.slice(row.from, row.to)).toBe('![](card:Personaggi/9)')
+  })
+})
+
+describe('impostazioni della pagina', () => {
+  const src =
+    '---\nsize: 12\nlineHeight: 1,6\nfont: "Alegreya"\ncolour: red\nalign: center\n---\n# Regole\n'
+
+  it('si leggono dalla testa, che non è testo', () => {
+    const { settings, problems } = documentSettings(src)
+    expect(settings).toMatchObject({ size: 12, lineHeight: 1.6, font: 'Alegreya', page: 'A4' })
+    expect(problems.map((p) => p.message.key)).toEqual(['doc.setting.unknown', 'doc.setting.bad'])
+    expect(src.slice(problems[0].from, problems[0].to)).toBe('colour: red')
+    expect(parseDocument(src)).toEqual([
+      { kind: 'heading', level: 1, text: 'Regole', from: src.indexOf('#') }
+    ])
+  })
+
+  it('un --- che non apre impostazioni resta una riga', () => {
+    expect(documentSettings('---\nTesto\n---\n').settings).toEqual(DEFAULT_DOC_SETTINGS)
+    expect(parseDocument('---\nTesto')[0].kind).toBe('rule')
+  })
+
+  it('si scrivono e si tolgono', () => {
+    const one = withDocumentSettings('# Regole\n', { size: 12, page: 'A5' })
+    expect(one).toBe('---\nsize: 12\npage: A5\n---\n\n# Regole\n')
+    const two = withDocumentSettings(one, { size: 11, margin: 10 })
+    expect(two).toBe('---\npage: A5\nmargin: 10\n---\n\n# Regole\n')
+    expect(withDocumentSettings(two, { page: 'A4', margin: 18 })).toBe('# Regole\n')
   })
 })

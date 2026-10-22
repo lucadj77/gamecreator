@@ -1,10 +1,17 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { isValidNoteName, type LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
-import { DOCUMENTS_DIR, documentProblems } from '../../../shared/model/document'
+import {
+  DOC_PAGES,
+  DOCUMENTS_DIR,
+  documentProblems,
+  documentSettings,
+  withDocumentSettings
+} from '../../../shared/model/document'
 import { useI18n } from '../i18n/context'
 import { AssetsContext, StylesContext, VariablesContext } from '../render/assets'
-import DocumentPreview from '../render/DocumentPreview'
+import DocumentPreview, { DOC_UNIT } from '../render/DocumentPreview'
+import DocumentSettingsPanel from './DocumentSettingsPanel'
 import InsertCardDialog from './InsertCardDialog'
 import MarkupTextarea from './MarkupTextarea'
 import { TrashIcon } from './icons'
@@ -43,6 +50,7 @@ export default function DocumentView({
   const variables = useContext(VariablesContext)
   const [draftName, setDraftName] = useState(name)
   const [inserting, setInserting] = useState(false)
+  const [pageOpen, setPageOpen] = useState(false)
   const editor = useRef<HTMLTextAreaElement | null>(null)
   const preview = useRef<HTMLDivElement>(null)
   /** Dove rimettere il cursore dopo un inserimento, quando il testo nuovo è arrivato */
@@ -67,6 +75,19 @@ export default function DocumentView({
       ),
     [text, project, sets, assets, styles, variables]
   )
+
+  const settings = useMemo(() => documentSettings(text).settings, [text])
+  // la pagina si vede intera: se non ci sta in larghezza si riduce
+  const [room, setRoom] = useState(0)
+  useEffect(() => {
+    const box = preview.current
+    if (!box) return undefined
+    const observer = new ResizeObserver(() => setRoom(box.clientWidth))
+    observer.observe(box)
+    return () => observer.disconnect()
+  }, [])
+  const pageWidth = DOC_PAGES[settings.page][0] * DOC_UNIT
+  const zoom = room ? Math.min(1, (room - 26) / pageWidth) : 1
 
   useEffect(() => {
     const el = editor.current
@@ -126,11 +147,18 @@ export default function DocumentView({
         <button onClick={() => setInserting(true)} title={t('documents.insertCardHint')}>
           {t('documents.insertCard')}
         </button>
+        <button
+          className={pageOpen ? 'active' : ''}
+          onClick={() => setPageOpen((o) => !o)}
+          title={t('documents.pageButtonHint')}
+        >
+          {t('documents.page')}
+        </button>
         <button className="icon-btn" title={t('documents.delete')} onClick={onDelete}>
           <TrashIcon />
         </button>
       </div>
-      <div className="document-body">
+      <div className={pageOpen ? 'document-body with-settings' : 'document-body'}>
         <div className="document-editor">
           <MarkupTextarea
             ref={editor}
@@ -172,6 +200,7 @@ export default function DocumentView({
             project={project}
             sets={sets}
             templates={templates}
+            zoom={zoom}
             onPick={(from) => {
               const el = editor.current
               if (!el) return
@@ -183,6 +212,13 @@ export default function DocumentView({
             }}
           />
         </div>
+        {pageOpen && (
+          <DocumentSettingsPanel
+            settings={settings}
+            onChange={(change) => onChange(withDocumentSettings(text, change))}
+            onClose={() => setPageOpen(false)}
+          />
+        )}
       </div>
       {inserting && (
         <InsertCardDialog

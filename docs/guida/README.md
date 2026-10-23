@@ -23,8 +23,9 @@ English version: [../guide/README.md](../guide/README.md).
 13. [Backup](#13-backup)
 14. [Importare da Tabletop Creator](#14-importare-da-tabletop-creator)
 15. [Lavorare con un agente IA](#15-lavorare-con-un-agente-ia)
-16. [I file del progetto](#16-i-file-del-progetto)
-17. [Scorciatoie da tastiera](#17-scorciatoie-da-tastiera)
+16. [La versione web](#16-la-versione-web)
+17. [I file del progetto](#17-i-file-del-progetto)
+18. [Scorciatoie da tastiera](#18-scorciatoie-da-tastiera)
 
 ## 1. Concetti di base
 
@@ -59,7 +60,9 @@ Quando esce una versione nuova, all'avvio compare una striscia in cima alla fine
 
 Nel menu ⚙, **Aggiornamenti** sceglie il canale. **Stabile** propone solo le versioni ufficiali; **Beta** anche quelle di prova, che portano le novità prima ma possono avere qualche difetto in più. Chi aveva già una beta si trova su Beta. Tornando da Beta a Stabile Stella non installa una versione più vecchia: aspetta la prossima ufficiale.
 
-Per creare un progetto si scrivono il nome e la posizione. Di base la posizione è `Documenti/Stella`; il file dei dati può essere Excel (`.xlsx`, consigliato) o OpenDocument (`.ods`).
+Nella schermata di ingresso, in basso a destra, **Novità** mostra le novità della versione in uso, anche senza rete, e **Controlla aggiornamenti** chiede subito a GitHub se c'è una versione più recente, e lo dice anche quando hai già l'ultima.
+
+Per creare un progetto si scrivono il nome e la posizione. Di base la posizione è `Documenti/Stella`; il file dei dati può essere Excel (`.xlsx`, consigliato) o OpenDocument (`.ods`). Con **Un file che hai già (.xlsx, .ods, .csv)…**, alla voce **File dei dati**, il progetto parte da un file che hai già: Stella ne fa una copia nella cartella `data` del progetto e i suoi fogli diventano set con **Nuovo set** (vedi [Usare un file Excel che hai già](excel-esistente.md)).
 
 ![La finestra per creare un nuovo progetto](img/nuovo-progetto.png)
 
@@ -113,7 +116,17 @@ I livelli selezionati si copiano con ⌘C (⌘X per tagliarli) e si incollano co
 
 Senza livelli selezionati, il pannello mostra le proprietà del template: misure, abbondanza (di base 3 mm), margine dell'area sicura, forma della carta (rettangolo con angoli arrotondati, cerchio o ellisse, esagono, sagoma presa da un'immagine), guide manuali e **Nome delle carte**, il campo che compare sotto ogni carta nella griglia. L'esagono è sempre regolare, il più grande che sta nella carta: per riempirla il lato corto deve essere il lato lungo × 0,866, e il pulsante **Adatta la carta all'esagono** cambia così il lato corto. Nelle forme poligono e stella, **Rendi regolare** porta il riquadro a un quadrato attorno allo stesso centro, così lati e angoli sono tutti uguali.
 
-Quando si cambiano le misure di un template che ha già dei livelli, l'app chiede se scalare i livelli in proporzione o lasciarli dove sono. Nel secondo caso ogni livello segue i suoi **vincoli** (resta a sinistra, segue il bordo destro, si allarga con la carta e così via).
+Quando si cambiano le misure di un template che ha già dei livelli, l'app chiede se scalare i livelli in proporzione o lasciarli dove sono. Nel secondo caso ogni livello segue i suoi **vincoli**: due menu nella sezione della posizione, uno per l'orizzontale e uno per il verticale, che dicono a che cosa il livello resta attaccato quando la carta cambia misura.
+
+| vincolo                                                | cosa fa quando la carta cambia misura                                                                                 |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Resta a sinistra** / **Resta in alto**               | tiene la distanza dal bordo sinistro o da quello superiore                                                            |
+| **Segue il lato destro** / **Segue il lato inferiore** | tiene la distanza dal bordo destro o da quello inferiore: un piè di pagina resta in fondo anche su una carta più alta |
+| **Resta al centro**                                    | tiene la distanza dal centro della carta                                                                              |
+| **Si allunga con la carta**                            | tiene la distanza da entrambi i bordi, quindi si allarga o si restringe: uno sfondo o una banda a tutta larghezza     |
+| **Scala**                                              | posizione e misura cambiano in proporzione alla carta                                                                 |
+
+I vincoli servono quando lo stesso disegno deve stare su due formati, per esempio una carta poker e una tarocchi, o quando si cambia formato dopo aver disegnato: si impostano una volta e il cambio di misura sistema i livelli da solo.
 
 ### 4.4 Le proprietà dei livelli
 
@@ -145,10 +158,14 @@ Le proprietà principali per tipo di livello:
 - **Testo**: contenuto, stile, font, peso, dimensione, colore, allineamento orizzontale e verticale, interlinea, adattamento (riduci per stare nel riquadro, taglia al bordo, lascia uscire). In Avanzate spaziature, rientro, margini interni, maiuscole, sottolineato, barrato, a capo automatico e contorno delle lettere.
 - **Immagine**: nome del file o della variabile, adattamento (riempi ritagliando, riempi lasciando uscire la parte fuori dal riquadro, adatta dentro, allunga, dimensione originale, ripeti), allineamento, zoom, rotazione dell'immagine dentro il riquadro, spostamento, colorazione e ritaglio. **Ritaglia…** mostra l'immagine intera con un rettangolo da spostare e ridimensionare: il livello usa solo quella parte, senza modificare il file. Il rettangolo può tenere le proporzioni del riquadro del livello; × toglie il ritaglio. Se il nome dell'immagine viene da una colonna, il ritaglio si prova sull'immagine della carta mostrata e vale per tutte le carte. In Avanzate riflessioni, regolazioni (scala di grigi, luminosità, contrasto, saturazione), raggio, contorno e cosa fare se l'immagine manca.
 - **Forma**: tipo, riempimento (nessuno, colore o sfumatura lineare o radiale), contorno (continuo, tratteggiato, a punti) e raggio degli angoli. Poligoni e stelle hanno il numero di lati o punte; la linea va da un punto A a un punto B; la forma "da un'immagine" prende la sagoma di una PNG con trasparenza o di una SVG.
-- **Griglia**: caselle uguali dentro il riquadro del livello, per plance, tracciati e mappe. Le caselle sono quadrate, tonde, esagonali, triangolari o a rombo, in righe e colonne con uno spazio tra l'una e l'altra. **A incastro** le dispone ad alveare per gli esagoni (con la punta o con il lato in alto), alternate in su e in giù per i triangoli, nei vuoti tra le altre per rombi e cerchi, a mattoncino per i quadrati. Le caselle hanno riempimento, contorno e raggio degli angoli (non i cerchi); lo **sfondo della griglia** riempie lo spazio dietro e tra le caselle fino al **bordo della griglia**, che ha un suo contorno. In Avanzate il margine tra caselle e bordo, il raggio dello sfondo, la larghezza delle caselle rispetto all'altezza, lo zoom (100% è la griglia più grande che sta nel riquadro senza deformare le caselle), la posizione nel riquadro e il taglio di ciò che esce. Il riempimento delle caselle è il valore del livello, quindi può cambiare da carta a carta; per le altre proprietà si usano colonne come `griglia.rows`. **Contenuto delle caselle** sceglie un gruppo dello stesso lato che si ripete in ogni casella: si disegna nella prima casella (**Porta nella prima casella** ce lo sposta) e le altre ne ricevono una copia spostata al loro posto. Dentro il gruppo i campi `{cell.index}` (1, 2, 3… per righe), `{cell.row}`, `{cell.column}`, `{cell.count}` (numero di caselle) e `{cell.random}` (un numero da 1 a 999999, fisso per carta e casella) cambiano da casella a casella: un testo con la formula `=IF(MOD({cell.index}; 10) = 0; "[" & {cell.index} & "]{color=red}"; {cell.index})` numera un tracciato del punteggio con i multipli di 10 in rosso, un'icona con `=PICK({cell.index}; {icone})` mette in sequenza le icone di una colonna `icone`. Nell'editor il gruppo resta selezionabile nella sua posizione; sulle carte si vede solo nelle caselle.
-- **Gruppo**: può disporre i figli in riga, in colonna o in griglia, ripeterli un numero di volte fisso o preso da un campo (per esempio `{forza}` icone) e usare il livello più in basso come maschera.
+- **Griglia**: caselle uguali dentro il riquadro del livello, per plance, tracciati e mappe ([4.8](#48-la-griglia)).
+- **Gruppo**: raccoglie altri livelli, che si spostano, si ruotano e si nascondono insieme. **Disponi i figli** li mette in riga, in colonna o in griglia con uno spazio fisso, senza allinearli a mano: tre icone in riga restano a distanza uguale anche se una viene nascosta. **Ripeti** disegna il gruppo un numero di volte fisso o preso da un campo: con `{forza}` una spada per ogni punto di forza. Con la maschera il livello più in basso del gruppo fa da sagoma per gli altri: un ritratto dentro un cerchio è un gruppo con un'ellisse in fondo e l'immagine sopra.
 
 Per tutti i livelli ci sono posizione, dimensioni, rotazione e, nella sezione **Aspetto**, opacità, visibilità, fusione, dissolvenza, ombra e blocco.
+
+Per il testo, **Adattamento** decide cosa succede quando il testo non sta nel riquadro: **Riduci per stare nel riquadro** abbassa la dimensione fino alla **Dimensione minima**, **Taglia al bordo del riquadro** nasconde quello che esce, **Esce dal riquadro** lo disegna oltre il bordo. Per il testo delle regole conviene ridurre, con una dimensione minima ancora leggibile; **Controlla testi…** ([5.3](#53-ordinare-e-filtrare)) trova le carte in cui nemmeno la dimensione minima basta.
+
+Nella sezione **Aspetto** l'**opacità** rende il livello trasparente; la **fusione** dice come si combina con quello che sta sotto (**Moltiplica** scurisce uno sfondo con una texture, **Scolora** lo schiarisce); la **dissolvenza** sfuma l'opacità da un lato all'altro del livello, o dal centro ai bordi, per far svanire un'immagine di sfondo verso il testo; l'**ombra** ha colore, sfocatura e spostamento, e un'ombra leggera sotto un titolo lo stacca da uno sfondo chiaro. **Bloccato** impedisce di selezionare e spostare il livello sulla tela, utile per lo sfondo.
 
 ### 4.5 Allineare e distribuire
 
@@ -176,6 +193,16 @@ Si lavora come su un template normale, con alcune differenze:
 - Le misure della carta sono quelle del base.
 
 **Rendi indipendente**, nell'intestazione, trasforma il derivato in un template normale con i valori che ha in quel momento. Un template che fa da base a un altro non si può eliminare finché i suoi derivati non sono indipendenti o eliminati.
+
+### 4.8 La griglia
+
+Il livello **griglia** (strumento con le caselle) disegna caselle uguali dentro il suo riquadro: serve per plance, tracciati del punteggio, mappe, tabelle da compilare a mano. Le caselle sono quadrate, tonde, esagonali, triangolari o a rombo, in righe e colonne con uno spazio tra l'una e l'altra. **A incastro** le dispone ad alveare per gli esagoni (con la punta o con il lato in alto), alternate in su e in giù per i triangoli, nei vuoti tra le altre per rombi e cerchi, a mattoncino per i quadrati. Le caselle hanno riempimento, contorno e raggio degli angoli (non i cerchi); lo **sfondo della griglia** riempie lo spazio dietro e tra le caselle fino al **bordo della griglia**, che ha un suo contorno. In Avanzate il margine tra caselle e bordo, il raggio dello sfondo, la larghezza delle caselle rispetto all'altezza, lo zoom (100% è la griglia più grande che sta nel riquadro senza deformare le caselle), la posizione nel riquadro e il taglio di ciò che esce. Il riempimento delle caselle è il valore del livello, quindi può cambiare da carta a carta; per le altre proprietà si usano colonne come `griglia.rows`.
+
+![Un livello griglia con caselle esagonali a incastro](img/griglia-livello.png)
+
+**Contenuto delle caselle** sceglie un gruppo dello stesso lato che si ripete in ogni casella: si disegna nella prima casella (**Porta nella prima casella** ce lo sposta) e le altre ne ricevono una copia spostata al loro posto. Dentro il gruppo i campi `{cell.index}` (1, 2, 3… per righe), `{cell.row}`, `{cell.column}`, `{cell.count}` (numero di caselle) e `{cell.random}` (un numero da 1 a 999999, fisso per carta e casella) cambiano da casella a casella: un testo con la formula `=IF(MOD({cell.index}; 10) = 0; "[" & {cell.index} & "]{color=red}"; {cell.index})` numera un tracciato del punteggio con i multipli di 10 in rosso, un'icona con `=PICK({cell.index}; {icone})` mette in sequenza le icone di una colonna `icone`. Nell'editor il gruppo resta selezionabile nella sua posizione; sulle carte si vede solo nelle caselle.
+
+![Un tracciato del punteggio: il gruppo della prima casella ripetuto in tutte, con i multipli di 10 in rosso](img/griglia-caselle.png)
 
 ## 5. Inserire e modificare le carte
 
@@ -376,7 +403,7 @@ Uno stile raccoglie attributi del testo con un nome: si applica a un livello int
 
 ### 7.3 Scegliere un colore
 
-Il quadratino accanto a ogni campo colore apre il selettore: l'area grande sceglie saturazione e luminosità, le due barre sotto la tonalità e la trasparenza. Il codice esadecimale si scrive nel campo accanto all'anteprima; **RGB** e **HSL** cambiano i tre campi numerici (le frecce su e giù li cambiano di 1, con Maiuscolo di 10). Il contagocce prende un colore da qualunque punto dello schermo, anche da un'altra finestra. Sotto ci sono i colori del progetto: prima le variabili colore, segnate da un punto nell'angolo, che si scrivono per nome e mostrano il nome della variabile passandoci sopra; poi i codici usati nel progetto (template, stili, variabili e fogli), dal più usato, senza quelli uguali a una variabile. In fondo gli ultimi colori scelti, comuni a tutti i progetti. Esc o un clic fuori chiudono il selettore.
+Il quadratino accanto a ogni campo colore apre il selettore: l'area grande sceglie saturazione e luminosità, le due barre sotto la tonalità e la trasparenza. Il codice esadecimale si scrive nel campo accanto all'anteprima; **RGB** e **HSL** cambiano i tre campi numerici (le frecce su e giù li cambiano di 1, con Maiuscolo di 10). Il contagocce prende un colore da qualunque punto dello schermo, anche da un'altra finestra. Sotto ci sono i colori del progetto: prima le variabili colore, segnate da un punto nell'angolo, che si scrivono per nome e mostrano il nome della variabile passandoci sopra; poi i codici usati nel progetto (template, stili, variabili e fogli), dal più usato, senza quelli uguali a una variabile. In fondo gli ultimi colori scelti, comuni a tutti i progetti. Esc o un clic fuori chiudono il selettore. **Nessuno** scrive `none`, cioè nessun colore: un riempimento trasparente o un contorno assente.
 
 ![Il selettore colore](img/colore.png)
 
@@ -386,7 +413,7 @@ Il quadratino accanto a ogni campo colore apre il selettore: l'area grande scegl
 
 Le immagini stanno in `assets/`, anche in sottocartelle, nei formati SVG, PNG, WebP e JPG. Ovunque si indichi un'immagine basta il nome del file, senza cartella né estensione. Se due file hanno lo stesso nome (per esempio `spada.png` e `spada.svg`) l'app lo segnala e chiede di aggiungere l'estensione o la cartella.
 
-Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella.
+Il pulsante con l'immagine accanto ai campi apre le miniature degli asset, con ricerca e filtro per cartella. **Aggiungi immagini…** copia file dal computer in `assets/images` del progetto (un file con lo stesso nome non viene sovrascritto: la copia prende un numero). **Sfondo scuro** mostra le miniature su fondo scuro, per vedere le icone bianche; la scelta viene ricordata.
 
 ![La scelta di un'immagine](img/scegli-immagine.png)
 
@@ -433,6 +460,25 @@ Un livello con **Valore sulle carte: Formula** calcola il proprio valore dagli a
 - **Composizione di testo**: `{nome}.png`, `Forza {forza}`.
 - **Calcolo**: se la formula contiene `+ - * /` e il risultato è un numero, si calcola: `{forza}+2`.
 - **Espressione**: con `=` iniziale funziona come in Excel. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` o `,`. Funzioni: `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN`, `MOD`, `PICK`.
+
+Le funzioni, con un esempio sulle carte della guida (Drago, forza 4, costo `{oro}{oro}{legno}`):
+
+| funzione                                      | cosa fa                                       | esempio                                             |
+| --------------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| `IF(condizione; se vera; se falsa)`           | sceglie tra due valori                        | `=IF({forza}>3; "Forte"; "Debole")` → Forte         |
+| `AND`, `OR`, `NOT`                            | combinano condizioni                          | `=IF(AND({forza}>3; {costo}<>""); "sì"; "no")` → sì |
+| `MIN`, `MAX`                                  | il numero più piccolo o più grande            | `=MAX({forza}; 3)` → 4                              |
+| `ABS`                                         | il numero senza segno                         | `=ABS({forza}-6)` → 2                               |
+| `ROUND(numero; decimali)`, `FLOOR`, `CEILING` | arrotondano                                   | `=ROUND({forza}/3; 1)` → 1.3                        |
+| `UPPER`, `LOWER`                              | maiuscole e minuscole                         | `=UPPER({nome})` → DRAGO                            |
+| `LEN`                                         | quanti caratteri ha il testo                  | `=LEN({nome})` → 5                                  |
+| `CONCAT`                                      | unisce i testi (come `&`)                     | `=CONCAT({nome}; " "; {forza})` → Drago 4           |
+| `ISBLANK`                                     | vero se il valore è vuoto                     | `=IF(ISBLANK({nota}); "-"; {nota})` → -             |
+| `COUNTIN(testo; cercato)`                     | quante volte un testo ne contiene un altro    | `=COUNTIN({costo}; "oro")` → 2                      |
+| `MOD(numero; divisore)`                       | il resto della divisione                      | `=MOD({cell.index}; 10)` → 0 ogni dieci caselle     |
+| `PICK(n; valore1; valore2; …)`                | l'n-esimo valore, ricominciando dopo l'ultimo | `=PICK({forza}; "spada"; "scudo"; "mano")` → spada  |
+
+La finestra **Aiuto** (F1), scheda **Formule**, ha la stessa tabella con il risultato calcolato sulle carte del progetto aperto.
 
 Nell'esempio il livello `rango` mostra "Eroe" o "Gregario" secondo la forza. Sotto la formula compare il risultato per la prima carta del set.
 
@@ -486,7 +532,7 @@ Il PDF è vettoriale, con i font incorporati. Si scelgono pagina e orientamento,
 - **Poster**: divide su più pagine le carte più grandi della pagina, con una sovrapposizione.
 - **Piegatura**: fronte e retro affiancati, da piegare.
 - **Segni di taglio**: agli angoli o a linee intere, con lunghezza, spessore e colore.
-- **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati.
+- **Fronte-retro**: retri su pagine alternate, girando il foglio sul lato lungo o corto, con una correzione dello spostamento per le stampanti che non allineano i due lati. Per trovare la correzione giusta stampa prima una pagina sola, misura di quanto il retro è spostato rispetto al fronte guardando il foglio controluce e scrivi quel valore in **Spostamento retri**; poi stampa tutto. Il **Foglio di prova** serve a controllare le carte in piccolo prima di consumare carta.
 - **Pagine**: con **Uno dopo l'altro sulla stessa pagina** un set comincia subito dopo il precedente invece che su una pagina nuova (10 + 8 carte con 9 per pagina stanno in 2 pagine invece di 3). Un set con carte di un'altra misura comincia su una riga nuova, se nella pagina c'è posto.
 - **Foglio di prova**: un PDF a parte con tutte le carte in piccolo.
 - **Converti in CMYK**: richiede Ghostscript installato sul computer.
@@ -533,6 +579,10 @@ I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul compute
 
 Nella sezione **Documenti** della barra laterale si scrivono i testi che accompagnano il gioco: il regolamento, una sell sheet, un'appendice, le domande frequenti. Il + crea un documento, un clic lo apre al posto del set o del template aperto. A sinistra si scrive, a destra l'anteprima mostra la pagina mentre si scrive e segue il cursore; un clic su un punto dell'anteprima porta il cursore a quel punto del testo. Il nome si cambia dal titolo; il ⋯ accanto al titolo, e il clic destro sul documento nella barra laterale, hanno **Rinomina**, **Duplica** (una copia con il nome seguito da un numero) ed **Elimina**, che sposta il documento in `deleted`. I documenti si salvano da soli mentre si scrive, come file `docs/<nome>.md` del progetto, e si possono scrivere anche con un altro editor o da un agente IA.
 
+![Un documento con l'anteprima della pagina accanto](img/documento.png)
+
+### 12.1 Scrivere e formattare
+
 Sopra il testo c'è la barra di formattazione: il menu **Testo** fa della riga un titolo di primo, secondo o terzo livello o la riporta a paragrafo; **B**, _I_, U e S mettono o tolgono grassetto, corsivo, sottolineato e barrato al testo selezionato (senza selezione lasciano il cursore tra i due segni); i tre tasti successivi fanno delle righe scelte un elenco puntato, un elenco numerato o una citazione, e un secondo clic li toglie. **Stile** applica al testo selezionato uno stile del progetto e ha in fondo **Aa Formatta…**, la formattazione avanzata del [capitolo 6](#6-testo-e-markup). Gli ultimi tasti inseriscono un'immagine degli asset, una tabella, una carta, un'anatomia o uno schema del tavolo. La barra scrive nel testo il markup che si scriverebbe a mano, e ⌘Z (Ctrl+Z) lo annulla.
 
 Il testo è Markdown, con il markup di Stella del [capitolo 6](#6-testo-e-markup) dentro le righe:
@@ -551,17 +601,29 @@ Il testo è Markdown, con il markup di Stella del [capitolo 6](#6-testo-e-markup
 | `![](icone/mappa.png)`                      | un'immagine degli asset                                             |
 | `![](icone/mappa.png?width=40&align=right)` | un'immagine larga 40 mm, a destra                                   |
 
+### 12.2 Carte e immagini
+
 Le carte non si copiano nel documento: Stella le disegna dal progetto, quindi una modifica ai dati o al template si vede subito anche nel documento. **Inserisci carta** apre una finestra in cui si sceglie il set e la carta (si cerca per nome), il lato, la larghezza in millimetri (vuota per la misura vera) e la didascalia, e scrive il riferimento al posto del cursore. A mano si scrive `card:Set/3` per la carta della riga 3 oppure `card:Set/colonna=valore` per la carta che ha quel valore in una colonna; dopo un `?` si aggiungono `side=back` per il retro e `width=40` per la larghezza, unite da `&`, come in `card:Personaggi/nome=Mago?side=back&width=40`. Il valore di una colonna, come il nome, è più sicuro del numero, che cambia se le righe si riordinano. Più immagini sulla stessa riga del testo stanno affiancate.
 
+![La finestra Inserisci carta](img/inserisci-carta.png)
+
 **Immagine** apre una finestra in cui si sceglie il file degli asset (con l'anteprima), la larghezza in millimetri (vuota per la misura dell'immagine, ridotta se non ci sta nella pagina), l'allineamento (a sinistra, al centro, a destra) e la didascalia. Con il cursore su un'immagine già scritta, lo stesso tasto la apre per modificarla. Nel testo le opzioni vanno dopo un `?`, come per le carte: `![Mappa](icone/mappa.png?width=40&align=right)`. Anche le carte accettano `align=left` o `align=right`. L'allineamento vale per tutta la riga: con più immagini affiancate conta quello della prima che lo indica.
+
+### 12.3 Tabelle e riquadri
 
 **Tabella** apre una griglia da compilare: la prima riga è l'intestazione, ogni colonna ha il suo allineamento, **+ Riga** e **+ Colonna** la allargano e × toglie una riga o una colonna. Si possono incollare celle copiate da Excel o da un altro foglio di calcolo. Con il cursore dentro una tabella già scritta, lo stesso tasto la apre per modificarla. Nel testo la tabella diventa Markdown con le colonne allineate.
 
 Nelle celle vale lo stesso markup del testo (stili, icone, variabili) e si possono mettere immagini e carte: si fa clic in una cella e si usa la barra sopra la griglia per grassetto, corsivo, stili e **Formatta…**, **Immagine** per un'immagine degli asset e **Inserisci carta** per una carta del progetto; nel testo si scrivono come `![](icons/spada.svg?width=8)` e `![](card:Personaggi/1?width=20)`. Sotto la griglia, **Aspetto** sceglie la larghezza della tabella (in % del testo, 0 per quanto il contenuto), quella di ogni colonna (il campo % sopra la colonna), quali linee disegnare (tutte, solo tra le righe, solo il contorno, nessuna) con colore e spessore, e gli sfondi dell'intestazione, delle righe e di una riga sì e una no. L'aspetto si scrive in un commento sotto la tabella, `<!-- table width=90% columns=25,55,20 lines=rows header=#dde6f5 -->`, che gli altri programmi per il Markdown non mostrano. Le esportazioni HTML, PDF e Word lo mantengono; quella in Markdown tiene solo testo e immagini.
 
+![La finestra della tabella, con l'aspetto in basso](img/doc-tabella.png)
+
 **Riquadro** mette uno sfondo colorato dietro una parte del documento: serve a dare risalto a un pezzo di testo o a staccare dal foglio immagini bianche senza bordo. Con delle righe selezionate le mette nel riquadro; senza selezione ne inserisce uno nuovo con un testo di prova. Si scelgono lo sfondo, un bordo (colore e spessore), lo spazio interno e gli angoli arrotondati; con il cursore dentro un riquadro lo stesso tasto lo modifica o lo toglie (**Togli il riquadro** lascia il contenuto). Nel testo il riquadro è fatto da due righe, `<!-- box fill=#fff3c4 border=#e0b000 -->` all'inizio e `<!-- /box -->` alla fine: tutto quello che c'è in mezzo (titoli, elenchi, tabelle, carte) prende lo sfondo. Le esportazioni HTML, PDF e Word lo mantengono, quella in Markdown no.
 
+### 12.4 Anatomia della carta
+
 **Anatomia carta** disegna una carta con le etichette che ne spiegano le parti, collegate da una linea ai livelli del template. La finestra ha due colonne: a sinistra si sceglie la carta come in **Inserisci carta**, a destra si vede l'anatomia come uscirà nel documento e sotto si spuntano i livelli da spiegare e si scrive l'etichetta di ciascuno. Sopra le etichette una piccola barra mette grassetto, corsivo, sottolineato, barrato o uno stile del progetto sul testo selezionato dell'etichetta in cui si sta scrivendo. Ogni etichetta va dal lato della carta più vicino al suo livello; carta ed etichette si riducono per stare nella pagina. Con il cursore dentro un'anatomia, lo stesso tasto la apre per modificarla. Nel testo l'anatomia è un blocco come questo, che si può anche scrivere a mano:
+
+![La finestra dell'anatomia della carta](img/anatomia.png)
 
 ````
 ```anatomy
@@ -574,7 +636,11 @@ card: Personaggi/nome=Mago?width=50
 
 `card:` è la carta, scritta come nei riferimenti alle carte (anche con `side=back` e `width`). Ogni riga `- livello: etichetta` spiega un livello; `(left)` o `(right)` dopo il nome sceglie il lato. Con **Fronte e retro** nella finestra (nel testo la riga `sides: both`) le due facce stanno affiancate, con le etichette del fronte a sinistra e quelle del retro a destra; i livelli del retro si scrivono con `(back)`, per esempio `- logo (back): Il logo del gioco`. Nelle etichette si può usare il markup. Un livello che il template non ha viene segnalato sotto il testo e da `stella check`.
 
+### 12.5 Schema del tavolo
+
 **Schema tavolo** disegna come preparare il tavolo, con le carte vere del progetto. Nella finestra i tasti **Zona**, **Carta**, **Mazzo**, **Testo**, **Freccia** e **Immagine** aggiungono un elemento; carte e mazzi si scelgono come in **Inserisci carta**, le immagini dagli asset. Un elemento si sceglie con un clic e si sposta trascinandolo, o con le frecce della tastiera (1 mm, 5 con Maiusc); la maniglia in basso a destra cambia la misura di zone, testi e immagini, quelle alle due estremità spostano gli estremi di una freccia. Carte, mazzi e immagini hanno sopra una maniglia tonda che li ruota attorno al centro (con Maiuscolo a scatti di 15°); nel pannello a destra **Rotazione** scrive i gradi esatti e **+90°** gira di un quarto. A destra si cambiano posizione e misure in millimetri, l'etichetta (o il testo, con la stessa barra di formattazione dell'anatomia), il numero di carte di un mazzo e la rotazione di 90° in 90°; **Duplica** ed **Elimina** fanno quel che dicono. Senza elemento scelto, **Misura del tavolo fissa** dà allo schema una misura in millimetri; senza, lo schema si adatta agli elementi. Nel documento lo schema si riduce per stare nella pagina, e le didascalie restano leggibili. Con il cursore dentro uno schema, lo stesso tasto lo apre per modificarlo. Nel testo è un blocco come questo, che si può anche scrivere a mano:
+
+![La finestra dello schema del tavolo](img/schema-tavolo.png)
 
 ````
 ```setup
@@ -590,9 +656,13 @@ image icone/moneta.png 270,75 width=12
 
 Ogni riga è un elemento, con le misure in millimetri dall'angolo in alto a sinistra: `zone x,y LxA "etichetta"`, `card <carta> x,y`, `deck <carta> x,y count=N`, `text x,y width=L "testo"`, `arrow x,y -> x2,y2 "etichetta"`, `image <file> x,y width=L`. Carte, mazzi e immagini accettano `rotate=` con i gradi, in senso orario (per esempio `rotate=90` o `rotate=30`), e carte e mazzi e un'etichetta tra virgolette; la carta si scrive come nei riferimenti alle carte, con `%20` al posto degli spazi. `size LxA` fissa la misura del tavolo. Nei testi e nelle etichette si può usare il markup. Le righe che non si capiscono e le carte che non si trovano vengono segnalate sotto il testo e da `stella check`.
 
+### 12.6 Proprietà e pagina
+
 **Proprietà**, sopra la barra, raccoglie le note sul documento, come le proprietà di Obsidian: titolo, autore, versione, tag o altro. Ogni proprietà ha un nome (lettere, cifre, `-` e `_`) e un valore; un elenco, segnato con ≡, ha le voci separate da virgole. **+ Aggiungi proprietà** ne aggiunge una, × la toglie. Le proprietà sono scritte in testa al file tra due righe `---`, in YAML, insieme alle impostazioni della pagina, e un documento scritto con Obsidian o con un altro editor Markdown le conserva. Non si stampano: con **Mostra nel documento** compaiono in una tabella in testa alla pagina, anche nelle esportazioni.
 
 **Pagina** apre a destra le impostazioni del documento: formato (A4, A5, Letter), margini, carattere del testo e dei titoli, dimensione del testo, interlinea, spazio dopo i paragrafi, allineamento (a sinistra o giustificato) e colore del testo e dei titoli. L'anteprima mostra la pagina alla sua larghezza vera, ridotta se non ci sta. Le impostazioni sono scritte in testa al file, tra due righe `---`, come `size: 12` o `lineHeight: 1.6`: si possono cambiare anche lì, e **Torna ai valori di base** le toglie.
+
+### 12.7 Esportare un documento
 
 **Esporta documento…** salva il documento in `export/docs/` del progetto in quattro forme: **PDF**, da stampare o inviare, con il formato e i margini del documento (solo nell'app per computer); **HTML**, una pagina web in un solo file, con carte, immagini e font dentro; **Word**, un file `.docx` da modificare in Word o LibreOffice, con titoli, elenchi, tabelle e citazioni come stili di Word, formato pagina, margini e caratteri del documento, e carte, schemi e immagini come PNG; **Markdown**, testo semplice per altri programmi, con le carte in PNG a 300 dpi e le immagini in una cartella accanto (`<nome> images`). Nel Markdown restano grassetto, corsivo e barrato; gli altri stili si perdono. Le carte e le immagini che non si trovano restano fuori, e la finestra lo ricorda se il documento ha dei problemi. Finita l'esportazione, **Apri il file** apre il file con il programma predefinito e **Apri la cartella** la cartella che lo contiene. Nella versione web **Apri il file** mostra PDF, HTML e Markdown in una nuova scheda del browser; per il Word non compare, perché il file è già nella cartella del progetto.
 
@@ -630,9 +700,40 @@ Un agente IA che esegue comandi sul computer (per esempio Claude Code, Codex o C
 
 Il progetto può restare aperto in Stella mentre l'agente lavora. Prima di modificarlo l'agente lo chiede all'app con `stella begin`: se ci sono modifiche non salvate si ferma e ti chiede di salvare; altrimenti Stella mostra che un'IA sta lavorando e non si usa finché l'agente non ha finito (`stella end`), poi ricarica il progetto da sola. Se l'agente si interrompe senza sbloccare l'app, **Sblocca ora** la libera. Con una skill copiata prima della versione 1.2.0-beta.3 l'agente non lo sa fare: copiala di nuovo.
 
-Il comando `stella` si può usare anche direttamente, per esempio in uno script: `info` descrive il progetto, `check` elenca i problemi delle carte, `rows` e `set-rows` leggono e scrivono le righe di un set, `render` disegna le carte in PNG, `export` esegue un profilo di esportazione. I dettagli sono in [docs/cli.md](../cli.md).
+Il comando `stella` si può usare anche direttamente, per esempio in uno script. I comandi principali:
 
-## 16. I file del progetto
+| comando                                                         | cosa fa                                                                                                                          |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `info <progetto>`                                               | set, template e livelli, variabili, stili, asset, profili di esportazione                                                        |
+| `check <progetto> [--set S] [--lang L]`                         | i problemi delle carte e dei documenti (immagini o font mancanti, variabili sconosciute, errori di formule, traduzioni mancanti) |
+| `check-data <progetto>`                                         | come viene letto il file dei dati, come **Controlla file dati…**                                                                 |
+| `rows <progetto> <set>`, `set-rows <progetto> <set> <file>`     | leggono e scrivono le righe di un set (con un backup prima)                                                                      |
+| `stats <progetto> <set>`                                        | quante carte hanno ogni valore, come **Statistiche…**                                                                            |
+| `render <progetto> [--set S] [--card 1,3,5-7] [--lang L]`       | disegna le carte in PNG                                                                                                          |
+| `export <progetto> --profile NOME [--lang L\|all]`              | esegue un profilo di esportazione salvato                                                                                        |
+| `export-doc <progetto> [<nome>] [--format pdf\|html\|docx\|md]` | esporta i documenti                                                                                                              |
+| `notes`, `docs`                                                 | leggono le note e i documenti del progetto                                                                                       |
+| `rename-set`, `rename-template`, `pull-sheets`, `new`           | rinominano, scaricano da Google Sheets, creano un progetto                                                                       |
+| `begin`, `end`                                                  | aprono e chiudono il lavoro di un agente sul progetto                                                                            |
+
+Tutti i dettagli, le opzioni e come lanciare il comando su ogni sistema sono in [docs/cli.md](../cli.md).
+
+## 16. La versione web
+
+Stella funziona anche nel browser, senza installare nulla, all'indirizzo <https://lucadj77.github.io/stella/> (la versione beta in `/beta/`). Serve dove un programma non si può installare, per esempio sui computer di lavoro che bloccano i programmi non firmati. Lavora sulle cartelle dei progetti del tuo computer: i progetti sono gli stessi file dell'app, e si possono aprire ora con l'una ora con l'altra.
+
+Servono Chrome, Edge o Opera (Brave solo dopo aver attivato `brave://flags/#file-system-access-api`); Firefox e Safari non hanno l'accesso alle cartelle che serve. A ogni sessione il browser chiede il permesso sulla cartella del progetto, quando lo apri.
+
+Cosa cambia rispetto all'app per computer (l'elenco è anche in fondo alla schermata di ingresso, in **Cosa ha in più la versione desktop**):
+
+- il PDF passa dalla finestra di stampa del browser, da cui si sceglie **Salva come PDF** (margini nessuno, grafica di sfondo attiva); non c'è la conversione in CMYK;
+- per Tabletop Simulator si sceglie la cartella di destinazione con **Scegli…** e la prima volta si incolla il suo percorso completo nel campo sotto, perché il browser non lo dice e il file del mazzo ne ha bisogno;
+- i backup senza una cartella scelta restano nel browser, e si perdono cancellando i dati del sito: conviene scegliere una cartella;
+- i font di Google arrivano solo con l'alfabeto latino; i font del computer si copiano solo in Chrome ed Edge, dopo il permesso;
+- i cataloghi di icone e font sono quelli della versione pubblicata e non si aggiornano;
+- non ci sono il comando `stella` e il controllo degli aggiornamenti (il sito è sempre all'ultima versione), e la dimensione dell'interfaccia si regola con lo zoom del browser.
+
+## 17. I file del progetto
 
 ```
 Esempio/
@@ -650,28 +751,31 @@ Esempio/
 
 Il progetto è autonomo: copiando la cartella su un altro computer si vede uguale, a parte i font installati solo sul primo. I dettagli del formato sono in [docs/formato.md](../formato.md).
 
-## 17. Scorciatoie da tastiera
+## 18. Scorciatoie da tastiera
 
 Su Windows e Linux ⌘ è Ctrl.
 
-| Dove          | Tasti                 | Azione                                                                                                       |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ |
-| ovunque       | ⌘S                    | salva template, dati e impostazioni                                                                          |
-| set           | ⌘Z, ⇧⌘Z               | annulla e ripete le modifiche ai dati                                                                        |
-| ovunque       | ⌘+, ⌘−, ⌘0            | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
-| set           | ⌘A, Esc               | seleziona tutte le carte, torna a una sola                                                                   |
-| tabella       | Alt+Invio             | a capo dentro una cella                                                                                      |
-| testo         | `{`, poi ↑ ↓, Invio   | suggerimenti di campi e variabili                                                                            |
-| editor        | ⌘Z, ⇧⌘Z (o ⌘Y)        | annulla e ripete                                                                                             |
-| editor        | T, R, E               | nuovo testo, rettangolo, ellisse                                                                             |
-| editor        | ⌘D                    | duplica i livelli selezionati                                                                                |
-| editor        | ⌘C, ⌘X, ⌘V            | copia, taglia e incolla livelli tra template                                                                 |
-| editor        | ⌘G, ⇧⌘G               | raggruppa e separa                                                                                           |
-| editor        | ⌘A                    | seleziona tutti i livelli                                                                                    |
-| editor        | Canc                  | elimina i livelli selezionati                                                                                |
-| editor        | frecce, ⇧ + frecce    | sposta di 0,5 mm o di 5 mm                                                                                   |
-| editor        | Esc                   | toglie la selezione o esce dal gruppo                                                                        |
-| tela          | Maiuscolo trascinando | sposta solo in orizzontale, in verticale o a 45°; inverte il blocco delle proporzioni; ruota a scatti di 15° |
-| tela          | ⌘ ridimensionando     | ridimensiona dal centro                                                                                      |
-| tela          | Alt trascinando       | sposta senza agganciarsi                                                                                     |
-| tela, griglia | ⌘ + rotella           | zoom                                                                                                         |
+| Dove          | Tasti                        | Azione                                                                                                       |
+| ------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| ovunque       | ⌘S                           | salva template, dati e impostazioni                                                                          |
+| set           | ⌘Z, ⇧⌘Z                      | annulla e ripete le modifiche ai dati                                                                        |
+| ovunque       | ⌘+, ⌘−, ⌘0                   | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
+| set           | ⌘A, Esc                      | seleziona tutte le carte, torna a una sola                                                                   |
+| tabella       | Alt+Invio                    | a capo dentro una cella                                                                                      |
+| testo         | `{`, poi ↑ ↓, Invio          | suggerimenti di campi e variabili                                                                            |
+| editor        | ⌘Z, ⇧⌘Z (o ⌘Y)               | annulla e ripete                                                                                             |
+| editor        | T, R, E                      | nuovo testo, rettangolo, ellisse                                                                             |
+| editor        | ⌘D                           | duplica i livelli selezionati                                                                                |
+| editor        | ⌘C, ⌘X, ⌘V                   | copia, taglia e incolla livelli tra template                                                                 |
+| editor        | ⌘G, ⇧⌘G                      | raggruppa e separa                                                                                           |
+| editor        | ⌘A                           | seleziona tutti i livelli                                                                                    |
+| editor        | Canc                         | elimina i livelli selezionati                                                                                |
+| editor        | frecce, ⇧ + frecce           | sposta di 0,5 mm o di 5 mm                                                                                   |
+| editor        | Esc                          | toglie la selezione o esce dal gruppo                                                                        |
+| tela          | Maiuscolo trascinando        | sposta solo in orizzontale, in verticale o a 45°; inverte il blocco delle proporzioni; ruota a scatti di 15° |
+| tela          | ⌘ ridimensionando            | ridimensiona dal centro                                                                                      |
+| tela          | Alt trascinando              | sposta senza agganciarsi                                                                                     |
+| tela, griglia | ⌘ + rotella                  | zoom                                                                                                         |
+| set           | PagSu, PagGiù                | carta precedente o successiva, anche mentre si scrive nel modulo                                             |
+| carta         | doppio clic, Ctrl+Invio, Esc | modifica un livello sulla carta, chiude la modifica, la annulla                                              |
+| carta, editor | Alt+clic                     | seleziona il livello che sta sotto                                                                           |

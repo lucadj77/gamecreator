@@ -3,6 +3,7 @@ import { basename, dirname, join } from './shims/path'
 import type { Api, BackupSettings, BackupState } from '../shared/api'
 import type { ExportProgress } from '../shared/export'
 import { MessageError, msg } from '../shared/messages'
+import { browserViewable } from '../shared/viewable'
 import { loadProject } from '../main/project/load'
 import { saveTemplate, trashTemplate } from '../main/project/templates'
 import { saveDocument, saveNote, trashDocument, trashNote } from '../main/project/notes'
@@ -259,7 +260,8 @@ export const webApi: Api = {
       if (p && !(await ensurePermission(p))) throw new MessageError(msg('web.permissionDenied'))
     return importTtc(options)
   },
-  naibiCommand: desktopOnly,
+  // il comando lo trova la skill: l'app desktop se c'è, se no il pacchetto naibi-cli
+  naibiCommand: async () => ({ command: '', ready: true }),
   // chi apre il sito ha sempre l'ultima versione
   checkForUpdate: async () => null,
   updateMode: async () => 'manual',
@@ -284,29 +286,14 @@ export const webApi: Api = {
   }
 }
 
-/** Tipi dei file che il browser sa mostrare in una scheda; gli altri si scaricano */
-const VIEWABLE: Record<string, string> = {
-  html: 'text/html',
-  pdf: 'application/pdf',
-  png: 'image/png',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  webp: 'image/webp',
-  svg: 'image/svg+xml',
-  md: 'text/plain;charset=utf-8',
-  txt: 'text/plain;charset=utf-8',
-  json: 'application/json'
-}
-
 /**
  * Nel browser le cartelle non si aprono: un file esportato si apre in una scheda nuova, o si
  * scarica se il browser non sa mostrarlo (Word). Una cartella non fa nulla.
  */
 async function openExportedFile(path: string): Promise<string> {
   const name = basename(path)
-  const ext = name.includes('.') ? (name.split('.').pop() ?? '').toLowerCase() : ''
-  if (!ext) return ''
-  const type = VIEWABLE[ext]
+  if (!name.includes('.')) return ''
+  const type = browserViewable(path)
   // la scheda si apre subito, durante il clic: dopo un'attesa il browser la bloccherebbe
   const tab = type ? window.open('', '_blank') : null
   let data: string | Uint8Array

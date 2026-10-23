@@ -27,6 +27,21 @@ export interface GridGeometry {
   cells: string[]
   /** Riquadro dello sfondo: le caselle più il margine interno */
   bounds: { x: number; y: number; w: number; h: number }
+  /** Centro di ogni casella, nello stesso ordine */
+  centers: { x: number; y: number }[]
+}
+
+/** Limite alle caselle, per non bloccare il disegno con un numero sbagliato nel foglio */
+export const MAX_CELLS = 400
+
+/** Righe e colonne usate, dentro il limite delle caselle */
+export function gridSize(g: Pick<GridLayer, 'rows' | 'columns'>): {
+  rows: number
+  columns: number
+} {
+  const rows = Math.min(MAX_CELLS, Math.max(1, Math.round(g.rows) || 1))
+  const columns = Math.min(Math.floor(MAX_CELLS / rows), Math.max(1, Math.round(g.columns) || 1))
+  return { rows, columns }
 }
 
 const R3 = Math.sqrt(3)
@@ -55,8 +70,7 @@ function cellSize(g: GridSpec, s: number): { w: number; h: number } {
 function place(g: GridSpec, s: number): Placed[] {
   const { w, h } = cellSize(g, s)
   const gap = Math.max(0, g.gap)
-  const rows = Math.max(1, Math.round(g.rows))
-  const cols = Math.max(1, Math.round(g.columns))
+  const { rows, columns: cols } = gridSize(g)
   const out: Placed[] = []
   for (let i = 0; i < rows; i++)
     for (let j = 0; j < cols; j++) {
@@ -229,7 +243,10 @@ export function gridGeometry(g: GridSpec): GridGeometry {
   // le caselle partono dall'angolo dello sfondo più il margine
   const dx = bx + pad - e.x
   const dy = by + pad - e.y
-  const cells =
-    s > 0 ? place(g, s).map((c) => cellPath(g, { ...c, cx: c.cx + dx, cy: c.cy + dy }, w, h)) : []
-  return { cells, bounds: { x: bx, y: by, w: bw, h: bh } }
+  const placed = s > 0 ? place(g, s).map((c) => ({ ...c, cx: c.cx + dx, cy: c.cy + dy })) : []
+  return {
+    cells: placed.map((c) => cellPath(g, c, w, h)),
+    bounds: { x: bx, y: by, w: bw, h: bh },
+    centers: placed.map((c) => ({ x: c.cx, y: c.cy }))
+  }
 }

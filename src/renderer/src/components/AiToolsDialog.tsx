@@ -18,7 +18,12 @@ export default function AiToolsDialog({ onClose }: { onClose(): void }): React.J
     window.api.naibiCommand().then(setCommand, (e) => setError(messageFromError(e)))
   }, [])
 
-  const skill = command ? skillSource.replaceAll('{{NAIBI_COMMAND}}', command.command) : ''
+  // nel web non c'è un comando di questo computer: lo cerca (o lo installa) la skill stessa
+  const skill = command
+    ? skillSource
+        .replaceAll('{{NAIBI_VERSION}}', __APP_VERSION__)
+        .replaceAll('{{NAIBI_COMMAND}}', command.command || '{{NAIBI_COMMAND}}')
+    : ''
 
   const copy = async (): Promise<void> => {
     setError(null)
@@ -51,7 +56,7 @@ export default function AiToolsDialog({ onClose }: { onClose(): void }): React.J
           <li>{t('ai.step2')}</li>
           <li>{t('ai.step3')}</li>
         </ol>
-        <p className="muted small">{t('ai.saveHint')}</p>
+        <p className="muted small">{t(window.api.isWeb ? 'ai.webHint' : 'ai.saveHint')}</p>
         {command && !command.ready && <div className="banner warning">{t('ai.notBuilt')}</div>}
         {error && <div className="banner error">{t(error)}</div>}
         {done && <div className="banner">{t(done)}</div>}
@@ -60,9 +65,12 @@ export default function AiToolsDialog({ onClose }: { onClose(): void }): React.J
           <button className="primary" disabled={!command} onClick={copy}>
             {t('ai.copy')}
           </button>
-          <button disabled={!command} onClick={save}>
-            {t('ai.save')}
-          </button>
+          {/* il browser non scrive fuori dalle cartelle dei progetti */}
+          {!window.api.isWeb && (
+            <button disabled={!command} onClick={save}>
+              {t('ai.save')}
+            </button>
+          )}
           <span className="spacer" />
           <button onClick={onClose}>{t('dialog.close')}</button>
         </div>

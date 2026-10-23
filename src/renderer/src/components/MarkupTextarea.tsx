@@ -1,4 +1,4 @@
-import { useContext, useLayoutEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   markupProblems,
@@ -14,6 +14,7 @@ import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
 import { AssetsContext, SaveStyleContext, StylesContext, VariablesContext } from '../render/assets'
 import FormatDialog from './FormatDialog'
+import { OPEN_FORMAT_EVENT } from './editRun'
 import MarkupText from '../render/MarkupText'
 import { palette, resolveColor, type Variable } from '../../../shared/model/variables'
 
@@ -117,6 +118,20 @@ export default function MarkupTextarea({
     document.addEventListener('selectionchange', onSelect)
     return () => document.removeEventListener('selectionchange', onSelect)
   })
+
+  // la barra comune a più campi chiede la scheda: vale la selezione o, se manca, tutto il testo
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const open = (): void => {
+      const f =
+        formatTarget(el.value, el.selectionStart, el.selectionEnd) ??
+        formatTarget(el.value, 0, el.value.length)
+      if (f) setFormatting(f)
+    }
+    el.addEventListener(OPEN_FORMAT_EVENT, open)
+    return () => el.removeEventListener(OPEN_FORMAT_EVENT, open)
+  }, [])
 
   /** Sostituisce la porzione con il testo formattato e la riseleziona */
   const applyFormat = (f: FormatTarget, attrs: Attrs): void => {

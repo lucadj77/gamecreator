@@ -5,6 +5,30 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.28
+
+### English
+
+- Grid **cell content**: a group of the same side can be repeated in every cell of a grid. Draw it in the first cell (**Move to the first cell** puts it there); the other cells get a moved copy. Inside the group `{cell.index}`, `{cell.row}`, `{cell.column}`, `{cell.count}` and `{cell.random}` (fixed for each card) change from cell to cell, for score tracks, numbered boards or icons in sequence.
+- New formula functions `MOD` (remainder) and `PICK` (the n-th item of a list, starting again after the last).
+- Document tables: cells can hold images and cards next to formatted text, and the table window has the formatting bar, **Image** and **Insert card** for the cell being edited. Under **Look**: table and column widths, which lines to draw (all, between rows, outline, none), line color and thickness, heading and row backgrounds and alternate rows. The look is kept in the HTML, PDF and Word exports.
+- The style menu of the small formatting bar (card anatomy, table setup) has **Format…**, which opens the formatting window on the selected text or, with nothing selected, on the whole text.
+- Table setup: cards, decks and images rotate freely, with a round handle above them (Shift for 15° steps) or by typing the degrees; **+90°** still turns by a quarter.
+- Card anatomy can show **front and back** side by side, with the front labels on the left and the back labels on the right.
+- AI agents with the web version only: **AI tools…** is now in the web version too. The skill finds the naibi command by itself (the desktop app if installed), and if there is none it offers to install the `naibi-cli` package, published with every release (`npm install -g`, needs Node.js). It keeps the package and itself up to date with the installed version; the desktop app keeps updating itself. New `naibi version` command.
+- In the web version, **Open file** is no longer shown for exported files the browser cannot display (Word, archives): it downloaded a second copy of a file already saved in the project folder.
+
+### Italiano
+
+- **Contenuto delle caselle** della griglia: un gruppo dello stesso lato si può ripetere in ogni casella di una griglia. Si disegna nella prima casella (**Porta nella prima casella** ce lo sposta); le altre ne ricevono una copia spostata. Dentro il gruppo `{cell.index}`, `{cell.row}`, `{cell.column}`, `{cell.count}` e `{cell.random}` (fisso per ogni carta) cambiano da casella a casella, per tracciati del punteggio, plance numerate o icone in sequenza.
+- Nuove funzioni delle formule `MOD` (resto della divisione) e `PICK` (l'elemento n-esimo di una lista, che ricomincia dopo l'ultimo).
+- Tabelle dei documenti: nelle celle si possono mettere immagini e carte accanto al testo formattato, e la finestra della tabella ha la barra di formattazione, **Immagine** e **Inserisci carta** per la cella che si sta scrivendo. In **Aspetto**: larghezza della tabella e delle colonne, quali linee disegnare (tutte, tra le righe, il contorno, nessuna), colore e spessore delle linee, sfondo dell'intestazione e delle righe e righe alternate. L'aspetto resta nelle esportazioni HTML, PDF e Word.
+- Il menu Stile della barra di formattazione piccola (anatomia della carta, schema del tavolo) ha **Formatta…**, che apre la scheda di formattazione sul testo selezionato o, senza selezione, su tutto il testo.
+- Schema del tavolo: carte, mazzi e immagini ruotano liberamente, con una maniglia tonda sopra (Maiuscolo per scatti di 15°) o scrivendo i gradi; **+90°** gira ancora di un quarto.
+- L'anatomia della carta può mostrare **fronte e retro** affiancati, con le etichette del fronte a sinistra e quelle del retro a destra.
+- Agenti IA con la sola versione web: **Strumenti IA…** c'è ora anche nella versione web. La skill trova da sola il comando naibi (l'app desktop, se c'è) e, se non c'è, propone di installare il pacchetto `naibi-cli`, pubblicato con ogni release (`npm install -g`, serve Node.js). Tiene aggiornati il pacchetto e sé stessa alla versione installata; l'app desktop continua ad aggiornarsi da sola. Nuovo comando `naibi version`.
+- Nella versione web **Apri il file** non compare più per i file esportati che il browser non sa mostrare (Word, archivi): scaricava una seconda copia di un file già salvato nella cartella del progetto.
+
 ## 1.2.0-beta.27
 
 ### English

@@ -10,6 +10,14 @@ import { worldBounds } from './geometry'
 import { arrangeGroup } from './arrange'
 import type { Bounds } from './edit'
 import { parseSetup, SETUP_FENCE, type Setup } from './setup'
+import {
+  cellParts,
+  DEFAULT_TABLE_STYLE,
+  isTableStyleLine,
+  parseTableStyle,
+  tableStyleSource,
+  type TableStyle
+} from './docTable'
 
 // Documenti del progetto (docs/<nome>.md): regolamento, sell sheet, appendici. Sono Markdown con
 // il markup di Naibi nel testo ({icona}, [testo]{.stile}) e le carte del progetto come immagini:
@@ -45,6 +53,10 @@ export type DocBlock = { from: number } & (
       header: string[]
       align: (HAlign | null)[]
       rows: string[][]
+      /** Bordi, sfondi e larghezze, dal commento <!-- table ... --> sotto la tabella (docTable.ts) */
+      style: TableStyle
+      /** Opzioni del commento <!-- table ... --> che non si capiscono */
+      styleBad: string[]
       /** Fine dell'ultima riga della tabella nel testo: lo strumento tabella la riscrive */
       to: number
     }
@@ -64,6 +76,8 @@ export interface Callout {
   label: string
   /** Lato dell'etichetta; di base quello più vicino al livello */
   side?: 'left' | 'right'
+  /** Faccia del livello quando l'anatomia mostra fronte e retro; di base il fronte */
+  face?: Side
   /** Posizione della riga nel testo */
   from: number
   to: number
@@ -73,6 +87,8 @@ export interface Anatomy {
   /** Riferimento alla carta, come in card: (anche senza il prefisso) */
   card: string
   cardFrom: number
+  /** Fronte e retro affiancati (riga `sides: both`): le etichette del retro stanno a destra */
+  both: boolean
   callouts: Callout[]
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
@@ -80,10 +96,11 @@ export interface Anatomy {
 
 /** Il blocco ```anatomy: le sue righe sono card: … e - livello: etichetta */
 export const ANATOMY_FENCE = 'anatomy'
-const CALLOUT_LINE = /^\s*[-*]\s*(.+?)(?:\s*\((left|right)\))?\s*:\s*(.*)$/
+const CALLOUT_LINE =
+  /^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back)\s*,?)+)\))?\s*:\s*(.*)$/
 
 function parseAnatomy(lines: string[], starts: number[]): Anatomy {
-  const out: Anatomy = { card: '', cardFrom: -1, callouts: [], bad: [] }
+  const out: Anatomy = { card: '', cardFrom: -1, both: false, callouts: [], bad: [] }
   lines.forEach((l, k) => {
     const from = starts[k]
     const to = from + l.length
@@ -94,12 +111,21 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
       out.cardFrom = from
       return
     }
+    const sides = /^\s*sides\s*:\s*(both|one)\s*$/i.exec(l)
+    if (sides) {
+      out.both = sides[1].toLowerCase() === 'both'
+      return
+    }
     const m = CALLOUT_LINE.exec(l)
     if (m) {
+      const opts = (m[2] ?? '').split(/[\s,]+/)
+      const side = opts.find((o) => o === 'left' || o === 'right') as 'left' | 'right' | undefined
+      const face = opts.find((o) => o === 'front' || o === 'back') as Side | undefined
       out.callouts.push({
         layer: m[1].trim(),
         label: m[3].trim(),
-        ...(m[2] ? { side: m[2] as 'left' | 'right' } : {}),
+        ...(side ? { side } : {}),
+        ...(face ? { face } : {}),
         from,
         to
       })
@@ -109,13 +135,22 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
 }
 
 /** Testo del blocco anatomia di una carta */
-export function anatomySource(card: string, callouts: Omit<Callout, 'from' | 'to'>[]): string {
+export function anatomySource(
+  card: string,
+  callouts: Omit<Callout, 'from' | 'to'>[],
+  both = false
+): string {
+  const opts = (c: Omit<Callout, 'from' | 'to'>): string => {
+    const list = [both && c.face === 'back' ? 'back' : '', !both && c.side ? c.side : ''].filter(
+      Boolean
+    )
+    return list.length ? ` (${list.join(', ')})` : ''
+  }
   return [
     '```' + ANATOMY_FENCE,
     `card: ${card.replace(/^card:/i, '')}`,
-    ...callouts.map(
-      (c) => `- ${c.layer}${c.side ? ` (${c.side})` : ''}: ${c.label.replace(/\n/g, ' ')}`
-    ),
+    ...(both ? ['sides: both'] : []),
+    ...callouts.map((c) => `- ${c.layer}${opts(c)}: ${c.label.replace(/\n/g, ' ')}`),
     '```'
   ].join('\n')
 }
@@ -170,6 +205,8 @@ export function parseDocument(src: string): DocBlock[] {
         header: [],
         align: [null, null],
         rows: props.map((p) => [`**${p.key}**`, p.value]),
+        style: { ...DEFAULT_TABLE_STYLE, header: null },
+        styleBad: [],
         from: 0,
         to: starts[i - 1] + lines[i - 1].length
       })
@@ -288,11 +325,16 @@ export function parseDocument(src: string): DocBlock[] {
         const cells = splitRow(lines[i++])
         rows.push(header.map((_, k) => cells[k] ?? ''))
       }
+      const { style, bad: styleBad } = isTableStyleLine(lines[i])
+        ? parseTableStyle(lines[i++])
+        : { style: { ...DEFAULT_TABLE_STYLE }, bad: [] }
       blocks.push({
         kind: 'table',
         header,
         align: header.map((_, k) => align[k] ?? null),
         rows,
+        style,
+        styleBad,
         from,
         to: starts[i - 1] + lines[i - 1].length
       })
@@ -361,7 +403,12 @@ function joinLines(lines: string[]): string {
 }
 
 /** Testo Markdown di una tabella, con le colonne allineate perché si legga anche così */
-export function tableSource(header: string[], align: (HAlign | null)[], rows: string[][]): string {
+export function tableSource(
+  header: string[],
+  align: (HAlign | null)[],
+  rows: string[][],
+  style: TableStyle = DEFAULT_TABLE_STYLE
+): string {
   const cell = (s: string): string => s.replace(/\r?\n/g, ' ').replace(/\\?\|/g, '\\|').trim()
   const all = [header, ...rows].map((r) => header.map((_, k) => cell(r[k] ?? '')))
   const width = header.map((_, k) => Math.max(3, ...all.map((r) => r[k].length)))
@@ -377,7 +424,13 @@ export function tableSource(header: string[], align: (HAlign | null)[], rows: st
           ? `:${dashes}`
           : dashes
   })
-  return [line(all[0]), `| ${sep.join(' | ')} |`, ...all.slice(1).map(line)].join('\n')
+  const look = tableStyleSource(style)
+  return [
+    line(all[0]),
+    `| ${sep.join(' | ')} |`,
+    ...all.slice(1).map(line),
+    ...(look ? [look] : [])
+  ].join('\n')
 }
 
 /** Celle di una riga di tabella; \| è una barra nel testo */
@@ -927,8 +980,22 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
         b.items.forEach((it) => texts.push({ text: it.text, from: b.from }))
         break
       case 'table':
+        if (b.styleBad.length)
+          out.push({
+            message: msg('doc.table.badOption', { option: b.styleBad[0] }),
+            from: b.from,
+            to: b.to
+          })
         ;[b.header, ...b.rows].forEach((r) =>
-          r.forEach((c) => texts.push({ text: c, from: b.from }))
+          r.forEach((c) => {
+            for (const part of cellParts(c)) {
+              if (part.kind === 'text') texts.push({ text: part.text, from: b.from })
+              else {
+                const problem = imageProblem(part.src, ctx)
+                if (problem) out.push({ message: problem, from: b.from, to: b.to })
+              }
+            }
+          })
         )
         break
       case 'figure':
@@ -983,6 +1050,13 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
 export const anatomyCardSource = (card: string): string =>
   isCardSource(card) ? card.trim() : CARD_PREFIX + card.trim()
 
+/** La faccia della carta su cui sta il livello di un'etichetta */
+export const calloutFace = (
+  a: Pick<Anatomy, 'both'>,
+  c: Pick<Callout, 'face'>,
+  side: Side
+): Side => (a.both ? (c.face ?? 'front') : side)
+
 function anatomyProblems(b: Anatomy & { from: number }, ctx: DocumentContext): DocumentProblem[] {
   const out: DocumentProblem[] = b.bad.map((r) => ({ message: msg('doc.anatomy.badLine'), ...r }))
   if (!b.card) return [{ message: msg('doc.anatomy.noCard'), from: b.from, to: b.from + 3 }, ...out]
@@ -996,7 +1070,7 @@ function anatomyProblems(b: Anatomy & { from: number }, ctx: DocumentContext): D
     found && !isMessage(found) ? ctx.templates?.find((x) => x.name === found.set.template) : null
   if (!template || isMessage(ref)) return out
   for (const c of b.callouts)
-    if (!layerBounds(template[ref.side], c.layer))
+    if (!layerBounds(template[calloutFace(b, c, ref.side)], c.layer))
       out.push({
         message: msg('doc.anatomy.noLayer', { layer: c.layer, template: template.name }),
         from: c.from,

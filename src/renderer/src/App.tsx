@@ -2096,21 +2096,17 @@ function App(): React.JSX.Element {
               ))}
             </select>
           </div>
-          {!window.api.isWeb && (
-            <>
-              <div className="menu-sep" />
-              <button
-                className="menu-item"
-                title={t('tip.aiTools')}
-                onClick={() => {
-                  close()
-                  setAiTools(true)
-                }}
-              >
-                {t('app.aiTools')}
-              </button>
-            </>
-          )}
+          <div className="menu-sep" />
+          <button
+            className="menu-item"
+            title={t('tip.aiTools')}
+            onClick={() => {
+              close()
+              setAiTools(true)
+            }}
+          >
+            {t('app.aiTools')}
+          </button>
         </>
       )}
     </Menu>

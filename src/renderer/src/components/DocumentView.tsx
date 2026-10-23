@@ -154,7 +154,7 @@ export default function DocumentView({
         : parseDocument(text).find((b) => b.kind === 'table' && b.from <= at && at <= b.to)
     if (found?.kind === 'table')
       setTableEdit({
-        value: { header: found.header, align: found.align, rows: found.rows },
+        value: { header: found.header, align: found.align, rows: found.rows, style: found.style },
         from: found.from,
         to: found.to
       })
@@ -420,6 +420,9 @@ export default function DocumentView({
       {tableEdit && (
         <TableDialog
           initial={tableEdit.value}
+          sets={sets}
+          templates={templates}
+          project={project}
           onClose={() => setTableEdit(null)}
           onSave={(md) => {
             setTableEdit(null)

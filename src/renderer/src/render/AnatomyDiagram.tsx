@@ -1,12 +1,17 @@
 import type { LoadedSet } from '../../../shared/project'
-import type { Template } from '../../../shared/model/template'
-import { anatomyCardSource, layerBounds, type Anatomy } from '../../../shared/model/document'
+import type { Side, Template } from '../../../shared/model/template'
+import {
+  anatomyCardSource,
+  calloutFace,
+  layerBounds,
+  type Anatomy
+} from '../../../shared/model/document'
 import CardSvg from './CardSvg'
 import { MarkupInline } from './MarkupText'
 import { useBoundCard } from './useBoundCard'
 
 // Anatomia di una carta nei documenti (```anatomy): la carta disegnata dal progetto e, ai lati,
-// le etichette collegate da una linea ai livelli che spiegano. È un unico SVG, misurato in mm,
+// le etichette collegate da una linea ai livelli che spiegano; con `sides: both` fronte e retro. È un unico SVG, misurato in mm,
 // così l'esportazione lo tratta come una carta (HTML, PDF e PNG nel Markdown).
 
 /** Larghezza della colonna delle etichette, in mm: la massima e la minima */
@@ -14,6 +19,8 @@ const LABEL_W = 42
 const LABEL_MIN = 26
 /** Spazio tra le etichette e la carta */
 const GAP = 7
+/** Spazio tra fronte e retro */
+const CARD_GAP = 6
 /** Larghezza minima della carta quando si riduce per stare nella pagina */
 const CARD_MIN = 30
 const LINE = 1.25
@@ -90,21 +97,41 @@ export default function AnatomyDiagram({
   const card = useBoundCard(anatomyCardSource(anatomy.card), sets, templates, project)
   if (!card) return null
   const t = card.template
-  const layers = card.ref.side === 'front' ? t.front : t.back
+  // con fronte e retro le due facce stanno affiancate: le etichette del fronte a sinistra, quelle
+  // del retro a destra; con una faccia sola ogni etichetta sta dalla parte del suo livello
+  const faces: Side[] = anatomy.both ? ['front', 'back'] : [card.ref.side]
   const found = anatomy.callouts
-    .map((c) => ({ c, b: layerBounds(layers, c.layer) }))
+    .map((c) => {
+      const face = calloutFace(anatomy, c, card.ref.side)
+      return { c, face, b: layerBounds(face === 'front' ? t.front : t.back, c.layer) }
+    })
     .filter((x) => x.b !== null)
   const sideOf = (c: (typeof found)[number]): 'left' | 'right' =>
-    c.c.side ?? (c.b!.x + c.b!.w / 2 < t.width / 2 ? 'left' : 'right')
+    anatomy.both
+      ? c.face === 'front'
+        ? 'left'
+        : 'right'
+      : (c.c.side ?? (c.b!.x + c.b!.w / 2 < t.width / 2 ? 'left' : 'right'))
   const columns = new Set(found.map(sideOf)).size
-  // prima si stringono le etichette, poi la carta (se la larghezza non è scritta)
+  const gaps = (faces.length - 1) * CARD_GAP
+  // prima si stringono le etichette, poi le carte (se la larghezza non è scritta)
   let width = card.ref.width ?? t.width
   let labelW = LABEL_W
-  const room = (): number => maxWidth - columns * (labelW + GAP)
-  if (width > room()) labelW = Math.max(LABEL_MIN, (maxWidth - width) / Math.max(1, columns) - GAP)
+  const room = (): number => (maxWidth - gaps - columns * (labelW + GAP)) / faces.length
+  if (width > room())
+    labelW = Math.max(
+      LABEL_MIN,
+      (maxWidth - gaps - width * faces.length) / Math.max(1, columns) - GAP
+    )
   if (width > room() && !card.ref.width) width = Math.max(CARD_MIN, room())
   const s = width / t.width
   const height = t.height * s
+
+  const hasLeft = found.some((f) => sideOf(f) === 'left')
+  const left = hasLeft ? labelW + GAP : 0
+  /** Inizio di ciascuna faccia nel disegno */
+  const faceX = (face: Side): number => left + faces.indexOf(face) * (width + CARD_GAP)
+  const cardsEnd = left + faces.length * width + gaps
 
   const sides: Record<'left' | 'right', Omit<Placed, 'y'>[]> = { left: [], right: [] }
   for (const f of found) {
@@ -112,31 +139,30 @@ export default function AnatomyDiagram({
     const side = sideOf(f)
     // il punto sta dentro il livello, vicino al bordo dalla parte dell'etichetta
     const inset = Math.min(2.5, (b.w * s) / 2)
-    const ax = side === 'left' ? b.x * s + inset : (b.x + b.w) * s - inset
+    const ax = faceX(f.face) + (side === 'left' ? b.x * s + inset : (b.x + b.w) * s - inset)
     const h = lines(f.c.label, labelW, font) * font * LINE
     sides[side].push({ label: f.c.label, ax, ay: (b.y + b.h / 2) * s, h })
   }
-  const left = sides.left.length ? labelW + GAP : 0
   const right = sides.right.length ? labelW + GAP : 0
   const placedL = stack(sides.left, 0, height)
   const placedR = stack(sides.right, 0, height)
   const total = Math.max(height, ...[...placedL, ...placedR].map((p) => p.y + p.h))
-  const w = left + width + right
+  const w = cardsEnd + right
 
   const label = (p: Placed, side: 'left' | 'right', k: number): React.JSX.Element => {
-    const x = side === 'left' ? 0 : left + width + GAP
+    const x = side === 'left' ? 0 : cardsEnd + GAP
     const ex = side === 'left' ? labelW + 1 : x - 1
     const ey = p.y + Math.min(p.h, font * LINE) / 2
     return (
       <g key={`${side}${k}`}>
         <polyline
-          points={`${ex},${ey} ${side === 'left' ? left - GAP / 2 : left + width + GAP / 2},${ey} ${left + p.ax},${p.ay}`}
+          points={`${ex},${ey} ${side === 'left' ? left - GAP / 2 : cardsEnd + GAP / 2},${ey} ${p.ax},${p.ay}`}
           fill="none"
           stroke={INK}
           strokeWidth={0.3}
           strokeLinejoin="round"
         />
-        <circle cx={left + p.ax} cy={p.ay} r={0.9} fill={INK} stroke="#ffffff" strokeWidth={0.3} />
+        <circle cx={p.ax} cy={p.ay} r={0.9} fill={INK} stroke="#ffffff" strokeWidth={0.3} />
         {/* la posizione sta nel gruppo: l'esportazione in SVG converte il foreignObject da sé */}
         <g transform={`translate(${x} ${p.y})`}>
           <foreignObject width={labelW} height={p.h + font}>
@@ -164,9 +190,11 @@ export default function AnatomyDiagram({
       viewBox={`0 0 ${w} ${total}`}
       style={{ display: 'block', overflow: 'visible' }}
     >
-      <g transform={`translate(${left} 0)`}>
-        <CardSvg template={t} side={card.ref.side} scale={s} />
-      </g>
+      {faces.map((face) => (
+        <g key={face} transform={`translate(${faceX(face)} 0)`}>
+          <CardSvg template={t} side={face} scale={s} />
+        </g>
+      ))}
       {placedL.map((p, k) => label(p, 'left', k))}
       {placedR.map((p, k) => label(p, 'right', k))}
     </svg>

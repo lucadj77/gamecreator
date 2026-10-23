@@ -78,3 +78,17 @@ describe('numeri con il formato del foglio', () => {
     expect(ev('=IF({forza}>1; {prob}; "")')).toBe('50%')
   })
 })
+
+describe('MOD e PICK', () => {
+  it('MOD ha il segno del divisore, come in Excel', () => {
+    expect(evaluateFormula('=MOD(7; 3)', {}).value).toBe('1')
+    expect(evaluateFormula('=MOD(-7; 3)', {}).value).toBe('2')
+    expect(evaluateFormula('=IF(MOD({n}; 10) = 0; "x"; "y")', { n: '20' }).value).toBe('x')
+  })
+
+  it('PICK sceglie dalla lista e ricomincia dopo l’ultimo', () => {
+    expect(evaluateFormula('=PICK(2; "a"; "b"; "c")', {}).value).toBe('b')
+    expect(evaluateFormula('=PICK(4; "a"; "b"; "c")', {}).value).toBe('a')
+    expect(evaluateFormula('=PICK({n}; {lista})', { n: '3', lista: 'a, b, c' }).value).toBe('c')
+  })
+})

@@ -41,6 +41,7 @@ import { cardFingerprints } from '../../../shared/model/compare'
 import { ColorSwatch } from '../components/ColorPicker'
 import { useI18n } from '../i18n/context'
 import type { MessageKey } from '../i18n/en'
+import { browserViewable } from '../../../shared/viewable'
 
 const KIND_KEY = 'exportKind'
 const DPIS = [150, 300, 600]
@@ -1007,18 +1008,20 @@ export default function ExportDialog({
               </p>
             ))}
             {/* pochi file (un PDF, un mazzo): si aprono direttamente */}
-            {/* nel browser il file si apre in una scheda o si scarica */}
+            {/* nel browser si aprono solo i file che sa mostrare: gli altri sono già nella cartella */}
             {(result.paths?.length ?? 0) <= MAX_OPEN_FILES &&
-              result.paths?.map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  className="link"
-                  onClick={() => window.api.showFolder(f)}
-                >
-                  {t('export.openFile', { file: f.split(/[\\/]/).pop() ?? f })}
-                </button>
-              ))}
+              result.paths
+                ?.filter((f) => !window.api.isWeb || browserViewable(f))
+                .map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    className="link"
+                    onClick={() => window.api.showFolder(f)}
+                  >
+                    {t('export.openFile', { file: f.split(/[\\/]/).pop() ?? f })}
+                  </button>
+                ))}
             {result.folders.map((f) =>
               // il browser non apre le cartelle: si dice solo dove sono i file
               window.api.isWeb ? (

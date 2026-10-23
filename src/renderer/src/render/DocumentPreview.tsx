@@ -1,9 +1,10 @@
-import { memo, useContext, useMemo } from 'react'
+import { Fragment, memo, useContext, useMemo } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import { resolveAsset } from '../../../shared/model/assets'
 import { imageVariable, palette, resolveColor, resolveFont } from '../../../shared/model/variables'
 import { msg } from '../../../shared/messages'
+import { cellBorders, cellImageKey, cellParts } from '../../../shared/model/docTable'
 import AnatomyDiagram from './AnatomyDiagram'
 import SetupDiagram from './SetupDiagram'
 import { setupView, setupWithText } from './setupGeometry'
@@ -148,32 +149,7 @@ function Block({
         </div>
       )
     case 'table':
-      return (
-        <table className={b.header.length ? undefined : 'doc-properties'}>
-          {b.header.length > 0 && (
-            <thead>
-              <tr>
-                {b.header.map((h, k) => (
-                  <th key={k} style={{ textAlign: b.align[k] ?? undefined }}>
-                    {inline(h)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-          )}
-          <tbody>
-            {b.rows.map((r, i) => (
-              <tr key={i}>
-                {r.map((c, k) => (
-                  <td key={k} style={{ textAlign: b.align[k] ?? undefined }}>
-                    {inline(c)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )
+      return <TableView block={b} ctx={ctx} templates={templates} inline={inline} />
     case 'anatomy': {
       const problem = b.card
         ? imageProblem(anatomyCardSource(b.card), ctx)
@@ -239,6 +215,94 @@ function Block({
   }
 }
 
+/** Una tabella, con il suo aspetto e le immagini nelle celle */
+function TableView({
+  block: b,
+  ctx,
+  templates,
+  inline
+}: {
+  block: Extract<DocBlock, { kind: 'table' }>
+  ctx: DocumentContext
+  templates: Template[]
+  inline(s: string): React.JSX.Element
+}): React.JSX.Element {
+  const s = b.style
+  const pal = palette(ctx.variables)
+  const color = (c: string | null): string | undefined => (c ? resolveColor(c, pal) : undefined)
+  const line = `${s.borderWidth}mm solid ${color(s.border)}`
+  const all = b.header.length ? [b.header, ...b.rows] : b.rows
+  const cols = Math.max(b.align.length, ...all.map((r) => r.length))
+  const cellStyle = (row: number, col: number, fill: string | null): React.CSSProperties => {
+    const on = cellBorders(s.lines, row, col, all.length, cols)
+    const side = (v: boolean): string => (v && s.borderWidth > 0 ? line : 'none')
+    return {
+      textAlign: b.align[col] ?? undefined,
+      borderTop: side(on.top),
+      borderRight: side(on.right),
+      borderBottom: side(on.bottom),
+      borderLeft: side(on.left),
+      background: color(fill) ?? 'none'
+    }
+  }
+  const content = (text: string, row: number, col: number): React.ReactNode =>
+    cellParts(text).map((p, k) =>
+      p.kind === 'text' ? (
+        <Fragment key={k}>{inline(p.text)}</Fragment>
+      ) : (
+        <Figure
+          key={k}
+          src={p.src}
+          alt={p.alt}
+          from={cellImageKey(b.from, row, col, k)}
+          ctx={ctx}
+          templates={templates}
+        />
+      )
+    )
+  const head = b.header.length > 0
+  return (
+    <table
+      className={head ? undefined : 'doc-properties'}
+      style={{ width: s.width ? `${s.width}%` : undefined }}
+    >
+      {s.columns.length > 0 && (
+        <colgroup>
+          {Array.from({ length: cols }, (_, k) => (
+            <col key={k} style={{ width: s.columns[k] ? `${s.columns[k]}%` : undefined }} />
+          ))}
+        </colgroup>
+      )}
+      {head && (
+        <thead>
+          <tr>
+            {b.header.map((h, k) => (
+              <th key={k} style={cellStyle(0, k, s.header)}>
+                {content(h, 0, k)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+      )}
+      <tbody>
+        {b.rows.map((r, i) => {
+          const row = head ? i + 1 : i
+          const fill = i % 2 === 1 && s.stripes ? s.stripes : s.fill
+          return (
+            <tr key={i}>
+              {r.map((c, k) => (
+                <td key={k} style={cellStyle(row, k, fill)}>
+                  {content(c, row, k)}
+                </td>
+              ))}
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  )
+}
+
 /** Una carta del progetto o un'immagine degli asset, con la didascalia */
 const Figure = memo(function Figure({
   src,
@@ -249,8 +313,8 @@ const Figure = memo(function Figure({
 }: {
   src: string
   alt: string
-  /** Posizione nel testo: l'esportazione ritrova così la carta disegnata */
-  from: number
+  /** Posizione nel testo (o chiave nella cella): l'esportazione ritrova così la carta disegnata */
+  from: number | string
   ctx: DocumentContext
   templates: Template[]
 }): React.JSX.Element {

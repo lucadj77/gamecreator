@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { messageFromError, type Message } from '../../../shared/messages'
+import { browserViewable } from '../../../shared/viewable'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 
@@ -60,12 +61,15 @@ export default function DocumentExportDialog({
         {done && (
           <p>
             {t('documents.exported', { file: `export/docs/${file(done.kind)}` })}{' '}
-            <button
-              className="link"
-              onClick={() => void window.api.showFolder(inFolder(done.folder, file(done.kind)))}
-            >
-              {t('documents.openFile')}
-            </button>{' '}
+            {/* nel browser un file che non si può mostrare (Word) si scaricherebbe di nuovo */}
+            {(!window.api.isWeb || browserViewable(file(done.kind))) && (
+              <button
+                className="link"
+                onClick={() => void window.api.showFolder(inFolder(done.folder, file(done.kind)))}
+              >
+                {t('documents.openFile')}
+              </button>
+            )}{' '}
             {/* il browser non apre le cartelle */}
             {!window.api.isWeb && (
               <button className="link" onClick={() => void window.api.showFolder(done.folder)}>

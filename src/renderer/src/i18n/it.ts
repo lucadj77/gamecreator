@@ -828,6 +828,8 @@ export const it: Record<MessageKey, string> = {
   'doc.card.noRow': 'Il set "{set}" non ha la carta {n}',
   'doc.card.noField': 'Il set "{set}" non ha la colonna "{field}"',
   'doc.card.noValue': 'Nessuna carta di "{set}" ha {field} = "{value}"',
+  'doc.table.badOption':
+    '"{option}" non è un\'opzione della tabella (width, columns, border, borderWidth, lines, header, fill, stripes)',
   'doc.setting.unknown': '"{name}" non è un\'impostazione della pagina',
   'doc.setting.bad': '"{value}" non è un valore valido per {name}',
   'doc.anatomy.badLine':
@@ -903,6 +905,7 @@ export const it: Record<MessageKey, string> = {
   'bind.unknownProperty': 'Colonna {column}: proprietà inesistente',
   'bind.formulaField': 'Livello {layer}: la formula usa il campo "{field}", che questa riga non ha',
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
+  'bind.gridContent': 'Griglia {layer}: non c\'è un gruppo "{group}" da ripetere nelle caselle',
   'bind.formulaError': 'Livello {layer}: errore nella formula: {error}',
   'bind.markup': 'Livello {layer}: {problem}',
   'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
@@ -1281,7 +1284,24 @@ export const it: Record<MessageKey, string> = {
   'documents.addColumn': '+ Colonna',
   'documents.tableHeading': 'Intestazione',
   'documents.tableHint':
-    "La prima riga è l'intestazione. Nelle celle si può usare il markup, come {cuore} o **grassetto**. Si possono incollare celle copiate da un foglio di calcolo.",
+    "La prima riga è l'intestazione. Nelle celle si può usare il markup, come {cuore} o **grassetto**, e mettere immagini e carte: fai clic in una cella e usa la barra sopra. Si possono incollare celle copiate da un foglio di calcolo.",
+  'documents.tableColumnWidth':
+    'Larghezza della colonna, in % della tabella (vuota: quanto il contenuto)',
+  'documents.tableAuto': 'auto',
+  'documents.tableLook': 'Aspetto',
+  'documents.tableWidth': 'Larghezza della tabella',
+  'documents.tableWidthHint': 'In % della larghezza del testo; 0 è quanto il contenuto.',
+  'documents.tableLines': 'Linee',
+  'documents.tableLines.all': 'Tutte',
+  'documents.tableLines.rows': 'Solo tra le righe',
+  'documents.tableLines.outer': 'Solo il contorno',
+  'documents.tableLines.none': 'Nessuna',
+  'documents.tableBorder': 'Colore delle linee',
+  'documents.tableBorderWidth': 'Spessore delle linee',
+  'documents.tableHeaderFill': "Sfondo dell'intestazione",
+  'documents.tableFill': 'Sfondo delle righe',
+  'documents.tableStripes': 'Righe alternate',
+  'documents.tableStripesHint': 'Sfondo di una riga sì e una no (la seconda, la quarta...).',
   'documents.saveTable': 'Salva la tabella',
   'documents.anatomy': 'Anatomia carta',
   'documents.anatomyButtonHint':
@@ -1312,7 +1332,9 @@ export const it: Record<MessageKey, string> = {
   'documents.setupW': 'Larghezza (mm)',
   'documents.setupH': 'Altezza (mm)',
   'documents.setupCount': 'Carte nel mazzo',
-  'documents.setupRotate': 'Ruota di 90° (ora {n}°)',
+  'documents.setupRotation': 'Rotazione (°)',
+  'documents.setupRotate90': '+90°',
+  'documents.setupRotateHandle': 'Trascina per ruotare; con Maiuscolo a scatti di 15°',
   'documents.setupText': 'Testo',
   'documents.setupDuplicate': 'Duplica',
   'documents.setupDelete': 'Elimina',
@@ -1333,6 +1355,7 @@ export const it: Record<MessageKey, string> = {
   'documents.side': 'Lato',
   'documents.front': 'Fronte',
   'documents.back': 'Retro',
+  'documents.bothSides': 'Fronte e retro',
   'documents.width': 'Larghezza (mm)',
   'documents.findBy': 'Trova la carta per',
   'documents.byNumber': 'Numero di riga',
@@ -1584,6 +1607,9 @@ export const it: Record<MessageKey, string> = {
   'help.fn.LEN': 'Quanti caratteri ha il testo',
   'help.fn.CONCAT': 'Unisce i testi',
   'help.fn.ISBLANK': 'Vero se il valore è vuoto',
+  'help.fn.MOD': 'Resto della divisione: MOD({cell.index}; 10) è 0 ogni dieci caselle',
+  'help.fn.PICK':
+    "L'n-esima voce di un elenco, ricominciando dopo l'ultima; un solo testo con le virgole è un elenco",
   'help.fn.COUNTIN': 'Quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")',
   'help.examplesIntro':
     'Gli esempi usano una carta con forza 4, difesa 2, nome Drago, costo "oro oro legno" e nota vuota.',
@@ -1602,6 +1628,8 @@ export const it: Record<MessageKey, string> = {
   'help.ex.LEN': '=LEN({nome}) → 5',
   'help.ex.CONCAT': '=CONCAT({nome}; " "; {forza}) → Drago 4',
   'help.ex.ISBLANK': '=IF(ISBLANK({nota}); "-"; {nota}) → -',
+  'help.ex.MOD': '=MOD({forza}; 3) → 1',
+  'help.ex.PICK': '=PICK({forza}; "spada"; "scudo"; "mano") → spada',
   'help.ex.COUNTIN': '=COUNTIN({costo}; "oro") → 2',
   'help.keysIntro': 'Su Windows e Linux ⌘ è Ctrl.',
   'help.keys.save': 'Salva template, dati e impostazioni',
@@ -1631,6 +1659,8 @@ export const it: Record<MessageKey, string> = {
     'Poi chiedigli quello che ti serve, indicando la cartella del progetto. Quando ha finito, premi Ricarica in Naibi per vedere le modifiche.',
   'ai.saveHint':
     'Puoi anche salvarla come file: Claude Code legge le skill dalla cartella .claude/skills della tua cartella utente o di un progetto. La skill è in inglese, la lingua che gli agenti seguono meglio.',
+  'ai.webHint':
+    "Nella versione web la skill trova da sola il comando naibi: usa l'app desktop se è installata, altrimenti propone di installare il comando (serve Node.js, che se manca l'agente propone di installare). Perché funzioni devi autorizzare il tuo agente a scaricare da GitHub e a installare il comando e gli aggiornamenti: ti chiederà il permesso la prima volta. Si aggiorna anche da sola, insieme al comando, quando esce una nuova versione. La skill è in inglese, la lingua che gli agenti seguono meglio.",
   'ai.notBuilt':
     "Il comando naibi usato dalla skill funziona solo dopo aver compilato l'app una volta: esegui `npm run build` nella cartella del codice di Naibi.",
   'ai.copy': 'Copia la skill',
@@ -1985,5 +2015,14 @@ export const it: Record<MessageKey, string> = {
     '100% è la griglia più grande che sta nel riquadro senza deformare le caselle.',
   'prop.alignX': 'Posizione orizzontale',
   'prop.alignY': 'Posizione verticale',
-  'prop.gridClip': 'Taglia ciò che esce dal riquadro'
+  'prop.gridClip': 'Taglia ciò che esce dal riquadro',
+  'editor.gridContent': 'Contenuto delle caselle',
+  'prop.content': 'Gruppo',
+  'editor.gridContentHint':
+    'Un gruppo di questo lato che si ripete in ogni casella. Disegnalo nella prima casella: le altre ne ricevono una copia spostata al loro posto.',
+  'editor.gridContentNone': '(nessuno)',
+  'editor.gridContentPlace': 'Porta nella prima casella',
+  'editor.gridContentNoGroups': 'Raggruppa prima alcuni livelli, poi scegli qui il gruppo.',
+  'editor.gridContentFields':
+    'Dentro il gruppo: {cell.index} (1, 2, 3...), {cell.row}, {cell.column}, {cell.count} (numero di caselle), {cell.random} (fisso per ogni carta). Formula di esempio: =IF(MOD({cell.index}; 10) = 0; "bold"; "normal") oppure =PICK({cell.index}; "a"; "b"; "c").'
 }

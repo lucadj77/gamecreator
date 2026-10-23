@@ -40,23 +40,37 @@ export const DECK_STEP = 0.8
 /** Misura di una carta che non si trova, per poterla comunque spostare */
 const MISSING = { w: 63, h: 88 }
 
+/** Riquadro dritto che contiene un rettangolo w × h ruotato di `deg` gradi attorno al centro */
+export function turnedSize(w: number, h: number, deg: number): { w: number; h: number } {
+  const a = (deg * Math.PI) / 180
+  const c = Math.abs(Math.cos(a))
+  const s = Math.abs(Math.sin(a))
+  // senza gli errori di arrotondamento: a 90° la carta è esattamente girata
+  const round = (n: number): number => Math.round(n * 1e6) / 1e6
+  return { w: round(w * c + h * s), h: round(w * s + h * c) }
+}
+
+/** Misura della carta di un elemento, anche se la carta non si trova */
+export const itemCardSize = (card: string, sets: LoadedSet[], templates: Template[]): Size =>
+  cardSize(card, sets, templates) ?? MISSING
+
+interface Size {
+  w: number
+  h: number
+}
+
 /**
- * Riquadro dell'elemento sul tavolo, senza le didascalie. Una carta ruotata di 90° occupa il
- * riquadro girato: x e y sono il suo angolo in alto a sinistra.
+ * Riquadro dell'elemento sul tavolo, senza le didascalie. Una carta ruotata occupa il riquadro
+ * dritto che la contiene: x e y sono il suo angolo in alto a sinistra.
  */
 export function itemBox(it: SetupItem, sets: LoadedSet[], templates: Template[]): Box {
   switch (it.kind) {
     case 'card':
     case 'deck': {
-      const s = cardSize(it.card, sets, templates) ?? MISSING
-      const turned = it.rotate === 90 || it.rotate === 270
+      const s = itemCardSize(it.card, sets, templates)
+      const turned = turnedSize(s.w, s.h, it.rotate)
       const extra = it.kind === 'deck' ? (Math.min(it.count, DECK_LAYERS + 1) - 1) * DECK_STEP : 0
-      return {
-        x: it.x,
-        y: it.y,
-        w: (turned ? s.h : s.w) + extra,
-        h: (turned ? s.w : s.h) + extra
-      }
+      return { x: it.x, y: it.y, w: turned.w + extra, h: turned.h + extra }
     }
     case 'zone':
       return { x: it.x, y: it.y, w: it.w, h: it.h }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bindCard, parseValue, rowToCard, substituteFields } from '../bind'
+import { bindCard, cellFields, parseValue, rowToCard, substituteFields } from '../bind'
 import { normalizeTemplate } from '../normalize'
 import type { ShapeLayer, TextLayer } from '../template'
 
@@ -261,5 +261,48 @@ describe('errori delle formule', () => {
       'bind.formulaError:doppio',
       'bind.formulaError:testo'
     ])
+  })
+})
+
+describe('contenuto della griglia', () => {
+  const tpl = normalizeTemplate({
+    name: 't',
+    front: [
+      { type: 'grid', name: 'tracciato', rows: 2, columns: 3, content: 'numero' },
+      {
+        type: 'group',
+        name: 'numero',
+        children: [
+          { type: 'text', name: 'n', text: '{cell.index}/{cell.count} r{cell.row}c{cell.column}' }
+        ]
+      }
+    ]
+  })
+
+  it('lega una copia del gruppo per casella e nasconde il gruppo', () => {
+    const bound = bindCard(tpl, rowToCard([], []))
+    const [grid, group] = bound.template.front
+    expect(group.visible).toBe(false)
+    const cells = grid.type === 'grid' ? (grid.cells ?? []) : []
+    expect(cells).toHaveLength(6)
+    const text = (i: number): string => (cells[i].children[0] as TextLayer).text
+    expect(text(0)).toBe('1/6 r1c1')
+    expect(text(4)).toBe('5/6 r2c2')
+    expect(bound.problems).toEqual([])
+  })
+
+  it('segnala un gruppo che non c’è', () => {
+    const t2 = normalizeTemplate({
+      name: 't',
+      front: [{ type: 'grid', name: 'g', content: 'manca' }]
+    })
+    expect(bindCard(t2, rowToCard([], [])).problems.map((p) => p.key)).toEqual(['bind.gridContent'])
+  })
+
+  it('il numero casuale è fisso per carta e casella', () => {
+    const a = cellFields('g', 2, 3, 6, 1)['cell.random']
+    expect(cellFields('g', 2, 3, 6, 1)['cell.random']).toBe(a)
+    expect(Number(a)).toBeGreaterThan(0)
+    expect(Number(a)).toBeLessThanOrEqual(999999)
   })
 })

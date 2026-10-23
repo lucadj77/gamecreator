@@ -5324,3 +5324,51 @@ button.more-button {
   flex-direction: column;
   gap: 4px;
 }
+
+.table-dialog-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.table-dialog-grid th input.num {
+  width: 46px;
+  font-size: 12px;
+}
+
+.table-dialog-grid .formatted-field {
+  width: 160px;
+}
+
+.table-dialog-look {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 4px 16px;
+}
+
+.doc-page td figure,
+.doc-page th figure {
+  display: inline-block;
+  margin: 0.1em 0.2em;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.doc-page td figure img,
+.doc-page th figure img {
+  max-width: 100%;
+}
+
+.doc-page td figcaption,
+.doc-page th figcaption {
+  font-size: 0.86em;
+  color: #55555a;
+}
+
+.dialog:has(> .table-dialog) {
+  max-width: min(980px, 94vw);
+  width: auto;
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+}

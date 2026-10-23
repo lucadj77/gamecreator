@@ -14,6 +14,7 @@ import {
   type DocSettings,
   type DocumentContext
 } from '../../../shared/model/document'
+import { cellBorders, cellImageKey, cellParts } from '../../../shared/model/docTable'
 import { assetUrl } from '../render/assets'
 import { cardPng } from './documentExport'
 import { dataUri } from './toSvg'
@@ -197,8 +198,23 @@ export async function documentDocx(
     const h = Number(svg.getAttribute('height')) * PX_MM
     return picture(await cardPng(svg, fonts), w, h)
   }
-  const figureOf = (from: number): Element | null =>
+  const figureOf = (from: number | string): Element | null =>
     page.querySelector(`figure[data-from="${from}"]`)
+  /** Una carta o un'immagine già disegnata nella pagina, come immagine di Word */
+  const figureRun = async (src: string, key: number | string): Promise<string> => {
+    const fig = figureOf(key)
+    if (isCardSource(src)) {
+      const svg = fig?.querySelector<SVGSVGElement>('svg[xmlns]')
+      return svg ? svgPicture(svg) : ''
+    }
+    const el = fig?.querySelector('img')
+    if (!el?.complete || !el.naturalWidth) return ''
+    const r = el.getBoundingClientRect()
+    const w = r.width * PX_MM
+    const h = r.height * PX_MM
+    const copy = await loadImage(el.src)
+    return copy ? picture(await raster(copy, w, h), w, h) : ''
+  }
 
   for (const b of parseDocument(text)) {
     switch (b.kind) {
@@ -248,32 +264,85 @@ export async function documentDocx(
         break
       }
       case 'table': {
-        const cols = b.header.length || Math.max(1, ...b.rows.map((r) => r.length))
-        const colW = Math.floor(textW / Math.max(1, cols))
-        const cell = async (s: string, k: number, head: boolean): Promise<string> =>
-          `<w:tc><w:tcPr><w:tcW w:w="${colW}" w:type="dxa"/>${
-            head ? '<w:shd w:val="clear" w:color="auto" w:fill="F3F3F0"/>' : ''
-          }</w:tcPr>${para(await inline(s, head ? { bold: true } : {}), `<w:spacing w:after="0" w:line="264" w:lineRule="auto"/>${jc(b.align[k])}`)}</w:tc>`
-        const row = async (cells: string[], head: boolean): Promise<string> =>
-          `<w:tr>${head ? '<w:trPr><w:tblHeader/></w:trPr>' : ''}${(
-            await Promise.all(Array.from({ length: cols }, (_, k) => cell(cells[k] ?? '', k, head)))
+        const st = b.style
+        const head = b.header.length > 0
+        const all = head ? [b.header, ...b.rows] : b.rows
+        const cols = Math.max(1, b.align.length, ...all.map((r) => r.length))
+        // larghezze in twip: la tabella in % del testo, le colonne in % della tabella
+        const tableW = st.width ? (textW * st.width) / 100 : textW
+        const given = st.columns.slice(0, cols)
+        const rest = Math.max(0, 100 - given.reduce((x, y) => x + y, 0))
+        const free = cols - given.length
+        const colW = Array.from({ length: cols }, (_, k) =>
+          Math.floor((tableW * (given[k] ?? (free ? rest / free : 0))) / 100 || tableW / cols)
+        )
+        const lineColor = hex(resolveColor(st.border, pal)) ?? 'C8C8C2'
+        // spessore in ottavi di punto
+        const lineSize = Math.max(2, Math.round(((st.borderWidth * 72) / 25.4) * 8))
+        const fillHex = (c: string | null): string | undefined =>
+          c ? hex(resolveColor(c, pal)) : undefined
+        const cell = async (s: string, row: number, k: number, fill?: string): Promise<string> => {
+          const on = cellBorders(st.lines, row, k, all.length, cols)
+          const side = (name: string, v: boolean): string =>
+            v && st.borderWidth > 0
+              ? `<w:${name} w:val="single" w:sz="${lineSize}" w:space="0" w:color="${lineColor}"/>`
+              : `<w:${name} w:val="nil"/>`
+          let content = ''
+          const captions: string[] = []
+          const parts = cellParts(s)
+          for (let i = 0; i < parts.length; i++) {
+            const p = parts[i]
+            if (p.kind === 'text')
+              content += await inline(p.text, row === 0 && head ? { bold: true } : {})
+            else {
+              content += await figureRun(p.src, cellImageKey(b.from, row, k, i))
+              if (p.alt) captions.push(p.alt)
+            }
+          }
+          const props = `<w:spacing w:after="0" w:line="264" w:lineRule="auto"/>${jc(b.align[k])}`
+          return (
+            `<w:tc><w:tcPr><w:tcW w:w="${colW[k]}" w:type="dxa"/><w:tcBorders>` +
+            side('top', on.top) +
+            side('left', on.left) +
+            side('bottom', on.bottom) +
+            side('right', on.right) +
+            `</w:tcBorders>${fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : ''}</w:tcPr>` +
+            para(content, props) +
+            (
+              await Promise.all(
+                captions.map(async (c) =>
+                  para(await inline(c), `<w:pStyle w:val="Caption"/>${jc(b.align[k])}`)
+                )
+              )
+            ).join('') +
+            `</w:tc>`
+          )
+        }
+        const row = async (cells: string[], r: number, fill?: string): Promise<string> =>
+          `<w:tr>${head && r === 0 ? '<w:trPr><w:tblHeader/></w:trPr>' : ''}${(
+            await Promise.all(
+              Array.from({ length: cols }, (_, k) => cell(cells[k] ?? '', r, k, fill))
+            )
           ).join('')}</w:tr>`
-        const border = (side: string): string =>
-          `<w:${side} w:val="single" w:sz="4" w:space="0" w:color="C8C8C2"/>`
+        const rows: string[] = []
+        if (head) rows.push(await row(b.header, 0, fillHex(st.header)))
+        for (let i = 0; i < b.rows.length; i++)
+          rows.push(
+            await row(
+              b.rows[i],
+              head ? i + 1 : i,
+              fillHex(i % 2 === 1 && st.stripes ? st.stripes : st.fill)
+            )
+          )
         body.push(
-          `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders>${[
-            'top',
-            'left',
-            'bottom',
-            'right',
-            'insideH',
-            'insideV'
-          ]
-            .map(border)
-            .join('')}</w:tblBorders><w:tblCellMar><w:left w:w="85" w:type="dxa"/>` +
-            `<w:right w:w="85" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${`<w:gridCol w:w="${colW}"/>`.repeat(cols)}</w:tblGrid>${b.header.length ? await row(b.header, true) : ''}${(
-              await Promise.all(b.rows.map((r) => row(r, false)))
-            ).join('')}</w:tbl>`,
+          `<w:tbl><w:tblPr>${
+            st.width
+              ? `<w:tblW w:w="${Math.round(tableW)}" w:type="dxa"/>`
+              : '<w:tblW w:w="0" w:type="auto"/>'
+          }<w:tblCellMar><w:left w:w="85" w:type="dxa"/>` +
+            `<w:right w:w="85" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${colW
+              .map((w) => `<w:gridCol w:w="${w}"/>`)
+              .join('')}</w:tblGrid>${rows.join('')}</w:tbl>`,
           // Word vuole un paragrafo dopo una tabella, che fa anche da spazio
           para('', '<w:spacing w:after="0"/>')
         )
@@ -295,21 +364,7 @@ export async function documentDocx(
         const jc = `<w:jc w:val="${figureAlign(b.images)}"/>`
         const pics: { run: string; alt: string }[] = []
         for (const img of b.images) {
-          const fig = figureOf(img.from)
-          let run = ''
-          if (isCardSource(img.src)) {
-            const svg = fig?.querySelector<SVGSVGElement>('svg[xmlns]')
-            if (svg) run = await svgPicture(svg)
-          } else {
-            const el = fig?.querySelector('img')
-            if (el?.complete && el.naturalWidth) {
-              const r = el.getBoundingClientRect()
-              const w = r.width * PX_MM
-              const h = r.height * PX_MM
-              const copy = await loadImage(el.src)
-              if (copy) run = picture(await raster(copy, w, h), w, h)
-            }
-          }
+          const run = await figureRun(img.src, img.from)
           if (run) pics.push({ run, alt: img.alt })
         }
         if (!pics.length) break

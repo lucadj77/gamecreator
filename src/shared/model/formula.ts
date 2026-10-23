@@ -213,6 +213,28 @@ const FUNCTIONS: Record<string, Fn> = {
   LEN: (a) => toText(a[0]()).length,
   CONCAT: (a) => a.map((x) => toText(x())).join(''),
   ISBLANK: (a) => toText(a[0]()).trim() === '',
+  /** Resto della divisione, con il segno del divisore come in Excel: MOD({cell.index}; 10) */
+  MOD: (a) => {
+    if (a.length !== 2) throw new FormulaError('MOD needs 2 arguments')
+    const n = toNumber(a[0]())
+    const d = toNumber(a[1]())
+    if (d === 0) throw new FormulaError('division by zero')
+    return n - d * Math.floor(n / d)
+  },
+  /**
+   * L'n-esimo di un elenco, da 1, ricominciando dall'inizio dopo l'ultimo:
+   * PICK({cell.index}; "spada"; "scudo"). Un solo elenco scritto con le virgole vale come più
+   * voci: PICK({cell.random}; {icone}) con icone = "spada, scudo, mano".
+   */
+  PICK: (a) => {
+    if (a.length < 2) throw new FormulaError('PICK needs a number and at least one item')
+    const n = Math.floor(toNumber(a[0]()))
+    const raw = a.slice(1).map((x) => toText(x()))
+    const items = raw.length === 1 ? raw[0].split(',').map((x) => x.trim()) : raw
+    if (!items.length || (items.length === 1 && items[0] === '')) return ''
+    const k = items.length
+    return items[(((n - 1) % k) + k) % k]
+  },
   /** Quante volte compare un testo: COUNTIN({risorse}; "legno") */
   COUNTIN: (a) => {
     const text = toText(a[0]()).toLowerCase()

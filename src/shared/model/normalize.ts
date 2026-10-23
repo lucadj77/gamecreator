@@ -109,7 +109,8 @@ const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
   stroke: { color: '#333333', width: 0.3 },
   background: null,
   border: null,
-  backgroundRadius: 0
+  backgroundRadius: 0,
+  content: ''
 }
 
 let idCounter = 0

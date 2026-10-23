@@ -210,6 +210,14 @@ export interface GridLayer extends LayerBase {
   border: Stroke | null
   /** Raggio degli angoli dello sfondo in mm */
   backgroundRadius: number
+  /**
+   * Nome di un gruppo dello stesso lato che si ripete in ogni casella: disegnato com'è nella
+   * prima, spostato nelle altre. Dentro valgono {cell.index}, {cell.row}, {cell.column},
+   * {cell.count} e {cell.random}. Vuoto: caselle vuote
+   */
+  content: string
+  /** Solo sulla carta disegnata: il gruppo del contenuto legato a ogni casella, in ordine */
+  cells?: GroupLayer[]
 }
 
 export type GroupLayout = 'none' | 'row' | 'column' | 'grid'

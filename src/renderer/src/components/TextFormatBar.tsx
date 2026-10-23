@@ -3,7 +3,7 @@ import { BUILTIN_STYLES } from '../../../shared/model/markup'
 import { applyStyle, toggleWrap, type WrapMark } from '../../../shared/model/docEdit'
 import { useI18n } from '../i18n/context'
 import { StylesContext } from '../render/assets'
-import { runEdit } from './editRun'
+import { OPEN_FORMAT_EVENT, runEdit } from './editRun'
 import MarkupTextarea, { type FormatControl } from './MarkupTextarea'
 import Menu from './Menu'
 
@@ -81,17 +81,20 @@ export function StyleMenu({
           onClick: () =>
             runEdit(editor.current, (s, a, b) => applyStyle(s, a, b, name, t('docTools.sample')))
         })),
-        ...(format
-          ? [
-              'sep' as const,
-              {
-                label: t('format.button'),
-                title: t('format.buttonHint'),
-                disabled: !format.enabled,
-                onClick: format.open
-              }
-            ]
-          : [])
+        'sep' as const,
+        // senza il controllo del campo (barra comune a più campi) lo si chiede al campo stesso
+        format
+          ? {
+              label: t('format.button'),
+              title: t('format.buttonHint'),
+              disabled: !format.enabled,
+              onClick: format.open
+            }
+          : {
+              label: t('format.button'),
+              title: t('format.buttonHint'),
+              onClick: () => editor.current?.dispatchEvent(new Event(OPEN_FORMAT_EVENT))
+            }
       ]}
     />
   )
@@ -145,7 +148,8 @@ export default function FormattedField({
       rows={rows ?? (singleLine ? 1 : 3)}
       placeholder={placeholder}
       showProblems={bar}
-      toolbar={bar ? (format) => <TextFormatBar editor={editor} format={format} /> : undefined}
+      // la scheda si apre anche senza selezione, su tutto il testo: vedi OPEN_FORMAT_EVENT
+      toolbar={bar ? () => <TextFormatBar editor={editor} /> : undefined}
       onFocus={(e) => onFocus?.(e.currentTarget)}
       onKeyDown={(e) => {
         if (singleLine && e.key === 'Enter') e.preventDefault()

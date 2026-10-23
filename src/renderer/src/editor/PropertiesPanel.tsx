@@ -23,6 +23,7 @@ import type {
   ValueLayer
 } from '../../../shared/model/template'
 import { isArranged, walkLayers } from '../../../shared/model/normalize'
+import { gridGeometry } from '../../../shared/model/grid'
 import { baseLayer, baseTemplateValue, changedTemplateKeys } from '../../../shared/model/inherit'
 import {
   INHERITABLE_TEMPLATE_KEYS,
@@ -432,7 +433,20 @@ function LayerProperties({
         <ShapeProperties l={l} set={set} col={col} computed={computed} />
       )}
       {same && l.type === 'grid' && (
-        <GridProperties l={l} set={set} col={col} computed={computed} />
+        <GridProperties
+          l={l}
+          set={set}
+          col={col}
+          computed={computed}
+          groups={walkLayers(tpl[side]).flatMap((x) => (x.type === 'group' ? [x] : []))}
+          onPlace={(g) => {
+            // il gruppo va al centro della prima casella, dove la griglia lo disegna com'è
+            const c = gridGeometry(l as GridLayer).centers[0]
+            if (!c) return
+            const patch = { x: l.x + c.x - g.w / 2, y: l.y + c.y - g.h / 2 }
+            dispatch({ type: 'change', template: patchLayers(tpl, side, [g.id], g, patch) })
+          }}
+        />
       )}
       {same && !multi && l.type === 'value' && (
         <ValueProperties l={l} set={set} col={col} computed={computed} />
@@ -1543,11 +1557,19 @@ function GridProperties({
   l,
   set: setLayer,
   col,
-  computed
-}: TypeProps<GridLayer>): React.JSX.Element {
+  computed,
+  groups,
+  onPlace
+}: TypeProps<GridLayer> & {
+  /** Gruppi dello stesso lato, da ripetere nelle caselle */
+  groups: GroupLayer[]
+  /** Porta il gruppo del contenuto nella prima casella */
+  onPlace(group: GroupLayer): void
+}): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<GridLayer>
   const count = (v: number): number => Math.max(1, Math.round(v))
+  const content = groups.find((g) => g.name === l.content)
   // esagoni e triangoli hanno le proporzioni fisse
   const ratio = l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond'
   return (
@@ -1736,6 +1758,31 @@ function GridProperties({
           />
         </P>
       </Section>
+      <h3>{t('editor.gridContent')}</h3>
+      <Inherit keys={['content']}>
+        <SelectField<string>
+          label={t('prop.content')}
+          hint={`${t('editor.gridContentHint')} ${col('content')}`}
+          value={l.content}
+          options={[
+            ['', t('editor.gridContentNone')],
+            ...groups.map((g): [string, string] => [g.name, g.name]),
+            // un nome scritto a mano o dal foglio che non è un gruppo resta visibile
+            ...(l.content && !groups.some((g) => g.name === l.content)
+              ? [[l.content, l.content] as [string, string]]
+              : [])
+          ]}
+          onChange={(content) => set({ content })}
+        />
+      </Inherit>
+      {content ? (
+        <button type="button" onClick={() => onPlace(content)}>
+          {t('editor.gridContentPlace')}
+        </button>
+      ) : (
+        !groups.length && <p className="muted small">{t('editor.gridContentNoGroups')}</p>
+      )}
+      <p className="muted small">{t('editor.gridContentFields')}</p>
     </>
   )
 }

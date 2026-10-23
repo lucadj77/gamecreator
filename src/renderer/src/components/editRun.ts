@@ -18,3 +18,9 @@ export function runEdit(
   }
   el.setSelectionRange(next.from, next.to)
 }
+
+/**
+ * Evento che chiede al campo di aprire la scheda di formattazione: lo manda una barra comune a più
+ * campi, che non ha in mano lo stato del campo (vedi MarkupTextarea)
+ */
+export const OPEN_FORMAT_EVENT = 'naibi-open-format'

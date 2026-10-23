@@ -891,6 +891,7 @@ export const en = {
   'bind.formulaField':
     'Layer {layer}: the formula uses field "{field}", which this row does not have',
   'bind.invalidValue': 'Column {column}: invalid value "{value}"',
+  'bind.gridContent': 'Grid {layer}: there is no group "{group}" to repeat in the cells',
   'bind.formulaError': 'Layer {layer}: formula error: {error}',
   'bind.markup': 'Layer {layer}: {problem}',
   'bind.unknownRef': 'Layer {layer}: {{name}} is not a field or an image in assets',
@@ -1561,6 +1562,9 @@ export const en = {
   'help.fn.LEN': 'How many characters the text has',
   'help.fn.CONCAT': 'Joins the texts',
   'help.fn.ISBLANK': 'True if the value is empty',
+  'help.fn.MOD': 'Remainder of a division: MOD({cell.index}; 10) is 0 on every tenth cell',
+  'help.fn.PICK':
+    'The nth item of a list, starting again after the last; a single text with commas is a list',
   'help.fn.COUNTIN': 'How many times a text contains another: COUNTIN({cost}; "gold")',
   'help.examplesIntro':
     'The examples use a card with strength 4, defense 2, name Dragon, cost "gold gold wood" and an empty note.',
@@ -1579,6 +1583,8 @@ export const en = {
   'help.ex.LEN': '=LEN({name}) → 6',
   'help.ex.CONCAT': '=CONCAT({name}; " "; {strength}) → Dragon 4',
   'help.ex.ISBLANK': '=IF(ISBLANK({note}); "-"; {note}) → -',
+  'help.ex.MOD': '=MOD({strength}; 3) → 1',
+  'help.ex.PICK': '=PICK({strength}; "sword"; "shield"; "hand") → sword',
   'help.ex.COUNTIN': '=COUNTIN({cost}; "gold") → 2',
   'help.keysIntro': 'On Windows and Linux ⌘ is Ctrl.',
   'help.keys.save': 'Save templates, data and settings',
@@ -1959,7 +1965,16 @@ export const en = {
     '100% is the largest grid that fits the frame without stretching the cells.',
   'prop.alignX': 'Horizontal position',
   'prop.alignY': 'Vertical position',
-  'prop.gridClip': 'Cut what goes outside the frame'
+  'prop.gridClip': 'Cut what goes outside the frame',
+  'editor.gridContent': 'Cell content',
+  'prop.content': 'Group',
+  'editor.gridContentHint':
+    'A group of this side repeated in every cell. Draw it in the first cell: the other cells get a copy moved to their place.',
+  'editor.gridContentNone': '(none)',
+  'editor.gridContentPlace': 'Move to the first cell',
+  'editor.gridContentNoGroups': 'Group some layers first, then choose the group here.',
+  'editor.gridContentFields':
+    'Inside the group: {cell.index} (1, 2, 3...), {cell.row}, {cell.column}, {cell.count} (number of cells), {cell.random} (fixed for each card). Formula example: =IF(MOD({cell.index}; 10) = 0; "bold"; "normal") or =PICK({cell.index}; "a"; "b"; "c").'
 }
 
 export type MessageKey = keyof typeof en

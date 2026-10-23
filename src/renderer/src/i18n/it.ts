@@ -903,6 +903,7 @@ export const it: Record<MessageKey, string> = {
   'bind.unknownProperty': 'Colonna {column}: proprietà inesistente',
   'bind.formulaField': 'Livello {layer}: la formula usa il campo "{field}", che questa riga non ha',
   'bind.invalidValue': 'Colonna {column}: valore non valido "{value}"',
+  'bind.gridContent': 'Griglia {layer}: non c\'è un gruppo "{group}" da ripetere nelle caselle',
   'bind.formulaError': 'Livello {layer}: errore nella formula: {error}',
   'bind.markup': 'Livello {layer}: {problem}',
   'bind.unknownRef': "Livello {layer}: {{name}} non è un campo né un'immagine degli asset",
@@ -1584,6 +1585,9 @@ export const it: Record<MessageKey, string> = {
   'help.fn.LEN': 'Quanti caratteri ha il testo',
   'help.fn.CONCAT': 'Unisce i testi',
   'help.fn.ISBLANK': 'Vero se il valore è vuoto',
+  'help.fn.MOD': 'Resto della divisione: MOD({cell.index}; 10) è 0 ogni dieci caselle',
+  'help.fn.PICK':
+    "L'n-esima voce di un elenco, ricominciando dopo l'ultima; un solo testo con le virgole è un elenco",
   'help.fn.COUNTIN': 'Quante volte un testo ne contiene un altro: COUNTIN({costo}; "oro")',
   'help.examplesIntro':
     'Gli esempi usano una carta con forza 4, difesa 2, nome Drago, costo "oro oro legno" e nota vuota.',
@@ -1602,6 +1606,8 @@ export const it: Record<MessageKey, string> = {
   'help.ex.LEN': '=LEN({nome}) → 5',
   'help.ex.CONCAT': '=CONCAT({nome}; " "; {forza}) → Drago 4',
   'help.ex.ISBLANK': '=IF(ISBLANK({nota}); "-"; {nota}) → -',
+  'help.ex.MOD': '=MOD({forza}; 3) → 1',
+  'help.ex.PICK': '=PICK({forza}; "spada"; "scudo"; "mano") → spada',
   'help.ex.COUNTIN': '=COUNTIN({costo}; "oro") → 2',
   'help.keysIntro': 'Su Windows e Linux ⌘ è Ctrl.',
   'help.keys.save': 'Salva template, dati e impostazioni',
@@ -1985,5 +1991,14 @@ export const it: Record<MessageKey, string> = {
     '100% è la griglia più grande che sta nel riquadro senza deformare le caselle.',
   'prop.alignX': 'Posizione orizzontale',
   'prop.alignY': 'Posizione verticale',
-  'prop.gridClip': 'Taglia ciò che esce dal riquadro'
+  'prop.gridClip': 'Taglia ciò che esce dal riquadro',
+  'editor.gridContent': 'Contenuto delle caselle',
+  'prop.content': 'Gruppo',
+  'editor.gridContentHint':
+    'Un gruppo di questo lato che si ripete in ogni casella. Disegnalo nella prima casella: le altre ne ricevono una copia spostata al loro posto.',
+  'editor.gridContentNone': '(nessuno)',
+  'editor.gridContentPlace': 'Porta nella prima casella',
+  'editor.gridContentNoGroups': 'Raggruppa prima alcuni livelli, poi scegli qui il gruppo.',
+  'editor.gridContentFields':
+    'Dentro il gruppo: {cell.index} (1, 2, 3...), {cell.row}, {cell.column}, {cell.count} (numero di caselle), {cell.random} (fisso per ogni carta). Formula di esempio: =IF(MOD({cell.index}; 10) = 0; "bold"; "normal") oppure =PICK({cell.index}; "a"; "b"; "c").'
 }

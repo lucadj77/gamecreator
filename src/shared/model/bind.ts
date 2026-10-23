@@ -1,5 +1,6 @@
 import { msg, type Message } from '../messages'
 import { parseRepeat } from './arrange'
+import { gridSize } from './grid'
 import { isGradient, mapGradientColors } from './gradient'
 import { resolveAsset } from './assets'
 import { parseCrop } from './crop'
@@ -21,6 +22,7 @@ import {
 } from './variables'
 import {
   PRIMARY_PROPERTY,
+  type GroupLayer,
   type Layer,
   type Side,
   type Shadow,
@@ -96,6 +98,32 @@ function isExpression(expr: string): boolean {
   return expr.trimStart().startsWith('=')
 }
 
+/**
+ * Campi di una casella della griglia: posizione da 1 riga per riga, numero di caselle e un
+ * numero a caso fisso per carta, griglia e casella, da usare con PICK.
+ */
+export function cellFields(
+  grid: string,
+  index: number,
+  columns: number,
+  count: number,
+  card = 0
+): Record<string, string> {
+  // FNV-1a: lo stesso numero a ogni disegno della stessa carta
+  let h = 2166136261
+  for (const c of `${card}|${grid}|${index}`) {
+    h ^= c.charCodeAt(0)
+    h = Math.imul(h, 16777619)
+  }
+  return {
+    'cell.index': String(index + 1),
+    'cell.row': String(Math.floor(index / columns) + 1),
+    'cell.column': String((index % columns) + 1),
+    'cell.count': String(count),
+    'cell.random': String(((h >>> 0) % 999999) + 1)
+  }
+}
+
 export function bindCard(template: Template, card: CardData, ctx: BindContext = {}): BoundCard {
   const problems: Message[] = []
   const language = ctx.localization?.language
@@ -134,86 +162,125 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         if (shown[column] !== main[column]) fields[column] = shown[column]
       }
     const images = imageFields(template, fields)
-    const apply = (layers: Layer[]): Layer[] =>
-      layers.map((layer) => {
-        let out: Layer = layer
-        const src = layer.source
-        const column = src.kind === 'column' && src.column ? src.column : layer.name
-        const props = new Map(overrides.get(column))
-        // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
-        if (src.kind === 'fixed') props.delete('')
-        if (src.kind === 'formula') {
-          const read = layer.type === 'text' && !isExpression(src.expr) ? shown : fields
-          const r = evaluateFormula(src.expr, read)
-          for (const f of r.missing)
-            problems.push(msg('bind.formulaField', { layer: layer.name, field: f }))
-          if (r.error)
-            problems.push(msg('bind.formulaError', { layer: layer.name, error: r.error }))
-          if (r.value.trim() !== '') props.set('', r.value)
-          else props.delete('')
-        }
-        if (props.size) {
-          const patch: Record<string, unknown> = {}
-          for (const [prop, raw] of props) {
-            const key = prop || PRIMARY_PROPERTY[layer.type]
-            if (!(key in layer)) {
-              problems.push(msg('bind.unknownProperty', { column: `${column}.${key}` }))
-              continue
+    // i gruppi che una griglia ripete nelle caselle si disegnano solo lì
+    const raw = walkLayers(layers)
+    const contents = new Set(
+      raw.flatMap((l) => (l.type === 'grid' && l.content.trim() ? [l.content.trim()] : []))
+    )
+    /**
+     * Lega i livelli con i campi dati. Le caselle di una griglia ripetono il legame con i campi
+     * {cell.…}; i problemi si segnalano una volta sola, dalla prima casella.
+     */
+    const bindWith = (
+      fields: Record<string, string>,
+      shown: Record<string, string>,
+      inCell: boolean,
+      report: boolean
+    ): ((layers: Layer[]) => Layer[]) => {
+      const say = (m: Message): void => {
+        if (report) problems.push(m)
+      }
+      const apply = (layers: Layer[]): Layer[] =>
+        layers.map((layer) => {
+          if (!inCell && layer.type === 'group' && contents.has(layer.name))
+            return { ...layer, visible: false }
+          let out: Layer = layer
+          const src = layer.source
+          const column = src.kind === 'column' && src.column ? src.column : layer.name
+          const props = new Map(overrides.get(column))
+          // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
+          if (src.kind === 'fixed') props.delete('')
+          if (src.kind === 'formula') {
+            const read = layer.type === 'text' && !isExpression(src.expr) ? shown : fields
+            const r = evaluateFormula(src.expr, read)
+            for (const f of r.missing)
+              say(msg('bind.formulaField', { layer: layer.name, field: f }))
+            if (r.error) say(msg('bind.formulaError', { layer: layer.name, error: r.error }))
+            if (r.value.trim() !== '') props.set('', r.value)
+            else props.delete('')
+          }
+          if (props.size) {
+            const patch: Record<string, unknown> = {}
+            for (const [prop, raw] of props) {
+              const key = prop || PRIMARY_PROPERTY[layer.type]
+              if (!(key in layer)) {
+                say(msg('bind.unknownProperty', { column: `${column}.${key}` }))
+                continue
+              }
+              const parsed = parseValue(
+                key,
+                (layer as unknown as Record<string, unknown>)[key],
+                raw
+              )
+              if (parsed === undefined)
+                say(msg('bind.invalidValue', { column: `${column}.${key}`, value: raw }))
+              else patch[key] = parsed
             }
-            const parsed = parseValue(key, (layer as unknown as Record<string, unknown>)[key], raw)
-            if (parsed === undefined)
-              problems.push(msg('bind.invalidValue', { column: `${column}.${key}`, value: raw }))
-            else patch[key] = parsed
+            out = { ...layer, ...patch } as Layer
           }
-          out = { ...layer, ...patch } as Layer
-        }
-        if (out.type === 'text') {
-          // il font può essere una variabile o un campo: {titoli}
-          out = {
-            ...out,
-            text: substituteFields(out.text, shown, images),
-            font: substituteFields(out.font, fields).trim()
-          }
-          if (out.visible) {
-            problems.push(...textProblems(out.name, out.text, ctx))
-            if (ctx.hasFont)
-              for (const font of new Set([
-                out.font,
-                ...markupFonts(out.text, ctx.styles, ctx.variables)
-              ]))
-                if (font.trim() && !isGenericFont(font) && !ctx.hasFont(font))
-                  problems.push(msg('bind.missingFont', { layer: out.name, font }))
-          }
-        }
-        if (out.type === 'image') {
-          out = { ...out, src: substituteFields(out.src, fields) }
-          // una variabile immagine prevale su un file con lo stesso nome
-          // {spada} come sorgente vale quanto spada
-          const v = imageVariable(out.src.trim().replace(/^\{(.*)\}$/, '$1'), ctx.variables)
-          if (v) {
-            const [flipH, flipV] = combineFlip(v.flip, out.flipH, out.flipV)
+          if (out.type === 'text') {
+            // il font può essere una variabile o un campo: {titoli}
             out = {
               ...out,
-              src: v.src,
-              tint: out.tint ?? v.tint ?? null,
-              flipH,
-              flipV,
-              opacity: out.opacity * (v.opacity ?? 1)
+              text: substituteFields(out.text, shown, images),
+              font: substituteFields(out.font, fields).trim()
+            }
+            if (out.visible) {
+              textProblems(out.name, out.text, ctx).forEach(say)
+              if (ctx.hasFont)
+                for (const font of new Set([
+                  out.font,
+                  ...markupFonts(out.text, ctx.styles, ctx.variables)
+                ]))
+                  if (font.trim() && !isGenericFont(font) && !ctx.hasFont(font))
+                    say(msg('bind.missingFont', { layer: out.name, font }))
             }
           }
-        }
-        if (out.type === 'group') {
-          // un campo vuoto vale 0; un campo che non c'è (template senza dati) resta 1
-          const repeat = substituteFields(out.repeat, fields).trim() || '0'
-          if (parseRepeat(repeat) === null && !/\{[^}]*\}/.test(repeat))
-            problems.push(
-              msg('bind.invalidValue', { column: `${layer.name}.repeat`, value: repeat })
-            )
-          out = { ...out, repeat, children: apply(out.children) }
-        }
-        return paintLayer(out, pal, fields)
-      })
-    return apply(layers)
+          if (out.type === 'image') {
+            out = { ...out, src: substituteFields(out.src, fields) }
+            // una variabile immagine prevale su un file con lo stesso nome
+            // {spada} come sorgente vale quanto spada
+            const v = imageVariable(out.src.trim().replace(/^\{(.*)\}$/, '$1'), ctx.variables)
+            if (v) {
+              const [flipH, flipV] = combineFlip(v.flip, out.flipH, out.flipV)
+              out = {
+                ...out,
+                src: v.src,
+                tint: out.tint ?? v.tint ?? null,
+                flipH,
+                flipV,
+                opacity: out.opacity * (v.opacity ?? 1)
+              }
+            }
+          }
+          if (out.type === 'group') {
+            // un campo vuoto vale 0; un campo che non c'è (template senza dati) resta 1
+            const repeat = substituteFields(out.repeat, fields).trim() || '0'
+            if (parseRepeat(repeat) === null && !/\{[^}]*\}/.test(repeat))
+              say(msg('bind.invalidValue', { column: `${layer.name}.repeat`, value: repeat }))
+            out = { ...out, repeat, children: apply(out.children) }
+          }
+          if (out.type === 'grid' && out.content.trim()) {
+            const name = out.content.trim()
+            const group = raw.find((l): l is GroupLayer => l.type === 'group' && l.name === name)
+            if (!group) say(msg('bind.gridContent', { layer: out.name, group: name }))
+            else {
+              const { rows, columns } = gridSize(out)
+              const grid = out
+              const cells = Array.from({ length: rows * columns }, (_, i) => {
+                const cell = cellFields(grid.name, i, columns, rows * columns, system?.number)
+                const f = { ...fields, ...cell }
+                const sh = shown === fields ? f : { ...shown, ...cell }
+                return bindWith(f, sh, true, report && i === 0)([group])[0] as GroupLayer
+              })
+              out = { ...out, cells }
+            }
+          }
+          return paintLayer(out, pal, fields)
+        })
+      return apply
+    }
+    return bindWith(fields, shown, false, true)(layers)
   }
 
   return {

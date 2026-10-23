@@ -5,6 +5,22 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.28
+
+### English
+
+- Grid **cell content**: a group of the same side can be repeated in every cell of a grid. Draw it in the first cell (**Move to the first cell** puts it there); the other cells get a moved copy. Inside the group `{cell.index}`, `{cell.row}`, `{cell.column}`, `{cell.count}` and `{cell.random}` (fixed for each card) change from cell to cell, for score tracks, numbered boards or icons in sequence.
+- New formula functions `MOD` (remainder) and `PICK` (the n-th item of a list, starting again after the last).
+- The style menu of the small formatting bar (card anatomy, table setup) has **Format…**, which opens the formatting window on the selected text or, with nothing selected, on the whole text.
+- In the web version, **Open file** is no longer shown for exported files the browser cannot display (Word, archives): it downloaded a second copy of a file already saved in the project folder.
+
+### Italiano
+
+- **Contenuto delle caselle** della griglia: un gruppo dello stesso lato si può ripetere in ogni casella di una griglia. Si disegna nella prima casella (**Porta nella prima casella** ce lo sposta); le altre ne ricevono una copia spostata. Dentro il gruppo `{cell.index}`, `{cell.row}`, `{cell.column}`, `{cell.count}` e `{cell.random}` (fisso per ogni carta) cambiano da casella a casella, per tracciati del punteggio, plance numerate o icone in sequenza.
+- Nuove funzioni delle formule `MOD` (resto della divisione) e `PICK` (l'elemento n-esimo di una lista, che ricomincia dopo l'ultimo).
+- Il menu Stile della barra di formattazione piccola (anatomia della carta, schema del tavolo) ha **Formatta…**, che apre la scheda di formattazione sul testo selezionato o, senza selezione, su tutto il testo.
+- Nella versione web **Apri il file** non compare più per i file esportati che il browser non sa mostrare (Word, archivi): scaricava una seconda copia di un file già salvato nella cartella del progetto.
+
 ## 1.2.0-beta.27
 
 ### English

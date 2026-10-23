@@ -251,7 +251,7 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
       {l.fade && <FadeMask id={`${id}-fade`} layer={l} fade={l.fade} />}
       <g mask={l.fade ? `url(#${id}-fade)` : undefined}>
         {l.type === 'shape' && <ShapeView layer={l} id={id} />}
-        {l.type === 'grid' && <GridView layer={l} id={id} />}
+        {l.type === 'grid' && <GridView layer={l} id={id} uid={uid} />}
         {l.type === 'image' && <ImageView layer={l} id={id} />}
         {l.type === 'text' && <TextView layer={l} />}
         {l.type === 'group' && <GroupView layer={l} id={id} uid={uid} />}
@@ -453,8 +453,21 @@ function paintOf(
 }
 
 /** Griglia di caselle: lo sfondo col bordo, poi le caselle; vedi model/grid.ts */
-function GridView({ layer: l, id }: { layer: GridLayer; id: string }): React.JSX.Element {
-  const { cells, bounds: b } = gridGeometry(l)
+/**
+ * Griglia di caselle: lo sfondo col bordo, le caselle, poi il contenuto di ogni casella (il
+ * gruppo scelto, legato alla casella e spostato dalla prima casella alla sua)
+ */
+function GridView({
+  layer: l,
+  id,
+  uid
+}: {
+  layer: GridLayer
+  id: string
+  uid: string
+}): React.JSX.Element {
+  const { cells, bounds: b, centers } = gridGeometry(l)
+  const first = centers[0]
   // tutto si disegna spostato nell'angolo del livello: sfumature e ritaglio partono da 0, 0
   const box = { x: 0, y: 0, w: l.w, h: l.h }
   const back = paintOf(l.background, `${id}-bg`, box)
@@ -467,30 +480,42 @@ function GridView({ layer: l, id }: { layer: GridLayer; id: string }): React.JSX
       {l.clip && (
         <defs>
           <clipPath id={`${id}-clip`}>
-            <rect width={l.w} height={l.h} />
+            <rect x={l.x} y={l.y} width={l.w} height={l.h} />
           </clipPath>
         </defs>
       )}
-      <g clipPath={l.clip ? `url(#${id}-clip)` : undefined} transform={`translate(${l.x} ${l.y})`}>
-        {(l.background || l.border) && (
-          <rect
-            x={b.x}
-            y={b.y}
-            width={b.w}
-            height={b.h}
-            rx={r || undefined}
-            fill={back.fill}
-            {...strokeProps(l.border)}
-          />
-        )}
-        {(l.fill || l.stroke) && (
-          <path
-            d={cells.join('')}
-            fill={cell.fill}
-            strokeLinejoin="round"
-            {...strokeProps(l.stroke)}
-          />
-        )}
+      <g clipPath={l.clip ? `url(#${id}-clip)` : undefined}>
+        <g transform={`translate(${l.x} ${l.y})`}>
+          {(l.background || l.border) && (
+            <rect
+              x={b.x}
+              y={b.y}
+              width={b.w}
+              height={b.h}
+              rx={r || undefined}
+              fill={back.fill}
+              {...strokeProps(l.border)}
+            />
+          )}
+          {(l.fill || l.stroke) && (
+            <path
+              d={cells.join('')}
+              fill={cell.fill}
+              strokeLinejoin="round"
+              {...strokeProps(l.stroke)}
+            />
+          )}
+        </g>
+        {first &&
+          l.cells?.map((content, i) => {
+            const c = centers[i]
+            if (!c) return null
+            return (
+              <g key={i} transform={`translate(${c.x - first.x} ${c.y - first.y})`}>
+                <LayerView layer={content} uid={`${uid}-${l.id}-c${i}`} />
+              </g>
+            )
+          })}
       </g>
     </>
   )

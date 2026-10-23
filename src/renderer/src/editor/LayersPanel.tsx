@@ -4,7 +4,14 @@ import { switchSource } from '../../../shared/model/bind'
 import type { Layer, Template, ValueSource } from '../../../shared/model/template'
 import { layerStatus, revertLayer } from '../../../shared/model/inherit'
 import { useI18n } from '../i18n/context'
-import { ColumnIcon, FixedIcon, ImageIcon, LinkIcon, RevertIcon } from '../components/icons'
+import {
+  ColumnIcon,
+  FixedIcon,
+  GridIcon,
+  ImageIcon,
+  LinkIcon,
+  RevertIcon
+} from '../components/icons'
 import type { Commands } from './commands'
 import type { EditorAction, EditorState } from './useEditor'
 import PanelSideButton from '../components/PanelSideButton'
@@ -33,6 +40,7 @@ const ICONS: Record<string, React.ReactNode> = {
   star: '★',
   line: '╱',
   path: '✎',
+  grid: <GridIcon />,
   value: '#'
 }
 

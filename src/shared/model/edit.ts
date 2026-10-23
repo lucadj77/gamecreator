@@ -395,6 +395,8 @@ export function newLayer(t: Template, type: LayerType, shape?: string): Layer {
       return normalizeLayer({ type, name: uniqueName(t, 'image'), ...base }, 0)
     case 'value':
       return normalizeLayer({ type, name: uniqueName(t, 'value') }, 0)
+    case 'grid':
+      return normalizeLayer({ type, name: uniqueName(t, 'grid'), ...base }, 0)
     default:
       return normalizeLayer(
         { type: 'shape', shape: shape ?? 'rect', name: uniqueName(t, shape ?? 'shape'), ...base },

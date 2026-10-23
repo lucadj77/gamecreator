@@ -5,6 +5,28 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.26
+
+### English
+
+- New **Grid** layer in the template editor, for boards, tracks and maps: square, round, hexagonal, triangular or diamond cells in rows and columns, with gap, cell fill and outline and corner radius. **Interlocking** makes a honeycomb of hexagons (point or side up), alternating triangles, diamonds and circles fitting between each other, or brick-like squares. The grid has its own background, behind and between the cells, and a border. At 100% zoom the grid fills the frame without stretching the cells; position in the frame and clipping are under Advanced.
+- The color picker shows the project's colors: the color variables (a dot marks them, and hovering shows the variable name) and then the color codes used in templates, styles, variables and sheets, most used first.
+- Images in documents: **Image** in the formatting bar opens a window to choose the file, the width in mm, the alignment (left, center, right) and the caption; with the cursor on an image it edits it. In the text: `![Map](icons/map.png?width=40&align=right)`. Cards accept `align` too.
+- In the web version, **Open file** after an export opens the exported document directly: PDF, HTML and Markdown in a new tab, other files are downloaded.
+- Buttons that delete or remove something are red.
+- In the editor a selected layer can be dragged even where another layer covers it (for example after choosing it with Alt+click or in the layer list); a click without dragging still selects the layer on top.
+- Fixed: in the web version, editing a paragraph could change the text a few characters after the cursor, because the colored overlay of the text wrapped lines in different places than the text box.
+
+### Italiano
+
+- Nuovo livello **Griglia** nell'editor dei template, per plance, tracciati e mappe: caselle quadrate, tonde, esagonali, triangolari o a rombo, in righe e colonne, con spaziatura, riempimento e contorno delle caselle e raggio degli angoli. **A incastro** dispone gli esagoni ad alveare (con la punta o il lato in alto), alterna i triangoli, incastra rombi e cerchi tra loro e mette i quadrati a mattoncino. La griglia ha un suo sfondo, dietro e tra le caselle, e un bordo. A zoom 100% riempie il riquadro senza deformare le caselle; posizione nel riquadro e taglio sono in Avanzate.
+- La scelta del colore mostra i colori del progetto: le variabili colore (segnate da un punto, e passandoci sopra si vede il nome della variabile) e poi i codici usati in template, stili, variabili e fogli, dal più usato.
+- Immagini nei documenti: **Immagine** nella barra di formattazione apre una finestra per scegliere il file, la larghezza in mm, l'allineamento (a sinistra, al centro, a destra) e la didascalia; con il cursore su un'immagine la modifica. Nel testo: `![Mappa](icone/mappa.png?width=40&align=right)`. Anche le carte accettano `align`.
+- Nella versione web, **Apri il file** dopo un'esportazione apre direttamente il documento esportato: PDF, HTML e Markdown in una nuova scheda, gli altri file si scaricano.
+- I tasti che eliminano o tolgono qualcosa sono rossi.
+- Nell'editor un livello selezionato si trascina anche dove un altro livello lo copre (per esempio dopo averlo scelto con Alt+clic o nell'elenco dei livelli); un clic senza trascinare seleziona sempre il livello in cima.
+- Corretto: nella versione web, modificando un paragrafo il testo poteva cambiare qualche carattere dopo il cursore, perché la copia colorata del testo andava a capo in punti diversi dalla casella di testo.
+
 ## 1.2.0-beta.25
 
 ### English

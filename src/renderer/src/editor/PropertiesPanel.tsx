@@ -7,6 +7,8 @@ import { assetRefName, isImageAsset, resolveAsset } from '../../../shared/model/
 import type {
   Anchor,
   CardShape,
+  GridCell,
+  GridLayer,
   GroupLayout,
   LayoutAlign,
   BlendMode,
@@ -428,6 +430,9 @@ function LayerProperties({
       )}
       {same && l.type === 'shape' && (
         <ShapeProperties l={l} set={set} col={col} computed={computed} />
+      )}
+      {same && l.type === 'grid' && (
+        <GridProperties l={l} set={set} col={col} computed={computed} />
       )}
       {same && !multi && l.type === 'value' && (
         <ValueProperties l={l} set={set} col={col} computed={computed} />
@@ -1526,6 +1531,210 @@ function ShapeProperties({
             />
           </Inherit>
         )}
+      </Section>
+    </>
+  )
+}
+
+const GRID_CELLS: GridCell[] = ['square', 'circle', 'hex', 'triangle', 'diamond']
+
+/** Griglia: caselle, disposizione, misura nel riquadro, colori; vedi model/grid.ts */
+function GridProperties({
+  l,
+  set: setLayer,
+  col,
+  computed
+}: TypeProps<GridLayer>): React.JSX.Element {
+  const { t } = useI18n()
+  const set = setLayer as SetFn<GridLayer>
+  const count = (v: number): number => Math.max(1, Math.round(v))
+  // esagoni e triangoli hanno le proporzioni fisse
+  const ratio = l.cell === 'square' || l.cell === 'circle' || l.cell === 'diamond'
+  return (
+    <>
+      <Section scope="grid">
+        <P id="cell">
+          <SelectField<GridCell>
+            label={t('prop.cell')}
+            hint={col('cell')}
+            value={l.cell}
+            options={options(t, 'gridCell', GRID_CELLS)}
+            onChange={(cell) => set({ cell })}
+          />
+        </P>
+        <P id="rows">
+          <NumberField
+            label={t('prop.rows')}
+            hint={col('rows')}
+            value={l.rows}
+            step={1}
+            min={1}
+            onChange={(rows) => set({ rows: count(rows) })}
+          />
+        </P>
+        <P id="columns">
+          <NumberField
+            label={t('prop.columns')}
+            hint={col('columns')}
+            value={l.columns}
+            step={1}
+            min={1}
+            onChange={(columns) => set({ columns: count(columns) })}
+          />
+        </P>
+        <P id="interlock">
+          <CheckField
+            label={t('prop.interlock')}
+            hint={`${t(`editor.interlockHint.${l.cell}` as MessageKey)} ${col('interlock')}`}
+            value={l.interlock}
+            onChange={(interlock) => set({ interlock })}
+          />
+        </P>
+        {l.cell === 'hex' && (
+          <P id="orientation">
+            <SelectField<GridLayer['orientation']>
+              label={t('prop.orientation')}
+              hint={col('orientation')}
+              value={l.orientation}
+              options={options(t, 'gridOrientation', ['pointy', 'flat'] as const)}
+              onChange={(orientation) => set({ orientation })}
+            />
+          </P>
+        )}
+        <P id="gap">
+          <NumberField
+            label={t('prop.gap')}
+            hint={col('gap')}
+            value={l.gap}
+            min={0}
+            step={0.5}
+            unit="mm"
+            onChange={(gap) => set({ gap })}
+          />
+        </P>
+        {!computed && (
+          <P id="fill">
+            <FillField
+              label={t('prop.cellFill')}
+              hint={col()}
+              value={l.fill}
+              fallback="#FFFFFF"
+              onChange={(fill) => set({ fill })}
+            />
+          </P>
+        )}
+        <P id="stroke">
+          <StrokeField
+            label={t('prop.cellStroke')}
+            hint={col('stroke')}
+            value={l.stroke}
+            dashable
+            onChange={(stroke) => set({ stroke })}
+          />
+        </P>
+        {l.cell !== 'circle' && (
+          <P id="radius">
+            <NumberField
+              label={t('prop.radius')}
+              hint={col('radius')}
+              value={l.radius}
+              min={0}
+              step={0.5}
+              unit="mm"
+              onChange={(radius) => set({ radius })}
+            />
+          </P>
+        )}
+        <P id="background">
+          <FillField
+            label={t('prop.gridBackground')}
+            hint={`${t('editor.gridBackgroundHint')} ${col('background')}`}
+            value={l.background}
+            fallback="#EEEEEE"
+            onChange={(background) => set({ background })}
+          />
+        </P>
+        <P id="border">
+          <StrokeField
+            label={t('prop.gridBorder')}
+            hint={col('border')}
+            value={l.border}
+            dashable
+            onChange={(border) => set({ border })}
+          />
+        </P>
+        <P id="padding" adv>
+          <NumberField
+            label={t('prop.padding')}
+            hint={`${t('editor.gridPaddingHint')} ${col('padding')}`}
+            value={l.padding}
+            min={0}
+            step={0.5}
+            unit="mm"
+            onChange={(padding) => set({ padding })}
+          />
+        </P>
+        <P id="backgroundRadius" adv>
+          <NumberField
+            label={t('prop.backgroundRadius')}
+            hint={col('backgroundRadius')}
+            value={l.backgroundRadius}
+            min={0}
+            step={0.5}
+            unit="mm"
+            onChange={(backgroundRadius) => set({ backgroundRadius })}
+          />
+        </P>
+        {ratio && (
+          <P id="cellRatio" adv>
+            <NumberField
+              label={t('prop.cellRatio')}
+              hint={`${t('editor.cellRatioHint')} ${col('cellRatio')}`}
+              value={l.cellRatio}
+              factor={100}
+              step={5}
+              min={0.05}
+              unit="%"
+              onChange={(cellRatio) => set({ cellRatio })}
+            />
+          </P>
+        )}
+        <P id="zoom" adv>
+          <NumberField
+            label={t('prop.zoom')}
+            hint={`${t('editor.gridZoomHint')} ${col('zoom')}`}
+            value={l.zoom}
+            factor={100}
+            step={5}
+            min={0.01}
+            unit="%"
+            onChange={(zoom) => set({ zoom })}
+          />
+        </P>
+        <P id="gridAlign" adv>
+          <SelectField<LayoutAlign>
+            label={t('prop.alignX')}
+            hint={col('alignX')}
+            value={l.alignX}
+            options={options(t, 'justifyH', ALIGNS)}
+            onChange={(alignX) => set({ alignX })}
+          />
+          <SelectField<LayoutAlign>
+            label={t('prop.alignY')}
+            hint={col('alignY')}
+            value={l.alignY}
+            options={options(t, 'justifyV', ALIGNS)}
+            onChange={(alignY) => set({ alignY })}
+          />
+        </P>
+        <P id="clip" adv>
+          <CheckField
+            label={t('prop.gridClip')}
+            hint={col('clip')}
+            value={l.clip}
+            onChange={(clip) => set({ clip })}
+          />
+        </P>
       </Section>
     </>
   )

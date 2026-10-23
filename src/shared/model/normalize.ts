@@ -7,6 +7,7 @@ import type {
   Layer,
   LayerBase,
   ShapeLayer,
+  GridLayer,
   Template,
   TemplateChanges,
   TextLayer,
@@ -90,6 +91,27 @@ const SHAPE_DEFAULTS: Omit<ShapeLayer, keyof LayerBase | 'type'> = {
   path: ''
 }
 
+const GRID_DEFAULTS: Omit<GridLayer, keyof LayerBase | 'type'> = {
+  cell: 'square',
+  rows: 4,
+  columns: 4,
+  cellRatio: 1,
+  orientation: 'pointy',
+  interlock: false,
+  gap: 1,
+  padding: 0,
+  zoom: 1,
+  alignX: 'center',
+  alignY: 'center',
+  clip: false,
+  radius: 0,
+  fill: '#FFFFFF',
+  stroke: { color: '#333333', width: 0.3 },
+  background: null,
+  border: null,
+  backgroundRadius: 0
+}
+
 let idCounter = 0
 
 function newId(): string {
@@ -147,6 +169,14 @@ export function normalizeLayer(raw: RawLayer, index: number): Layer {
         ...(raw as Partial<ShapeLayer>),
         id: base.id,
         type: 'shape'
+      }
+    case 'grid':
+      return {
+        ...base,
+        ...GRID_DEFAULTS,
+        ...(raw as Partial<GridLayer>),
+        id: base.id,
+        type: 'grid'
       }
     case 'value':
       return {
@@ -267,6 +297,7 @@ const TYPE_DEFAULTS: Record<Layer['type'], Record<string, unknown>> = {
   text: TEXT_DEFAULTS,
   image: IMAGE_DEFAULTS,
   shape: SHAPE_DEFAULTS,
+  grid: GRID_DEFAULTS,
   group: GROUP_DEFAULTS,
   value: { value: '' }
 }

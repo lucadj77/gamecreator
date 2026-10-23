@@ -151,9 +151,11 @@ function layerSummary(l: Layer): string {
         ? ` src=${JSON.stringify(l.src)}`
         : l.type === 'shape'
           ? ` ${l.shape} fill=${l.fill ?? 'none'}`
-          : l.type === 'value'
-            ? ` value=${JSON.stringify(l.value)}`
-            : ''
+          : l.type === 'grid'
+            ? ` ${l.rows}×${l.columns} ${l.cell} fill=${l.fill ?? 'none'}`
+            : l.type === 'value'
+              ? ` value=${JSON.stringify(l.value)}`
+              : ''
   const box = l.type === 'value' ? '' : ` at ${l.x},${l.y} size ${l.w}×${l.h} mm`
   return `${l.name} (${l.type})${box}${main} · value from ${from}${l.visible ? '' : ' · hidden'}`
 }

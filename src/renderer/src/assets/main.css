@@ -1991,7 +1991,7 @@ label.check {
 
 .tooltip {
   position: fixed;
-  z-index: 1000;
+  z-index: 3000;
   max-width: 320px;
   padding: 5px 8px;
   border-radius: 5px;
@@ -3669,6 +3669,23 @@ select.from-template {
   border: 1px solid var(--border);
   border-radius: 4px;
   background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 0 0 / 8px 8px;
+}
+
+/* colori che vengono da una variabile: un segno nell'angolo, il nome passandoci sopra */
+.color-swatches button.named {
+  position: relative;
+}
+
+.color-swatches button.named::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 1.5px solid var(--bg, #fff);
 }
 
 .color-swatches button.on {

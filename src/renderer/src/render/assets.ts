@@ -39,6 +39,9 @@ export function onAssetsUpdate(cb: (u: AssetsUpdate) => void): () => void {
 /** Variabili del progetto aperto (docs/specifica.md, 6.1) */
 export const VariablesContext = createContext<Variables>({})
 
+/** Colori scritti come codice nel progetto aperto, dal più usato: vedi usedColors */
+export const ProjectColorsContext = createContext<string[]>([])
+
 /** Lingua in cui si mostrano le carte, se non è quella principale del progetto */
 export const LocalizationContext = createContext<Localization | undefined>(undefined)
 

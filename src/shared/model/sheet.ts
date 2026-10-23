@@ -189,7 +189,7 @@ export function templateColumns(t: Template): string[] {
   for (const l of walkLayers([...t.front, ...t.back])) {
     if (l.source.kind !== 'column') continue
     // forme e gruppi (riempimento, visibilità) di solito sono decorazione: si aggiungono a mano
-    if (l.type === 'group' || l.type === 'shape') continue
+    if (l.type === 'group' || l.type === 'shape' || l.type === 'grid') continue
     const col = l.source.column ?? l.name
     if (!cols.includes(col)) cols.push(col)
   }
@@ -240,7 +240,8 @@ export const isValidSheetName = (n: string): boolean =>
 const COLOR_PROPERTIES: Record<string, string[]> = {
   text: ['color'],
   image: ['tint'],
-  shape: ['fill']
+  shape: ['fill'],
+  grid: ['fill', 'background']
 }
 
 /**
@@ -254,7 +255,8 @@ export function colorColumns(t: Template): Map<string, string | null> {
     const column = l.source.kind === 'column' && l.source.column ? l.source.column : l.name
     const values = l as unknown as Record<string, string | null>
     for (const p of props) out.set(`${column}.${p}`, values[p] ?? null)
-    if (l.type === 'shape' && l.source.kind === 'column') out.set(column, l.fill)
+    if ((l.type === 'shape' || l.type === 'grid') && l.source.kind === 'column')
+      out.set(column, l.fill)
   }
   return out
 }
@@ -303,7 +305,7 @@ export function setColumns(s: Sheet, t: Template | null, others: Template[] = []
       out.push({ header, index: -1, computed: false })
     }
   for (const l of layers)
-    if (computedNames.has(l.name) && l.type !== 'shape' && !seen.has(l.name)) {
+    if (computedNames.has(l.name) && l.type !== 'shape' && l.type !== 'grid' && !seen.has(l.name)) {
       seen.add(l.name)
       out.push({ header: l.name, index: -1, computed: true })
     }

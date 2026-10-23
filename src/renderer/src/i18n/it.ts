@@ -383,6 +383,7 @@ export const it: Record<MessageKey, string> = {
   'color.noneHint': 'Nessun colore (none): trasparente',
   'color.project': 'Colori del progetto',
   'color.recent': 'Colori recenti',
+  'color.variable': 'Variabile {name} · {color}',
   'color.noRecent': 'Qui compaiono i colori che scegli.',
   'icons.import': 'Importa {n}',
   'icons.unknown': "L'icona {id} non è nel catalogo",
@@ -1948,5 +1949,41 @@ export const it: Record<MessageKey, string> = {
   'docImage.auto': 'auto',
   'docImage.align': 'Allineamento',
   'docImage.alignHint':
-    "Larghezza vuota: la misura dell'immagine, ridotta se non ci sta nella pagina. L'allineamento vale per tutta la riga di immagini."
+    "Larghezza vuota: la misura dell'immagine, ridotta se non ci sta nella pagina. L'allineamento vale per tutta la riga di immagini.",
+  'layerType.grid': 'Griglia',
+  'tool.grid': 'Griglia (caselle, esagoni, punti…)',
+  'prop.cell': 'Caselle',
+  'gridCell.square': 'Quadrate',
+  'gridCell.circle': 'Tonde',
+  'gridCell.hex': 'Esagonali',
+  'gridCell.triangle': 'Triangolari',
+  'gridCell.diamond': 'A rombo',
+  'prop.rows': 'Righe',
+  'prop.interlock': 'A incastro',
+  'editor.interlockHint.square': 'Le righe dispari si spostano di mezza casella, come i mattoni.',
+  'editor.interlockHint.circle':
+    'Le righe dispari si spostano di mezza casella e si avvicinano, le caselle si stringono tra loro.',
+  'editor.interlockHint.hex':
+    'Ad alveare: le righe dispari (o le colonne, con gli esagoni col lato in alto) si incastrano tra le altre.',
+  'editor.interlockHint.triangle':
+    'I triangoli si alternano con la punta in su e in giù e si toccano sui lati.',
+  'editor.interlockHint.diamond':
+    'Le righe dispari riempiono gli spazi tra i rombi delle righe pari.',
+  'prop.orientation': 'Esagoni',
+  'gridOrientation.pointy': 'Punta in alto',
+  'gridOrientation.flat': 'Lato in alto',
+  'prop.cellFill': 'Riempimento caselle',
+  'prop.cellStroke': 'Contorno caselle',
+  'prop.gridBackground': 'Sfondo della griglia',
+  'editor.gridBackgroundHint': 'Dietro e tra le caselle, fino al bordo della griglia.',
+  'prop.gridBorder': 'Bordo della griglia',
+  'editor.gridPaddingHint': 'Spazio tra le caselle esterne e il bordo della griglia.',
+  'prop.backgroundRadius': 'Raggio angoli dello sfondo',
+  'prop.cellRatio': 'Larghezza casella',
+  'editor.cellRatioHint': "Larghezza rispetto all'altezza: 100% è larga quanto alta.",
+  'editor.gridZoomHint':
+    '100% è la griglia più grande che sta nel riquadro senza deformare le caselle.',
+  'prop.alignX': 'Posizione orizzontale',
+  'prop.alignY': 'Posizione verticale',
+  'prop.gridClip': 'Taglia ciò che esce dal riquadro'
 }

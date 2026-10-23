@@ -58,6 +58,13 @@ type Gesture =
       frame: GroupLayer[]
       p0: Point
       ref: Layer
+      /**
+       * Livello in cima nel punto del clic, se non è quello trascinato: un clic senza trascinare
+       * lo seleziona
+       */
+      top: string | null
+      /** Punto del clic sulla carta, in mm */
+      down: Point
       /** Ingombro dei livelli spostati all'inizio del gesto */
       box: Bounds
       lines: SnapLines
@@ -195,11 +202,20 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   /**
    * Livello colpito, prima nel gruppo in cui si è entrati e poi al primo livello. Con `below`
    * (Alt+clic) si prende il livello sotto quello selezionato nello stesso punto, e si ricomincia
-   * dall'alto dopo l'ultimo.
+   * dall'alto dopo l'ultimo. Con `keep` vale il livello già selezionato anche se è coperto da un
+   * altro: così si trascina quello scelto con Alt+clic o nel pannello livelli.
    */
-  const pick = (p: Point, below = false): { hit: Layer | null; scope: string | null } => {
+  const pick = (
+    p: Point,
+    below = false,
+    keep = false
+  ): { hit: Layer | null; scope: string | null } => {
     const choose = (list: Layer[], q: Point): Layer | null => {
       const hits = list.filter((l) => !l.locked && hitTest(l, q, hitPad))
+      if (keep && !below) {
+        const kept = hits.find((l) => selection.includes(l.id))
+        if (kept) return kept
+      }
       if (!below || hits.length < 2) return hits[0] ?? null
       const at = hits.findIndex((l) => selection.includes(l.id))
       return hits[(at + 1) % hits.length]
@@ -238,7 +254,8 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
   const onPointerDown = (e: React.PointerEvent): void => {
     if (e.button !== 0) return
     const p = cardPoint(e)
-    const { hit, scope: hitScope } = pick(p, e.altKey)
+    const { hit, scope: hitScope } = pick(p, e.altKey, !e.shiftKey)
+    const top = e.altKey || e.shiftKey ? null : pick(p).hit
     if (!hit) {
       // sul vuoto si trascina un rettangolo di selezione
       if (!e.shiftKey) dispatch({ type: 'select', ids: [], scope })
@@ -269,6 +286,8 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
       frame,
       p0: toFrame(p, frame),
       ref: hit,
+      top: top && top.id !== hit.id ? top.id : null,
+      down: p,
       box: boxes.length ? unionBounds(boxes) : worldBounds(hit),
       lines: snapLines(movable, frame)
     })
@@ -453,6 +472,14 @@ export default function Canvas({ state, display, dispatch }: Props): React.JSX.E
     setSnapped({ x: null, y: null })
     overlayRef.current?.releasePointerCapture(e.pointerId)
     dispatch({ type: 'gestureEnd' })
+    // un clic senza trascinare sopra il livello selezionato ma coperto sceglie quello in cima
+    if (ended.kind === 'move' && ended.top) {
+      const p = cardPoint(e)
+      if (Math.hypot(p.x - ended.down.x, p.y - ended.down.y) * scale < 3) {
+        const { hit, scope: hitScope } = pick(p)
+        if (hit) dispatch({ type: 'select', ids: [hit.id], scope: hitScope })
+      }
+    }
   }
 
   /** Doppio clic su un gruppo: si entra nel gruppo e si seleziona il figlio sotto il puntatore */

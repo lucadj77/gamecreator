@@ -5,6 +5,26 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.1
+
+### English
+
+A guide-only update: no change to the app or to the project files.
+
+#### Changed
+
+- **User guide** (`docs/guide`, Italian in `docs/guida`) brought up to date with 1.2.0: all screenshots retaken with the Stella interface, a new chapter on the web version, the grid layer with its cell content, the documents chapter split into sections with screenshots (document, insert card, tables, card anatomy, table setup), new project from an existing data file, image library and dark background, constraints table, text fitting and layer effects, duplex printing tip, formula functions with examples, CLI command table and more keyboard shortcuts.
+- The scripts that take the guide screenshots are now in the repository, in `scripts/guide`.
+
+### Italiano
+
+Un aggiornamento della sola guida: l'app e i file di progetto non cambiano.
+
+#### Modifiche
+
+- **Guida utente** (`docs/guida`, inglese in `docs/guide`) allineata alla 1.2.0: tutti gli screenshot rifatti con l'interfaccia di Stella, un capitolo nuovo sulla versione web, il livello griglia con il contenuto delle caselle, il capitolo sui documenti diviso in paragrafi con screenshot (documento, inserisci carta, tabelle, anatomia della carta, schema del tavolo), nuovo progetto da un file dati esistente, libreria immagini e sfondo scuro, tabella dei vincoli, adattamento del testo ed effetti dei livelli, consiglio per la stampa fronte-retro, funzioni delle formule con esempi, tabella dei comandi della CLI e altre scorciatoie da tastiera.
+- Gli script che scattano gli screenshot della guida sono ora nel repository, in `scripts/guide`.
+
 ## 1.2.0
 
 ### English

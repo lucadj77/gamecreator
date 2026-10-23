@@ -1,0 +1,50 @@
+// gruppo E: immagini, icone, font
+import { launch, shot, shotEl } from './lib.mjs'
+const lang = process.argv[2]
+const it = lang === 'it'
+const { app, win, T } = await launch({ lang, h: 1000 })
+const dialog = () => win.locator('[role="dialog"]').last()
+// scelta delle immagini dal campo ritratto
+await win.locator('.card-form .pick-btn').first().click()
+await win.waitForTimeout(1200)
+await shotEl(win, `${lang}/scegli-immagine`, dialog(), 24)
+// importa icone
+await dialog().getByRole('button', { name: T['assetPicker.importIcons'] }).click()
+await win.waitForTimeout(2500)
+await dialog()
+  .getByPlaceholder(T['icons.search'])
+  .fill(it ? 'castello' : 'castle')
+await win.waitForTimeout(1200)
+await dialog().getByText('chess-rook', { exact: true }).click()
+await dialog().getByText('white-tower', { exact: true }).click()
+await win.mouse.move(5, 5)
+await win.waitForTimeout(600)
+await shotEl(win, `${lang}/importa-icone`, dialog(), 24)
+await dialog().getByRole('button', { name: T['dialog.cancel'], exact: true }).click()
+await win.waitForTimeout(400)
+await dialog().getByRole('button', { name: T['dialog.cancel'], exact: true }).click()
+await win.waitForTimeout(400)
+// font
+await win.getByText(T['preview.editTemplate']).click()
+await win.waitForTimeout(1500)
+await win
+  .locator('.layers .layer-name', { hasText: new RegExp(`^${it ? 'nome' : 'name'}$`) })
+  .first()
+  .click()
+await win.waitForTimeout(500)
+await win
+  .locator('aside.properties')
+  .getByRole('button', { name: 'Aa', exact: true })
+  .first()
+  .click()
+await win.waitForTimeout(1500)
+await dialog().getByText(T['fonts.tabProject'], { exact: true }).click()
+await win.waitForTimeout(1200)
+await shotEl(win, `${lang}/font-progetto`, dialog(), 24)
+await dialog().getByText('Google Fonts', { exact: true }).click()
+await win.waitForTimeout(2500)
+await shotEl(win, `${lang}/font-google`, dialog(), 24)
+await dialog().getByText(T['fonts.tabSystem'], { exact: true }).click()
+await win.waitForTimeout(2500)
+await shotEl(win, `${lang}/font-computer`, dialog(), 24)
+await app.close()

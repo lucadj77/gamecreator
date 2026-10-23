@@ -304,7 +304,7 @@ image icons/coin.png 270,75 width=12
 ```
 ````
 
-`size WxH` is optional (without it the drawing fits its elements). Card references are as in `card:` images (prefix optional), with `%20` for spaces; `rotate` is 0, 90, 180 or 270 and a rotated card takes the turned box with `x,y` at its top left; a deck is drawn as a small stack (`count` defaults to 5). Text and labels go in double quotes (`\"` for a quote) and can use markup. Cards are usually 63x88 mm: leave room for labels (about 5 mm under a card). `check` reports bad lines and missing cards.
+`size WxH` is optional (without it the drawing fits its elements). Card references are as in `card:` images (prefix optional), with `%20` for spaces; `rotate` is in degrees, clockwise (any angle; 90 and 270 turn the card sideways), and a rotated card takes the upright box that contains it, with `x,y` at its top left; a deck is drawn as a small stack (`count` defaults to 5). Text and labels go in double quotes (`\"` for a quote) and can use markup. Cards are usually 63x88 mm: leave room for labels (about 5 mm under a card). `check` reports bad lines and missing cards.
 
 Run `docs` (or `check`) after writing: it lists the references that are not found, with their line.
 

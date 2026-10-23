@@ -13,6 +13,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - New formula functions `MOD` (remainder) and `PICK` (the n-th item of a list, starting again after the last).
 - Document tables: cells can hold images and cards next to formatted text, and the table window has the formatting bar, **Image** and **Insert card** for the cell being edited. Under **Look**: table and column widths, which lines to draw (all, between rows, outline, none), line color and thickness, heading and row backgrounds and alternate rows. The look is kept in the HTML, PDF and Word exports.
 - The style menu of the small formatting bar (card anatomy, table setup) has **Format…**, which opens the formatting window on the selected text or, with nothing selected, on the whole text.
+- Table setup: cards, decks and images rotate freely, with a round handle above them (Shift for 15° steps) or by typing the degrees; **+90°** still turns by a quarter.
 - In the web version, **Open file** is no longer shown for exported files the browser cannot display (Word, archives): it downloaded a second copy of a file already saved in the project folder.
 
 ### Italiano
@@ -21,6 +22,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Nuove funzioni delle formule `MOD` (resto della divisione) e `PICK` (l'elemento n-esimo di una lista, che ricomincia dopo l'ultimo).
 - Tabelle dei documenti: nelle celle si possono mettere immagini e carte accanto al testo formattato, e la finestra della tabella ha la barra di formattazione, **Immagine** e **Inserisci carta** per la cella che si sta scrivendo. In **Aspetto**: larghezza della tabella e delle colonne, quali linee disegnare (tutte, tra le righe, il contorno, nessuna), colore e spessore delle linee, sfondo dell'intestazione e delle righe e righe alternate. L'aspetto resta nelle esportazioni HTML, PDF e Word.
 - Il menu Stile della barra di formattazione piccola (anatomia della carta, schema del tavolo) ha **Formatta…**, che apre la scheda di formattazione sul testo selezionato o, senza selezione, su tutto il testo.
+- Schema del tavolo: carte, mazzi e immagini ruotano liberamente, con una maniglia tonda sopra (Maiuscolo per scatti di 15°) o scrivendo i gradi; **+90°** gira ancora di un quarto.
 - Nella versione web **Apri il file** non compare più per i file esportati che il browser non sa mostrare (Word, archivi): scaricava una seconda copia di un file già salvato nella cartella del progetto.
 
 ## 1.2.0-beta.27

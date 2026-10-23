@@ -12,6 +12,7 @@ import { useBoundCard } from './useBoundCard'
 import {
   DECK_LAYERS,
   DECK_STEP,
+  itemCardSize,
   SETUP_LINE as LINE,
   type Box,
   type SetupView
@@ -161,10 +162,8 @@ function CardItem({
   const card = useBoundCard(anatomyCardSource(it.card), sets, templates, project)
   const layers = it.kind === 'deck' ? Math.min(it.count, DECK_LAYERS + 1) - 1 : 0
   const extra = layers * DECK_STEP
-  const turned = it.rotate === 90 || it.rotate === 270
   // misure della carta dritta
-  const cw = turned ? box.h - extra : box.w - extra
-  const ch = turned ? box.w - extra : box.h - extra
+  const { w: cw, h: ch } = itemCardSize(it.card, sets, templates)
   const t = card?.template
   const radius = t ? (t.cornerRadius * cw) / t.width : 3
   const face = t ? (

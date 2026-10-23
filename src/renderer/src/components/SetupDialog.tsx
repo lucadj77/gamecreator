@@ -12,7 +12,7 @@ import {
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import SetupDiagram from '../render/SetupDiagram'
-import { setupView, setupWithText, type Box } from '../render/setupGeometry'
+import { itemBox, setupView, setupWithText, type Box } from '../render/setupGeometry'
 import AssetPicker from './AssetPicker'
 import InsertCardDialog from './InsertCardDialog'
 import FormattedField from './TextFormatBar'
@@ -103,6 +103,28 @@ export default function SetupDialog({
     if (index === null) return
     setItems(items.map((it, k) => (k === index ? ({ ...it, ...patch } as Item) : it)))
   }
+  /**
+   * Ruota l'elemento attorno al suo centro: il riquadro dritto che lo contiene cambia misura, e
+   * x e y (il suo angolo) si spostano perché il centro resti fermo
+   */
+  const rotateTo = (deg: number, index = selected, from: Item | null = null): void => {
+    if (index === null) return
+    const o = from ?? items[index]
+    if (o.kind !== 'card' && o.kind !== 'deck' && o.kind !== 'image') return
+    const rotate = ((Math.round(deg) % 360) + 360) % 360
+    if (o.kind === 'image') return change({ rotate }, index)
+    const before = itemBox(o, sets, templates)
+    const after = itemBox({ ...o, rotate }, sets, templates)
+    const tenth = (n: number): number => Math.round(n * 10) / 10
+    change(
+      {
+        rotate,
+        x: tenth(before.x + (before.w - after.w) / 2),
+        y: tenth(before.y + (before.h - after.h) / 2)
+      },
+      index
+    )
+  }
   const remove = (): void => {
     if (selected === null) return
     setItems(items.filter((_, k) => k !== selected))
@@ -173,6 +195,13 @@ export default function SetupDialog({
     const dx = p.x - d.x
     const dy = p.y - d.y
     const o = d.orig
+    if (d.handle === 'rotate') {
+      const b = itemBox(o, sets, templates)
+      const deg = (Math.atan2(p.y - (b.y + b.h / 2), p.x - (b.x + b.w / 2)) * 180) / Math.PI + 90
+      // con Maiuscolo a scatti di 15°, come nell'editor
+      rotateTo(e.shiftKey ? Math.round(deg / 15) * 15 : deg, d.index, o)
+      return
+    }
     let patch: Partial<Item>
     if (d.handle === 'start') patch = { x: snap(o.x + dx), y: snap(o.y + dy) }
     else if (d.handle === 'end' && o.kind === 'arrow')
@@ -231,6 +260,40 @@ export default function SetupDialog({
       />
     )
   }
+  /** Maniglia tonda sopra il riquadro, per ruotare carte, mazzi e immagini */
+  const rotateHandle = (b: Box): React.JSX.Element => {
+    const r = 5 / scale
+    const cx = b.x + b.w / 2
+    // sopra il riquadro; sotto, se sopra uscirebbe dal disegno
+    const above = b.y - 1 - 18 / scale - r > area.y
+    const top = above ? b.y - 1 : b.y + b.h + 1
+    const cy = above ? top - 18 / scale : top + 18 / scale
+    return (
+      <g key="rotate">
+        <line
+          x1={cx}
+          y1={top}
+          x2={cx}
+          y2={above ? cy + r : cy - r}
+          stroke={BLUE}
+          strokeWidth={1.5 / scale}
+          pointerEvents="none"
+        />
+        <circle
+          data-handle="rotate"
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill="#fff"
+          stroke={BLUE}
+          strokeWidth={1.5 / scale}
+          style={{ cursor: 'grab' }}
+        >
+          <title>{t('documents.setupRotateHandle')}</title>
+        </circle>
+      </g>
+    )
+  }
   const box = selected !== null ? view.boxes[selected] : null
   const overlay = (
     <g>
@@ -264,6 +327,8 @@ export default function SetupDialog({
             : sel.kind === 'zone' || sel.kind === 'image' || sel.kind === 'text'
               ? handle('size', box.x + box.w, box.y + box.h)
               : null}
+          {(sel.kind === 'card' || sel.kind === 'deck' || sel.kind === 'image') &&
+            rotateHandle(box)}
         </>
       )}
     </g>
@@ -369,9 +434,12 @@ export default function SetupDialog({
                 {sel.kind === 'deck' &&
                   num(t('documents.setupCount'), sel.count, (count) => change({ count }), 1)}
                 {(sel.kind === 'card' || sel.kind === 'deck' || sel.kind === 'image') && (
-                  <button onClick={() => change({ rotate: (sel.rotate + 90) % 360 })}>
-                    {t('documents.setupRotate', { n: sel.rotate })}
-                  </button>
+                  <div className="dialog-row">
+                    {num(t('documents.setupRotation'), sel.rotate, (n) => rotateTo(n))}
+                    <button onClick={() => rotateTo(sel.rotate + 90)}>
+                      {t('documents.setupRotate90')}
+                    </button>
+                  </div>
                 )}
                 {sel.kind === 'text' ? (
                   <div className="setup-text">

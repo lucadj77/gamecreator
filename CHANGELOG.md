@@ -9,11 +9,11 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 ### English
 
-- Tabletop Simulator export on Mac and Linux: image addresses are now written as `file:////Users/...` (four slashes) instead of `file:///`, so "Upload all loaded files" in TTS's Cloud Manager no longer gets stuck on them. Export again to update the files.
+- Tabletop Simulator export on Mac and Linux: image addresses are now written as Tabletop Creator writes them, `file:////Users/...` (four slashes) with spaces and accented letters as they are, instead of `file:///Users/...` with `%20`; "Upload all loaded files" in TTS's Cloud Manager no longer gets stuck on them. Export again to update the files.
 
 ### Italiano
 
-- Esportazione per Tabletop Simulator su Mac e Linux: gli indirizzi delle immagini ora sono scritti come `file:////Users/...` (quattro barre) invece di `file:///`, così "Upload all loaded files" nel Cloud Manager di TTS non si blocca più. Esporta di nuovo per aggiornare i file.
+- Esportazione per Tabletop Simulator su Mac e Linux: gli indirizzi delle immagini ora sono scritti come li scrive Tabletop Creator, `file:////Users/...` (quattro barre) con spazi e lettere accentate come sono, invece di `file:///Users/...` con `%20`; "Upload all loaded files" nel Cloud Manager di TTS non si blocca più. Esporta di nuovo per aggiornare i file.
 
 ## 1.2.0-beta.33
 

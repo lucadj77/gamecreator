@@ -196,11 +196,11 @@ describe('Tabletop Simulator', () => {
   })
   it('su Windows scrive le immagini nella forma che legge Tabletop Simulator', () => {
     const p = 'C:\\Users\\Anna\\Giochi\\Fora arma/export/tts/images/Armeria_faces_1.png'
-    expect(ttsImageUrl(p, 'win32', 'ignored')).toBe(
+    expect(ttsImageUrl(p, 'win32')).toBe(
       'file:///C:\\Users\\Anna\\Giochi\\Fora arma\\export\\tts\\images\\Armeria_faces_1.png'
     )
-    expect(ttsImageUrl('/Users/luca/x y.png', 'darwin', 'file:///Users/luca/x%20y.png')).toBe(
-      'file:////Users/luca/x%20y.png'
+    expect(ttsImageUrl('/Users/luca/Saved Objects/città.png', 'darwin')).toBe(
+      'file:////Users/luca/Saved Objects/città.png'
     )
   })
 })

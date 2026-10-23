@@ -1,6 +1,5 @@
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, join, resolve } from 'path'
-import { pathToFileURL } from 'url'
 import {
   defaultTtsFolder,
   ttsImageUrl,
@@ -550,9 +549,7 @@ async function renderPiece(
 /** Indirizzo di un'immagine scritta per Tabletop Simulator, come lo legge TTS */
 function imageUrl(env: RunEnv, file: string): string {
   const real = env.realPath?.(file) ?? { path: file, platform: env.platform }
-  // un percorso di Windows scritto a mano nel web non diventa un URL standard: non serve
-  const standard = real.platform === 'win32' ? '' : pathToFileURL(real.path).href
-  return ttsImageUrl(real.path, real.platform, standard)
+  return ttsImageUrl(real.path, real.platform)
 }
 
 function fieldText(card: ExportCard, field: string): string {

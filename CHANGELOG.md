@@ -13,6 +13,12 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - A menu next to the project name shows the cards in another language: grid, preview, editor and documents. Double-clicking the card edits the translated text.
 - Only what is read is translated: image names, colours and formulas starting with `=` keep the values of the main language, so formulas work unchanged in every language. `{project.name}` and `{set.name}` use the translated names.
 - **Export…** has a **Language** choice, also **All languages**: other languages go to a subfolder named after their code (`export/en`), with the same file names. On the command line: `naibi render --lang en`, `naibi export --profile NAME --lang en|all`.
+- Documents have a formatting bar above the text: heading level, bold, italic, underline, strikethrough, bulleted and numbered lists, quote, a **Style** menu with the project styles and the advanced formatting, and the buttons to insert an image, a table, a card, a card anatomy or a table setup. The bar writes ordinary markup, and Undo works on it.
+- Document properties, as in Obsidian: the YAML front matter at the top of a document (title, tags, author…) is kept and shown in a **Properties** panel where you edit, add and remove entries. They are not printed unless you tick **Show in the document**, which adds them as a table at the top of the page and of the exports.
+- Documents can be duplicated, from the ⋯ menu or with a right click in the sidebar, where they can also be deleted.
+- **Card anatomy** fits the screen: two columns, the cards to choose on the left, a live preview of the anatomy and the layers on the right.
+- After an export, buttons open the exported files directly (for up to 6 files), besides the folder.
+- New projects have all their folders from the start, `docs` included, and opening an older project adds the missing ones.
 
 ### Italiano
 
@@ -20,6 +26,12 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Un menu accanto al nome del progetto mostra le carte in un'altra lingua: griglia, anteprima, editor e documenti. Il doppio clic sulla carta modifica il testo tradotto.
 - Si traduce solo ciò che si legge: nomi delle immagini, colori e formule che cominciano con `=` tengono i valori della lingua principale, così le formule funzionano in ogni lingua senza cambiarle. `{project.name}` e `{set.name}` usano i nomi tradotti.
 - **Esporta…** ha la scelta **Lingua**, anche **Tutte le lingue**: le altre lingue vanno in una sottocartella con il loro codice (`export/en`), con gli stessi nomi di file. Da riga di comando: `naibi render --lang en`, `naibi export --profile NOME --lang en|all`.
+- I documenti hanno una barra di formattazione sopra il testo: livello del titolo, grassetto, corsivo, sottolineato, barrato, elenchi puntati e numerati, citazione, un menu **Stile** con gli stili del progetto e la formattazione avanzata, e i tasti per inserire un'immagine, una tabella, una carta, un'anatomia o uno schema del tavolo. La barra scrive il markup normale, e Annulla funziona anche su questo.
+- Proprietà del documento, come in Obsidian: il frontmatter YAML in testa al documento (titolo, tag, autore…) si conserva e si vede nel pannello **Proprietà**, dove si modificano, aggiungono e tolgono le voci. Non si stampano, a meno di spuntare **Mostra nel documento**, che le aggiunge come tabella in testa alla pagina e alle esportazioni.
+- I documenti si possono duplicare, dal menu ⋯ o con il clic destro nella barra laterale, dove si possono anche eliminare.
+- **Anatomia carta** sta nello schermo: due colonne, a sinistra le carte da scegliere, a destra l'anteprima dal vivo dell'anatomia e i livelli.
+- Dopo un'esportazione, dei tasti aprono direttamente i file esportati (fino a 6), oltre alla cartella.
+- I progetti nuovi hanno da subito tutte le loro cartelle, `docs` compresa, e aprire un progetto creato prima aggiunge quelle che mancano.
 
 ## 1.2.0-beta.24
 

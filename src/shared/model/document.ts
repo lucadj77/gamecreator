@@ -41,6 +41,7 @@ export type DocBlock = { from: number } & (
   | { kind: 'quote'; text: string }
   | {
       kind: 'table'
+      /** Vuota in una tabella senza intestazione (le proprietà del documento) */
       header: string[]
       align: (HAlign | null)[]
       rows: string[][]
@@ -159,8 +160,20 @@ export function parseDocument(src: string): DocBlock[] {
     pos += l.length + 1
   }
   const blocks: DocBlock[] = []
-  // le impostazioni della pagina in testa non sono testo
+  // le impostazioni della pagina in testa non sono testo; le proprietà si mostrano solo se chiesto
   let i = frontMatterLines(lines)
+  if (i && documentSettings(src).settings.showProperties) {
+    const props = documentProperties(src).filter((p) => p.value.trim())
+    if (props.length)
+      blocks.push({
+        kind: 'table',
+        header: [],
+        align: [null, null],
+        rows: props.map((p) => [`**${p.key}**`, p.value]),
+        from: 0,
+        to: starts[i - 1] + lines[i - 1].length
+      })
+  }
   const blank = (l: string | undefined): boolean => l === undefined || l.trim() === ''
   while (i < lines.length) {
     const line = lines[i]
@@ -408,6 +421,8 @@ export interface DocSettings {
   color: string
   /** Colore dei titoli; vuoto per quello del testo */
   headingColor: string
+  /** Le proprietà del documento (tags, autore…) si mostrano in testa, in una tabella */
+  showProperties: boolean
 }
 
 export type DocPage = 'A4' | 'A5' | 'Letter'
@@ -429,21 +444,185 @@ export const DEFAULT_DOC_SETTINGS: DocSettings = {
   paragraphSpacing: 6,
   align: 'left',
   color: '#1d1d1f',
-  headingColor: ''
+  headingColor: '',
+  showProperties: false
 }
 
 const SETTING_KEYS = Object.keys(DEFAULT_DOC_SETTINGS) as (keyof DocSettings)[]
-const FRONT_LINE = /^\s*([A-Za-z][\w-]*)\s*:(.*)$/
+const FRONT_LINE = /^\s*([A-Za-z\u00C0-\u024F][\w\u00C0-\u024F-]*)\s*:(.*)$/
 
-/** Righe occupate dalle impostazioni in testa (--- chiave: valore ---), 0 se non ci sono */
+/**
+ * Righe della testa del documento (--- chiave: valore ---, come il frontmatter YAML di Obsidian),
+ * 0 se non c'è. La prima riga piena deve essere una chiave; le righe che non lo sono continuano il
+ * valore della chiave sopra (elenchi `- voce`, testi su più righe).
+ */
 function frontMatterLines(lines: string[]): number {
   if (lines[0]?.trim() !== '---') return 0
+  let keyed = false
   for (let k = 1; k < lines.length; k++) {
     const l = lines[k]
-    if (l.trim() === '---') return k + 1
-    if (l.trim() && !l.trim().startsWith('#') && !FRONT_LINE.test(l)) return 0
+    if (l.trim() === '---') return keyed ? k + 1 : 0
+    if (!l.trim() || l.trim().startsWith('#')) continue
+    if (!keyed && !FRONT_LINE.test(l)) return 0
+    keyed = true
   }
   return 0
+}
+
+/** Una voce della testa: chiave, valore (con le righe che lo continuano) e posizione */
+interface FrontEntry {
+  key: string
+  /** Righe del valore: la prima dopo i due punti, poi quelle che la continuano */
+  value: string[]
+  /** Righe della testa (contando da quella dopo ---) che la voce occupa */
+  first: number
+  last: number
+  from: number
+  to: number
+}
+
+function frontEntries(lines: string[]): FrontEntry[] {
+  const end = frontMatterLines(lines)
+  const out: FrontEntry[] = []
+  let pos = lines[0].length + 1
+  for (let k = 1; k < end - 1; k++) {
+    const l = lines[k]
+    const at = pos
+    pos += l.length + 1
+    // una chiave sta a inizio riga; più a destra è un valore annidato, che continua quello sopra
+    const m = /^\S/.test(l) && !l.trim().startsWith('#') ? FRONT_LINE.exec(l) : null
+    if (m) out.push({ key: m[1], value: [m[2]], first: k, last: k, from: at, to: at + l.length })
+    else if (out.length && l.trim() && !l.trim().startsWith('#')) {
+      const e = out[out.length - 1]
+      e.value.push(l)
+      e.last = k
+      e.to = at + l.length
+    }
+  }
+  return out
+}
+
+/** Una proprietà del documento: la chiave e il valore come testo, o come elenco */
+export interface DocProperty {
+  key: string
+  value: string
+  /** Il valore è un elenco ([a, b] o righe - voce): nel campo le voci sono separate da virgole */
+  list: boolean
+}
+
+const unquote = (v: string): string => {
+  const t = v.trim()
+  if (/^"(.*)"$/s.test(t))
+    return t
+      .slice(1, -1)
+      .replace(/\\(["\\])/g, '$1')
+      .replace(/\\n/g, '\n')
+  if (/^'(.*)'$/s.test(t)) return t.slice(1, -1).replace(/''/g, "'")
+  return t
+}
+
+/** Il valore YAML di una voce, letto alla buona: testo, testo tra virgolette su più righe, elenco */
+function propertyOf(e: FrontEntry): DocProperty {
+  const [head, ...rest] = e.value
+  const first = head.trim()
+  const items = rest.map((l) => l.trim())
+  if (!first && items.length && items.every((l) => l.startsWith('- ')))
+    return { key: e.key, value: items.map((l) => unquote(l.slice(2))).join(', '), list: true }
+  if (/^\[.*\]$/s.test(first) && !items.length)
+    return {
+      key: e.key,
+      value: first
+        .slice(1, -1)
+        .split(',')
+        .map(unquote)
+        .filter((x) => x !== '')
+        .join(', '),
+      list: true
+    }
+  // un testo su più righe: le righe si uniscono con uno spazio, come in YAML
+  return { key: e.key, value: unquote([first, ...items].join(' ')), list: false }
+}
+
+/** Le proprietà del documento: le voci della testa che non sono impostazioni della pagina */
+export function documentProperties(src: string): DocProperty[] {
+  const lines = src.replace(/\r\n?/g, '\n').split('\n')
+  return frontEntries(lines)
+    .filter((e) => !settingKey(e.key))
+    .map(propertyOf)
+}
+
+/** Un valore scritto in YAML: tra virgolette quando serve */
+function yamlValue(p: DocProperty): string {
+  const scalar = (v: string): string =>
+    v === '' ||
+    /^[\s[\]{}"'#&*!|>%@`,-]|[\s]$|: | #|\n/.test(v) ||
+    /^(true|false|null|yes|no|~)$/i.test(v)
+      ? JSON.stringify(v)
+      : v
+  if (!p.list) return p.value === '' ? '' : scalar(p.value)
+  const items = p.value
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
+  return `[${items.map((x) => (/[,[\]]/.test(x) ? JSON.stringify(x) : scalar(x))).join(', ')}]`
+}
+
+/**
+ * Il documento con le proprietà cambiate: si riscrivono le voci delle proprietà, nell'ordine dato,
+ * e le impostazioni della pagina restano com'erano
+ */
+export function withDocumentProperties(src: string, props: DocProperty[]): string {
+  const lines = src.replace(/\r\n?/g, '\n').split('\n')
+  const end = frontMatterLines(lines)
+  const entries = frontEntries(lines)
+  const settingLines = entries
+    .filter((e) => settingKey(e.key))
+    .flatMap((e) => lines.slice(e.first, e.last + 1))
+  // una proprietà che non è cambiata resta scritta com'era (virgolette, elenco su più righe)
+  const kept = new Map(
+    entries.filter((e) => !settingKey(e.key)).map((e) => [e.key, { e, p: propertyOf(e) }])
+  )
+  const propLines = props
+    .filter((p) => p.key.trim())
+    .flatMap((p) => {
+      const old = kept.get(p.key.trim())
+      if (old && old.p.value === p.value && old.p.list === p.list)
+        return lines.slice(old.e.first, old.e.last + 1)
+      return [`${p.key.trim()}:${yamlValue(p) ? ' ' + yamlValue(p) : ''}`]
+    })
+  const head = [...propLines, ...settingLines]
+  let body = lines.slice(end).join('\n')
+  if (!head.length) return end ? body.replace(/^\n+/, '') : body
+  if (!end) body = '\n' + body
+  return ['---', ...head, '---', body].join('\n')
+}
+
+/**
+ * Il nome di una proprietà: lettere, cifre, - e _, che comincia con una lettera, e non quello di
+ * un'impostazione della pagina (font, size…), che si legge come impostazione
+ */
+export function isPropertyKey(key: string): boolean {
+  return /^[A-Za-z\u00C0-\u024F][\w\u00C0-\u024F-]*$/.test(key) && !settingKey(key)
+}
+
+/** L'impostazione con questo nome, senza badare alle maiuscole */
+function settingKey(name: string): keyof DocSettings | undefined {
+  return SETTING_KEYS.find((x) => x.toLowerCase() === name.toLowerCase())
+}
+
+/** Distanza tra due parole (lettere da cambiare, aggiungere o togliere) */
+function editDistance(a: string, b: string): number {
+  const d = Array.from({ length: b.length + 1 }, (_, j) => j)
+  for (let i = 1; i <= a.length; i++) {
+    let prev = d[0]
+    d[0] = i
+    for (let j = 1; j <= b.length; j++) {
+      const t = d[j]
+      d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1))
+      prev = t
+    }
+  }
+  return d[b.length]
 }
 
 /** Un valore valido per l'impostazione, o null */
@@ -476,6 +655,9 @@ function settingValue<K extends keyof DocSettings>(key: K, raw: string): DocSett
     case 'align':
       out = v === 'left' || v === 'justify' ? v : null
       break
+    case 'showProperties':
+      out = /^(true|yes|sì|si)$/i.test(v) ? true : /^(false|no)$/i.test(v) ? false : null
+      break
     default:
       out = v
   }
@@ -490,22 +672,21 @@ export function documentSettings(src: string): {
   const settings = { ...DEFAULT_DOC_SETTINGS }
   const problems: DocumentProblem[] = []
   const lines = src.replace(/\r\n?/g, '\n').split('\n')
-  const end = frontMatterLines(lines)
-  let pos = lines[0].length + 1
-  for (let k = 1; k < end - 1; k++) {
-    const l = lines[k]
-    const at = { from: pos, to: pos + l.length }
-    pos += l.length + 1
-    const m = FRONT_LINE.exec(l)
-    if (!m || l.trim().startsWith('#')) continue
-    const key = SETTING_KEYS.find((x) => x.toLowerCase() === m[1].toLowerCase())
+  for (const e of frontEntries(lines)) {
+    const at = { from: e.from, to: e.to }
+    const key = settingKey(e.key)
     if (!key) {
-      problems.push({ message: msg('doc.setting.unknown', { name: m[1] }), ...at })
+      // le altre voci sono proprietà del documento; una quasi uguale a un'impostazione è un errore
+      if (SETTING_KEYS.some((x) => editDistance(x.toLowerCase(), e.key.toLowerCase()) <= 1))
+        problems.push({ message: msg('doc.setting.unknown', { name: e.key }), ...at })
       continue
     }
-    const value = settingValue(key, m[2])
+    const value = settingValue(key, e.value.join(' '))
     if (value === null)
-      problems.push({ message: msg('doc.setting.bad', { name: key, value: m[2].trim() }), ...at })
+      problems.push({
+        message: msg('doc.setting.bad', { name: key, value: e.value.join(' ').trim() }),
+        ...at
+      })
     else (settings as Record<string, unknown>)[key] = value
   }
   return { settings, problems }

@@ -837,8 +837,31 @@ function App(): React.JSX.Element {
   const deleteDocument = async (name: string): Promise<void> => {
     if (!window.confirm(t('documents.deleteConfirm', { name }))) return
     await documents.remove(name)
-    setSelected({ kind: 'set', index: 0 })
+    if (openDocument === name) setSelected({ kind: 'set', index: 0 })
   }
+  /** Una copia del documento con un nome libero (Regolamento 2), che si apre */
+  const duplicateDocument = async (name: string): Promise<void> => {
+    const text = project?.documents?.find((d) => d.name === name)?.text ?? ''
+    const copy = await documents.restore(name, text).catch((e) => {
+      setError(messageFromError(e))
+      return null
+    })
+    if (copy) setSelected({ kind: 'document', name: copy })
+  }
+  const documentMenu = (name: string): MenuItem[] => [
+    {
+      label: t('sidebar.duplicate'),
+      title: t('documents.duplicateHint'),
+      onClick: () => void duplicateDocument(name)
+    },
+    'sep',
+    {
+      label: t('documents.deleteShort'),
+      title: t('documents.delete'),
+      danger: true,
+      onClick: () => void deleteDocument(name)
+    }
+  ]
 
   /** Crea, modifica, rinomina (con `oldName`) o elimina (v null) una variabile del progetto */
   const saveVariable = (
@@ -1778,8 +1801,16 @@ function App(): React.JSX.Element {
                   <button
                     className={openDocument === d.name ? 'active' : ''}
                     onClick={() => setSelected({ kind: 'document', name: d.name })}
+                    onContextMenu={(e) => contextMenu.open(e, documentMenu(d.name))}
                   >
                     <span>{d.name}</span>
+                  </button>
+                  <button
+                    className="icon-btn item-dup"
+                    title={t('app.more')}
+                    onClick={(e) => contextMenu.open(e, documentMenu(d.name))}
+                  >
+                    ⋯
                   </button>
                 </li>
               ))}
@@ -2209,6 +2240,7 @@ function App(): React.JSX.Element {
                             .then((ok) => ok && setSelected({ kind: 'document', name: to }))
                         }
                         onDelete={() => void deleteDocument(openDocument)}
+                        onDuplicate={() => void duplicateDocument(openDocument)}
                       />
                     ) : editing ? (
                       <TemplateEditor

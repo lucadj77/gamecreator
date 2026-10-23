@@ -18,6 +18,7 @@ import {
   type ExportJob,
   type ExportProgress,
   type ExportResult,
+  MAX_OPEN_FILES,
   type ExportSet,
   type ImageOptions,
   type PdfOptions,
@@ -145,6 +146,8 @@ async function write(ctx: Ctx, file: string, data: Buffer | string): Promise<voi
   await mkdir(dirname(file), { recursive: true })
   await writeFile(file, data)
   ctx.result.files += 1
+  const paths = (ctx.result.paths ??= [])
+  if (paths.length <= MAX_OPEN_FILES) paths.push(file)
 }
 
 /** Una carta da sola, in pixel interi */

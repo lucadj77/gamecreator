@@ -147,16 +147,18 @@ function Block({
       )
     case 'table':
       return (
-        <table>
-          <thead>
-            <tr>
-              {b.header.map((h, k) => (
-                <th key={k} style={{ textAlign: b.align[k] ?? undefined }}>
-                  {inline(h)}
-                </th>
-              ))}
-            </tr>
-          </thead>
+        <table className={b.header.length ? undefined : 'doc-properties'}>
+          {b.header.length > 0 && (
+            <thead>
+              <tr>
+                {b.header.map((h, k) => (
+                  <th key={k} style={{ textAlign: b.align[k] ?? undefined }}>
+                    {inline(h)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          )}
           <tbody>
             {b.rows.map((r, i) => (
               <tr key={i}>

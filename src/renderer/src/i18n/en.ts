@@ -1880,7 +1880,40 @@ export const en = {
   'menu.selectAll': 'Select all',
   'menu.fullScreen': 'Full screen',
   'menu.devTools': 'Developer tools',
-  'menu.quit': 'Quit Naibi'
+  'menu.quit': 'Quit Naibi',
+  'documents.duplicateHint': 'Make a copy of the document',
+  'documents.openFile': 'Open file',
+  'export.openFile': 'Open {file}',
+  'documents.properties': 'Properties',
+  'documents.showProperties': 'Show in the document',
+  'documents.showPropertiesHint':
+    'Print the properties as a table at the top of the document and in the exports',
+  'documents.propertiesHint':
+    'Properties are notes about the document (author, version, tags…). They stay in the file and are not printed unless you tick "Show in the document".',
+  'documents.propertyList': 'List: separate the items with commas',
+  'documents.propertyListHint': 'item, item, …',
+  'documents.removeProperty': 'Remove the property',
+  'documents.propertyName': 'name',
+  'documents.propertyValue': 'value',
+  'documents.addProperty': 'Add property',
+  'documents.propertyInvalid':
+    'Use letters, digits, - and _; it must start with a letter and not be a page setting (page, font, size…)',
+  'documents.propertyExists': 'There is already a property with this name',
+  'docTools.headingHint': 'Kind of line: paragraph or heading (#, ##, ###)',
+  'docTools.paragraph': 'Text',
+  'docTools.heading': 'Heading {n}',
+  'docTools.bold': 'Bold (**text**)',
+  'docTools.italic': 'Italic (*text*)',
+  'docTools.underline': 'Underline (++text++)',
+  'docTools.strike': 'Strikethrough (~~text~~)',
+  'docTools.bullets': 'Bulleted list',
+  'docTools.numbers': 'Numbered list',
+  'docTools.quote': 'Quote (>)',
+  'docTools.style': 'Style ▾',
+  'docTools.styleHint': 'Apply a style of the project to the selected text ([text]{.style})',
+  'docTools.sample': 'text',
+  'docTools.image': 'Image',
+  'docTools.imageHint': 'Insert an image of the project assets'
 }
 
 export type MessageKey = keyof typeof en

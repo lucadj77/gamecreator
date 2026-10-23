@@ -6,6 +6,7 @@ import { resolveAsset } from '../../../shared/model/assets'
 import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
 import {
   DEFAULT_IMAGE,
+  MAX_OPEN_FILES,
   DEFAULT_PDF,
   DEFAULT_TTS,
   pdfGrid,
@@ -247,6 +248,7 @@ export default function ExportDialog({
         })
         r.files += one.files
         r.folders.push(...one.folders.filter((f) => !r.folders.includes(f)))
+        r.paths = [...(r.paths ?? []), ...(one.paths ?? [])]
         r.warnings.push(...one.warnings)
         if (one.cancelled) {
           r.cancelled = true
@@ -1004,6 +1006,19 @@ export default function ExportDialog({
                 {t(w)}
               </p>
             ))}
+            {/* pochi file (un PDF, un mazzo): si aprono direttamente */}
+            {!window.api.isWeb &&
+              (result.paths?.length ?? 0) <= MAX_OPEN_FILES &&
+              result.paths?.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className="link"
+                  onClick={() => window.api.showFolder(f)}
+                >
+                  {t('export.openFile', { file: f.split(/[\\/]/).pop() ?? f })}
+                </button>
+              ))}
             {result.folders.map((f) =>
               // il browser non apre le cartelle: si dice solo dove sono i file
               window.api.isWeb ? (

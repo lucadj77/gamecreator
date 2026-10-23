@@ -247,7 +247,7 @@ export async function documentDocx(
         break
       }
       case 'table': {
-        const cols = b.header.length
+        const cols = b.header.length || Math.max(1, ...b.rows.map((r) => r.length))
         const colW = Math.floor(textW / Math.max(1, cols))
         const cell = async (s: string, k: number, head: boolean): Promise<string> =>
           `<w:tc><w:tcPr><w:tcW w:w="${colW}" w:type="dxa"/>${
@@ -270,7 +270,7 @@ export async function documentDocx(
           ]
             .map(border)
             .join('')}</w:tblBorders><w:tblCellMar><w:left w:w="85" w:type="dxa"/>` +
-            `<w:right w:w="85" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${`<w:gridCol w:w="${colW}"/>`.repeat(cols)}</w:tblGrid>${await row(b.header, true)}${(
+            `<w:right w:w="85" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${`<w:gridCol w:w="${colW}"/>`.repeat(cols)}</w:tblGrid>${b.header.length ? await row(b.header, true) : ''}${(
               await Promise.all(b.rows.map((r) => row(r, false)))
             ).join('')}</w:tbl>`,
           // Word vuole un paragrafo dopo una tabella, che fa anche da spazio

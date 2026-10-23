@@ -239,9 +239,15 @@ export interface ExportContext {
   variables?: Variables
 }
 
+/** Fino a quanti file la finestra offre di aprirli uno per uno, invece della sola cartella */
+export const MAX_OPEN_FILES = 6
+
 export interface ExportResult {
   files: number
   folders: string[]
+  /** I primi file scritti (al massimo MAX_OPEN_FILES + 1): pochi si aprono uno per uno */
+  paths?: string[]
+
   warnings: Message[]
   cancelled: boolean
 }

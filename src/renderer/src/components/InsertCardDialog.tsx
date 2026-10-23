@@ -7,6 +7,7 @@ import {
   anatomySource,
   cardRefSource,
   findCard,
+  parseDocument,
   isMessage,
   parseCardRef,
   anatomyCardSource,
@@ -16,6 +17,7 @@ import {
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
 import CardSvg from '../render/CardSvg'
+import AnatomyDiagram from '../render/AnatomyDiagram'
 import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
 
@@ -147,6 +149,134 @@ export default function InsertCardDialog({
           )
         : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
 
+  // l'anatomia come uscirà nel documento, aggiornata mentre si scelgono livelli ed etichette
+  const block = anatomy && text ? parseDocument(text)[0] : undefined
+  const preview = block?.kind === 'anatomy' ? block : undefined
+
+  const choose = set && (
+    <div className="dialog-row">
+      <label>
+        {t('documents.set')}
+        <select
+          value={set.name}
+          onChange={(e) => {
+            setSetName(e.target.value)
+            setRow(0)
+            setKey(null)
+            setCaption(null)
+          }}
+        >
+          {usable.map((s) => (
+            <option key={s.name}>{s.name}</option>
+          ))}
+        </select>
+      </label>
+      <label className="grow">
+        {t('documents.search')}
+        <input
+          autoFocus
+          value={query}
+          placeholder={t('documents.searchHint')}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </label>
+    </div>
+  )
+  const grid = (
+    <div className="insert-card-grid">
+      {shown.slice(0, MAX_SHOWN).map(({ c, i }) => (
+        <button
+          key={i}
+          className={i === current ? 'active' : ''}
+          title={c.label}
+          onClick={() => {
+            setRow(i)
+            setCaption(null)
+          }}
+        >
+          <CardSvg template={c.template} side={side} scale={80 / c.template.width} />
+          <span>{c.label || `#${i + 1}`}</span>
+        </button>
+      ))}
+      {shown.length > MAX_SHOWN && (
+        <p className="muted small">{t('documents.more', { n: shown.length - MAX_SHOWN })}</p>
+      )}
+    </div>
+  )
+  const options = (
+    <>
+      <div className="dialog-row">
+        <label>
+          {t('documents.side')}
+          <Segmented<Side>
+            value={side}
+            options={[
+              ['front', t('documents.front')],
+              ['back', t('documents.back')]
+            ]}
+            onChange={setSide}
+          />
+        </label>
+        <label>
+          {t('documents.width')}
+          <input
+            className="num"
+            type="number"
+            min={5}
+            value={width}
+            placeholder={template ? String(template.width) : ''}
+            onChange={(e) => setWidth(e.target.value)}
+          />
+        </label>
+        <label className="grow">
+          {t('documents.findBy')}
+          <select value={key} onChange={(e) => setKey(e.target.value)}>
+            <option value="">{t('documents.byNumber')}</option>
+            {headers.map((h) => (
+              <option key={h} value={h}>
+                {h}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {key !== '' && !byField && (
+        <p className="muted small">
+          {t(repeated ? 'documents.repeatedValue' : 'documents.emptyValue', { field: key })}
+        </p>
+      )}
+    </>
+  )
+  const layerList = (
+    <div className="anatomy-layers">
+      <p className="muted small">{t('documents.anatomyHint')}</p>
+      {layers.map((l) => (
+        <div key={l.name} className="anatomy-layer" style={{ paddingLeft: l.depth * 14 }}>
+          <label>
+            <input
+              type="checkbox"
+              checked={labels.has(l.name)}
+              onChange={(e) => {
+                const next = new Map(labels)
+                if (e.target.checked) next.set(l.name, l.name)
+                else next.delete(l.name)
+                setLabels(next)
+              }}
+            />
+            {l.name}
+          </label>
+          {labels.has(l.name) && (
+            <input
+              value={labels.get(l.name)}
+              placeholder={t('documents.anatomyLabel')}
+              onChange={(e) => setLabels(new Map(labels).set(l.name, e.target.value))}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+
   return (
     <Dialog
       title={t(
@@ -160,128 +290,44 @@ export default function InsertCardDialog({
       )}
       onClose={onClose}
     >
-      <div className="dialog-form insert-card">
+      <div className={anatomy ? 'dialog-form insert-card anatomy-mode' : 'dialog-form insert-card'}>
         {!set ? (
           <p className="muted">{t('documents.noCards')}</p>
+        ) : anatomy ? (
+          // l'anatomia ha due colonne: a sinistra la carta da scegliere, a destra la carta scelta
+          // con i livelli da spiegare; ciascuna scorre per conto suo e la finestra sta nello schermo
+          <>
+            <div className="anatomy-columns">
+              <div className="anatomy-pick">
+                {choose}
+                {grid}
+                {options}
+              </div>
+              <div className="anatomy-detail">
+                {preview && (
+                  <div className="anatomy-card">
+                    <AnatomyDiagram
+                      anatomy={preview}
+                      sets={sets}
+                      templates={templates}
+                      project={project}
+                      unit={3}
+                      maxWidth={160}
+                      font={3.2}
+                    />
+                  </div>
+                )}
+                {layerList}
+              </div>
+            </div>
+            <code className="insert-card-code">{text}</code>
+          </>
         ) : (
           <>
-            <div className="dialog-row">
-              <label>
-                {t('documents.set')}
-                <select
-                  value={set.name}
-                  onChange={(e) => {
-                    setSetName(e.target.value)
-                    setRow(0)
-                    setKey(null)
-                    setCaption(null)
-                  }}
-                >
-                  {usable.map((s) => (
-                    <option key={s.name}>{s.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="grow">
-                {t('documents.search')}
-                <input
-                  autoFocus
-                  value={query}
-                  placeholder={t('documents.searchHint')}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="insert-card-grid">
-              {shown.slice(0, MAX_SHOWN).map(({ c, i }) => (
-                <button
-                  key={i}
-                  className={i === current ? 'active' : ''}
-                  title={c.label}
-                  onClick={() => {
-                    setRow(i)
-                    setCaption(null)
-                  }}
-                >
-                  <CardSvg template={c.template} side={side} scale={80 / c.template.width} />
-                  <span>{c.label || `#${i + 1}`}</span>
-                </button>
-              ))}
-              {shown.length > MAX_SHOWN && (
-                <p className="muted small">
-                  {t('documents.more', { n: shown.length - MAX_SHOWN })}
-                </p>
-              )}
-            </div>
-            <div className="dialog-row">
-              <label>
-                {t('documents.side')}
-                <Segmented<Side>
-                  value={side}
-                  options={[
-                    ['front', t('documents.front')],
-                    ['back', t('documents.back')]
-                  ]}
-                  onChange={setSide}
-                />
-              </label>
-              <label>
-                {t('documents.width')}
-                <input
-                  className="num"
-                  type="number"
-                  min={5}
-                  value={width}
-                  placeholder={template ? String(template.width) : ''}
-                  onChange={(e) => setWidth(e.target.value)}
-                />
-              </label>
-              <label className="grow">
-                {t('documents.findBy')}
-                <select value={key} onChange={(e) => setKey(e.target.value)}>
-                  <option value="">{t('documents.byNumber')}</option>
-                  {headers.map((h) => (
-                    <option key={h} value={h}>
-                      {h}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            {key !== '' && !byField && (
-              <p className="muted small">
-                {t(repeated ? 'documents.repeatedValue' : 'documents.emptyValue', { field: key })}
-              </p>
-            )}
-            {anatomy ? (
-              <div className="anatomy-layers">
-                <p className="muted small">{t('documents.anatomyHint')}</p>
-                {layers.map((l) => (
-                  <div key={l.name} className="anatomy-layer" style={{ paddingLeft: l.depth * 14 }}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={labels.has(l.name)}
-                        onChange={(e) => {
-                          const next = new Map(labels)
-                          if (e.target.checked) next.set(l.name, l.name)
-                          else next.delete(l.name)
-                          setLabels(next)
-                        }}
-                      />
-                      {l.name}
-                    </label>
-                    {labels.has(l.name) && (
-                      <input
-                        value={labels.get(l.name)}
-                        placeholder={t('documents.anatomyLabel')}
-                        onChange={(e) => setLabels(new Map(labels).set(l.name, e.target.value))}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : pick !== undefined ? null : (
+            {choose}
+            {grid}
+            {options}
+            {pick !== undefined ? null : (
               <label>
                 {t('documents.caption')}
                 <input value={alt} onChange={(e) => setCaption(e.target.value)} />

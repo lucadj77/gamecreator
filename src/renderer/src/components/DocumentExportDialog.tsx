@@ -8,6 +8,12 @@ import { useI18n } from '../i18n/context'
 
 export type DocExportKind = 'pdf' | 'html' | 'md' | 'docx'
 
+/** Percorso di un file nella cartella, con il separatore che la cartella usa già */
+function inFolder(folder: string, file: string): string {
+  const sep = folder.includes('\\') && !folder.includes('/') ? '\\' : '/'
+  return folder.replace(/[\\/]+$/, '') + sep + file
+}
+
 export default function DocumentExportDialog({
   name,
   problems,
@@ -55,9 +61,17 @@ export default function DocumentExportDialog({
           <p>
             {t('documents.exported', { file: `export/docs/${file(done.kind)}` })}{' '}
             {!window.api.isWeb && (
-              <button className="link" onClick={() => void window.api.showFolder(done.folder)}>
-                {t('documents.openFolder')}
-              </button>
+              <>
+                <button
+                  className="link"
+                  onClick={() => void window.api.showFolder(inFolder(done.folder, file(done.kind)))}
+                >
+                  {t('documents.openFile')}
+                </button>{' '}
+                <button className="link" onClick={() => void window.api.showFolder(done.folder)}>
+                  {t('documents.openFolder')}
+                </button>
+              </>
             )}
           </p>
         )}

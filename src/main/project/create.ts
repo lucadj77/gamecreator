@@ -4,6 +4,9 @@ import { FORMAT_VERSION, PROJECT_FILE, type ProjectFile } from '../../shared/pro
 import { projectFolderName } from '../../shared/model/projectName'
 import { MessageError, msg } from '../../shared/messages'
 
+/** Cartelle di ogni progetto, anche vuote: ci si possono mettere i file prima di usarli */
+export const PROJECT_FOLDERS = ['data', 'templates', 'assets', 'assets/fonts', 'docs', 'notes']
+
 /**
  * Crea un progetto vuoto in <parent>/<nome>: naibi.json e le cartelle. Il file dati si
  * scrive al primo salvataggio di un set, oppure è la copia di `existing`, un file che c'è già:
@@ -27,8 +30,7 @@ export async function createProject(
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e
   }
-  for (const sub of ['data', 'templates', 'assets'])
-    await mkdir(join(folder, sub), { recursive: true })
+  for (const sub of PROJECT_FOLDERS) await mkdir(join(folder, sub), { recursive: true })
   const file: ProjectFile = {
     formatVersion: FORMAT_VERSION,
     name: name.trim(),

@@ -7,6 +7,15 @@ description: Work on Naibi card game projects (folders with naibi.json, a spread
 
 Naibi is a desktop app for designing game cards and other printed game components. A project is a plain folder; every card is a row of a spreadsheet, drawn through a template. You can do everything by editing the files and by running the `naibi` command, which checks the project and draws the cards so you can look at them.
 
+## Before you start: command and updates
+
+This skill is for Naibi {{NAIBI_VERSION}}. Once per session, before the first naibi command, do these steps. If you cannot reach the network or write files, say so to the user and carry on with what you have.
+
+1. **Find the command.** If the block in the next section shows a command (not the `{{NAIBI_COMMAND}}` placeholder), run it with `version`. Otherwise, or if that fails, try in order: on macOS `"/Applications/Naibi.app/Contents/MacOS/Naibi" --cli` (or the same under `~/Applications`); on Windows `"%LOCALAPPDATA%\Programs\naibi\naibi-cli.cmd"` (in PowerShell `& "$env:LOCALAPPDATA\Programs\naibi\naibi-cli.cmd"`); on Linux `"/opt/Naibi/naibi" --cli`; then `naibi` on the PATH. `<command> version` prints the version; a desktop app older than 1.2.0-beta.28 answers "unknown command" instead: treat it as older.
+2. **No command found** means the user has only the web version of Naibi. Ask whether to install the naibi command: it is the Naibi program without windows, about 250 MB with the Chromium it draws with, and needs Node.js 20 or later with npm. If the user agrees, read the latest release from `https://api.github.com/repos/lucadj77/naibi/releases?per_page=1` (its `tag_name` is `v<version>`) and run `npm install -g https://github.com/lucadj77/naibi/releases/download/v<version>/naibi-cli-<version>.tgz`. The command is then `naibi`. If npm reports a permission error, tell the user rather than using sudo yourself.
+3. **Updates of the command.** If the command is `naibi` from npm (the naibi-cli package) and the latest release is newer than its version, tell the user and install the new one with the same `npm install -g` line. If it is the desktop app, never install anything: if a newer release exists, tell the user that the app updates itself (it shows a notice, or **Help → Check for updates**).
+4. **Update this skill.** If this skill's version differs from the command's version, download `https://raw.githubusercontent.com/lucadj77/naibi/v<command version>/skill/naibi/SKILL.md`, replace `{{NAIBI_COMMAND}}` in it with the command you found and `{{NAIBI_VERSION}}` with the version, write it over this skill's file, tell the user, and read it again. Then the skill always matches the program that draws the cards.
+
 ## The naibi command
 
 Run it as:

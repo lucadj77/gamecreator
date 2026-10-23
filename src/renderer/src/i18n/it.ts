@@ -1658,6 +1658,8 @@ export const it: Record<MessageKey, string> = {
     'Poi chiedigli quello che ti serve, indicando la cartella del progetto. Quando ha finito, premi Ricarica in Naibi per vedere le modifiche.',
   'ai.saveHint':
     'Puoi anche salvarla come file: Claude Code legge le skill dalla cartella .claude/skills della tua cartella utente o di un progetto. La skill è in inglese, la lingua che gli agenti seguono meglio.',
+  'ai.webHint':
+    "Nella versione web la skill trova da sola il comando naibi: usa l'app desktop se è installata, altrimenti propone di installare il comando (serve Node.js). Si aggiorna anche da sola, insieme al comando, quando esce una nuova versione. La skill è in inglese, la lingua che gli agenti seguono meglio.",
   'ai.notBuilt':
     "Il comando naibi usato dalla skill funziona solo dopo aver compilato l'app una volta: esegui `npm run build` nella cartella del codice di Naibi.",
   'ai.copy': 'Copia la skill',

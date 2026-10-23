@@ -106,6 +106,7 @@ Commands:
                                        unsaved changes in the project, otherwise the app locks
                                        itself until 'end'
   end <project>                        Finish working: the app unlocks and reloads the project
+  version                              The version of this naibi command (also --version)
   help                                 This text
 
 <project> is the project folder (the one with naibi.json).
@@ -875,6 +876,10 @@ export async function runCli(args: string[]): Promise<number> {
   if (!command || command === 'help' || command === '--help') {
     print(HELP)
     return command ? 0 : 2
+  }
+  if (command === 'version' || command === '--version') {
+    print(app.getVersion())
+    return 0
   }
   const fn = COMMANDS[command]
   if (!fn) {

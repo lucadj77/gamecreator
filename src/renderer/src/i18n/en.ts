@@ -1635,6 +1635,8 @@ export const en = {
     'Then ask it what you need, naming the project folder. When it has finished, press Reload in Naibi to see the changes.',
   'ai.saveHint':
     'You can also save it as a file: Claude Code reads skills from the .claude/skills folder of your home folder or of a project. The skill is in English, which agents follow best.',
+  'ai.webHint':
+    'In the web version the skill finds the naibi command by itself: it uses the desktop app if it is installed, otherwise it offers to install the command (it needs Node.js). It also updates itself and the command when a new version comes out. The skill is in English, the language agents follow best.',
   'ai.notBuilt':
     'The naibi command used by the skill works only after building the app once: run `npm run build` in the Naibi code folder.',
   'ai.copy': 'Copy the skill',

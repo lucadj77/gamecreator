@@ -58,9 +58,27 @@ jobs:
             dist/*.blockmap
           if-no-files-found: error
 
+  # il solo comando naibi come pacchetto npm, per chi usa la versione web (scripts/cli-package.mjs)
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx electron-vite build
+      - run: node scripts/cli-package.mjs dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: naibi-cli
+          path: dist/naibi-cli-*.tgz
+          if-no-files-found: error
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [build, cli]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

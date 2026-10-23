@@ -260,7 +260,8 @@ export const webApi: Api = {
       if (p && !(await ensurePermission(p))) throw new MessageError(msg('web.permissionDenied'))
     return importTtc(options)
   },
-  naibiCommand: desktopOnly,
+  // il comando lo trova la skill: l'app desktop se c'è, se no il pacchetto naibi-cli
+  naibiCommand: async () => ({ command: '', ready: true }),
   // chi apre il sito ha sempre l'ultima versione
   checkForUpdate: async () => null,
   updateMode: async () => 'manual',

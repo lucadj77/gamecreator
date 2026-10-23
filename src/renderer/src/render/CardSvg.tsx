@@ -12,6 +12,7 @@ import { useI18n } from '../i18n/context'
 import { AssetsContext, ShowEmptyContext, assetUrl } from './assets'
 import { fitRect, useImageSize } from './imageSize'
 import { cropRect } from '../../../shared/model/crop'
+import { gridGeometry } from '../../../shared/model/grid'
 import MarkupText from './MarkupText'
 import {
   isGradient,
@@ -21,6 +22,7 @@ import {
 } from '../../../shared/model/gradient'
 import type {
   Fade,
+  GridLayer,
   GroupLayer,
   ImageLayer,
   Layer,
@@ -249,6 +251,7 @@ function LayerView({ layer: l, uid }: { layer: Layer; uid: string }): React.JSX.
       {l.fade && <FadeMask id={`${id}-fade`} layer={l} fade={l.fade} />}
       <g mask={l.fade ? `url(#${id}-fade)` : undefined}>
         {l.type === 'shape' && <ShapeView layer={l} id={id} />}
+        {l.type === 'grid' && <GridView layer={l} id={id} />}
         {l.type === 'image' && <ImageView layer={l} id={id} />}
         {l.type === 'text' && <TextView layer={l} />}
         {l.type === 'group' && <GroupView layer={l} id={id} uid={uid} />}
@@ -436,6 +439,61 @@ function ShapeBody({ layer: l, fill }: { layer: ShapeLayer; fill: string }): Rea
     default:
       return <rect x={l.x} y={l.y} width={l.w} height={l.h} rx={l.radius} {...paint} />
   }
+}
+
+/** Riempimento, a tinta unita o sfumato sul riquadro del livello */
+function paintOf(
+  color: string | null,
+  id: string,
+  box: { x: number; y: number; w: number; h: number }
+): { fill: string; def: React.JSX.Element | null } {
+  const gradient = color && isGradient(color) ? parseGradient(color) : null
+  if (!gradient) return { fill: color ?? 'none', def: null }
+  return { fill: `url(#${id})`, def: <GradientDef id={id} gradient={gradient} box={box} /> }
+}
+
+/** Griglia di caselle: lo sfondo col bordo, poi le caselle; vedi model/grid.ts */
+function GridView({ layer: l, id }: { layer: GridLayer; id: string }): React.JSX.Element {
+  const { cells, bounds: b } = gridGeometry(l)
+  // tutto si disegna spostato nell'angolo del livello: sfumature e ritaglio partono da 0, 0
+  const box = { x: 0, y: 0, w: l.w, h: l.h }
+  const back = paintOf(l.background, `${id}-bg`, box)
+  const cell = paintOf(l.fill, `${id}-fill`, box)
+  const r = Math.max(0, Math.min(l.backgroundRadius, b.w / 2, b.h / 2))
+  return (
+    <>
+      {back.def}
+      {cell.def}
+      {l.clip && (
+        <defs>
+          <clipPath id={`${id}-clip`}>
+            <rect width={l.w} height={l.h} />
+          </clipPath>
+        </defs>
+      )}
+      <g clipPath={l.clip ? `url(#${id}-clip)` : undefined} transform={`translate(${l.x} ${l.y})`}>
+        {(l.background || l.border) && (
+          <rect
+            x={b.x}
+            y={b.y}
+            width={b.w}
+            height={b.h}
+            rx={r || undefined}
+            fill={back.fill}
+            {...strokeProps(l.border)}
+          />
+        )}
+        {(l.fill || l.stroke) && (
+          <path
+            d={cells.join('')}
+            fill={cell.fill}
+            strokeLinejoin="round"
+            {...strokeProps(l.stroke)}
+          />
+        )}
+      </g>
+    </>
+  )
 }
 
 const PRESERVE: Record<ImageLayer['fit'], string> = {

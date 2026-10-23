@@ -134,6 +134,12 @@ export default function MarkupTextarea({
   }
 
   const allProblems = markupProblems(value, styles, fields)
+  // i colori stanno sul testo intero, senza dividerlo in pezzi: vedi markHighlights
+  useLayoutEffect(() => {
+    const node = overlayRef.current?.firstChild
+    if (!HIGHLIGHTS || !(node instanceof Text)) return undefined
+    return markHighlights(node, value, allProblems)
+  })
   const problems = showProblems ? allProblems : []
   const current = help?.items[help.index]
 
@@ -186,7 +192,7 @@ export default function MarkupTextarea({
           }}
         />
         <div className="markup-overlay" ref={overlayRef} aria-hidden>
-          {highlighted(value, allProblems)}
+          {HIGHLIGHTS ? `${value}\u200b` : highlighted(value, allProblems)}
         </div>
       </span>
       {help && pos && (
@@ -311,6 +317,46 @@ function VariablePreview({ name, v }: { name: string; v: Variable }): React.JSX.
   )
 }
 
+/**
+ * Il browser sa colorare parti di un testo senza dividerlo in elementi (CSS Custom Highlight API).
+ * Conta: con il testo diviso in pezzi le larghezze si misurano a pezzi, con arrotondamenti
+ * diversi da quelli del campo, e una parola al limite della riga va a capo nello strato colorato
+ * ma non nel campo. Da lì in poi il testo che si vede non sta più sotto il cursore.
+ */
+const HIGHLIGHTS = typeof CSS !== 'undefined' && 'highlights' in CSS
+
+/** Un gruppo di parti colorate per tipo, condiviso da tutti i campi della finestra */
+const highlightGroups = new Map<string, Highlight>()
+function highlightGroup(name: string): Highlight {
+  let h = highlightGroups.get(name)
+  if (!h) {
+    h = new Highlight()
+    highlightGroups.set(name, h)
+    CSS.highlights.set(name, h)
+  }
+  return h
+}
+
+/** Colora il testo dello strato; restituisce la funzione che toglie i colori */
+function markHighlights(node: Text, src: string, problems: MarkupProblem[]): () => void {
+  const ranges: [Highlight, Range][] = []
+  const clamp = (n: number): number => Math.max(0, Math.min(src.length, n))
+  const add = (name: string, from: number, to: number): void => {
+    if (clamp(to) <= clamp(from)) return
+    const r = new Range()
+    r.setStart(node, clamp(from))
+    r.setEnd(node, clamp(to))
+    const h = highlightGroup(name)
+    h.add(r)
+    ranges.push([h, r])
+  }
+  for (const p of highlightMarkup(src)) add(`mk-${p.kind}`, p.from, p.to)
+  for (const p of problems) add('mk-err', p.from, p.to)
+  return () => {
+    for (const [h, r] of ranges) h.delete(r)
+  }
+}
+
 /** Il testo diviso in pezzi colorati; gli errori sono sottolineati */
 function highlighted(src: string, problems: MarkupProblem[]): React.ReactNode[] {
   const pieces = highlightMarkup(src)
@@ -373,14 +419,15 @@ const COPIED = [
 function matchOverlay(el: HTMLTextAreaElement, ov: HTMLDivElement): void {
   const cs = getComputedStyle(el)
   for (const p of COPIED) ov.style[p] = cs[p]
-  // la barra di scorrimento del campo restringe il testo: lo strato la compensa a destra
-  const borders = parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth)
-  const bar = el.offsetWidth - el.clientWidth - borders
-  ov.style.paddingRight = `${parseFloat(cs.paddingRight) + Math.max(0, bar)}px`
+  // la barra di scorrimento del campo restringe il testo: lo strato ne ha una uguale, invisibile,
+  // così va a capo negli stessi punti. Misurarla non basta: le misure in pixel sono arrotondate, e
+  // mezzo pixel di differenza manda a capo una parola in più o in meno
+  ov.style.overflowY = el.scrollHeight > el.clientHeight ? 'scroll' : 'hidden'
+  const box = el.getBoundingClientRect()
   ov.style.top = `${el.offsetTop}px`
   ov.style.left = `${el.offsetLeft}px`
-  ov.style.width = `${el.offsetWidth}px`
-  ov.style.height = `${el.offsetHeight}px`
+  ov.style.width = `${box.width}px`
+  ov.style.height = `${box.height}px`
   ov.scrollTop = el.scrollTop
 }
 

@@ -9,6 +9,7 @@ import {
   documentText,
   isCardSource,
   parseDocument,
+  splitImageSource,
   type DocSettings,
   type DocumentContext
 } from '../../../shared/model/document'
@@ -175,7 +176,7 @@ export async function documentMarkdown(
     return link(file)
   }
   const imageOf = async (src: string): Promise<string | null> => {
-    const n = src.replace(/^\{(.*)\}$/, '$1')
+    const n = splitImageSource(src).path.replace(/^\{(.*)\}$/, '$1')
     const v = imageVariable(n, ctx.variables)
     const r = resolveAsset(v ? v.src : n, ctx.assets ?? [])
     return r.ok ? asset(r.path) : null

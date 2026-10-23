@@ -10,6 +10,7 @@ import {
   parseImageAttrs,
   resolveColor,
   resolveFont,
+  usedColors,
   variableFields,
   type Variables
 } from '../variables'
@@ -142,5 +143,18 @@ describe('variabili nel font', () => {
     expect(resolveFont('{corpo}', vars)).toBe('Open Sans')
     expect(resolveFont('titoli', vars)).toBe('titoli')
     expect(resolveFont('{boh}', vars)).toBe('{boh}')
+  })
+})
+
+describe('usedColors', () => {
+  it('raccoglie i codici dal più usato, senza ripetizioni', () => {
+    const t = {
+      front: [{ fill: '#ff0000' }, { color: '#00FF00' }, { stroke: { color: '#FF0000' } }]
+    }
+    expect(usedColors([t, { titolo: 'color=#00ff00 #123' }, [['x', '#0000ff80']]])).toEqual([
+      '#FF0000',
+      '#00FF00',
+      '#0000FF80'
+    ])
   })
 })

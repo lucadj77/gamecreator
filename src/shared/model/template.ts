@@ -167,6 +167,51 @@ export interface ShapeLayer extends LayerBase {
   path: string
 }
 
+/** Forma delle caselle di una griglia */
+export type GridCell = 'square' | 'circle' | 'hex' | 'triangle' | 'diamond'
+
+/**
+ * Griglia di caselle uguali (una plancia, un tracciato a punti, una mappa a esagoni), disegnata
+ * dentro il riquadro: a zoom 100% la griglia più grande che ci sta senza deformare le caselle.
+ * Vedi model/grid.ts.
+ */
+export interface GridLayer extends LayerBase {
+  type: 'grid'
+  cell: GridCell
+  rows: number
+  columns: number
+  /** Larghezza della casella rispetto all'altezza (quadrata, tonda, rombo): 1 = uguali */
+  cellRatio: number
+  /** Esagoni con la punta in alto (pointy) o con un lato in alto (flat) */
+  orientation: 'pointy' | 'flat'
+  /**
+   * Caselle a incastro: esagoni ad alveare, cerchi e quadrati sfalsati di mezza casella, triangoli
+   * alternati, rombi che si toccano sui lati
+   */
+  interlock: boolean
+  /** Spazio tra le caselle in mm */
+  gap: number
+  /** Spazio tra le caselle e il bordo della griglia, in mm */
+  padding: number
+  /** Misura: 1 (100%) riempie il riquadro, meno la rimpicciolisce, di più la ingrandisce */
+  zoom: number
+  /** Posizione della griglia nel riquadro quando non lo riempie */
+  alignX: LayoutAlign
+  alignY: LayoutAlign
+  /** Taglia ciò che esce dal riquadro */
+  clip: boolean
+  /** Raggio degli angoli delle caselle in mm (non per i cerchi) */
+  radius: number
+  /** Riempimento e contorno delle caselle */
+  fill: string | null
+  stroke: Stroke | null
+  /** Sfondo della griglia, dietro e tra le caselle, e il suo bordo */
+  background: string | null
+  border: Stroke | null
+  /** Raggio degli angoli dello sfondo in mm */
+  backgroundRadius: number
+}
+
 export type GroupLayout = 'none' | 'row' | 'column' | 'grid'
 export type LayoutAlign = 'start' | 'center' | 'end'
 
@@ -197,7 +242,7 @@ export interface ValueLayer extends LayerBase {
   value: string
 }
 
-export type Layer = TextLayer | ImageLayer | ShapeLayer | GroupLayer | ValueLayer
+export type Layer = TextLayer | ImageLayer | ShapeLayer | GridLayer | GroupLayer | ValueLayer
 export type LayerType = Layer['type']
 
 export type CardShape = 'rect' | 'ellipse' | 'hexagon' | 'path'
@@ -271,6 +316,7 @@ export const PRIMARY_PROPERTY: Record<LayerType, string> = {
   text: 'text',
   image: 'src',
   shape: 'fill',
+  grid: 'fill',
   group: 'visible',
   value: 'value'
 }

@@ -98,7 +98,7 @@ export default function TableDialog({
                       <option value="right">{t('documents.tableAlignRight')}</option>
                     </select>
                     <button
-                      className="icon-btn"
+                      className="icon-btn danger"
                       title={t('documents.removeColumn')}
                       disabled={cols <= 1}
                       onClick={() => removeColumn(c)}
@@ -128,7 +128,7 @@ export default function TableDialog({
                   <td>
                     {r > 0 && (
                       <button
-                        className="icon-btn"
+                        className="icon-btn danger"
                         title={t('documents.removeRow')}
                         onClick={() => removeRow(r)}
                       >

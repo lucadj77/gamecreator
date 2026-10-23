@@ -130,7 +130,7 @@ export function renameInSheet(
   const plainLayers = new Set(
     t
       ? walkLayers([...t.front, ...t.back])
-          .filter((l) => l.type === 'image' || l.type === 'shape')
+          .filter((l) => l.type === 'image' || l.type === 'shape' || l.type === 'grid')
           .map((l) => l.name)
       : []
   )

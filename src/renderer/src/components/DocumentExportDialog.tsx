@@ -60,18 +60,17 @@ export default function DocumentExportDialog({
         {done && (
           <p>
             {t('documents.exported', { file: `export/docs/${file(done.kind)}` })}{' '}
+            <button
+              className="link"
+              onClick={() => void window.api.showFolder(inFolder(done.folder, file(done.kind)))}
+            >
+              {t('documents.openFile')}
+            </button>{' '}
+            {/* il browser non apre le cartelle */}
             {!window.api.isWeb && (
-              <>
-                <button
-                  className="link"
-                  onClick={() => void window.api.showFolder(inFolder(done.folder, file(done.kind)))}
-                >
-                  {t('documents.openFile')}
-                </button>{' '}
-                <button className="link" onClick={() => void window.api.showFolder(done.folder)}>
-                  {t('documents.openFolder')}
-                </button>
-              </>
+              <button className="link" onClick={() => void window.api.showFolder(done.folder)}>
+                {t('documents.openFolder')}
+              </button>
             )}
           </p>
         )}

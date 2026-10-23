@@ -20,7 +20,7 @@ import {
 } from '../../../shared/model/colorMath'
 import { palette, resolveColor } from '../../../shared/model/variables'
 import { useI18n } from '../i18n/context'
-import { VariablesContext } from '../render/assets'
+import { ProjectColorsContext, VariablesContext } from '../render/assets'
 import { cssColor, eyeDropper, rememberColor, useRecent } from './colorUtils'
 
 // Selettore colore dell'app, al posto di quello di sistema: area saturazione/valore, cursori per
@@ -94,6 +94,7 @@ function ColorPopover({
 }): React.JSX.Element {
   const { t } = useI18n()
   const recent = useRecent()
+  const used = useContext(ProjectColorsContext)
   const boxRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
   const [start] = useState(value)
@@ -208,6 +209,15 @@ function ColorPopover({
         ]
 
   const names = Object.keys(pal)
+  // i codici uguali a un colore del progetto si mostrano una volta sola, col nome
+  const named = new Set(
+    names.flatMap((n) => {
+      const c = cssColor(pal[n])
+      return c ? [toHex(c)] : []
+    })
+  )
+  const others = used.filter((c) => !named.has(c))
+  const current = value.trim().toUpperCase()
   const opaque = toHex({ ...rgb, a: 1 })
 
   return createPortal(
@@ -290,7 +300,7 @@ function ColorPopover({
           onChange={(n) => apply(hsv, n / 100)}
         />
       </div>
-      {names.length > 0 && (
+      {names.length + others.length > 0 && (
         <>
           <h4>{t('color.project')}</h4>
           <div className="color-swatches">
@@ -298,11 +308,22 @@ function ColorPopover({
               <button
                 key={n}
                 type="button"
-                title={`${n} · ${pal[n]}`}
-                className={value.trim().replace(/^\{(.*)\}$/, '$1') === n ? 'on' : ''}
+                title={t('color.variable', { name: n, color: pal[n] })}
+                className={'named' + (value.trim().replace(/^\{(.*)\}$/, '$1') === n ? ' on' : '')}
                 onClick={() => choose(n)}
               >
                 <span style={{ background: pal[n] }} />
+              </button>
+            ))}
+            {others.map((c) => (
+              <button
+                key={c}
+                type="button"
+                title={c}
+                className={current === c ? 'on' : ''}
+                onClick={() => choose(c)}
+              >
+                <span style={{ background: c }} />
               </button>
             ))}
           </div>

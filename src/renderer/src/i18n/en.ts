@@ -378,6 +378,7 @@ export const en = {
   'color.noneHint': 'No colour (none): transparent',
   'color.project': 'Project colors',
   'color.recent': 'Recent colors',
+  'color.variable': 'Variable {name} · {color}',
   'color.noRecent': 'Colors you choose will appear here.',
   'icons.import': 'Import {n}',
   'icons.unknown': 'Icon {id} is not in the catalog',
@@ -812,7 +813,7 @@ export const en = {
   'doc.card.badRef':
     '"{ref}" is not a card: write card:Set/number or card:Set/column=value, for example card:Characters/name=Wizard',
   'doc.card.badOption':
-    'Unknown option "{option}" in "{ref}": use side=front or side=back, and width=40 (mm)',
+    'Unknown option "{option}" in "{ref}": use side=front or side=back, width=40 (mm) and align=left, center or right',
   'doc.card.noSet': 'There is no set named "{set}"',
   'doc.card.noRow': 'The set "{set}" has no card {n}',
   'doc.card.noField': 'The set "{set}" has no column "{field}"',
@@ -1913,7 +1914,52 @@ export const en = {
   'docTools.styleHint': 'Apply a style of the project to the selected text ([text]{.style})',
   'docTools.sample': 'text',
   'docTools.image': 'Image',
-  'docTools.imageHint': 'Insert an image of the project assets'
+  'docTools.imageHint': 'Insert an image of the project assets',
+  'doc.image.badOption':
+    'Unknown option "{option}" in "{ref}": use width=40 (mm) and align=left, center or right',
+  'docImage.insert': 'Insert image',
+  'docImage.edit': 'Edit image',
+  'docImage.save': 'Save',
+  'docImage.choose': 'Choose…',
+  'docImage.none': 'No image chosen',
+  'docImage.notFound': 'Not found in the assets',
+  'docImage.auto': 'auto',
+  'docImage.align': 'Alignment',
+  'docImage.alignHint':
+    'Empty width: the size of the image, reduced if it does not fit the page. The alignment applies to the whole row of images.',
+  'layerType.grid': 'Grid',
+  'tool.grid': 'Grid (squares, hexes, dots…)',
+  'prop.cell': 'Cells',
+  'gridCell.square': 'Square',
+  'gridCell.circle': 'Circle',
+  'gridCell.hex': 'Hexagon',
+  'gridCell.triangle': 'Triangle',
+  'gridCell.diamond': 'Diamond',
+  'prop.rows': 'Rows',
+  'prop.interlock': 'Interlocking',
+  'editor.interlockHint.square': 'Odd rows shift by half a cell, like bricks.',
+  'editor.interlockHint.circle': 'Odd rows shift by half a cell and move closer, packed together.',
+  'editor.interlockHint.hex':
+    'Honeycomb: odd rows (or columns, for flat hexagons) fit between the others.',
+  'editor.interlockHint.triangle': 'Triangles alternate pointing up and down, sharing their sides.',
+  'editor.interlockHint.diamond': 'Odd rows fill the spaces between the diamonds of the even rows.',
+  'prop.orientation': 'Hexagons',
+  'gridOrientation.pointy': 'Point up',
+  'gridOrientation.flat': 'Side up',
+  'prop.cellFill': 'Cell fill',
+  'prop.cellStroke': 'Cell outline',
+  'prop.gridBackground': 'Grid background',
+  'editor.gridBackgroundHint': 'Behind and between the cells, up to the grid border.',
+  'prop.gridBorder': 'Grid border',
+  'editor.gridPaddingHint': 'Space between the outer cells and the grid border.',
+  'prop.backgroundRadius': 'Background corner radius',
+  'prop.cellRatio': 'Cell width',
+  'editor.cellRatioHint': 'Width compared with the height: 100% is as wide as tall.',
+  'editor.gridZoomHint':
+    '100% is the largest grid that fits the frame without stretching the cells.',
+  'prop.alignX': 'Horizontal position',
+  'prop.alignY': 'Vertical position',
+  'prop.gridClip': 'Cut what goes outside the frame'
 }
 
 export type MessageKey = keyof typeof en

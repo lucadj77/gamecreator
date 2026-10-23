@@ -275,6 +275,7 @@ export function defaultValue(l: Layer): string | null {
     case 'image':
       return l.src
     case 'shape':
+    case 'grid':
       return l.fill ?? ''
     case 'value':
       return l.value
@@ -513,20 +514,40 @@ function paintLayer(
       }
     case 'image':
       return { ...l, shadow, tint: l.tint && paint(l.tint), stroke: stroke(l.stroke) }
+    case 'grid':
+      return {
+        ...l,
+        shadow,
+        fill: l.fill && (isGradient(l.fill) ? mapGradientColors(l.fill, paint) : paint(l.fill)),
+        stroke: stroke(l.stroke),
+        background:
+          l.background &&
+          (isGradient(l.background) ? mapGradientColors(l.background, paint) : paint(l.background)),
+        border: stroke(l.border)
+      }
     default:
       return { ...l, shadow }
   }
 }
 
-const NULLABLE = new Set(['fill', 'tint', 'style', 'stroke', 'shadow', 'crop'])
+const NULLABLE = new Set([
+  'fill',
+  'tint',
+  'style',
+  'stroke',
+  'shadow',
+  'crop',
+  'background',
+  'border'
+])
 
 /** Converte il testo di una cella nel tipo della proprietà, usando il valore attuale come guida */
-const PERCENT = new Set(['zoom', 'opacity'])
+const PERCENT = new Set(['zoom', 'opacity', 'cellRatio'])
 
 export function parseValue(key: string, current: unknown, raw: string): unknown {
   const v = raw.trim()
   if (NULLABLE.has(key) && v.toLowerCase() === 'none') return null
-  if (key === 'stroke') return parseStroke(v)
+  if (key === 'stroke' || key === 'border') return parseStroke(v)
   if (key === 'shadow') return parseShadow(v)
   if (key === 'crop') return parseCrop(v)
   if (typeof current === 'number') {

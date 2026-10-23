@@ -12,7 +12,8 @@ export const InheritContext = createContext<InheritCtx | null>(null)
 /** Proprietà del livello che corrisponde a una voce del pannello, quando il nome è diverso */
 const KEYS: Record<string, string[]> = {
   constraintH: ['constraints'],
-  constraintV: ['constraints']
+  constraintV: ['constraints'],
+  gridAlign: ['alignX', 'alignY']
 }
 
 export const propKeys = (id: string): string[] => KEYS[id] ?? [id]

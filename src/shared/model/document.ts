@@ -757,6 +757,60 @@ export interface CardRef {
   side: Side
   /** Larghezza in mm; di base la misura vera della carta */
   width?: number
+  /** Allineamento della riga di immagini; di base al centro */
+  align?: FigureAlign
+}
+
+export type FigureAlign = 'left' | 'center' | 'right'
+const ALIGNS: FigureAlign[] = ['left', 'center', 'right']
+
+/** Opzioni di un'immagine degli asset, dopo ? come per le carte: icone/mappa.png?width=40 */
+export interface ImageOptions {
+  /** Larghezza in mm; di base la misura dell'immagine, ridotta se non ci sta */
+  width?: number
+  align?: FigureAlign
+}
+
+/**
+ * La sorgente di un'immagine degli asset divisa nel nome del file e nelle opzioni; un indirizzo
+ * web resta intero, perché ? fa parte dell'indirizzo. `bad` sono le opzioni che non si capiscono.
+ */
+export function splitImageSource(src: string): {
+  path: string
+  options: ImageOptions
+  bad: string[]
+} {
+  const raw = src.trim()
+  const q = raw.indexOf('?')
+  if (q < 0 || /^https?:\/\//i.test(raw)) return { path: raw, options: {}, bad: [] }
+  const options: ImageOptions = {}
+  const bad: string[] = []
+  for (const part of raw.slice(q + 1).split('&')) {
+    if (!part.trim()) continue
+    const [k, v = ''] = part.split('=').map((x) => decode(x).trim())
+    if (k === 'width' && Number(v) > 0) options.width = Number(v)
+    else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) options.align = v as FigureAlign
+    else bad.push(part)
+  }
+  return { path: raw.slice(0, q).trim(), options, bad }
+}
+
+/** La sorgente di un'immagine degli asset con le sue opzioni, come la legge splitImageSource */
+export function imageSourceWith(path: string, options: ImageOptions): string {
+  const opts = [
+    options.width ? `width=${options.width}` : '',
+    options.align && options.align !== 'center' ? `align=${options.align}` : ''
+  ].filter(Boolean)
+  return `${path}${opts.length ? `?${opts.join('&')}` : ''}`
+}
+
+/** Allineamento di una riga di immagini: il primo scritto, di base al centro */
+export function figureAlign(images: { src: string }[]): FigureAlign {
+  for (const img of images) {
+    const ref = isCardSource(img.src) ? parseCardRef(img.src) : splitImageSource(img.src).options
+    if (!isMessage(ref) && ref.align) return ref.align
+  }
+  return 'center'
 }
 
 export const CARD_PREFIX = 'card:'
@@ -798,6 +852,7 @@ export function parseCardRef(src: string): CardRef | Message {
       const [k, v = ''] = part.split('=').map((x) => decode(x).trim())
       if (k === 'side' && (v === 'front' || v === 'back')) ref.side = v
       else if (k === 'width' && Number(v) > 0) ref.width = Number(v)
+      else if (k === 'align' && ALIGNS.includes(v as FigureAlign)) ref.align = v as FigureAlign
       else return msg('doc.card.badOption', { option: part, ref: raw })
     }
   return ref
@@ -811,7 +866,8 @@ export function cardRefSource(ref: CardRef): string {
   const selector = ref.field ? `${enc(ref.field)}=${enc(ref.value ?? '')}` : String(ref.row ?? 1)
   const opts = [
     ref.side === 'back' ? 'side=back' : '',
-    ref.width ? `width=${ref.width}` : ''
+    ref.width ? `width=${ref.width}` : '',
+    ref.align && ref.align !== 'center' ? `align=${ref.align}` : ''
   ].filter(Boolean)
   return `${CARD_PREFIX}${enc(ref.set)}/${selector}${opts.length ? `?${opts.join('&')}` : ''}`
 }
@@ -958,8 +1014,11 @@ export function imageProblem(src: string, ctx: DocumentContext): Message | null 
     const found = findCard(ref, ctx.sets)
     return isMessage(found) ? found : null
   }
-  if (!ctx.assets || /^https?:\/\//i.test(src)) return null
-  const name = src.replace(/^\{(.*)\}$/, '$1')
+  if (/^https?:\/\//i.test(src)) return null
+  const { path, bad } = splitImageSource(src)
+  if (bad.length) return msg('doc.image.badOption', { option: bad[0], ref: src })
+  if (!ctx.assets) return null
+  const name = path.replace(/^\{(.*)\}$/, '$1')
   const v = imageVariable(name, ctx.variables)
   const r = resolveAsset(v ? v.src : name, ctx.assets)
   if (r.ok) return null

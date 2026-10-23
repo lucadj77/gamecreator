@@ -180,7 +180,7 @@ function DataTable({
                   </span>
                   {i >= 0 && (
                     <button
-                      className="icon-btn th-remove"
+                      className="icon-btn danger th-remove"
                       title={t('table.removeColumn')}
                       onClick={() => {
                         if (window.confirm(t('table.removeColumnConfirm', { column: h })))

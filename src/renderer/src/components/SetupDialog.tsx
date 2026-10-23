@@ -15,6 +15,7 @@ import SetupDiagram from '../render/SetupDiagram'
 import { setupView, setupWithText, type Box } from '../render/setupGeometry'
 import AssetPicker from './AssetPicker'
 import InsertCardDialog from './InsertCardDialog'
+import FormattedField from './TextFormatBar'
 
 // Editor dello schema della preparazione del tavolo (```setup, model/setup.ts): si aggiungono
 // zone, carte, mazzi, testi, frecce e immagini e si spostano con il mouse sul disegno, che è lo
@@ -373,19 +374,28 @@ export default function SetupDialog({
                   </button>
                 )}
                 {sel.kind === 'text' ? (
-                  <label>
-                    {t('documents.setupText')}
-                    <textarea
+                  <div className="setup-text">
+                    <span>{t('documents.setupText')}</span>
+                    <FormattedField
+                      key={selected}
+                      bar
+                      singleLine
                       rows={3}
                       value={sel.text}
-                      onChange={(e) => change({ text: e.target.value.replace(/\n/g, ' ') })}
+                      onChange={(text) => change({ text })}
                     />
-                  </label>
+                  </div>
                 ) : sel.kind !== 'image' ? (
-                  <label>
-                    {t('documents.anatomyLabel')}
-                    <input value={sel.label} onChange={(e) => change({ label: e.target.value })} />
-                  </label>
+                  <div className="setup-text">
+                    <span>{t('documents.anatomyLabel')}</span>
+                    <FormattedField
+                      key={selected}
+                      bar
+                      singleLine
+                      value={sel.label}
+                      onChange={(label) => change({ label })}
+                    />
+                  </div>
                 ) : null}
                 <div className="dialog-row">
                   <button onClick={duplicate}>{t('documents.setupDuplicate')}</button>

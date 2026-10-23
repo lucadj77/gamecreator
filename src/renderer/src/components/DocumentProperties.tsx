@@ -88,7 +88,7 @@ export default function DocumentProperties({
                   </td>
                   <td>
                     <button
-                      className="icon-btn"
+                      className="icon-btn danger"
                       title={t('documents.removeProperty')}
                       onClick={() => write(entries.filter((_, k) => k !== i))}
                     >

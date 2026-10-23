@@ -11,7 +11,7 @@ import { useI18n } from '../i18n/context'
 import Segmented from '../components/Segmented'
 import Resizer from '../components/Resizer'
 import { usePanelSide, usePanelWidth } from '../components/usePanelWidth'
-import { ImageIcon } from '../components/icons'
+import { GridIcon, ImageIcon } from '../components/icons'
 import Menu, { type MenuItem } from '../components/Menu'
 import Canvas from './Canvas'
 import LayersPanel from './LayersPanel'
@@ -203,6 +203,7 @@ export default function TemplateEditor({
       () => cmd.add('shape', s),
       t(`tool.${s}` as Parameters<typeof t>[0])
     ]),
+    [<GridIcon key="grid" />, () => cmd.add('grid'), t('tool.grid')],
     ['#', () => cmd.add('value'), t('tool.value')]
   ]
 

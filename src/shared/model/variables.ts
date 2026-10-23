@@ -234,3 +234,24 @@ export function mergeImageSettings(
 export function combineFlip(a: Flip | undefined, h: boolean, v: boolean): [boolean, boolean] {
   return [h !== !!a?.includes('h'), v !== !!a?.includes('v')]
 }
+
+const HEX = /#(?:[0-9a-f]{8}|[0-9a-f]{6})(?![0-9a-z])/gi
+
+/**
+ * Colori scritti come codice nel progetto (template, stili, variabili, celle dei fogli), dal più
+ * usato, al massimo `limit`. Si mostrano nel selettore insieme ai colori del progetto.
+ */
+export function usedColors(sources: unknown[], limit = 24): string[] {
+  const count = new Map<string, number>()
+  for (const s of sources) {
+    const text = typeof s === 'string' ? s : JSON.stringify(s ?? '')
+    for (const m of text.matchAll(HEX)) {
+      const c = m[0].toUpperCase()
+      count.set(c, (count.get(c) ?? 0) + 1)
+    }
+  }
+  return [...count]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([c]) => c)
+}

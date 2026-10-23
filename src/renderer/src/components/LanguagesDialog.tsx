@@ -95,7 +95,11 @@ export default function LanguagesDialog({
               {i === 0 ? (
                 <span className="muted small">{t('languages.main')}</span>
               ) : (
-                <button onClick={() => remove(l)} title={t('languages.removeHint')}>
+                <button
+                  className="danger"
+                  onClick={() => remove(l)}
+                  title={t('languages.removeHint')}
+                >
                   {t('languages.remove')}
                 </button>
               )}

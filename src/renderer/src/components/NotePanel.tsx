@@ -59,7 +59,7 @@ export default function NotePanel({
             if (e.key === 'Escape') setDraftName(name)
           }}
         />
-        <button className="icon-btn" title={t('notes.delete')} onClick={onDelete}>
+        <button className="icon-btn danger" title={t('notes.delete')} onClick={onDelete}>
           <TrashIcon />
         </button>
         <button className="icon-btn note-close" title={t('notes.close')} onClick={onClose}>

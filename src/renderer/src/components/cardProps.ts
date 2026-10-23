@@ -42,6 +42,21 @@ export function propControl(l: Layer, key: string): PropControl {
         kind: 'select',
         options: opts('shape', ['rect', 'ellipse', 'polygon', 'star', 'line', 'path'])
       }
+    case 'cell':
+      return {
+        kind: 'select',
+        options: opts('gridCell', ['square', 'circle', 'hex', 'triangle', 'diamond'])
+      }
+    case 'orientation':
+      return { kind: 'select', options: opts('gridOrientation', ['pointy', 'flat']) }
+    case 'alignX':
+      return { kind: 'select', options: opts('justifyH', ['start', 'center', 'end']) }
+    case 'alignY':
+      return { kind: 'select', options: opts('justifyV', ['start', 'center', 'end']) }
+    case 'background':
+      return { kind: 'color' }
+    case 'border':
+      return { kind: 'text', hint: 'cardProps.strokeHint' }
     case 'weight':
       return {
         kind: 'select',
@@ -86,6 +101,7 @@ export function propControl(l: Layer, key: string): PropControl {
       return { kind: 'text', hint: 'cardProps.cropHint' }
     case 'opacity':
     case 'zoom':
+    case 'cellRatio':
       return { kind: 'number', step: 0.05, percent: true }
   }
   if (typeof value === 'boolean') return { kind: 'bool' }

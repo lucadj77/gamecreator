@@ -19,6 +19,26 @@ export function ImageIcon(): React.JSX.Element {
   )
 }
 
+/** Livello griglia: nove caselle */
+export function GridIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="1em"
+      height="1em"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+      style={{ verticalAlign: '-0.125em' }}
+    >
+      {[1.5, 6.25, 11].flatMap((y) =>
+        [1.5, 6.25, 11].map((x) => (
+          <rect key={`${x}-${y}`} x={x} y={y} width="3.5" height="3.5" rx="0.6" />
+        ))
+      )}
+    </svg>
+  )
+}
+
 /** Fonte "colonna del foglio": una piccola tabella */
 export function ColumnIcon(): React.JSX.Element {
   return (

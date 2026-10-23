@@ -1487,6 +1487,8 @@ button.layer-source.open {
   position: absolute;
   pointer-events: none;
   overflow: hidden;
+  /* la barra c'è solo per occupare lo stesso spazio di quella del campo */
+  scrollbar-color: transparent transparent;
   color: var(--text);
   white-space: pre-wrap;
   overflow-wrap: break-word;
@@ -1516,6 +1518,30 @@ button.layer-source.open {
 .markup-overlay .mk-err {
   text-decoration: wavy underline var(--mk-error);
   text-decoration-skip-ink: none;
+}
+
+/* gli stessi colori senza dividere il testo in pezzi (MarkupTextarea, HIGHLIGHTS) */
+::highlight(mk-punct) {
+  color: var(--mk-punct);
+}
+::highlight(mk-ref) {
+  color: var(--mk-ref);
+}
+::highlight(mk-style) {
+  color: var(--mk-style);
+}
+::highlight(mk-attr) {
+  color: var(--mk-attr);
+}
+::highlight(mk-value) {
+  color: var(--mk-value);
+}
+::highlight(mk-md),
+::highlight(mk-escape) {
+  color: var(--mk-md);
+}
+::highlight(mk-err) {
+  text-decoration: wavy underline var(--mk-error);
 }
 
 .markup-help {
@@ -1697,8 +1723,19 @@ button.layer-source.open {
   margin-right: auto;
 }
 
+/* i tasti che eliminano qualcosa sono rossi; le × piccole lo diventano al passaggio */
 button.danger {
   color: #e5484d;
+  border-color: color-mix(in srgb, #e5484d 45%, var(--border));
+}
+
+button.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, #e5484d 10%, var(--panel));
+}
+
+.icon-btn.danger:hover:not(:disabled) {
+  color: #e5484d;
+  background: none;
 }
 
 .dialog:has(.export-dialog) {
@@ -1954,7 +1991,7 @@ label.check {
 
 .tooltip {
   position: fixed;
-  z-index: 1000;
+  z-index: 3000;
   max-width: 320px;
   padding: 5px 8px;
   border-radius: 5px;
@@ -3634,6 +3671,23 @@ select.from-template {
   background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 0 0 / 8px 8px;
 }
 
+/* colori che vengono da una variabile: un segno nell'angolo, il nome passandoci sopra */
+.color-swatches button.named {
+  position: relative;
+}
+
+.color-swatches button.named::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 1.5px solid var(--bg, #fff);
+}
+
 .color-swatches button.on {
   box-shadow: 0 0 0 2px var(--accent);
 }
@@ -4608,6 +4662,14 @@ details.usages button.link {
   margin: 0 0 0.8em;
 }
 
+.doc-figure.align-left {
+  justify-content: flex-start;
+}
+
+.doc-figure.align-right {
+  justify-content: flex-end;
+}
+
 .doc-figure figure {
   margin: 0;
   display: flex;
@@ -5198,4 +5260,67 @@ button.more-button {
     grid-template-columns: minmax(0, 1fr);
     overflow-y: auto;
   }
+}
+
+/* immagine del documento: anteprima del file scelto accanto al nome */
+.doc-image-pick {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.doc-image-thumb {
+  width: 120px;
+  height: 90px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  text-align: center;
+}
+
+.doc-image-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.doc-image-file {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* testi brevi con la barra di formattazione: etichette dell'anatomia e dello schema del tavolo */
+.text-format-bar {
+  padding: 2px;
+  gap: 2px;
+}
+
+.text-format-bar .doc-tool {
+  min-width: 28px;
+  padding: 2px 6px;
+}
+
+.anatomy-layers > .text-format-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  align-self: flex-start;
+}
+
+.markup-input textarea.formatted-field {
+  min-height: calc(1lh + 8px);
+  resize: none;
+}
+
+.setup-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }

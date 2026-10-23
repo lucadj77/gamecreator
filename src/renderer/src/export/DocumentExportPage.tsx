@@ -44,6 +44,7 @@ async function render(root: HTMLElement, input: DocRenderInput): Promise<DocRend
   if (input.kind === 'md' || input.kind === 'docx') {
     const ctx = {
       project: input.project,
+      language: input.localization?.language,
       sets: input.sets,
       assets: input.assets,
       styles: input.styles,
@@ -97,6 +98,7 @@ export default function DocumentExportPage(): React.JSX.Element {
                 sets={input.sets}
                 templates={input.templates}
                 zoom={1}
+                localization={input.localization}
               />
             )}
           </div>

@@ -1,10 +1,17 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { isValidNoteName, type LoadedSet, type ProjectFont } from '../../../shared/project'
+import {
+  isValidNoteName,
+  type LoadedSet,
+  type ProjectFile,
+  type ProjectFont
+} from '../../../shared/project'
+import { projectLanguages } from '../../../shared/model/language'
 import type { Template } from '../../../shared/model/template'
 import {
   DOC_PAGES,
   DOCUMENTS_DIR,
   documentBoxes,
+  documentLocalization,
   documentProblems,
   documentText,
   documentSettings,
@@ -14,7 +21,12 @@ import {
   type Anatomy
 } from '../../../shared/model/document'
 import { useI18n } from '../i18n/context'
-import { AssetsContext, StylesContext, VariablesContext } from '../render/assets'
+import {
+  AssetsContext,
+  LocalizationContext,
+  StylesContext,
+  VariablesContext
+} from '../render/assets'
 import DocumentPreview, { DOC_UNIT } from '../render/DocumentPreview'
 import DocumentSettingsPanel from './DocumentSettingsPanel'
 import DocumentExportDialog, { type DocExportKind } from './DocumentExportDialog'
@@ -44,6 +56,8 @@ interface Props {
   /** Nomi degli altri documenti, per non rinominarlo come uno di loro */
   others: string[]
   project: string
+  /** Lingue del progetto e nomi tradotti, per la lingua del documento */
+  file: Pick<ProjectFile, 'languages' | 'names'>
   sets: LoadedSet[]
   templates: Template[]
   fonts: ProjectFont[]
@@ -58,6 +72,7 @@ export default function DocumentView({
   text,
   others,
   project,
+  file,
   sets,
   templates,
   fonts,
@@ -126,11 +141,20 @@ export default function DocumentView({
   // gli errori del markup li elenca già il campo; qui carte, immagini e nomi che non si trovano
   const problems = useMemo(
     () =>
-      documentProblems(text, { project, sets, assets, styles, variables, templates }).filter((p) =>
-        p.message.key.startsWith('doc.')
-      ),
-    [text, project, sets, assets, styles, variables, templates]
+      documentProblems(text, {
+        project,
+        sets,
+        assets,
+        styles,
+        variables,
+        templates,
+        languages: projectLanguages(file)
+      }).filter((p) => p.message.key.startsWith('doc.')),
+    [text, project, sets, assets, styles, variables, templates, file]
   )
+  const localization = useMemo(() => documentLocalization(file, sets, text), [file, sets, text])
+  /** Il nome del progetto nella lingua del documento, per {project.name} */
+  const shownProject = localization?.project ?? project
 
   const settings = useMemo(() => documentSettings(text).settings, [text])
   // la pagina si vede intera: se non ci sta in larghezza si riduce
@@ -242,13 +266,27 @@ export default function DocumentView({
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
     try {
       if (kind === 'md') {
-        const ctx = { project, sets, assets, styles, variables }
+        const ctx = {
+          project: shownProject,
+          language: localization?.language,
+          sets,
+          assets,
+          styles,
+          variables
+        }
         return await window.api.exportDocumentFiles(
           await documentMarkdown(page, name, text, ctx, fonts)
         )
       }
       if (kind === 'docx') {
-        const ctx = { project, sets, assets, styles, variables }
+        const ctx = {
+          project: shownProject,
+          language: localization?.language,
+          sets,
+          assets,
+          styles,
+          variables
+        }
         return await window.api.exportDocumentFiles(
           await documentDocx(page, name, text, ctx, settings, fonts)
         )
@@ -294,241 +332,255 @@ export default function DocumentView({
   }
 
   return (
-    <section className="content document-view">
-      <div className="document-head">
-        <input
-          ref={nameInput}
-          className={nameError ? 'document-name invalid' : 'document-name'}
-          value={draftName}
-          title={nameError ?? t('documents.nameHint')}
-          onChange={(e) => setDraftName(e.target.value)}
-          onBlur={commitName}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur()
-            if (e.key === 'Escape') setDraftName(name)
-          }}
-        />
-        <Menu
-          className="more-button"
-          label="⋯"
-          title={t('app.more')}
-          items={[
-            {
-              label: t('documents.rename'),
-              title: t('documents.nameHint'),
-              onClick: () => {
-                nameInput.current?.focus()
-                nameInput.current?.select()
+    // anche le finestre (carta, anatomia, schema) mostrano le carte nella lingua del documento
+    <LocalizationContext.Provider value={localization}>
+      <section className="content document-view">
+        <div className="document-head">
+          <input
+            ref={nameInput}
+            className={nameError ? 'document-name invalid' : 'document-name'}
+            value={draftName}
+            title={nameError ?? t('documents.nameHint')}
+            onChange={(e) => setDraftName(e.target.value)}
+            onBlur={commitName}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur()
+              if (e.key === 'Escape') setDraftName(name)
+            }}
+          />
+          <Menu
+            className="more-button"
+            label="⋯"
+            title={t('app.more')}
+            items={[
+              {
+                label: t('documents.rename'),
+                title: t('documents.nameHint'),
+                onClick: () => {
+                  nameInput.current?.focus()
+                  nameInput.current?.select()
+                }
+              },
+              {
+                label: t('sidebar.duplicate'),
+                title: t('documents.duplicateHint'),
+                onClick: onDuplicate
+              },
+              'sep',
+              {
+                label: t('documents.deleteShort'),
+                title: t('documents.delete'),
+                danger: true,
+                onClick: onDelete
               }
-            },
-            {
-              label: t('sidebar.duplicate'),
-              title: t('documents.duplicateHint'),
-              onClick: onDuplicate
-            },
-            'sep',
-            {
-              label: t('documents.deleteShort'),
-              title: t('documents.delete'),
-              danger: true,
-              onClick: onDelete
-            }
-          ]}
-        />
-        <button
-          className={pageOpen ? 'active' : ''}
-          onClick={() => setPageOpen((o) => !o)}
-          title={t('documents.pageButtonHint')}
-        >
-          {t('documents.page')}
-        </button>
-        <button onClick={() => setExporting(true)} title={t('documents.exportHint')}>
-          {t('documents.exportButton')}
-        </button>
-      </div>
-      <div className={pageOpen ? 'document-body with-settings' : 'document-body'}>
-        <div className="document-editor">
-          <DocumentProperties
-            text={text}
-            shown={settings.showProperties}
-            onChange={onChange}
-            onShow={(show) => onChange(withDocumentSettings(text, { showProperties: show }))}
+            ]}
           />
-          <MarkupTextarea
-            ref={editor}
-            fields={[]}
-            value={text}
-            placeholder={t('documents.placeholder')}
-            toolbar={(format) => (
-              <DocumentToolbar
-                editor={editor}
-                format={format}
-                level={level}
-                onImage={openImage}
-                onTable={openTable}
-                onBox={openBox}
-                onCard={() => setInserting(true)}
-                onAnatomy={openAnatomy}
-                onSetup={openSetup}
-              />
+          <button
+            className={pageOpen ? 'active' : ''}
+            onClick={() => setPageOpen((o) => !o)}
+            title={t('documents.pageButtonHint')}
+          >
+            {t('documents.page')}
+          </button>
+          <button onClick={() => setExporting(true)} title={t('documents.exportHint')}>
+            {t('documents.exportButton')}
+          </button>
+        </div>
+        <div className={pageOpen ? 'document-body with-settings' : 'document-body'}>
+          <div className="document-editor">
+            <DocumentProperties
+              text={text}
+              shown={settings.showProperties}
+              onChange={onChange}
+              onShow={(show) => onChange(withDocumentSettings(text, { showProperties: show }))}
+            />
+            <MarkupTextarea
+              ref={editor}
+              fields={[]}
+              value={text}
+              placeholder={t('documents.placeholder')}
+              toolbar={(format) => (
+                <DocumentToolbar
+                  editor={editor}
+                  format={format}
+                  level={level}
+                  onImage={openImage}
+                  onTable={openTable}
+                  onBox={openBox}
+                  onCard={() => setInserting(true)}
+                  onAnatomy={openAnatomy}
+                  onSetup={openSetup}
+                />
+              )}
+              onChange={(e) => {
+                lastCaret.current = e.target.selectionEnd
+                onChange(e.target.value)
+              }}
+              onKeyUp={followCaret}
+              onSelect={followCaret}
+              onClick={followCaret}
+            />
+            {problems.length > 0 && (
+              <ul className="document-problems">
+                {problems.map((p, i) => (
+                  <li key={i}>
+                    <button
+                      className="link"
+                      onClick={() => {
+                        editor.current?.focus()
+                        editor.current?.setSelectionRange(p.from, p.to)
+                      }}
+                    >
+                      {t(p.message)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
-            onChange={(e) => {
-              lastCaret.current = e.target.selectionEnd
-              onChange(e.target.value)
-            }}
-            onKeyUp={followCaret}
-            onSelect={followCaret}
-            onClick={followCaret}
-          />
-          {problems.length > 0 && (
-            <ul className="document-problems">
-              {problems.map((p, i) => (
-                <li key={i}>
-                  <button
-                    className="link"
-                    onClick={() => {
-                      editor.current?.focus()
-                      editor.current?.setSelectionRange(p.from, p.to)
-                    }}
-                  >
-                    {t(p.message)}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <p className="muted small">
+              {t('documents.hint', { file: `${DOCUMENTS_DIR}/${name}.md` })}
+            </p>
+          </div>
+          <div className="document-preview" ref={preview}>
+            <DocumentPreview
+              text={text}
+              project={project}
+              sets={sets}
+              templates={templates}
+              zoom={zoom}
+              localization={localization}
+              onPick={(from) => {
+                const el = editor.current
+                if (!el) return
+                el.focus()
+                el.setSelectionRange(from, from)
+                // il campo scorre fino al cursore: si toglie e si rimette il fuoco
+                el.blur()
+                el.focus()
+              }}
+            />
+          </div>
+          {pageOpen && (
+            <DocumentSettingsPanel
+              settings={settings}
+              languages={projectLanguages(file)}
+              onChange={(change) => onChange(withDocumentSettings(text, change))}
+              onClose={() => setPageOpen(false)}
+            />
           )}
-          <p className="muted small">
-            {t('documents.hint', { file: `${DOCUMENTS_DIR}/${name}.md` })}
-          </p>
         </div>
-        <div className="document-preview" ref={preview}>
-          <DocumentPreview
-            text={text}
-            project={project}
-            sets={sets}
-            templates={templates}
-            zoom={zoom}
-            onPick={(from) => {
-              const el = editor.current
-              if (!el) return
-              el.focus()
-              el.setSelectionRange(from, from)
-              // il campo scorre fino al cursore: si toglie e si rimette il fuoco
-              el.blur()
-              el.focus()
-            }}
-          />
-        </div>
-        {pageOpen && (
-          <DocumentSettingsPanel
-            settings={settings}
-            onChange={(change) => onChange(withDocumentSettings(text, change))}
-            onClose={() => setPageOpen(false)}
+        {exporting && (
+          <DocumentExportDialog
+            name={name}
+            problems={problems.length}
+            onExport={exportAs}
+            onClose={() => setExporting(false)}
           />
         )}
-      </div>
-      {exporting && (
-        <DocumentExportDialog
-          name={name}
-          problems={problems.length}
-          onExport={exportAs}
-          onClose={() => setExporting(false)}
-        />
-      )}
-      {imageEdit && (
-        <ImageDialog
-          initial={imageEdit.value}
-          onClose={() => setImageEdit(null)}
-          onSave={(md) => {
-            setImageEdit(null)
-            putBlock(md, imageEdit.from, imageEdit.to)
-          }}
-        />
-      )}
-      {boxEdit && (
-        <BoxDialog
-          initial={boxEdit.box?.style}
-          onClose={() => setBoxEdit(null)}
-          onRemove={
-            boxEdit.box
-              ? () => {
-                  const box = boxEdit.box!
-                  setBoxEdit(null)
-                  rewrite(unwrapBox(text, box), box.from)
-                }
-              : undefined
-          }
-          onSave={(style) => {
-            setBoxEdit(null)
-            const { box, from, to } = boxEdit
-            if (box) {
-              const head = boxStartLine(style)
-              rewrite(
-                text.slice(0, box.from) + head + text.slice(box.headTo),
-                box.from + head.length
-              )
-              return
+        {imageEdit && (
+          <ImageDialog
+            initial={imageEdit.value}
+            onClose={() => setImageEdit(null)}
+            onSave={(md) => {
+              setImageEdit(null)
+              putBlock(md, imageEdit.from, imageEdit.to)
+            }}
+          />
+        )}
+        {boxEdit && (
+          <BoxDialog
+            initial={boxEdit.box?.style}
+            onClose={() => setBoxEdit(null)}
+            onRemove={
+              boxEdit.box
+                ? () => {
+                    const box = boxEdit.box!
+                    setBoxEdit(null)
+                    rewrite(unwrapBox(text, box), box.from)
+                  }
+                : undefined
             }
-            const out = wrapInBox(text, from, to, style, t('documents.boxSample'))
-            rewrite(out.text, out.caret)
-          }}
-        />
-      )}
-      {tableEdit && (
-        <TableDialog
-          initial={tableEdit.value}
-          sets={sets}
-          templates={templates}
-          project={project}
-          onClose={() => setTableEdit(null)}
-          onSave={(md) => {
-            setTableEdit(null)
-            putBlock(md, tableEdit.from, tableEdit.to)
-          }}
-        />
-      )}
-      {setupEdit && (
-        <SetupDialog
-          initial={setupEdit.value}
-          sets={sets}
-          templates={templates}
-          project={project}
-          maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
-          font={(settings.size * 0.88 * 25.4) / 72}
-          display={(s) => documentText(s, { project, sets, assets, styles, variables })}
-          onSave={(md) => {
-            setSetupEdit(null)
-            putBlock(md, setupEdit.from, setupEdit.to)
-          }}
-          onClose={() => setSetupEdit(null)}
-        />
-      )}
-      {anatomyEdit && (
-        <InsertCardDialog
-          anatomy
-          initial={anatomyEdit.value}
-          sets={sets}
-          templates={templates}
-          project={project}
-          onInsert={(md) => {
-            setAnatomyEdit(null)
-            putBlock(md, anatomyEdit.from, anatomyEdit.to)
-          }}
-          onClose={() => setAnatomyEdit(null)}
-        />
-      )}
-      {inserting && (
-        <InsertCardDialog
-          sets={sets}
-          templates={templates}
-          project={project}
-          onInsert={(block) => {
-            setInserting(false)
-            insertBlock(block)
-          }}
-          onClose={() => setInserting(false)}
-        />
-      )}
-    </section>
+            onSave={(style) => {
+              setBoxEdit(null)
+              const { box, from, to } = boxEdit
+              if (box) {
+                const head = boxStartLine(style)
+                rewrite(
+                  text.slice(0, box.from) + head + text.slice(box.headTo),
+                  box.from + head.length
+                )
+                return
+              }
+              const out = wrapInBox(text, from, to, style, t('documents.boxSample'))
+              rewrite(out.text, out.caret)
+            }}
+          />
+        )}
+        {tableEdit && (
+          <TableDialog
+            initial={tableEdit.value}
+            sets={sets}
+            templates={templates}
+            project={project}
+            onClose={() => setTableEdit(null)}
+            onSave={(md) => {
+              setTableEdit(null)
+              putBlock(md, tableEdit.from, tableEdit.to)
+            }}
+          />
+        )}
+        {setupEdit && (
+          <SetupDialog
+            initial={setupEdit.value}
+            sets={sets}
+            templates={templates}
+            project={project}
+            maxWidth={DOC_PAGES[settings.page][0] - 2 * settings.margin}
+            font={(settings.size * 0.88 * 25.4) / 72}
+            display={(s) =>
+              documentText(s, {
+                project: shownProject,
+                language: localization?.language,
+                sets,
+                assets,
+                styles,
+                variables
+              })
+            }
+            onSave={(md) => {
+              setSetupEdit(null)
+              putBlock(md, setupEdit.from, setupEdit.to)
+            }}
+            onClose={() => setSetupEdit(null)}
+          />
+        )}
+        {anatomyEdit && (
+          <InsertCardDialog
+            anatomy
+            initial={anatomyEdit.value}
+            sets={sets}
+            templates={templates}
+            project={project}
+            onInsert={(md) => {
+              setAnatomyEdit(null)
+              putBlock(md, anatomyEdit.from, anatomyEdit.to)
+            }}
+            onClose={() => setAnatomyEdit(null)}
+          />
+        )}
+        {inserting && (
+          <InsertCardDialog
+            sets={sets}
+            templates={templates}
+            project={project}
+            onInsert={(block) => {
+              setInserting(false)
+              insertBlock(block)
+            }}
+            onClose={() => setInserting(false)}
+          />
+        )}
+      </section>
+    </LocalizationContext.Provider>
   )
 }

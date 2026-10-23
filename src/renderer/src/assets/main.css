@@ -5071,6 +5071,15 @@ button.more-button {
   gap: 12px;
 }
 
+.language-list li > span:first-child {
+  flex: 1;
+}
+
+/* campi delle traduzioni: si dispongono come gli altri campi del pannello */
+.translation-fields {
+  display: contents;
+}
+
 .language-add {
   display: flex;
   gap: 8px;

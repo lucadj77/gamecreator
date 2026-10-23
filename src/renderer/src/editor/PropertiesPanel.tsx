@@ -36,7 +36,7 @@ import { useI18n, type Translate } from '../i18n/context'
 import { evaluateFormula } from '../../../shared/model/formula'
 import { cardFields, rowToCard, substituteFields, switchSource } from '../../../shared/model/bind'
 import type { MessageKey } from '../i18n/en'
-import { AssetsContext, assetUrl } from '../render/assets'
+import { AssetsContext, ProjectLanguagesContext, assetUrl } from '../render/assets'
 import CropDialog from '../components/CropDialog'
 import { DisplayContext } from './displayContext'
 import { cropText } from '../../../shared/model/crop'
@@ -62,6 +62,7 @@ import PanelSideButton from '../components/PanelSideButton'
 import AlignSection from './AlignSection'
 import type { PanelSide } from '../components/usePanelWidth'
 import { useRatioLock, type LockKind } from './ratioLock'
+import TranslationFields from '../components/TranslationFields'
 
 interface Props {
   state: EditorState
@@ -897,6 +898,7 @@ function TextProperties({
 }: TypeProps<TextLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<TextLayer>
+  const translatable = useContext(ProjectLanguagesContext).length > 1
   return (
     <>
       {/* con una formula il valore è il suo risultato: il campo non serve */}
@@ -909,6 +911,18 @@ function TextProperties({
             multiline
             markupFields={fields}
             onChange={(text) => set({ text })}
+          />
+        </Inherit>
+      )}
+      {/* le traduzioni valgono solo per un testo fisso: una colonna si traduce con nome@lingua */}
+      {l.source.kind === 'fixed' && translatable && (
+        <Inherit keys={['texts']}>
+          <TranslationFields
+            label={t('prop.text')}
+            value={l.texts}
+            multiline
+            markupFields={fields}
+            onChange={(texts) => set({ texts })}
           />
         </Inherit>
       )}
@@ -1419,6 +1433,7 @@ function ValueProperties({
 }: TypeProps<ValueLayer>): React.JSX.Element {
   const { t } = useI18n()
   const set = setLayer as SetFn<ValueLayer>
+  const translatable = useContext(ProjectLanguagesContext).length > 1
   return (
     <>
       {/* con una formula il valore è il suo risultato: il campo non serve */}
@@ -1429,6 +1444,15 @@ function ValueProperties({
             hint={col()}
             value={l.value}
             onChange={(value) => set({ value })}
+          />
+        </Inherit>
+      )}
+      {l.source.kind === 'fixed' && translatable && (
+        <Inherit keys={['values']}>
+          <TranslationFields
+            label={t('prop.value')}
+            value={l.values}
+            onChange={(values) => set({ values })}
           />
         </Inherit>
       )}

@@ -12,10 +12,13 @@ import { useI18n } from '../i18n/context'
 
 export default function DocumentSettingsPanel({
   settings: s,
+  languages,
   onChange,
   onClose
 }: {
   settings: DocSettings
+  /** Lingue del progetto, la principale per prima; vuoto con una lingua sola */
+  languages: string[]
   onChange(change: Partial<DocSettings>): void
   onClose(): void
 }): React.JSX.Element {
@@ -31,6 +34,21 @@ export default function DocumentSettingsPanel({
           ×
         </button>
       </div>
+      {(languages.length > 0 || s.language) && (
+        <SelectField<string>
+          label={t('documents.language')}
+          hint={t('documents.languageHint')}
+          value={s.language}
+          options={[
+            ['', t('documents.mainLanguage', { language: languages[0] ?? '' })],
+            ...languages.slice(1).map((l): [string, string] => [l, l]),
+            ...(s.language && !languages.includes(s.language)
+              ? [[s.language, s.language] as [string, string]]
+              : [])
+          ]}
+          onChange={(language) => onChange({ language })}
+        />
+      )}
       <SelectField<DocPage>
         label={t('documents.pageSize')}
         value={s.page}

@@ -20,6 +20,8 @@ const SIDES: Side[] = ['front', 'back']
 /** Proprietà dei livelli che non si confrontano: identità e struttura */
 const STRUCTURAL = new Set(['id', 'type', 'name', 'children'])
 const FRAME = ['x', 'y', 'w', 'h']
+/** Traduzioni dei livelli fissi: facoltative, il derivato le può aggiungere */
+const TRANSLATIONS = ['texts', 'values']
 
 /** Proprietà di un livello che il derivato può cambiare */
 function layerKeys(a: Layer, b: Layer): string[] {
@@ -79,10 +81,20 @@ export function resolveTemplate(
       if (patch) {
         used.add(l.name)
         const clean = Object.fromEntries(
-          Object.entries(patch).filter(([k]) => !STRUCTURAL.has(k) && k in l)
+          Object.entries(patch).filter(
+            ([k]) => !STRUCTURAL.has(k) && (k in l || TRANSLATIONS.includes(k))
+          )
         )
         if (Object.keys(clean).length) {
           out = { ...out, ...clean } as Layer
+          // un testo cambiato senza le sue traduzioni non tiene quelle del base, che sono di un
+          // altro testo
+          for (const [main, tr] of [
+            ['text', 'texts'],
+            ['value', 'values']
+          ])
+            if (main in clean && !(tr in clean))
+              delete (out as unknown as Record<string, unknown>)[tr]
           changed = true
         }
       }

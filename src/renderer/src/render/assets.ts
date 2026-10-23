@@ -45,6 +45,9 @@ export const ProjectColorsContext = createContext<string[]>([])
 /** Lingua in cui si mostrano le carte, se non è quella principale del progetto */
 export const LocalizationContext = createContext<Localization | undefined>(undefined)
 
+/** Lingue del progetto, la principale per prima; vuoto se il progetto ha una sola lingua */
+export const ProjectLanguagesContext = createContext<string[]>([])
+
 /** Ciò che serve per applicare una riga a un template: immagini, stili, variabili e lingua */
 export function useBindContext(): BindContext {
   const assets = useContext(AssetsContext)

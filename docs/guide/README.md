@@ -257,6 +257,10 @@ The menu next to the project name, at the top, picks the language the cards are 
 
 Only what is read on the card is translated. Image names, colours and formulas starting with `=` always use the values of the main language: a formula such as `=IF({type}="Attack"; ...)` works in every language without changing it. To have a different image in one language, add its translated column, for example `icon@en`.
 
+Texts that do not come from the sheet are translated where you write them. A text layer whose **Value on cards** is **Fixed** has, under its text, a field for each other language; the same goes for fixed value layers and, in their window, for text and value variables. A field left empty uses the text of the main language. If a formula with `=` must write a translated text, make it return a variable: `=IF({type}="Attack";"{attack}";"{defence}")` compares the main-language value and writes the `attack` variable in the language of the card.
+
+A document always uses the main language, even when another language is chosen at the top. For an English rulebook write `language: en` at the top of the document, or choose it in **Page**, under **Card language**: the document's cards and variables will be in English. The **Languages** window says how many texts are left to translate in each language, and `naibi check` lists them one by one.
+
 In **Export…** choose the language, or **All languages**. The main language goes to the usual folder, the others to a subfolder named after their code, for example `export/en`; file names stay the same. An AI does the same with `naibi render --lang en` and `naibi export --profile NAME --lang all`.
 
 ## 6. Text and markup

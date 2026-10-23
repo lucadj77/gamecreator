@@ -1,4 +1,7 @@
-import type { ProjectFile, SetDefinition, Sheet } from '../project'
+import type { LoadedSet, ProjectFile, SetDefinition, Sheet } from '../project'
+import { walkLayers } from './normalize'
+import type { Template } from './template'
+import type { Variables } from './variables'
 
 // Progetti in più lingue: le lingue stanno in naibi.json (languages, la prima è la principale),
 // i testi tradotti nelle colonne `campo@lingua` del foglio, i nomi tradotti di progetto e set in
@@ -48,6 +51,15 @@ export function translatedCells(
     if (s.language === language) out[s.base] = v
   }
   return out
+}
+
+/** Testo di una traduzione: quello della lingua, se c'è e non è vuoto */
+export function translation(
+  map: Record<string, string> | undefined,
+  language: string | undefined
+): string | undefined {
+  const v = language ? map?.[language] : undefined
+  return v !== undefined && v.trim() !== '' ? v : undefined
 }
 
 /** La lingua in cui si disegnano le carte, quando non è la principale, con i nomi tradotti */
@@ -103,4 +115,69 @@ export function missingTranslationColumns(
         words(i)
     )
     .map((h) => `${h}@${language}`)
+}
+
+/** Un testo da tradurre: ha almeno una lettera fuori dai richiami {campo} e {img} */
+function hasWords(text: string): boolean {
+  return /\p{L}/u.test(text.replace(/\{[^{}]*\}/g, ''))
+}
+
+/** Una traduzione che manca, per `naibi check`: dove sta e cosa dice nella lingua principale */
+export interface MissingTranslation {
+  where: string
+  text: string
+}
+
+/**
+ * Testi senza traduzione in `language`: livelli di testo fissi e variabili di testo con parole,
+ * livelli valore e variabili valore che hanno già una traduzione in un'altra lingua, celle vuote
+ * di una colonna `@lingua` quando la principale ha parole. Sono solo avvisi: la carta usa il testo
+ * della lingua principale.
+ */
+export function missingTranslations(
+  project: {
+    templates: Pick<Template, 'name' | 'front' | 'back'>[]
+    variables?: Variables
+    sets: Pick<LoadedSet, 'name' | 'data'>[]
+  },
+  language: string
+): MissingTranslation[] {
+  const out: MissingTranslation[] = []
+  const lacks = (map: Record<string, string> | undefined): boolean =>
+    translation(map, language) === undefined
+  const elsewhere = (map: Record<string, string> | undefined): boolean =>
+    Object.values(map ?? {}).some((v) => v.trim() !== '')
+  for (const t of project.templates)
+    for (const side of ['front', 'back'] as const)
+      for (const l of walkLayers(t[side])) {
+        if (l.type !== 'text' && l.type !== 'value') continue
+        if (l.source.kind !== 'fixed') continue
+        const where = `template ${t.name}, layer ${l.name} (${side})`
+        if (l.type === 'text' && hasWords(l.text) && lacks(l.texts))
+          out.push({ where, text: l.text })
+        if (l.type === 'value' && elsewhere(l.values) && lacks(l.values))
+          out.push({ where, text: l.value })
+      }
+  for (const [name, v] of Object.entries(project.variables ?? {})) {
+    if (v.type === 'text' && hasWords(v.text) && lacks(v.texts))
+      out.push({ where: `variable ${name}`, text: v.text })
+    if (v.type === 'value' && elsewhere(v.values) && lacks(v.values))
+      out.push({ where: `variable ${name}`, text: v.value })
+  }
+  for (const s of project.sets) {
+    if (!s.data) continue
+    const { headers, rows } = s.data
+    headers.forEach((h, i) => {
+      const sl = splitLanguage(h)
+      if (sl.language !== language) return
+      const main = headers.indexOf(sl.base)
+      if (main < 0) return
+      rows.forEach((r, n) => {
+        const v = r[main] ?? ''
+        if (hasWords(v) && (r[i] ?? '').trim() === '')
+          out.push({ where: `${s.name} #${n + 1}, column ${h}`, text: v })
+      })
+    })
+  }
+  return out
 }

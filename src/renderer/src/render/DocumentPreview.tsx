@@ -33,7 +33,14 @@ import {
 import { useI18n } from '../i18n/context'
 import CardSvg from './CardSvg'
 import { MarkupInline } from './MarkupText'
-import { AssetsContext, StylesContext, VariablesContext, assetUrl } from './assets'
+import {
+  AssetsContext,
+  LocalizationContext,
+  StylesContext,
+  VariablesContext,
+  assetUrl
+} from './assets'
+import type { Localization } from '../../../shared/model/language'
 
 // Anteprima di un documento del progetto (model/document.ts): il Markdown come una pagina, con il
 // markup di Naibi nel testo e le carte disegnate dal progetto, come nell'esportazione.
@@ -52,6 +59,8 @@ interface Props {
   zoom?: number
   /** Posizione nel testo del blocco su cui si è fatto clic */
   onPick?(from: number): void
+  /** Lingua delle carte del documento (documentLocalization); nessuna per la principale */
+  localization?: Localization
 }
 
 /** Lo stile della pagina dalle impostazioni in testa al documento */
@@ -81,47 +90,62 @@ export default function DocumentPreview({
   sets,
   templates,
   zoom = 1,
-  onPick
+  onPick,
+  localization
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
   const styles = useContext(StylesContext)
   const variables = useContext(VariablesContext)
   const ctx = useMemo<DocumentContext>(
-    () => ({ project, sets, assets, styles, variables }),
-    [project, sets, assets, styles, variables]
+    () => ({
+      project: localization?.project ?? project,
+      language: localization?.language,
+      sets,
+      assets,
+      styles,
+      variables
+    }),
+    [project, sets, assets, styles, variables, localization]
   )
   const blocks = useMemo(() => parseDocument(text), [text])
   const settings = useMemo(() => documentSettings(text).settings, [text])
   return (
-    <div className="doc-page" style={{ ...pageStyle(settings, variables), zoom }}>
-      {!blocks.length && <p className="muted">{t('documents.empty')}</p>}
-      {groups(blocks).map(({ box, items }) => {
-        /* chiave per posizione: scrivendo prima di una carta la carta non si ridisegna */
-        const list = items.map(({ block: b, k }) => (
-          <div
-            key={`${k}:${b.kind}`}
-            className="doc-block"
-            data-from={b.from}
-            onClick={(e) => {
-              // un clic su un collegamento o una selezione di testo non sposta il cursore
-              if (!window.getSelection()?.isCollapsed) return
-              e.stopPropagation()
-              onPick?.(b.from)
-            }}
-          >
-            <Block block={b} ctx={ctx} templates={templates} settings={settings} />
-          </div>
-        ))
-        return box ? (
-          <div key={`box:${items[0].k}`} className="doc-box" style={boxStyle(box.style, variables)}>
-            {list}
-          </div>
-        ) : (
-          list
-        )
-      })}
-    </div>
+    // le carte del documento si disegnano nella sua lingua, non in quella scelta nell'app
+    <LocalizationContext.Provider value={localization}>
+      <div className="doc-page" style={{ ...pageStyle(settings, variables), zoom }}>
+        {!blocks.length && <p className="muted">{t('documents.empty')}</p>}
+        {groups(blocks).map(({ box, items }) => {
+          /* chiave per posizione: scrivendo prima di una carta la carta non si ridisegna */
+          const list = items.map(({ block: b, k }) => (
+            <div
+              key={`${k}:${b.kind}`}
+              className="doc-block"
+              data-from={b.from}
+              onClick={(e) => {
+                // un clic su un collegamento o una selezione di testo non sposta il cursore
+                if (!window.getSelection()?.isCollapsed) return
+                e.stopPropagation()
+                onPick?.(b.from)
+              }}
+            >
+              <Block block={b} ctx={ctx} templates={templates} settings={settings} />
+            </div>
+          ))
+          return box ? (
+            <div
+              key={`box:${items[0].k}`}
+              className="doc-box"
+              style={boxStyle(box.style, variables)}
+            >
+              {list}
+            </div>
+          ) : (
+            list
+          )
+        })}
+      </div>
+    </LocalizationContext.Provider>
   )
 }
 

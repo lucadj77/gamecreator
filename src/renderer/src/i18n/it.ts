@@ -835,6 +835,8 @@ export const it: Record<MessageKey, string> = {
   'doc.box.notClosed':
     'Questo riquadro non ha la riga <!-- /box -->: arriva fino alla fine del documento',
   'doc.setting.unknown': '"{name}" non è un\'impostazione della pagina',
+  'doc.language.unknown':
+    'Il progetto non ha la lingua "{language}": le carte si disegnano nella lingua principale (languages in naibi.json)',
   'doc.setting.bad': '"{value}" non è un valore valido per {name}',
   'doc.anatomy.badLine':
     "Questa riga dell'anatomia non si capisce: scrivi card: … oppure - livello: etichetta",
@@ -1276,6 +1278,10 @@ export const it: Record<MessageKey, string> = {
     'Il documento ha dei problemi ({n}), elencati sotto il testo: le carte e le immagini che non si trovano restano fuori.',
   'documents.table': 'Tabella',
   'documents.tableButtonHint': 'Inserisce una tabella, o modifica quella dove si trova il cursore',
+  'documents.language': 'Lingua delle carte',
+  'documents.languageHint':
+    "Lingua delle carte, dell'anatomia e dello schema del tavolo in questo documento, e di {project.name}",
+  'documents.mainLanguage': 'Principale ({language})',
   'documents.box': 'Riquadro',
   'documents.boxButtonHint':
     'Mette le righe selezionate in un riquadro con lo sfondo colorato, o modifica il riquadro dove si trova il cursore',
@@ -1728,6 +1734,9 @@ export const it: Record<MessageKey, string> = {
   'languages.hint':
     'La prima lingua è la principale: le colonne senza @ contengono i suoi testi. Le traduzioni di una colonna vanno in una colonna con lo stesso nome seguito da @ e dal codice della lingua, per esempio nome@en. Una cella tradotta vuota usa la lingua principale.',
   'languages.main': 'lingua principale',
+  'languages.untranslated': '{n} testi da tradurre',
+  'languages.untranslatedHint':
+    'Testi fissi, variabili e celle @lingua vuote senza traduzione: le carte usano la lingua principale. naibi check li elenca.',
   'languages.remove': 'Togli',
   'languages.removeHint': 'Toglie la lingua dal progetto; le sue colonne restano nei fogli',
   'languages.add': 'Aggiungi lingua',
@@ -1910,6 +1919,7 @@ export const it: Record<MessageKey, string> = {
   'update.installing': 'Scaricamento… {percent}%',
   'update.installFailed':
     'Non è stato possibile installare Naibi {version} da solo: scaricalo dalla pagina della release.',
+  'translation.placeholder': 'Vuoto: usa la lingua principale',
   'update.reason': ' Motivo: {reason}',
   'update.unsaved':
     'Ci sono modifiche non salvate: andranno perse al riavvio di Naibi. Aggiornare comunque?',

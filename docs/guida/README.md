@@ -257,6 +257,10 @@ Il menu accanto al nome del progetto, in alto, sceglie in che lingua mostrare le
 
 Si traduce solo ciò che si legge sulla carta. Nomi delle immagini, colori e formule che cominciano con `=` usano sempre i valori della lingua principale: una formula come `=IF({tipo}="Attacco"; ...)` funziona in ogni lingua senza cambiarla. Per avere un'immagine diversa in una lingua aggiungi la sua colonna tradotta, per esempio `icona@en`.
 
+I testi che non vengono dal foglio si traducono dove si scrivono. Un livello di testo con **Valore sulle carte** su **Fisso** ha, sotto il testo, un campo per ogni altra lingua; lo stesso vale per i livelli valore fissi e, nella loro finestra, per le variabili di testo e valore. Un campo lasciato vuoto usa il testo della lingua principale. Se una formula con `=` deve scrivere un testo tradotto, falle restituire una variabile: `=IF({tipo}="Attacco";"{attacco}";"{difesa}")` confronta il valore italiano e scrive la variabile `attacco` nella lingua della carta.
+
+Un documento usa sempre la lingua principale, anche se in alto è scelta un'altra lingua. Per un regolamento in inglese scrivi `language: en` nella testa del documento, o sceglilo in **Pagina**, alla voce **Lingua delle carte**: carte e variabili del documento saranno in inglese. La finestra **Lingue** dice quanti testi restano da tradurre in ogni lingua, e `naibi check` li elenca uno per uno.
+
 In **Esporta…** scegli la lingua, o **Tutte le lingue**. La lingua principale va nella cartella di sempre, le altre in una sottocartella con il loro codice, per esempio `export/en`; i nomi dei file restano gli stessi. Un'IA fa lo stesso con `naibi render --lang en` e `naibi export --profile NOME --lang all`.
 
 ## 6. Testo e markup

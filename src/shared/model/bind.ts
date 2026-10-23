@@ -8,7 +8,7 @@ import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
-import { splitLanguage, translatedCells, type Localization } from './language'
+import { splitLanguage, translatedCells, translation, type Localization } from './language'
 import { cardTemplate } from './inherit'
 import { systemFields, usesSide, type SystemInfo } from './system'
 import {
@@ -189,7 +189,12 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
           const column = src.kind === 'column' && src.column ? src.column : layer.name
           const props = new Map(overrides.get(column))
           // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
-          if (src.kind === 'fixed') props.delete('')
+          if (src.kind === 'fixed') {
+            props.delete('')
+            // un testo fisso tradotto nella lingua della carta
+            const tr = layer.type === 'text' ? translation(layer.texts, language) : undefined
+            if (tr !== undefined) props.set('', tr)
+          }
           if (src.kind === 'formula') {
             const read = layer.type === 'text' && !isExpression(src.expr) ? shown : fields
             const r = evaluateFormula(src.expr, read)
@@ -411,14 +416,29 @@ export function fieldSets(
   for (const [k, v] of Object.entries(card.fields))
     if (v !== '' || !(k in fields)) fields[k] = v.trim() === '' ? '' : v
   const local = language ? translatedCells(card.fields, language) : {}
-  const translated = Object.keys(local).length > 0
+  // variabili tradotte: valgono dove il campo è ancora quello della variabile (un livello o una
+  // colonna con lo stesso nome vince, come nella lingua principale)
+  const mainVars = language ? variableFields(variables) : {}
+  const localVars = language ? variableFields(variables, language) : {}
+  const varChanges = Object.keys(localVars).filter(
+    (k) => localVars[k] !== mainVars[k] && fields[k] === mainVars[k]
+  )
+  const translated =
+    Object.keys(local).length > 0 ||
+    varChanges.length > 0 ||
+    all.some(
+      (l) => l.type === 'value' && l.source.kind === 'fixed' && translation(l.values, language)
+    )
   const shown = translated ? { ...fields } : fields
+  for (const k of varChanges) shown[k] = localVars[k]
   for (const [k, v] of Object.entries(local)) shown[k] = v.trim() === '' ? '' : v
   for (const l of all) {
     if (l.type !== 'value') continue
     const src = l.source
-    if (src.kind === 'fixed') fields[l.name] = shown[l.name] = l.value
-    else if (src.kind === 'formula') {
+    if (src.kind === 'fixed') {
+      fields[l.name] = l.value
+      shown[l.name] = translation(l.values, language) ?? l.value
+    } else if (src.kind === 'formula') {
       fields[l.name] = evaluateFormula(src.expr, fields).value
       if (translated)
         shown[l.name] = isExpression(src.expr)

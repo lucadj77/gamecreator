@@ -12,6 +12,7 @@ import type {
 } from './project'
 import type { Template } from './model/template'
 import type { Variables } from './model/variables'
+import type { Localization } from './model/language'
 import type { SheetInspection } from './dataCheck'
 import type { Message } from './messages'
 
@@ -106,6 +107,8 @@ export interface DocRenderInput {
   fonts: ProjectFont[]
   styles: Record<string, string>
   variables: Variables
+  /** Lingua delle carte del documento, se non è la principale */
+  localization?: Localization
 }
 
 /** File di un documento esportato, con i dati binari in base64 per passare tra i processi */

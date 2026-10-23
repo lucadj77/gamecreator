@@ -1,4 +1,5 @@
 // Variabili del progetto: vedi docs/specifica.md, sezione 6.1.
+import { translation } from './language'
 
 /** Aspetto di un'immagine nel testo: valori della variabile o attributi in {nome tint=red} */
 export interface ImageSettings {
@@ -29,6 +30,8 @@ export interface ImageVariable extends ImageSettings {
 export interface TextVariable {
   type: 'text'
   text: string
+  /** Testo nelle altre lingue del progetto (lingua → testo); mancante o vuoto vale `text` */
+  texts?: Record<string, string>
 }
 
 /** Colore con un nome, usabile in ogni proprietà colore */
@@ -41,6 +44,8 @@ export interface ColorVariable {
 export interface ValueVariable {
   type: 'value'
   value: string
+  /** Valore nelle altre lingue, come `texts` delle variabili di testo */
+  values?: Record<string, string>
 }
 
 export type Variable = ImageVariable | TextVariable | ColorVariable | ValueVariable
@@ -71,12 +76,16 @@ const MAX_DEPTH = 5
  * Valori di testo e valore come campi di base della carta: i campi con lo stesso nome li
  * sostituiscono. I testi possono richiamare altre variabili di testo o valore.
  */
-export function variableFields(vars: Variables | undefined): Record<string, string> {
+export function variableFields(
+  vars: Variables | undefined,
+  language?: string
+): Record<string, string> {
   const out: Record<string, string> = {}
   if (!vars) return out
+  // nella lingua chiesta, se la variabile ha la traduzione; altrimenti nella principale
   for (const [name, v] of Object.entries(vars)) {
-    if (v.type === 'text') out[name] = v.text
-    else if (v.type === 'value') out[name] = v.value
+    if (v.type === 'text') out[name] = translation(v.texts, language) ?? v.text
+    else if (v.type === 'value') out[name] = translation(v.values, language) ?? v.value
   }
   for (let i = 0; i < MAX_DEPTH; i++) {
     let changed = false

@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.31
+
+### English
+
+- The orange mark next to a card's name and **Check text** no longer report text layers holding only a large icon: the line was taller than the box, but the icon fit entirely.
+
+### Italiano
+
+- Il segno arancione vicino al nome della carta e **Controlla testi** non segnalano più i livelli di testo con solo un'icona grande: la riga era più alta del riquadro, ma l'icona ci stava tutta.
+
 ## 1.2.0-beta.30
 
 ### English

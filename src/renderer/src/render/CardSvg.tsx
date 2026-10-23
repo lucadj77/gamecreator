@@ -751,6 +751,50 @@ const VALIGN: Record<TextLayer['valign'], string> = {
   bottom: 'flex-end'
 }
 
+/**
+ * Il contenuto disegnato (testo e immagini) esce dall'area del riquadro? scrollHeight conta
+ * l'altezza di riga intera: un'icona grande in una riga alta "esce" anche se si vede tutta.
+ * Qui si guardano i rettangoli dei caratteri e delle immagini, riportati nelle coordinate del
+ * foreignObject; con rotazioni non multiple di 90° sono un po' più larghi del vero.
+ */
+function inkOverflows(fo: SVGForeignObjectElement, box: HTMLElement, inner: HTMLElement): boolean {
+  const ctm = fo.getScreenCTM()
+  if (!ctm) return true
+  const back = ctm.inverse()
+  const cs = getComputedStyle(box)
+  const left = parseFloat(cs.paddingLeft) - 1.5
+  const top = parseFloat(cs.paddingTop) - 1.5
+  const right = box.clientWidth - parseFloat(cs.paddingRight) + 1.5
+  const bottom = box.clientHeight - parseFloat(cs.paddingBottom) + 1.5
+  const outside = (r: DOMRect): boolean => {
+    if (!r.width && !r.height) return false
+    for (const [x, y] of [
+      [r.left, r.top],
+      [r.right, r.top],
+      [r.left, r.bottom],
+      [r.right, r.bottom]
+    ]) {
+      const q = new DOMPoint(x, y).matrixTransform(back)
+      if (q.x < left || q.x > right || q.y < top || q.y > bottom) return true
+    }
+    return false
+  }
+  const range = document.createRange()
+  const walk = document.createTreeWalker(inner, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT)
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    if (n.nodeType === Node.TEXT_NODE) {
+      if (!n.textContent?.trim()) continue
+      range.selectNodeContents(n)
+      for (const r of range.getClientRects()) if (outside(r)) return true
+    } else if (
+      (n as Element).childNodes.length === 0 &&
+      outside((n as Element).getBoundingClientRect())
+    )
+      return true
+  }
+  return false
+}
+
 function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
   const showEmpty = useContext(ShowEmptyContext)
   const empty = showEmpty && !l.text.trim()
@@ -779,7 +823,9 @@ function TextView({ layer: l }: { layer: TextLayer }): React.JSX.Element {
       const cs = getComputedStyle(el)
       const h = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)
       const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
-      const overflows = inner.scrollHeight > h + 1.5 || inner.scrollWidth > w + 1.5
+      const overflows =
+        (inner.scrollHeight > h + 1.5 || inner.scrollWidth > w + 1.5) &&
+        inkOverflows(el.parentElement as unknown as SVGForeignObjectElement, el, inner)
       setOver(!empty && overflows && (l.fit !== 'shrink' || size - 0.5 < l.minSize))
     }
     measure()

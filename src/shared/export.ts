@@ -1048,8 +1048,12 @@ export function defaultTtsFolder(platform: string, home: string, documents: stri
  * Indirizzo di un'immagine locale per i FaceURL/BackURL di Tabletop Simulator. Su Windows TTS
  * legge solo la forma che scrive lui stesso, file:/// seguito dal percorso con \ e senza codifica
  * (spazi e lettere accentate come sono); con le / e i %20 di un URL standard non carica le carte.
+ * Altrove l'URL standard, ma con quattro / dopo file:.
  */
 export function ttsImageUrl(path: string, platform: string, standardUrl: string): string {
   if (platform === 'win32') return 'file:///' + path.replace(/\//g, '\\')
-  return standardUrl
+  // con file:/// il Cloud Manager di TTS ("Upload all loaded files") sul Mac si blocca, con
+  // file://// no (provato con Luca); probabilmente toglie file:/// e resta un percorso senza la /
+  // iniziale. TTS apre le immagini in entrambe le forme
+  return standardUrl.replace(/^file:\/\/\/(?!\/)/, 'file:////')
 }

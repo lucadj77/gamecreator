@@ -200,7 +200,7 @@ describe('Tabletop Simulator', () => {
       'file:///C:\\Users\\Anna\\Giochi\\Fora arma\\export\\tts\\images\\Armeria_faces_1.png'
     )
     expect(ttsImageUrl('/Users/luca/x y.png', 'darwin', 'file:///Users/luca/x%20y.png')).toBe(
-      'file:///Users/luca/x%20y.png'
+      'file:////Users/luca/x%20y.png'
     )
   })
 })

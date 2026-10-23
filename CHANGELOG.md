@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.34
+
+### English
+
+- Tabletop Simulator export on Mac and Linux: image addresses are now written as `file:////Users/...` (four slashes) instead of `file:///`, so "Upload all loaded files" in TTS's Cloud Manager no longer gets stuck on them. Export again to update the files.
+
+### Italiano
+
+- Esportazione per Tabletop Simulator su Mac e Linux: gli indirizzi delle immagini ora sono scritti come `file:////Users/...` (quattro barre) invece di `file:///`, così "Upload all loaded files" nel Cloud Manager di TTS non si blocca più. Esporta di nuovo per aggiornare i file.
+
 ## 1.2.0-beta.33
 
 ### English

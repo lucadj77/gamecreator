@@ -820,7 +820,12 @@ export const en = {
   'doc.card.noValue': 'No card in "{set}" has {field} = "{value}"',
   'doc.table.badOption':
     '"{option}" is not a table option (width, columns, border, borderWidth, lines, header, fill, stripes)',
+  'doc.box.badOption':
+    '"{option}" is not a box option (fill, border, borderWidth, padding, radius)',
+  'doc.box.notClosed': 'This box has no <!-- /box --> line: it goes on to the end of the document',
   'doc.setting.unknown': '"{name}" is not a page setting',
+  'doc.language.unknown':
+    'The project has no language "{language}": the cards are drawn in the main language (languages in naibi.json)',
   'doc.setting.bad': '"{value}" is not a valid value for {name}',
   'doc.anatomy.badLine':
     'This line of the anatomy is not understood: write card: … or - layer: label',
@@ -1252,6 +1257,23 @@ export const en = {
     'The document has problems ({n}), listed under the text: cards and images that are not found are left out.',
   'documents.table': 'Table',
   'documents.tableButtonHint': 'Insert a table, or edit the table where the cursor is',
+  'documents.language': 'Card language',
+  'documents.languageHint':
+    'Language of the cards, card anatomy and table setup in this document, and of {project.name}',
+  'documents.mainLanguage': 'Main ({language})',
+  'documents.box': 'Box',
+  'documents.boxButtonHint':
+    'Put the selected lines in a box with a colored background, or change the box where the cursor is',
+  'documents.boxHint':
+    'The box starts and ends where its two lines are in the text: anything between them (text, lists, tables, cards, images) gets the background.',
+  'documents.boxFill': 'Background',
+  'documents.boxBorder': 'Border',
+  'documents.boxBorderWidth': 'Border thickness',
+  'documents.boxPadding': 'Inner space',
+  'documents.boxRadius': 'Rounded corners',
+  'documents.boxSample': 'Text in the box',
+  'documents.boxRemove': 'Remove box',
+  'documents.boxRemoveHint': 'Removes the box and keeps what is inside',
   'documents.insertTable': 'Insert table',
   'documents.editTable': 'Edit table',
   'documents.tableAlign': 'Column alignment',
@@ -1687,6 +1709,9 @@ export const en = {
   'languages.hint':
     'The first language is the main one: the columns without @ hold its texts. The translations of a column go in a column with the same name followed by @ and the language code, for example name@en. An empty translated cell uses the main language.',
   'languages.main': 'main language',
+  'languages.untranslated': '{n} texts to translate',
+  'languages.untranslatedHint':
+    'Fixed texts, variables and empty @language cells without a translation: the cards use the main language. naibi check lists them.',
   'languages.remove': 'Remove',
   'languages.removeHint': 'Remove the language from the project; its columns stay in the sheets',
   'languages.add': 'Add language',
@@ -1870,6 +1895,8 @@ export const en = {
   'update.installing': 'Downloading… {percent}%',
   'update.installFailed':
     'Naibi {version} could not be installed automatically: download it from the release page.',
+  'translation.placeholder': 'Empty: uses the main language',
+  'update.reason': ' Reason: {reason}',
   'update.unsaved':
     'There are unsaved changes: they will be lost when Naibi restarts. Update anyway?',
   'update.skip': 'Skip this version',

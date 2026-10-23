@@ -2,9 +2,16 @@ import { Fragment, memo, useContext, useMemo } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import { resolveAsset } from '../../../shared/model/assets'
-import { imageVariable, palette, resolveColor, resolveFont } from '../../../shared/model/variables'
+import {
+  imageVariable,
+  palette,
+  resolveColor,
+  resolveFont,
+  type Variables
+} from '../../../shared/model/variables'
 import { msg } from '../../../shared/messages'
 import { cellBorders, cellImageKey, cellParts } from '../../../shared/model/docTable'
+import type { BoxStyle, DocBox } from '../../../shared/model/docBox'
 import AnatomyDiagram from './AnatomyDiagram'
 import SetupDiagram from './SetupDiagram'
 import { setupView, setupWithText } from './setupGeometry'
@@ -26,7 +33,14 @@ import {
 import { useI18n } from '../i18n/context'
 import CardSvg from './CardSvg'
 import { MarkupInline } from './MarkupText'
-import { AssetsContext, StylesContext, VariablesContext, assetUrl } from './assets'
+import {
+  AssetsContext,
+  LocalizationContext,
+  StylesContext,
+  VariablesContext,
+  assetUrl
+} from './assets'
+import type { Localization } from '../../../shared/model/language'
 
 // Anteprima di un documento del progetto (model/document.ts): il Markdown come una pagina, con il
 // markup di Naibi nel testo e le carte disegnate dal progetto, come nell'esportazione.
@@ -45,6 +59,8 @@ interface Props {
   zoom?: number
   /** Posizione nel testo del blocco su cui si è fatto clic */
   onPick?(from: number): void
+  /** Lingua delle carte del documento (documentLocalization); nessuna per la principale */
+  localization?: Localization
 }
 
 /** Lo stile della pagina dalle impostazioni in testa al documento */
@@ -74,39 +90,88 @@ export default function DocumentPreview({
   sets,
   templates,
   zoom = 1,
-  onPick
+  onPick,
+  localization
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
   const styles = useContext(StylesContext)
   const variables = useContext(VariablesContext)
   const ctx = useMemo<DocumentContext>(
-    () => ({ project, sets, assets, styles, variables }),
-    [project, sets, assets, styles, variables]
+    () => ({
+      project: localization?.project ?? project,
+      language: localization?.language,
+      sets,
+      assets,
+      styles,
+      variables
+    }),
+    [project, sets, assets, styles, variables, localization]
   )
   const blocks = useMemo(() => parseDocument(text), [text])
   const settings = useMemo(() => documentSettings(text).settings, [text])
   return (
-    <div className="doc-page" style={{ ...pageStyle(settings, variables), zoom }}>
-      {!blocks.length && <p className="muted">{t('documents.empty')}</p>}
-      {/* chiave per posizione: scrivendo prima di una carta la carta non si ridisegna */}
-      {blocks.map((b, k) => (
-        <div
-          key={`${k}:${b.kind}`}
-          className="doc-block"
-          data-from={b.from}
-          onClick={(e) => {
-            // un clic su un collegamento o una selezione di testo non sposta il cursore
-            if (!window.getSelection()?.isCollapsed) return
-            e.stopPropagation()
-            onPick?.(b.from)
-          }}
-        >
-          <Block block={b} ctx={ctx} templates={templates} settings={settings} />
-        </div>
-      ))}
-    </div>
+    // le carte del documento si disegnano nella sua lingua, non in quella scelta nell'app
+    <LocalizationContext.Provider value={localization}>
+      <div className="doc-page" style={{ ...pageStyle(settings, variables), zoom }}>
+        {!blocks.length && <p className="muted">{t('documents.empty')}</p>}
+        {groups(blocks).map(({ box, items }) => {
+          /* chiave per posizione: scrivendo prima di una carta la carta non si ridisegna */
+          const list = items.map(({ block: b, k }) => (
+            <div
+              key={`${k}:${b.kind}`}
+              className="doc-block"
+              data-from={b.from}
+              onClick={(e) => {
+                // un clic su un collegamento o una selezione di testo non sposta il cursore
+                if (!window.getSelection()?.isCollapsed) return
+                e.stopPropagation()
+                onPick?.(b.from)
+              }}
+            >
+              <Block block={b} ctx={ctx} templates={templates} settings={settings} />
+            </div>
+          ))
+          return box ? (
+            <div
+              key={`box:${items[0].k}`}
+              className="doc-box"
+              style={boxStyle(box.style, variables)}
+            >
+              {list}
+            </div>
+          ) : (
+            list
+          )
+        })}
+      </div>
+    </LocalizationContext.Provider>
   )
+}
+
+/** I blocchi in fila, con quelli di uno stesso riquadro messi insieme */
+function groups(blocks: DocBlock[]): { box?: DocBox; items: { block: DocBlock; k: number }[] }[] {
+  const out: { box?: DocBox; items: { block: DocBlock; k: number }[] }[] = []
+  blocks.forEach((block, k) => {
+    const last = out[out.length - 1]
+    if (last && block.box && last.box === block.box) last.items.push({ block, k })
+    else out.push({ box: block.box, items: [{ block, k }] })
+  })
+  return out
+}
+
+/** Sfondo, bordo e spazio di un riquadro */
+function boxStyle(s: BoxStyle, variables: Variables): React.CSSProperties {
+  const pal = palette(variables)
+  return {
+    background: s.fill ? resolveColor(s.fill, pal) : undefined,
+    border:
+      s.border && s.borderWidth > 0
+        ? `${s.borderWidth}mm solid ${resolveColor(s.border, pal)}`
+        : undefined,
+    padding: `${s.padding}mm`,
+    borderRadius: s.radius ? `${s.radius}mm` : undefined
+  }
 }
 
 function Block({

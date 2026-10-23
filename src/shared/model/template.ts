@@ -113,6 +113,11 @@ export interface TextLayer extends LayerBase {
   strike: boolean
   /** A capo automatico; senza, ogni paragrafo resta su una riga */
   wrap: boolean
+  /**
+   * Testo nelle altre lingue del progetto (lingua → testo), per i livelli con fonte fissa: una
+   * lingua che manca o un testo vuoto usano `text`. Vedi model/language.ts
+   */
+  texts?: Record<string, string>
 }
 
 /** Parte dell'immagine da usare, in frazioni (0-1) del file: vedi crop.ts */
@@ -248,6 +253,8 @@ export interface GroupLayer extends LayerBase {
 export interface ValueLayer extends LayerBase {
   type: 'value'
   value: string
+  /** Valore nelle altre lingue (lingua → valore), con fonte fissa; come `texts` dei testi */
+  values?: Record<string, string>
 }
 
 export type Layer = TextLayer | ImageLayer | ShapeLayer | GridLayer | GroupLayer | ValueLayer

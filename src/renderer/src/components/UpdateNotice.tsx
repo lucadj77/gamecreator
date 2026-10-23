@@ -37,7 +37,8 @@ export default function UpdateNotice({
   const [mode, setMode] = useState<UpdateMode>('manual')
   /** Avanzamento dell'aggiornamento da 0 a 1, null se non è in corso */
   const [installing, setInstalling] = useState<number | null>(null)
-  const [failed, setFailed] = useState(false)
+  /** Perché l'aggiornamento automatico non è riuscito; null finché non fallisce */
+  const [failed, setFailed] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   /** Esito di un controllo a mano senza novità: la versione è l'ultima, o non si è potuto verificare */
   const [result, setResult] = useState<'latest' | 'failed' | 'checking' | null>(null)
@@ -94,22 +95,28 @@ export default function UpdateNotice({
   }
   const install = async (): Promise<void> => {
     if (dirty && !window.confirm(t('update.unsaved'))) return
-    setFailed(false)
+    setFailed(null)
     setInstalling(0)
     const stop = window.api.onUpdateProgress((p) => setInstalling(p))
     try {
       // se riesce, l'app si chiude e si riapre aggiornata
       await window.api.installUpdate(update.version)
-    } catch {
+    } catch (e) {
       setInstalling(null)
-      setFailed(true)
+      // il messaggio arriva da main come "Error invoking remote method '...': Error: motivo"
+      setFailed(
+        String((e as Error)?.message ?? e).replace(
+          /^Error invoking remote method '[^']*': (\w*Error: )?/,
+          ''
+        )
+      )
     } finally {
       stop()
     }
   }
   // la pagina della release si apre nel browser (vedi setWindowOpenHandler)
   const download =
-    mode === 'auto' && !failed ? (
+    mode === 'auto' && failed === null ? (
       <button className="primary" disabled={installing !== null} onClick={install}>
         {installing === null
           ? t('update.install')
@@ -124,7 +131,10 @@ export default function UpdateNotice({
   return (
     <div className="banner info update-notice">
       <span>
-        {t(failed ? 'update.installFailed' : 'update.available', { version: update.version })}
+        {t(failed !== null ? 'update.installFailed' : 'update.available', {
+          version: update.version
+        })}
+        {failed && <span className="update-reason">{t('update.reason', { reason: failed })}</span>}
       </span>
       <button onClick={() => setOpen(true)}>{t('update.whatsNew')}</button>
       {download}

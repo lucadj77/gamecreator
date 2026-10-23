@@ -5,6 +5,32 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.29
+
+### English
+
+- Documents: **Box** puts a colored background, and if you want a border, behind any part of a document, from where it starts to where it ends: to make a piece of text stand out, or to set white images without a border apart from the page. It keeps text, lists, tables, cards and images inside; the HTML, PDF and Word exports keep it.
+- ⌘Z / Ctrl+Z (and ⇧⌘Z / Ctrl+Y to redo) now work inside the table setup, card anatomy, table and box windows. What these windows write into the document can be undone with ⌘Z / Ctrl+Z in the text.
+- Card details: the color picker swatch also appears for outline, border and shadow columns of the sheet (for example `rect.stroke`), even when the cell is empty.
+- When an automatic update fails, the banner now says why, and every update attempt is written to `update.log` in Naibi's data folder (on Windows `%APPDATA%\Naibi\update.log`).
+- Languages: fixed text layers, fixed value layers and text and value variables have a field for each other language of the project (`texts` / `values` in the files). An empty field uses the main language. Formulas with `=` still compare main-language values, but a result that is a variable, such as `"{attack}"`, is translated.
+- Documents in other languages: `language: en` (or `lang: en`) at the top of a document, or **Card language** in **Page**, draws its cards and variables in that language; without it a document uses the main language. `naibi export-doc --lang en` exports in another language without changing the file.
+- Missing translations: `naibi check` lists fixed texts, variables and empty `@language` cells still to translate, as warnings that do not change the exit code; `--lang en` checks one language and binds the cards in it. The **Languages** window shows how many texts are left in each language.
+- Card anatomy and table setup: leader lines, points and arrows have a thin light halo, so they stay visible over dark parts of the cards.
+- Card anatomy and table setup: labels are no longer cut off or drawn larger than set when the page preview is small.
+
+### Italiano
+
+- Documenti: **Riquadro** mette uno sfondo colorato, e se si vuole un bordo, dietro qualunque parte di un documento, da dove comincia a dove finisce: per dare risalto a un pezzo di testo o staccare dal foglio immagini bianche senza bordo. Dentro possono stare testo, elenchi, tabelle, carte e immagini; le esportazioni HTML, PDF e Word lo mantengono.
+- ⌘Z / Ctrl+Z (e ⇧⌘Z / Ctrl+Y per rifare) funzionano ora nelle finestre dello schema del tavolo, dell'anatomia della carta, della tabella e del riquadro. Quello che queste finestre scrivono nel documento si annulla con ⌘Z / Ctrl+Z nel testo.
+- Dettaglio della carta: il quadratino del selettore del colore compare anche per le colonne del foglio con contorno, bordo e ombra (per esempio `rect.stroke`), anche con la cella vuota.
+- Quando l'aggiornamento automatico non riesce, l'avviso ora dice il motivo, e ogni tentativo viene scritto in `update.log` nella cartella dei dati di Naibi (su Windows `%APPDATA%\Naibi\update.log`).
+- Lingue: livelli di testo fissi, livelli valore fissi e variabili di testo e valore hanno un campo per ogni altra lingua del progetto (`texts` / `values` nei file). Un campo vuoto usa la lingua principale. Le formule con `=` confrontano sempre i valori della lingua principale, ma un risultato che è una variabile, come `"{attacco}"`, si traduce.
+- Documenti in altre lingue: `language: en` (o `lang: en`) in testa a un documento, o **Lingua delle carte** in **Pagina**, disegna carte e variabili del documento in quella lingua; senza, il documento usa la lingua principale. `naibi export-doc --lang en` esporta in un'altra lingua senza cambiare il file.
+- Traduzioni mancanti: `naibi check` elenca testi fissi, variabili e celle `@lingua` vuote ancora da tradurre, come avvisi che non cambiano il codice di uscita; `--lang en` controlla una lingua sola e lega le carte in quella lingua. La finestra **Lingue** mostra quanti testi restano in ogni lingua.
+- Anatomia della carta e schema del tavolo: linee, punti e frecce hanno un sottile alone chiaro, così restano visibili sopra le parti scure delle carte.
+- Anatomia della carta e schema del tavolo: le etichette non sono più tagliate né più grandi del corpo scelto quando l'anteprima della pagina è piccola.
+
 ## 1.2.0-beta.28
 
 ### English

@@ -1,7 +1,7 @@
 import { app, net, type WebContents } from 'electron'
 import { spawn, execFile } from 'child_process'
 import { constants } from 'fs'
-import { access, mkdir, readdir, rm, writeFile } from 'fs/promises'
+import { access, appendFile, mkdir, readdir, rm, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { dirname, join, resolve } from 'path'
 import { promisify } from 'util'
@@ -45,18 +45,49 @@ export async function updateMode(): Promise<UpdateMode> {
   return 'manual'
 }
 
+/** Registro dell'aggiornamento, per capire perché non è riuscito: <dati dell'app>/update.log */
+export const updateLogPath = (): string => join(app.getPath('userData'), 'update.log')
+
+function log(level: string, args: unknown[]): void {
+  const line = `${new Date().toISOString()} ${level} ${args
+    .map((a) => (a instanceof Error ? (a.stack ?? a.message) : String(a)))
+    .join(' ')}\n`
+  appendFile(updateLogPath(), line).catch(() => undefined)
+}
+
+const fileLogger = {
+  info: (...a: unknown[]): void => log('info', a),
+  warn: (...a: unknown[]): void => log('warn', a),
+  error: (...a: unknown[]): void => log('error', a),
+  debug: (...a: unknown[]): void => log('debug', a)
+}
+
 /** Scarica la versione e riavvia l'app aggiornata; il progresso va a sender, da 0 a 1 */
 export async function installUpdate(version: string, sender: WebContents): Promise<void> {
+  try {
+    await install(version, sender)
+  } catch (e) {
+    log('error', [`update to ${version} failed:`, e])
+    throw e
+  }
+}
+
+async function install(version: string, sender: WebContents): Promise<void> {
   const progress = (p: number): void => {
     if (!sender.isDestroyed()) sender.send('update:progress', p)
   }
   if ((await updateMode()) !== 'auto') throw new Error('this installation updates by hand')
+  log('info', [`update ${app.getVersion()} -> ${version} on ${process.platform}`])
   if (process.platform === 'darwin') return installMac(version, progress)
   const { autoUpdater } = await import('electron-updater')
+  autoUpdater.logger = fileLogger
+  // senza un ascoltatore un errore dell'installazione chiuderebbe l'app
+  if (!autoUpdater.listenerCount('error')) autoUpdater.on('error', (e) => log('error', [e]))
   autoUpdater.autoDownload = false
   autoUpdater.autoInstallOnAppQuit = false
   // chi ha una beta riceve anche le beta, come nel controllo dell'app
   autoUpdater.allowPrerelease = isPrerelease(app.getVersion())
+  autoUpdater.removeAllListeners('download-progress')
   autoUpdater.on('download-progress', (p) => progress(p.percent / 100))
   const found = await autoUpdater.checkForUpdates()
   if (!found?.isUpdateAvailable) throw new Error('no update found')

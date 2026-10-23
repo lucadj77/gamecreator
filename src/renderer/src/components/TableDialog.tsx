@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useUndo } from './useUndo'
 import type { LoadedSet } from '../../../shared/project'
 import type { HAlign, Template } from '../../../shared/model/template'
 import { tableSource } from '../../../shared/model/document'
@@ -62,6 +63,14 @@ export default function TableDialog({
   /** La cella dove si scrive: la barra, l'immagine e la carta lavorano lì */
   const cellField = useRef<HTMLTextAreaElement | null>(null)
   const [inserting, setInserting] = useState<'image' | 'card' | null>(null)
+  useUndo(
+    [table, style],
+    ([tb, st]) => {
+      setTable(tb)
+      setStyle(st)
+    },
+    !inserting
+  )
   /** Mette un'immagine o una carta al cursore della cella */
   const insert = (md: string): void => {
     setInserting(null)

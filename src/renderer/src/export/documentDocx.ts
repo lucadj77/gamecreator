@@ -15,6 +15,7 @@ import {
   type DocumentContext
 } from '../../../shared/model/document'
 import { cellBorders, cellImageKey, cellParts } from '../../../shared/model/docTable'
+import type { DocBox } from '../../../shared/model/docBox'
 import { assetUrl } from '../render/assets'
 import { cardPng } from './documentExport'
 import { dataUri } from './toSvg'
@@ -188,7 +189,7 @@ export async function documentDocx(
 
   const [pageW, pageH] = DOC_PAGES[settings.page]
   const textW = (pageW - 2 * settings.margin) * TWIP
-  const body: string[] = []
+  let body: string[] = []
   /** Elenchi numerati: ognuno riparte dal suo primo numero */
   const numbered: number[] = []
 
@@ -216,7 +217,50 @@ export async function documentDocx(
     return copy ? picture(await raster(copy, w, h), w, h) : ''
   }
 
+  /** Riquadro aperto e il testo che c'era prima: i suoi blocchi vanno in una tabella di una cella */
+  let box: { box: DocBox; outer: string[] } | null = null
+  const openBox = (): DocBox | undefined => box?.box
+  const closeBox = (): void => {
+    if (!box) return
+    const s = box.box.style
+    const inner = body
+    body = box.outer
+    box = null
+    // una cella deve finire con un paragrafo
+    if (!inner.length || !inner[inner.length - 1].startsWith('<w:p>')) inner.push(para(''))
+    const fill = s.fill ? hex(resolveColor(s.fill, pal)) : undefined
+    const border = s.border && s.borderWidth > 0 ? hex(resolveColor(s.border, pal)) : undefined
+    const size = Math.max(2, Math.round(((s.borderWidth * 72) / 25.4) * 8))
+    const side = (name: string): string =>
+      border
+        ? `<w:${name} w:val="single" w:sz="${size}" w:space="0" w:color="${border}"/>`
+        : `<w:${name} w:val="nil"/>`
+    const pad = Math.round(s.padding * TWIP)
+    body.push(
+      `<w:tbl><w:tblPr><w:tblW w:w="${Math.round(textW)}" w:type="dxa"/><w:tblBorders>` +
+        side('top') +
+        side('left') +
+        side('bottom') +
+        side('right') +
+        `</w:tblBorders><w:tblCellMar><w:top w:w="${pad}" w:type="dxa"/>` +
+        `<w:left w:w="${pad}" w:type="dxa"/><w:bottom w:w="${pad}" w:type="dxa"/>` +
+        `<w:right w:w="${pad}" w:type="dxa"/></w:tblCellMar></w:tblPr>` +
+        `<w:tblGrid><w:gridCol w:w="${Math.round(textW)}"/></w:tblGrid><w:tr><w:tc><w:tcPr>` +
+        `<w:tcW w:w="${Math.round(textW)}" w:type="dxa"/>` +
+        (fill ? `<w:shd w:val="clear" w:color="auto" w:fill="${fill}"/>` : '') +
+        `</w:tcPr>${inner.join('')}</w:tc></w:tr></w:tbl>`,
+      para('', '<w:spacing w:after="0"/>')
+    )
+  }
+
   for (const b of parseDocument(text)) {
+    if (b.box !== openBox()) {
+      closeBox()
+      if (b.box) {
+        box = { box: b.box, outer: body }
+        body = []
+      }
+    }
     switch (b.kind) {
       case 'heading':
         body.push(para(await inline(b.text), `<w:pStyle w:val="Heading${b.level}"/>`))
@@ -402,6 +446,8 @@ export async function documentDocx(
       }
     }
   }
+
+  closeBox()
 
   const twips = (mm: number): number => Math.round(mm * TWIP)
   const margin = twips(settings.margin)

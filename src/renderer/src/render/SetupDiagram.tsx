@@ -23,6 +23,10 @@ import {
 // come una carta. L'editor dello schema lo usa per disegnare e aggiunge le sue maniglie.
 
 const INK = '#3a3a3c'
+/** Ingrandimento dei testi dentro il foreignObject */
+const ZOOM = 10
+/** Alone sotto le frecce, per staccarle dalle parti scure di carte e plance */
+const HALO = '#ffffff'
 const ZONE = '#8e8e93'
 export default function SetupDiagram({
   setup,
@@ -124,17 +128,23 @@ function Label({
 }): React.JSX.Element {
   // la posizione sta nel gruppo: l'esportazione in SVG converte il foreignObject da sé
   return (
-    <g transform={`translate(${x} ${y})`}>
-      <foreignObject width={w} height={font * LINE * 6} style={{ overflow: 'visible' }}>
-        <div style={{ fontSize: font, lineHeight: LINE, textAlign: align }}>
+    // il testo si impagina 10 volte più grande e si riduce: con un corpo di 3-4 px il browser lo
+    // ingrandirebbe fino al suo minimo
+    <g transform={`translate(${x} ${y}) scale(${1 / ZOOM})`}>
+      <foreignObject
+        width={w * ZOOM}
+        height={font * LINE * 6 * ZOOM}
+        style={{ overflow: 'visible' }}
+      >
+        <div style={{ fontSize: font * ZOOM, lineHeight: LINE, textAlign: align }}>
           <span
             style={
               background
-                ? { background: 'rgba(255,255,255,0.85)', padding: `0 ${font * 0.3}px` }
+                ? { background: 'rgba(255,255,255,0.85)', padding: `0 ${font * 0.3 * ZOOM}px` }
                 : undefined
             }
           >
-            <MarkupInline text={text} unit={1} />
+            <MarkupInline text={text} unit={ZOOM} />
           </span>
         </div>
       </foreignObject>
@@ -283,8 +293,14 @@ function Item({
       const bx = it.x2 - ux * head
       const by = it.y2 - uy * head
       const w = head * 0.55
+      const tip = `${it.x2},${it.y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`
       return (
         <g data-item={i}>
+          {/* alone chiaro sotto la freccia: resta visibile anche sopra carte e plance scure */}
+          <g stroke={HALO} strokeOpacity={0.85} strokeLinecap="round" strokeLinejoin="round">
+            <line x1={it.x} y1={it.y} x2={bx} y2={by} strokeWidth={1.4} />
+            <polygon points={tip} fill={HALO} fillOpacity={0.85} strokeWidth={0.9} />
+          </g>
           <line
             x1={it.x}
             y1={it.y}
@@ -294,10 +310,7 @@ function Item({
             strokeWidth={0.5}
             strokeLinecap="round"
           />
-          <polygon
-            points={`${it.x2},${it.y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`}
-            fill={INK}
-          />
+          <polygon points={tip} fill={INK} />
           {it.label && (
             <Label
               x={(it.x + it.x2) / 2 - 25}

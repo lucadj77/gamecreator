@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { isLanguageCode, missingTranslationColumns } from '../../../shared/model/language'
+import {
+  isLanguageCode,
+  missingTranslationColumns,
+  missingTranslations
+} from '../../../shared/model/language'
 import { textColumns } from '../../../shared/model/sheet'
 import type { LoadedProject } from '../../../shared/project'
 import { Dialog } from '../editor/dialogs'
@@ -65,6 +69,12 @@ export default function LanguagesDialog({
     sheets.set(key, Math.max(sheets.get(key) ?? 0, columns[i].length))
   })
   const missing = [...sheets.values()].reduce((a, b) => a + b, 0)
+  // testi ancora da tradurre (livelli fissi, variabili, celle @lingua vuote), come in naibi check
+  const untranslated = (l: string): number =>
+    missingTranslations(
+      { templates: project.templates, variables: project.file.variables, sets: project.sets },
+      l
+    ).length
 
   const add = (): void => {
     if (!clean || codeError) return
@@ -95,13 +105,20 @@ export default function LanguagesDialog({
               {i === 0 ? (
                 <span className="muted small">{t('languages.main')}</span>
               ) : (
-                <button
-                  className="danger"
-                  onClick={() => remove(l)}
-                  title={t('languages.removeHint')}
-                >
-                  {t('languages.remove')}
-                </button>
+                <>
+                  {untranslated(l) > 0 && (
+                    <span className="muted small" title={t('languages.untranslatedHint')}>
+                      {t('languages.untranslated', { n: untranslated(l) })}
+                    </span>
+                  )}
+                  <button
+                    className="danger"
+                    onClick={() => remove(l)}
+                    title={t('languages.removeHint')}
+                  >
+                    {t('languages.remove')}
+                  </button>
+                </>
               )}
             </li>
           ))}

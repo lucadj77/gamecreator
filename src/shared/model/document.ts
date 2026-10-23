@@ -1,4 +1,4 @@
-import type { LoadedSet } from '../project'
+import type { LoadedSet, ProjectFile } from '../project'
 import { msg, type Message } from '../messages'
 import { markupProblems, markupRefs } from './markup'
 import { substituteFields } from './bind'
@@ -18,6 +18,8 @@ import {
   tableStyleSource,
   type TableStyle
 } from './docTable'
+import { isBoxEnd, isBoxStart, parseBoxStyle, type DocBox } from './docBox'
+import { isLanguageCode, localizationOf, type Localization } from './language'
 
 // Documenti del progetto (docs/<nome>.md): regolamento, sell sheet, appendici. Sono Markdown con
 // il markup di Naibi nel testo ({icona}, [testo]{.stile}) e le carte del progetto come immagini:
@@ -42,7 +44,11 @@ export interface DocListItem {
   number: number
 }
 
-export type DocBlock = { from: number } & (
+export type DocBlock = {
+  from: number
+  /** Riquadro colorato in cui sta il blocco (docBox.ts); lo stesso oggetto per tutti i suoi blocchi */
+  box?: DocBox
+} & (
   | { kind: 'heading'; level: 1 | 2 | 3; text: string }
   | { kind: 'paragraph'; text: string }
   | { kind: 'list'; items: DocListItem[] }
@@ -215,7 +221,8 @@ export function parseDocument(src: string): DocBlock[] {
   while (i < lines.length) {
     const line = lines[i]
     const from = starts[i]
-    if (blank(line)) {
+    // le righe dei riquadri non sono blocchi: i blocchi tra le due stanno nel riquadro (in fondo)
+    if (blank(line) || isBoxStart(line) || isBoxEnd(line)) {
       i++
       continue
     }
@@ -354,13 +361,49 @@ export function parseDocument(src: string): DocBlock[] {
       blocks.push({ kind: 'figure', images, from })
     } else blocks.push({ kind: 'paragraph', text: joinLines(body), from })
   }
+  const boxes = documentBoxes(src)
+  for (const b of blocks) {
+    const inside = boxes.find((x) => b.from > x.headTo && b.from < x.to)
+    if (inside) b.box = inside
+  }
   return blocks
+}
+
+/** I riquadri del documento, anche quelli vuoti */
+export function documentBoxes(src: string): DocBox[] {
+  const out: DocBox[] = []
+  const lines = src.replace(/\r\n?/g, '\n').split('\n')
+  let pos = 0
+  let open: DocBox | null = null
+  let fence: string | null = null
+  for (const line of lines) {
+    const f = /^\s*(```|~~~)/.exec(line)
+    if (fence) {
+      if (line.trimStart().startsWith(fence)) fence = null
+    } else if (f) fence = f[1]
+    else if (isBoxStart(line) || isBoxEnd(line)) {
+      if (open) {
+        open.endFrom = isBoxEnd(line) ? pos : null
+        open.to = isBoxEnd(line) ? pos + line.length : pos
+        open = null
+      }
+      if (isBoxStart(line)) {
+        const { style, bad } = parseBoxStyle(line)
+        open = { style, bad, from: pos, headTo: pos + line.length, endFrom: null, to: src.length }
+        out.push(open)
+      }
+    }
+    pos += line.length + 1
+  }
+  return out
 }
 
 /** Una riga che apre un blocco nuovo anche senza una riga vuota prima */
 function startsBlock(l: string): boolean {
   return (
     /^\s{0,3}(#{1,6}\s|>|```|~~~)/.test(l) ||
+    isBoxStart(l) ||
+    isBoxEnd(l) ||
     LIST_ITEM.test(l) ||
     /^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(l)
   )
@@ -476,6 +519,8 @@ export interface DocSettings {
   headingColor: string
   /** Le proprietà del documento (tags, autore…) si mostrano in testa, in una tabella */
   showProperties: boolean
+  /** Lingua delle carte, degli schemi e del nome del progetto; vuota per la principale */
+  language: string
 }
 
 export type DocPage = 'A4' | 'A5' | 'Letter'
@@ -498,7 +543,8 @@ export const DEFAULT_DOC_SETTINGS: DocSettings = {
   align: 'left',
   color: '#1d1d1f',
   headingColor: '',
-  showProperties: false
+  showProperties: false,
+  language: ''
 }
 
 const SETTING_KEYS = Object.keys(DEFAULT_DOC_SETTINGS) as (keyof DocSettings)[]
@@ -660,6 +706,8 @@ export function isPropertyKey(key: string): boolean {
 
 /** L'impostazione con questo nome, senza badare alle maiuscole */
 function settingKey(name: string): keyof DocSettings | undefined {
+  // lang si capisce come language
+  if (name.toLowerCase() === 'lang') return 'language'
   return SETTING_KEYS.find((x) => x.toLowerCase() === name.toLowerCase())
 }
 
@@ -711,6 +759,9 @@ function settingValue<K extends keyof DocSettings>(key: K, raw: string): DocSett
     case 'showProperties':
       out = /^(true|yes|sì|si)$/i.test(v) ? true : /^(false|no)$/i.test(v) ? false : null
       break
+    case 'language':
+      out = v === '' || isLanguageCode(v) ? v : null
+      break
     default:
       out = v
   }
@@ -756,7 +807,7 @@ export function withDocumentSettings(src: string, change: Partial<DocSettings>):
   let body = lines.slice(end).join('\n')
   for (const key of Object.keys(change) as (keyof DocSettings)[]) {
     const value = change[key]
-    const at = head.findIndex((l) => FRONT_LINE.exec(l)?.[1].toLowerCase() === key.toLowerCase())
+    const at = head.findIndex((l) => settingKey(FRONT_LINE.exec(l)?.[1] ?? '') === key)
     const keep = value !== undefined && value !== DEFAULT_DOC_SETTINGS[key]
     const line = `${key}: ${value}`
     if (at >= 0) {
@@ -780,6 +831,23 @@ export interface DocumentContext {
   variables?: Variables
   /** Per controllare i livelli richiamati dalle anatomie delle carte */
   templates?: Template[]
+  /** Lingue del progetto (la principale per prima), per controllare quella del documento */
+  languages?: string[]
+  /** Lingua del documento, se non è la principale: le variabili di testo si traducono */
+  language?: string
+}
+
+/**
+ * La lingua in cui il documento disegna le carte: `override` (export-doc --lang) o la sua
+ * impostazione language; nessuna traduzione per la lingua principale o senza impostazione
+ */
+export function documentLocalization(
+  file: Pick<ProjectFile, 'languages' | 'names'>,
+  sets: Pick<LoadedSet, 'name' | 'names'>[],
+  src: string,
+  override?: string
+): Localization | undefined {
+  return localizationOf(file, sets, override || documentSettings(src).settings.language)
 }
 
 /**
@@ -788,7 +856,7 @@ export interface DocumentContext {
  */
 export function documentText(text: string, ctx: DocumentContext): string {
   const fields = {
-    ...variableFields(ctx.variables),
+    ...variableFields(ctx.variables, ctx.language),
     'project.name': ctx.project ?? '',
     date: today()
   }
@@ -967,8 +1035,24 @@ export interface DocumentProblem {
  * {nomi} sconosciuti
  */
 export function documentProblems(src: string, ctx: DocumentContext): DocumentProblem[] {
-  const out: DocumentProblem[] = [...documentSettings(src).problems]
+  const { settings, problems: settingProblems } = documentSettings(src)
+  const out: DocumentProblem[] = [...settingProblems]
+  if (settings.language && ctx.languages && !ctx.languages.includes(settings.language)) {
+    const lines = src.replace(/\r\n?/g, '\n').split('\n')
+    const at = frontEntries(lines).find((e) => settingKey(e.key) === 'language')
+    out.push({
+      message: msg('doc.language.unknown', { language: settings.language }),
+      from: at?.from ?? 0,
+      to: at?.to ?? 0
+    })
+  }
   const texts: { text: string; from: number }[] = []
+  for (const box of documentBoxes(src)) {
+    const at = { from: box.from, to: box.headTo }
+    if (box.bad.length)
+      out.push({ message: msg('doc.box.badOption', { option: box.bad[0] }), ...at })
+    if (box.endFrom === null) out.push({ message: msg('doc.box.notClosed'), ...at })
+  }
   for (const b of parseDocument(src)) {
     switch (b.kind) {
       case 'heading':

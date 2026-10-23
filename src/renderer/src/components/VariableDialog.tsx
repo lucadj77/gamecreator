@@ -19,6 +19,7 @@ import { ColorField, NumberField, TextField } from '../editor/fields'
 import { useI18n } from '../i18n/context'
 import MarkupText from '../render/MarkupText'
 import { AssetsContext, VariablesContext } from '../render/assets'
+import TranslationFields from './TranslationFields'
 import AssetPicker from './AssetPicker'
 import IconBrowser from './IconBrowser'
 import Segmented from './Segmented'
@@ -236,6 +237,15 @@ export default function VariableDialog({
               onChange={(text) => setV({ ...v, text })}
             />
           )}
+          {v.type === 'text' && (
+            <TranslationFields
+              label={t('variable.text')}
+              value={v.texts}
+              multiline
+              markupFields={[]}
+              onChange={(texts) => setV({ ...v, texts })}
+            />
+          )}
           {v.type === 'color' && (
             <ColorField
               label={t('variable.color')}
@@ -249,6 +259,13 @@ export default function VariableDialog({
               hint={t('variable.valueHint')}
               value={v.value}
               onChange={(value) => setV({ ...v, value })}
+            />
+          )}
+          {v.type === 'value' && (
+            <TranslationFields
+              label={t('variable.value')}
+              value={v.values}
+              onChange={(values) => setV({ ...v, values })}
             />
           )}
         </div>

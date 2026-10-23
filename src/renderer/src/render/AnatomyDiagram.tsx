@@ -24,9 +24,13 @@ const CARD_GAP = 6
 /** Larghezza minima della carta quando si riduce per stare nella pagina */
 const CARD_MIN = 30
 const LINE = 1.25
+/** Ingrandimento dei testi delle etichette dentro il foreignObject */
+const ZOOM = 10
 /** Spazio minimo tra due etichette */
 const SPACING = 1.5
 const INK = '#3a3a3c'
+/** Alone sotto linee e punti, per staccarli dalle parti scure delle carte */
+const HALO = '#ffffff'
 
 /**
  * Righe stimate di un'etichetta, andando a capo tra le parole come farà il browser: serve a non
@@ -153,28 +157,45 @@ export default function AnatomyDiagram({
     const x = side === 'left' ? 0 : cardsEnd + GAP
     const ex = side === 'left' ? labelW + 1 : x - 1
     const ey = p.y + Math.min(p.h, font * LINE) / 2
+    const points = `${ex},${ey} ${side === 'left' ? left - GAP / 2 : cardsEnd + GAP / 2},${ey} ${p.ax},${p.ay}`
     return (
       <g key={`${side}${k}`}>
+        {/* alone chiaro sotto la linea: resta visibile anche sopra le parti scure della carta */}
         <polyline
-          points={`${ex},${ey} ${side === 'left' ? left - GAP / 2 : cardsEnd + GAP / 2},${ey} ${p.ax},${p.ay}`}
+          points={points}
+          fill="none"
+          stroke={HALO}
+          strokeOpacity={0.85}
+          strokeWidth={1.1}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+        <polyline
+          points={points}
           fill="none"
           stroke={INK}
           strokeWidth={0.3}
           strokeLinejoin="round"
         />
-        <circle cx={p.ax} cy={p.ay} r={0.9} fill={INK} stroke="#ffffff" strokeWidth={0.3} />
+        <circle cx={p.ax} cy={p.ay} r={0.9} fill={INK} stroke={HALO} strokeWidth={0.45} />
         {/* la posizione sta nel gruppo: l'esportazione in SVG converte il foreignObject da sé */}
-        <g transform={`translate(${x} ${p.y})`}>
-          <foreignObject width={labelW} height={p.h + font}>
+        {/* il testo si impagina 10 volte più grande e si riduce: con un corpo di 3-4 px il
+            browser lo ingrandisce fino al suo minimo e il foreignObject lo taglia */}
+        <g transform={`translate(${x} ${p.y}) scale(${1 / ZOOM})`}>
+          <foreignObject
+            width={labelW * ZOOM}
+            height={(p.h + font) * ZOOM}
+            style={{ overflow: 'visible' }}
+          >
             <div
               style={{
-                fontSize: font,
+                fontSize: font * ZOOM,
                 lineHeight: LINE,
                 textAlign: side === 'left' ? 'right' : 'left',
                 color: 'inherit'
               }}
             >
-              <MarkupInline text={p.label} unit={1} />
+              <MarkupInline text={p.label} unit={ZOOM} />
             </div>
           </foreignObject>
         </g>

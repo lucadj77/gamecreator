@@ -168,6 +168,12 @@ a.button {
   gap: 8px;
 }
 
+.update-reason {
+  font-family: ui-monospace, monospace;
+  font-size: 0.86em;
+  word-break: break-word;
+}
+
 .update-notice button.link {
   border: none;
   background: none;
@@ -1717,6 +1723,12 @@ button.layer-source.open {
   gap: 8px;
   align-items: center;
   margin-top: 10px;
+}
+
+.box-dialog-sample {
+  margin-bottom: 8px;
+  color: #222222;
+  background-clip: padding-box;
 }
 
 .dialog-buttons .spacer-right {
@@ -4591,6 +4603,19 @@ details.usages button.link {
   margin-top: 0;
 }
 
+/* riquadro colorato attorno a più blocchi (docBox.ts); sfondo, bordo e spazio dal documento */
+.doc-page .doc-box {
+  margin: 0 0 var(--doc-spacing);
+}
+
+.doc-page .doc-box > .doc-block:first-child > :first-child {
+  margin-top: 0;
+}
+
+.doc-page .doc-box > .doc-block:last-child > :last-child {
+  margin-bottom: 0;
+}
+
 .doc-page p {
   margin: 0 0 var(--doc-spacing);
 }
@@ -5044,6 +5069,15 @@ button.more-button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.language-list li > span:first-child {
+  flex: 1;
+}
+
+/* campi delle traduzioni: si dispongono come gli altri campi del pannello */
+.translation-fields {
+  display: contents;
 }
 
 .language-add {

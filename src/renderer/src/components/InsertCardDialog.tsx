@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useRef, useState } from 'react'
+import { useUndo } from './useUndo'
 import type { LoadedSet } from '../../../shared/project'
 import { isDrawn, type Layer, type Side, type Template } from '../../../shared/model/template'
 import { bindRow } from '../../../shared/model/bind'
@@ -122,6 +123,16 @@ export default function InsertCardDialog({
       )
   )
   const [caption, setCaption] = useState<string | null>(null)
+  useUndo([setName, row, keyChoice, side, both, width, labels, caption], (s) => {
+    setSetName(s[0])
+    setRow(s[1])
+    setKey(s[2])
+    setSide(s[3])
+    setBoth(s[4])
+    setWidth(s[5])
+    setLabels(s[6])
+    setCaption(s[7])
+  })
   /** L'ultima etichetta dell'anatomia in cui si è scritto: la barra di formattazione agisce lì */
   const labelField = useRef<HTMLTextAreaElement | null>(null)
 

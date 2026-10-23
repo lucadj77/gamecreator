@@ -16,7 +16,7 @@ import {
 } from './cliParse'
 import { bindRow, rowToCard } from '../shared/model/bind'
 import { systemOfSet } from '../shared/model/system'
-import { documentProblems } from '../shared/model/document'
+import { documentLocalization, documentProblems } from '../shared/model/document'
 import { isGenericFont } from '../shared/model/fonts'
 import { resolveAsset } from '../shared/model/assets'
 import type { Layer, Template } from '../shared/model/template'
@@ -29,7 +29,7 @@ import {
   type SidesChoice
 } from '../shared/export'
 import { buildSets } from '../shared/exportJob'
-import { projectLanguages } from '../shared/model/language'
+import { localizationOf, missingTranslations, projectLanguages } from '../shared/model/language'
 import { runExport } from './export/run'
 import { renderDocument } from './export/docWindow'
 import { writeDocumentExport } from './project/docExport'
@@ -67,8 +67,11 @@ const HELP = `Usage: naibi <command> [options]
 
 Commands:
   info <project>                       Summary: sets, templates, variables, styles, assets
-  check <project> [--set S]            Problems on every card (missing images, fonts, markup,
-                                       formulas); exit code 1 if there are any
+  check <project> [--set S] [--lang L] Problems on every card (missing images, fonts, markup,
+                                       formulas); exit code 1 if there are any. Also lists texts
+                                       not translated (warnings only): in L, or without --lang in
+                                       every language besides the main one; --lang L also checks
+                                       the cards drawn in L
   check-data <project>                 How the data file is read: for each sheet the sets that
                                        use it, the columns their templates read and the sheet
                                        lacks, and problems (title above the headings, empty rows,
@@ -98,10 +101,12 @@ Commands:
   docs <project> [<name>]              The project documents (docs/*.md: rules, sell sheet,
                                        appendix), all or one, with their problems (cards or
                                        images not found); write them as Markdown files there
-  export-doc <project> [<name>] [--format pdf|html|docx|md] [--out folder]
+  export-doc <project> [<name>] [--format pdf|html|docx|md] [--out folder] [--lang L]
                                        Export the documents, all or one, as in the app: PDF
                                        (default), standalone HTML, Word (docx), or Markdown with
-                                       the cards as PNG files (default folder: export/docs)
+                                       the cards as PNG files (default folder: export/docs);
+                                       --lang draws the cards in that language instead of the
+                                       document's 'language' setting
   begin <project> [--note TEXT]        Start working: fails (exit code 3) if the Naibi app has
                                        unsaved changes in the project, otherwise the app locks
                                        itself until 'end'
@@ -158,7 +163,11 @@ function layerSummary(l: Layer): string {
               ? ` value=${JSON.stringify(l.value)}`
               : ''
   const box = l.type === 'value' ? '' : ` at ${l.x},${l.y} size ${l.w}×${l.h} mm`
-  return `${l.name} (${l.type})${box}${main} · value from ${from}${l.visible ? '' : ' · hidden'}`
+  const tr = l.type === 'text' ? l.texts : l.type === 'value' ? l.values : undefined
+  const langs = Object.entries(tr ?? {})
+    .map(([k, v]) => ` ${k}=${JSON.stringify(v)}`)
+    .join('')
+  return `${l.name} (${l.type})${box}${main}${langs} · value from ${from}${l.visible ? '' : ' · hidden'}`
 }
 
 function templateOutline(t: Template): string[] {
@@ -277,6 +286,11 @@ async function check(p: Parsed): Promise<number> {
     variables: project.file.variables,
     hasFont: await fontCheck(project)
   }
+  // --lang L: le carte si controllano in quella lingua; le traduzioni mancanti si cercano in L,
+  // o senza --lang in tutte le lingue oltre la principale
+  const langs = projectLanguages(project.file)
+  const [language] = cliLanguages(project, p)
+  const localization = localizationOf(project.file, project.sets, language)
   const report: { set: string; card: number; label: string; problems: string[] }[] = []
   const general = project.warnings.map(messageText)
   for (const s of project.sets) {
@@ -287,7 +301,8 @@ async function check(p: Parsed): Promise<number> {
     s.data.rows.forEach((row, i) => {
       const bound = bindRow(s.data!.headers, row, tpl, project.templates, {
         ...ctx,
-        system: { ...info, number: i + 1 }
+        system: { ...info, number: i + 1 },
+        localization
       })
       const problems = bound.problems.map(messageText)
       // le immagini dei livelli: l'app le segnala solo all'esportazione
@@ -311,20 +326,49 @@ async function check(p: Parsed): Promise<number> {
   }
   // i documenti richiamano le carte di tutti i set: si controllano solo senza --set
   const documents = only ? [] : documentReport(project)
+  // traduzioni mancanti: solo avvisi, non cambiano il codice di uscita
+  const translations = (
+    p.flags.lang === undefined ? langs.slice(1) : language ? [language] : []
+  ).flatMap((l) =>
+    missingTranslations(
+      {
+        templates: project.templates,
+        variables: project.file.variables,
+        sets: only ? project.sets.filter((s) => s.name === only) : project.sets
+      },
+      l
+    ).map((m) => ({ language: l, ...m }))
+  )
   const total = general.length + report.length + documents.length
-  if (p.flags.json) print(JSON.stringify({ warnings: general, cards: report, documents }, null, 2))
+  if (p.flags.json)
+    print(
+      JSON.stringify(
+        { warnings: general, cards: report, documents, missingTranslations: translations },
+        null,
+        2
+      )
+    )
   else {
     for (const w of general) print(`Warning: ${w}`)
     for (const r of report)
       for (const pr of r.problems) print(`${r.set} #${r.card} (${r.label}): ${pr}`)
     for (const d of documents) print(`docs/${d.document}.md line ${d.line}: ${d.problem}`)
+    for (const m of translations)
+      print(`Missing translation (${m.language}): ${m.where}: "${short(m.text)}"`)
     print(
       total
         ? `${report.length} cards and ${documents.length} document lines with problems`
         : 'No problems found'
     )
+    if (translations.length) print(`${translations.length} texts not translated (warnings only)`)
   }
   return total ? 1 : 0
+}
+
+/** Un testo lungo accorciato per una riga di avviso */
+function short(text: string): string {
+  const one = text.replace(/\s+/g, ' ').trim()
+  return one.length > 60 ? one.slice(0, 57) + '...' : one
 }
 
 async function template(p: Parsed): Promise<number> {
@@ -744,7 +788,8 @@ function documentReport(
     assets: project.assets,
     styles: project.file.styles,
     variables: project.file.variables,
-    templates: project.templates
+    templates: project.templates,
+    languages: projectLanguages(project.file)
   }
   return (project.documents ?? [])
     .filter((d) => !only || d.name === only)
@@ -801,10 +846,15 @@ async function exportDoc(p: Parsed): Promise<number> {
   if (kind !== 'pdf' && kind !== 'html' && kind !== 'md' && kind !== 'docx')
     throw new CliError('--format: pdf, html, docx or md')
   const out = typeof p.flags.out === 'string' ? resolve(p.flags.out) : undefined
+  // --lang vale al posto della lingua scritta nel documento (anche la principale)
+  cliLanguages(project, p)
+  const lang = typeof p.flags.lang === 'string' ? p.flags.lang : undefined
   const problems = documentReport(project, name)
   for (const d of list) {
+    const localization = documentLocalization(project.file, project.sets, d.text, lang)
     const files = await renderDocument({
-      project: project.file.name,
+      project: localization?.project ?? project.file.name,
+      ...(localization ? { localization } : {}),
       name: d.name,
       text: d.text,
       kind,

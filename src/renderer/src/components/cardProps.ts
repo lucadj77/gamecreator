@@ -114,3 +114,32 @@ export function propLabel(l: Layer, key: string): MessageKey | null {
   const special = l.type === 'image' && key === 'align' ? 'prop.imageAlign' : `prop.${key}`
   return special in en ? (special as MessageKey) : null
 }
+
+/** Proprietà scritte come testo che cominciano con un colore: "colore/spessore/…" */
+const COLOR_FIRST = new Set(['stroke', 'border', 'shadow'])
+
+/**
+ * Colore di una proprietà scritta come testo (contorno, bordo, ombra) e come cambiarlo: si
+ * sostituisce la prima parte, il resto resta. Con la cella vuota si parte dal valore del template.
+ */
+export function colorPartOf(
+  key: string,
+  text: string,
+  template: unknown
+): { color: string; set(color: string): string } | null {
+  if (!COLOR_FIRST.has(key)) return null
+  const base = text.trim() || templateText(key, template)
+  const parts = base ? base.split('/') : ['']
+  return {
+    color: parts[0].trim(),
+    set: (color) => [color, ...parts.slice(1)].join('/')
+  }
+}
+
+/** Contorno o ombra del template nella forma che si scrive nelle celle */
+function templateText(key: string, v: unknown): string {
+  if (!v || typeof v !== 'object') return ''
+  const o = v as Record<string, unknown>
+  if (key === 'shadow') return [o.color, o.blur, o.dx, o.dy].join('/')
+  return [o.color, o.width, ...(o.dash ? [o.dash] : [])].join('/')
+}

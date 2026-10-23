@@ -5,6 +5,16 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.27
+
+### English
+
+- Every color field has the button that opens the color picker: in the card details, the stroke, border and shadow properties now have it too (it changes the color and keeps width and the rest), and so does editing a shape's color directly on the card.
+
+### Italiano
+
+- Ogni campo colore ha il tasto che apre il selettore: nel dettaglio della carta ora ce l'hanno anche contorno, bordo e ombra (cambia il colore e lascia spessore e il resto), e anche la modifica del colore di una forma direttamente sulla carta.
+
 ## 1.2.0-beta.26
 
 ### English

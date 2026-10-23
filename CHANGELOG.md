@@ -13,6 +13,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - The color picker shows the project's colors: the color variables (a dot marks them, and hovering shows the variable name) and then the color codes used in templates, styles, variables and sheets, most used first.
 - Images in documents: **Image** in the formatting bar opens a window to choose the file, the width in mm, the alignment (left, center, right) and the caption; with the cursor on an image it edits it. In the text: `![Map](icons/map.png?width=40&align=right)`. Cards accept `align` too.
 - In the web version, **Open file** after an export opens the exported document directly: PDF, HTML and Markdown in a new tab, other files are downloaded.
+- Card anatomy and table setup have a small formatting bar for labels and texts: bold, italic, underline, strikethrough and the project styles, on the selected text.
 - Buttons that delete or remove something are red.
 - In the editor a selected layer can be dragged even where another layer covers it (for example after choosing it with Alt+click or in the layer list); a click without dragging still selects the layer on top.
 - Fixed: in the web version, editing a paragraph could change the text a few characters after the cursor, because the colored overlay of the text wrapped lines in different places than the text box.
@@ -23,6 +24,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - La scelta del colore mostra i colori del progetto: le variabili colore (segnate da un punto, e passandoci sopra si vede il nome della variabile) e poi i codici usati in template, stili, variabili e fogli, dal più usato.
 - Immagini nei documenti: **Immagine** nella barra di formattazione apre una finestra per scegliere il file, la larghezza in mm, l'allineamento (a sinistra, al centro, a destra) e la didascalia; con il cursore su un'immagine la modifica. Nel testo: `![Mappa](icone/mappa.png?width=40&align=right)`. Anche le carte accettano `align`.
 - Nella versione web, **Apri il file** dopo un'esportazione apre direttamente il documento esportato: PDF, HTML e Markdown in una nuova scheda, gli altri file si scaricano.
+- Anatomia carta e schema del tavolo hanno una piccola barra di formattazione per etichette e testi: grassetto, corsivo, sottolineato, barrato e gli stili del progetto, sul testo selezionato.
 - I tasti che eliminano o tolgono qualcosa sono rossi.
 - Nell'editor un livello selezionato si trascina anche dove un altro livello lo copre (per esempio dopo averlo scelto con Alt+clic o nell'elenco dei livelli); un clic senza trascinare seleziona sempre il livello in cima.
 - Corretto: nella versione web, modificando un paragrafo il testo poteva cambiare qualche carattere dopo il cursore, perché la copia colorata del testo andava a capo in punti diversi dalla casella di testo.

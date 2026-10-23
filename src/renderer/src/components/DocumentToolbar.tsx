@@ -1,18 +1,8 @@
-import { useContext } from 'react'
-import { BUILTIN_STYLES } from '../../../shared/model/markup'
-import {
-  applyStyle,
-  changedRange,
-  setHeading,
-  toggleLines,
-  toggleWrap,
-  type DocEdit,
-  type WrapMark
-} from '../../../shared/model/docEdit'
+import { setHeading, toggleLines } from '../../../shared/model/docEdit'
 import { useI18n } from '../i18n/context'
-import { StylesContext } from '../render/assets'
+import { runEdit as run } from './editRun'
 import type { FormatControl } from './MarkupTextarea'
-import Menu from './Menu'
+import { StyleMenu, ToolButton, WrapTools } from './TextFormatBar'
 import { ImageIcon } from './icons'
 
 // Barra sopra il testo di un documento: grassetto, corsivo, titoli, elenchi, stili e gli
@@ -31,25 +21,6 @@ interface Props {
   onSetup(): void
 }
 
-/** Scrive il cambiamento nel campo come un'immissione da tastiera e rimette la selezione */
-function run(
-  el: HTMLTextAreaElement | null,
-  edit: (src: string, a: number, b: number) => DocEdit
-): void {
-  if (!el) return
-  const src = el.value
-  const next = edit(src, el.selectionStart, el.selectionEnd)
-  const r = changedRange(src, next.text)
-  el.focus()
-  el.setSelectionRange(r.from, r.to)
-  // execCommand tiene la modifica nella cronologia del campo, a differenza di value =
-  if (!document.execCommand('insertText', false, r.insert)) {
-    el.setRangeText(r.insert, r.from, r.to)
-    el.dispatchEvent(new Event('input', { bubbles: true }))
-  }
-  el.setSelectionRange(next.from, next.to)
-}
-
 export default function DocumentToolbar({
   editor,
   format,
@@ -61,26 +32,14 @@ export default function DocumentToolbar({
   onSetup
 }: Props): React.JSX.Element {
   const { t } = useI18n()
-  const styles = useContext(StylesContext)
-  const styleNames = [...new Set([...Object.keys(styles), ...Object.keys(BUILTIN_STYLES)])].sort()
-
-  const wrap = (mark: WrapMark) => () => run(editor.current, (s, a, b) => toggleWrap(s, a, b, mark))
   const button = (
     label: React.ReactNode,
     title: string,
-    onClick: () => void,
-    cls = ''
+    onClick: () => void
   ): React.JSX.Element => (
-    <button
-      className={`doc-tool ${cls}`}
-      title={title}
-      aria-label={title}
-      // il clic non deve togliere la selezione al campo
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-    >
+    <ToolButton title={title} onClick={onClick}>
       {label}
-    </button>
+    </ToolButton>
   )
 
   return (
@@ -99,10 +58,7 @@ export default function DocumentToolbar({
         <option value={3}>{t('docTools.heading', { n: 3 })}</option>
       </select>
       <span className="sep" />
-      {button(<b>B</b>, t('docTools.bold'), wrap('**'))}
-      {button(<i>I</i>, t('docTools.italic'), wrap('*'))}
-      {button(<u>U</u>, t('docTools.underline'), wrap('++'))}
-      {button(<s>S</s>, t('docTools.strike'), wrap('~~'))}
+      <WrapTools editor={editor} />
       <span className="sep" />
       {button('•≡', t('docTools.bullets'), () =>
         run(editor.current, (s, a, b) => toggleLines(s, a, b, 'bullet'))
@@ -114,25 +70,7 @@ export default function DocumentToolbar({
         run(editor.current, (s, a, b) => toggleLines(s, a, b, 'quote'))
       )}
       <span className="sep" />
-      <Menu
-        className="doc-tool"
-        label={t('docTools.style')}
-        title={t('docTools.styleHint')}
-        items={[
-          ...styleNames.map((name) => ({
-            label: name,
-            onClick: () =>
-              run(editor.current, (s, a, b) => applyStyle(s, a, b, name, t('docTools.sample')))
-          })),
-          'sep' as const,
-          {
-            label: t('format.button'),
-            title: t('format.buttonHint'),
-            disabled: !format.enabled,
-            onClick: format.open
-          }
-        ]}
-      />
+      <StyleMenu editor={editor} format={format} />
       <span className="sep" />
       {button(
         <>

@@ -5295,3 +5295,32 @@ button.more-button {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* testi brevi con la barra di formattazione: etichette dell'anatomia e dello schema del tavolo */
+.text-format-bar {
+  padding: 2px;
+  gap: 2px;
+}
+
+.text-format-bar .doc-tool {
+  min-width: 28px;
+  padding: 2px 6px;
+}
+
+.anatomy-layers > .text-format-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  align-self: flex-start;
+}
+
+.markup-input textarea.formatted-field {
+  min-height: calc(1lh + 8px);
+  resize: none;
+}
+
+.setup-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

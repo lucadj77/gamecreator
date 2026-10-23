@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import { isDrawn, type Layer, type Side, type Template } from '../../../shared/model/template'
 import { bindRow } from '../../../shared/model/bind'
@@ -20,6 +20,7 @@ import CardSvg from '../render/CardSvg'
 import AnatomyDiagram from '../render/AnatomyDiagram'
 import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
+import FormattedField, { TextFormatBar } from './TextFormatBar'
 
 /** Carte mostrate al massimo nella griglia: con un set grande si cerca per nome */
 const MAX_SHOWN = 60
@@ -109,6 +110,8 @@ export default function InsertCardDialog({
     () => new Map(initial?.callouts.map((c) => [c.layer, c.label]) ?? [])
   )
   const [caption, setCaption] = useState<string | null>(null)
+  /** L'ultima etichetta dell'anatomia in cui si è scritto: la barra di formattazione agisce lì */
+  const labelField = useRef<HTMLTextAreaElement | null>(null)
 
   const shown = cards
     .map((c, i) => ({ c, i }))
@@ -250,6 +253,7 @@ export default function InsertCardDialog({
   const layerList = (
     <div className="anatomy-layers">
       <p className="muted small">{t('documents.anatomyHint')}</p>
+      {labels.size > 0 && <TextFormatBar editor={labelField} />}
       {layers.map((l) => (
         <div key={l.name} className="anatomy-layer" style={{ paddingLeft: l.depth * 14 }}>
           <label>
@@ -266,10 +270,14 @@ export default function InsertCardDialog({
             {l.name}
           </label>
           {labels.has(l.name) && (
-            <input
-              value={labels.get(l.name)}
+            <FormattedField
+              singleLine
+              value={labels.get(l.name) ?? ''}
               placeholder={t('documents.anatomyLabel')}
-              onChange={(e) => setLabels(new Map(labels).set(l.name, e.target.value))}
+              onFocus={(el) => {
+                labelField.current = el
+              }}
+              onChange={(v) => setLabels(new Map(labels).set(l.name, v))}
             />
           )}
         </div>

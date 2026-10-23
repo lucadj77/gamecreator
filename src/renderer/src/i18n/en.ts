@@ -1886,6 +1886,7 @@ export const en = {
   'update.installing': 'Downloading… {percent}%',
   'update.installFailed':
     'Naibi {version} could not be installed automatically: download it from the release page.',
+  'update.reason': ' Reason: {reason}',
   'update.unsaved':
     'There are unsaved changes: they will be lost when Naibi restarts. Update anyway?',
   'update.skip': 'Skip this version',

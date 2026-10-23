@@ -1910,6 +1910,7 @@ export const it: Record<MessageKey, string> = {
   'update.installing': 'Scaricamento… {percent}%',
   'update.installFailed':
     'Non è stato possibile installare Naibi {version} da solo: scaricalo dalla pagina della release.',
+  'update.reason': ' Motivo: {reason}',
   'update.unsaved':
     'Ci sono modifiche non salvate: andranno perse al riavvio di Naibi. Aggiornare comunque?',
   'update.skip': 'Salta questa versione',

@@ -168,6 +168,12 @@ a.button {
   gap: 8px;
 }
 
+.update-reason {
+  font-family: ui-monospace, monospace;
+  font-size: 0.86em;
+  word-break: break-word;
+}
+
 .update-notice button.link {
   border: none;
   background: none;

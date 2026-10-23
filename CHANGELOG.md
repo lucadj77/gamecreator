@@ -5,6 +5,68 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0
+
+### English
+
+The first official version since 1.1.0, and the first with the name **Stella** (it was Naibi). It gathers the 34 betas; their details are in the 1.2.0-beta sections of CHANGELOG.md.
+
+#### New
+
+- **Documents**: rules, sell sheets and appendices written in Markdown with Stella's markup, with a live page preview, a formatting bar, page settings, properties, tables, boxes and images. They can contain the real cards of the game, a **card anatomy** (front and back, with labelled lines) and a **table setup** editor. Export to PDF, HTML, Word and Markdown, also with `stella export-doc`.
+- **Projects in several languages**: translated columns (`name@en`), translated fixed texts and variables, a language menu to see the cards, export in one or all languages, and checks for missing translations.
+- **Derived templates**, based on another template and changing only some parts.
+- New **Grid** layer for boards, tracks and maps (square, round, hexagonal, triangular or diamond cells, also interlocking), with content repeated in every cell and `{cell.…}` variables.
+- **Tabletop Simulator**: tokens, tiles, boards and six-sided dice besides cards, true proportions, copies drawn on the sheet if wanted, and image addresses that load on Windows and upload with the Cloud Manager.
+- **Web version**, with nothing to install, at <https://lucadj77.github.io/stella/> (beta at `/beta/`).
+- Data: several sets on one sheet, sheets imported from another file, **Check data file…**, a read-only option, Google Sheets, Excel number formats, and saves that change only the changed cells of an .xlsx.
+- Set tools: **Statistics…**, **Check text…** (with an orange mark on cards whose text does not fit), **Compare…** with exports of only the changed cards, **Split image…**, **Generate…**, multiple selection in the grid.
+- Project **Notes**, **Trash…** to restore deleted items, **Help** (F1) with markup, system variables (`{card.number}`, `{set.name}`, `{date}`…), formula functions with examples and shortcuts.
+- Editing on the card (double click), image crop, a new colour picker with the project colours, Iconify and catalog updates for icons and Google Fonts, SVG export.
+- Rename sets and templates; style and variable groups with **Where it is used**; new formula functions `MOD` and `PICK`.
+- Tools for AI agents: `stella begin`/`end` so the app and an agent do not overwrite each other, and new commands (`stats`, `notes`, `docs`, `check-data`, `pull-sheets`, `export-doc`, `rename-set`, `rename-template`, `version`). The `stella-cli` package works without the app.
+- **Update and restart** installs updates by itself (Mac, Windows setup, Linux AppImage), and in ⚙ **Updates** you choose the **Stable** or **Beta** channel. A portable version for Windows.
+
+#### Changed
+
+- **Naibi is now Stella**: new name, new icon, `stella` command and skill. Projects, preferences and backups made with Naibi keep working.
+- The buttons are reorganized: a shorter top bar with a **Project** menu, ⋯ menus next to names, set buttons in groups, red buttons for deleting, a menu bar in the desktop app.
+- Deleted templates and sets go to the project's `deleted` folder.
+
+#### Fixed
+
+- Many fixes from the betas and from a full code review: exports that stopped on large sheets or on Windows, data files that lost formatting, text overflow marks reported wrongly, and others listed under each beta.
+
+### Italiano
+
+La prima versione ufficiale dopo la 1.1.0, e la prima con il nome **Stella** (prima era Naibi). Raccoglie le 34 beta; i dettagli sono nelle sezioni 1.2.0-beta di CHANGELOG.md.
+
+#### Nuovo
+
+- **Documenti**: regolamenti, sell sheet e appendici scritti in Markdown con il markup di Stella, con l'anteprima della pagina sempre visibile, una barra di formattazione, impostazioni di pagina, proprietà, tabelle, riquadri e immagini. Possono contenere le carte vere del gioco, un'**anatomia della carta** (fronte e retro, con etichette e linee) e un editor della **preparazione del tavolo**. Esportazione in PDF, HTML, Word e Markdown, anche con `stella export-doc`.
+- **Progetti in più lingue**: colonne tradotte (`nome@en`), testi fissi e variabili tradotti, un menu per vedere le carte in un'altra lingua, esportazione in una lingua o in tutte e controllo delle traduzioni mancanti.
+- **Template derivati**, basati su un altro template e diversi solo in alcune parti.
+- Nuovo livello **Griglia** per plance, tracciati e mappe (celle quadrate, tonde, esagonali, triangolari o a rombo, anche a incastro), con un contenuto ripetuto in ogni cella e le variabili `{cell.…}`.
+- **Tabletop Simulator**: segnalini, tessere, plance e dadi a sei facce oltre alle carte, proporzioni vere, copie disegnate sul foglio se servono, e indirizzi delle immagini che si caricano su Windows e si caricano nel cloud con il Cloud Manager.
+- **Versione web**, senza installare nulla, all'indirizzo <https://lucadj77.github.io/stella/> (la beta in `/beta/`).
+- Dati: più set sullo stesso foglio, fogli importati da un altro file, **Controlla file dati…**, l'opzione di sola lettura, Google Sheets, i formati numerici di Excel e salvataggi che cambiano solo le celle modificate di un .xlsx.
+- Strumenti dei set: **Statistiche…**, **Controlla testi…** (con un segno arancione sulle carte il cui testo non ci sta), **Confronta…** con l'esportazione delle sole carte cambiate, **Dividi immagine…**, **Genera…**, selezione multipla nella griglia.
+- **Note** del progetto, **Cestino…** per recuperare ciò che è stato eliminato, **Aiuto** (F1) con markup, variabili di sistema (`{card.number}`, `{set.name}`, `{date}`…), funzioni delle formule con esempi e scorciatoie.
+- Modifica direttamente sulla carta (doppio clic), ritaglio delle immagini, un nuovo selettore dei colori con i colori del progetto, Iconify e aggiornamento dei cataloghi di icone e Google Fonts, esportazione in SVG.
+- Rinomina di set e template; gruppi di stili e variabili con **Dove si usa**; nuove funzioni `MOD` e `PICK` nelle formule.
+- Strumenti per gli agenti IA: `stella begin`/`end`, così l'app e un agente non si sovrascrivono il lavoro, e nuovi comandi (`stats`, `notes`, `docs`, `check-data`, `pull-sheets`, `export-doc`, `rename-set`, `rename-template`, `version`). Il pacchetto `stella-cli` funziona anche senza l'app.
+- **Aggiorna e riavvia** installa gli aggiornamenti da solo (Mac, setup di Windows, AppImage di Linux), e in ⚙ **Aggiornamenti** si sceglie il canale **Stabile** o **Beta**. Una versione portatile per Windows.
+
+#### Cambiato
+
+- **Naibi ora si chiama Stella**: nuovo nome, nuova icona, comando e skill `stella`. Progetti, preferenze e backup fatti con Naibi continuano a funzionare.
+- I pulsanti sono riorganizzati: barra in alto più corta con il menu **Progetto**, menu ⋯ accanto ai nomi, pulsanti dei set in gruppi, pulsanti rossi per eliminare, una barra dei menu nell'app desktop.
+- Template e set eliminati vanno nella cartella `deleted` del progetto.
+
+#### Corretto
+
+- Molte correzioni dalle beta e da una revisione completa del codice: esportazioni che si fermavano con fogli grandi o su Windows, file dati che perdevano la formattazione, segni di testo che non ci sta segnalati per errore, e le altre elencate in ogni beta.
+
 ## 1.2.0-beta.34
 
 ### English

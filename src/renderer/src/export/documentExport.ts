@@ -13,6 +13,7 @@ import {
   type DocSettings,
   type DocumentContext
 } from '../../../shared/model/document'
+import { cellImageKey, cellParts } from '../../../shared/model/docTable'
 import { assetUrl } from '../render/assets'
 import { dataUri, fontFaces, svgOfCard } from './toSvg'
 
@@ -186,6 +187,21 @@ export async function documentMarkdown(
     inlinesMd(parseInline(documentText(s, ctx)).children, imageOf)
 
   let cards = 0
+  /** Una carta (in PNG) o un'immagine; `key` ritrova nella pagina la carta disegnata */
+  const figureMd = async (src: string, rawAlt: string, key: number | string): Promise<string> => {
+    const alt = rawAlt.replace(/[[\]]/g, '')
+    if (isCardSource(src)) {
+      const svg = page.querySelector<SVGSVGElement>(`figure[data-from="${key}"] svg[xmlns]`)
+      if (!svg) return ''
+      cards++
+      const file = `${String(cards).padStart(2, '0')}${alt ? ' ' + safeName(alt) : ''}.png`
+      files.push({ path: `${dir}/${file}`, data: await cardPng(svg, fonts) })
+      return `![${alt}](${link(file)})`
+    }
+    if (/^https?:\/\//i.test(src)) return `![${alt}](${src})`
+    const url = await imageOf(src)
+    return url ? `![${alt}](${url})` : ''
+  }
   const out: string[] = []
   for (const b of parseDocument(text)) {
     switch (b.kind) {
@@ -219,16 +235,30 @@ export async function documentMarkdown(
         break
       }
       case 'table': {
-        const row = async (cells: string[]): Promise<string> =>
-          `| ${(await Promise.all(cells.map(async (c) => (await inline(c)).replace(/\|/g, '\\|').replace(/\n/g, ' ')))).join(' | ')} |`
+        // l'aspetto della tabella non ha un Markdown: restano testo e immagini delle celle
+        const head = b.header.length > 0
+        const cellMd = async (c: string, row: number, col: number): Promise<string> => {
+          let s = ''
+          const parts = cellParts(c)
+          for (let k = 0; k < parts.length; k++) {
+            const p = parts[k]
+            s +=
+              p.kind === 'text'
+                ? await inline(p.text)
+                : await figureMd(p.src, p.alt, cellImageKey(b.from, row, col, k))
+          }
+          return s.replace(/\|/g, '\\|').replace(/\n/g, ' ')
+        }
+        const row = async (cells: string[], r: number): Promise<string> =>
+          `| ${(await Promise.all(cells.map((c, k) => cellMd(c, r, k)))).join(' | ')} |`
         const sep = (a: HAlign | null): string =>
           a === 'center' ? ':---:' : a === 'right' ? '---:' : a === 'left' ? ':---' : '---'
         out.push(
           [
             // Markdown vuole un'intestazione: vuota per le proprietà
-            await row(b.header.length ? b.header : b.align.map(() => '')),
+            await row(head ? b.header : b.align.map(() => ''), head ? 0 : -1),
             `| ${b.align.map(sep).join(' | ')} |`,
-            ...(await Promise.all(b.rows.map(row)))
+            ...(await Promise.all(b.rows.map((r, i) => row(r, head ? i + 1 : i))))
           ].join('\n')
         )
         break
@@ -260,21 +290,8 @@ export async function documentMarkdown(
       case 'figure': {
         const imgs: string[] = []
         for (const img of b.images) {
-          const alt = img.alt.replace(/[[\]]/g, '')
-          if (isCardSource(img.src)) {
-            const svg = page.querySelector<SVGSVGElement>(
-              `figure[data-from="${img.from}"] svg[xmlns]`
-            )
-            if (!svg) continue
-            cards++
-            const file = `${String(cards).padStart(2, '0')}${alt ? ' ' + safeName(alt) : ''}.png`
-            files.push({ path: `${dir}/${file}`, data: await cardPng(svg, fonts) })
-            imgs.push(`![${alt}](${link(file)})`)
-          } else if (/^https?:\/\//i.test(img.src)) imgs.push(`![${alt}](${img.src})`)
-          else {
-            const url = await imageOf(img.src)
-            if (url) imgs.push(`![${alt}](${url})`)
-          }
+          const md = await figureMd(img.src, img.alt, img.from)
+          if (md) imgs.push(md)
         }
         if (imgs.length) out.push(imgs.join(' '))
         break

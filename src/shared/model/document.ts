@@ -10,6 +10,14 @@ import { worldBounds } from './geometry'
 import { arrangeGroup } from './arrange'
 import type { Bounds } from './edit'
 import { parseSetup, SETUP_FENCE, type Setup } from './setup'
+import {
+  cellParts,
+  DEFAULT_TABLE_STYLE,
+  isTableStyleLine,
+  parseTableStyle,
+  tableStyleSource,
+  type TableStyle
+} from './docTable'
 
 // Documenti del progetto (docs/<nome>.md): regolamento, sell sheet, appendici. Sono Markdown con
 // il markup di Naibi nel testo ({icona}, [testo]{.stile}) e le carte del progetto come immagini:
@@ -45,6 +53,10 @@ export type DocBlock = { from: number } & (
       header: string[]
       align: (HAlign | null)[]
       rows: string[][]
+      /** Bordi, sfondi e larghezze, dal commento <!-- table ... --> sotto la tabella (docTable.ts) */
+      style: TableStyle
+      /** Opzioni del commento <!-- table ... --> che non si capiscono */
+      styleBad: string[]
       /** Fine dell'ultima riga della tabella nel testo: lo strumento tabella la riscrive */
       to: number
     }
@@ -170,6 +182,8 @@ export function parseDocument(src: string): DocBlock[] {
         header: [],
         align: [null, null],
         rows: props.map((p) => [`**${p.key}**`, p.value]),
+        style: { ...DEFAULT_TABLE_STYLE, header: null },
+        styleBad: [],
         from: 0,
         to: starts[i - 1] + lines[i - 1].length
       })
@@ -288,11 +302,16 @@ export function parseDocument(src: string): DocBlock[] {
         const cells = splitRow(lines[i++])
         rows.push(header.map((_, k) => cells[k] ?? ''))
       }
+      const { style, bad: styleBad } = isTableStyleLine(lines[i])
+        ? parseTableStyle(lines[i++])
+        : { style: { ...DEFAULT_TABLE_STYLE }, bad: [] }
       blocks.push({
         kind: 'table',
         header,
         align: header.map((_, k) => align[k] ?? null),
         rows,
+        style,
+        styleBad,
         from,
         to: starts[i - 1] + lines[i - 1].length
       })
@@ -361,7 +380,12 @@ function joinLines(lines: string[]): string {
 }
 
 /** Testo Markdown di una tabella, con le colonne allineate perché si legga anche così */
-export function tableSource(header: string[], align: (HAlign | null)[], rows: string[][]): string {
+export function tableSource(
+  header: string[],
+  align: (HAlign | null)[],
+  rows: string[][],
+  style: TableStyle = DEFAULT_TABLE_STYLE
+): string {
   const cell = (s: string): string => s.replace(/\r?\n/g, ' ').replace(/\\?\|/g, '\\|').trim()
   const all = [header, ...rows].map((r) => header.map((_, k) => cell(r[k] ?? '')))
   const width = header.map((_, k) => Math.max(3, ...all.map((r) => r[k].length)))
@@ -377,7 +401,13 @@ export function tableSource(header: string[], align: (HAlign | null)[], rows: st
           ? `:${dashes}`
           : dashes
   })
-  return [line(all[0]), `| ${sep.join(' | ')} |`, ...all.slice(1).map(line)].join('\n')
+  const look = tableStyleSource(style)
+  return [
+    line(all[0]),
+    `| ${sep.join(' | ')} |`,
+    ...all.slice(1).map(line),
+    ...(look ? [look] : [])
+  ].join('\n')
 }
 
 /** Celle di una riga di tabella; \| è una barra nel testo */
@@ -927,8 +957,22 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
         b.items.forEach((it) => texts.push({ text: it.text, from: b.from }))
         break
       case 'table':
+        if (b.styleBad.length)
+          out.push({
+            message: msg('doc.table.badOption', { option: b.styleBad[0] }),
+            from: b.from,
+            to: b.to
+          })
         ;[b.header, ...b.rows].forEach((r) =>
-          r.forEach((c) => texts.push({ text: c, from: b.from }))
+          r.forEach((c) => {
+            for (const part of cellParts(c)) {
+              if (part.kind === 'text') texts.push({ text: part.text, from: b.from })
+              else {
+                const problem = imageProblem(part.src, ctx)
+                if (problem) out.push({ message: problem, from: b.from, to: b.to })
+              }
+            }
+          })
         )
         break
       case 'figure':

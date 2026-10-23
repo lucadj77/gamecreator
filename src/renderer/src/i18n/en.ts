@@ -818,6 +818,8 @@ export const en = {
   'doc.card.noRow': 'The set "{set}" has no card {n}',
   'doc.card.noField': 'The set "{set}" has no column "{field}"',
   'doc.card.noValue': 'No card in "{set}" has {field} = "{value}"',
+  'doc.table.badOption':
+    '"{option}" is not a table option (width, columns, border, borderWidth, lines, header, fill, stripes)',
   'doc.setting.unknown': '"{name}" is not a page setting',
   'doc.setting.bad': '"{value}" is not a valid value for {name}',
   'doc.anatomy.badLine':
@@ -1262,7 +1264,24 @@ export const en = {
   'documents.addColumn': '+ Column',
   'documents.tableHeading': 'Heading',
   'documents.tableHint':
-    'The first row is the heading. Cells can use markup, such as {heart} or **bold**. You can paste cells copied from a spreadsheet.',
+    'The first row is the heading. Cells can use markup, such as {heart} or **bold**, and hold images and cards: click a cell, then use the bar above. You can paste cells copied from a spreadsheet.',
+  'documents.tableColumnWidth':
+    'Column width, as % of the table width (empty: as wide as the content)',
+  'documents.tableAuto': 'auto',
+  'documents.tableLook': 'Look',
+  'documents.tableWidth': 'Table width',
+  'documents.tableWidthHint': 'As % of the text width; 0 is as wide as the content.',
+  'documents.tableLines': 'Lines',
+  'documents.tableLines.all': 'All',
+  'documents.tableLines.rows': 'Between rows only',
+  'documents.tableLines.outer': 'Outline only',
+  'documents.tableLines.none': 'None',
+  'documents.tableBorder': 'Line color',
+  'documents.tableBorderWidth': 'Line thickness',
+  'documents.tableHeaderFill': 'Heading background',
+  'documents.tableFill': 'Row background',
+  'documents.tableStripes': 'Alternate rows',
+  'documents.tableStripesHint': 'Background of every other row (the second, the fourth...).',
   'documents.saveTable': 'Save table',
   'documents.anatomy': 'Card anatomy',
   'documents.anatomyButtonHint':

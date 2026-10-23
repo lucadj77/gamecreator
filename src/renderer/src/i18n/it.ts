@@ -828,6 +828,8 @@ export const it: Record<MessageKey, string> = {
   'doc.card.noRow': 'Il set "{set}" non ha la carta {n}',
   'doc.card.noField': 'Il set "{set}" non ha la colonna "{field}"',
   'doc.card.noValue': 'Nessuna carta di "{set}" ha {field} = "{value}"',
+  'doc.table.badOption':
+    '"{option}" non è un\'opzione della tabella (width, columns, border, borderWidth, lines, header, fill, stripes)',
   'doc.setting.unknown': '"{name}" non è un\'impostazione della pagina',
   'doc.setting.bad': '"{value}" non è un valore valido per {name}',
   'doc.anatomy.badLine':
@@ -1282,7 +1284,24 @@ export const it: Record<MessageKey, string> = {
   'documents.addColumn': '+ Colonna',
   'documents.tableHeading': 'Intestazione',
   'documents.tableHint':
-    "La prima riga è l'intestazione. Nelle celle si può usare il markup, come {cuore} o **grassetto**. Si possono incollare celle copiate da un foglio di calcolo.",
+    "La prima riga è l'intestazione. Nelle celle si può usare il markup, come {cuore} o **grassetto**, e mettere immagini e carte: fai clic in una cella e usa la barra sopra. Si possono incollare celle copiate da un foglio di calcolo.",
+  'documents.tableColumnWidth':
+    'Larghezza della colonna, in % della tabella (vuota: quanto il contenuto)',
+  'documents.tableAuto': 'auto',
+  'documents.tableLook': 'Aspetto',
+  'documents.tableWidth': 'Larghezza della tabella',
+  'documents.tableWidthHint': 'In % della larghezza del testo; 0 è quanto il contenuto.',
+  'documents.tableLines': 'Linee',
+  'documents.tableLines.all': 'Tutte',
+  'documents.tableLines.rows': 'Solo tra le righe',
+  'documents.tableLines.outer': 'Solo il contorno',
+  'documents.tableLines.none': 'Nessuna',
+  'documents.tableBorder': 'Colore delle linee',
+  'documents.tableBorderWidth': 'Spessore delle linee',
+  'documents.tableHeaderFill': "Sfondo dell'intestazione",
+  'documents.tableFill': 'Sfondo delle righe',
+  'documents.tableStripes': 'Righe alternate',
+  'documents.tableStripesHint': 'Sfondo di una riga sì e una no (la seconda, la quarta...).',
   'documents.saveTable': 'Salva la tabella',
   'documents.anatomy': 'Anatomia carta',
   'documents.anatomyButtonHint':

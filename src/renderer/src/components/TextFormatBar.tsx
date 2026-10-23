@@ -128,7 +128,8 @@ export default function FormattedField({
   singleLine = false,
   rows,
   placeholder,
-  onFocus
+  onFocus,
+  onPaste
 }: {
   value: string
   onChange(v: string): void
@@ -137,6 +138,7 @@ export default function FormattedField({
   rows?: number
   placeholder?: string
   onFocus?(el: HTMLTextAreaElement): void
+  onPaste?(e: React.ClipboardEvent<HTMLTextAreaElement>): void
 }): React.JSX.Element {
   const editor = useRef<HTMLTextAreaElement | null>(null)
   return (
@@ -151,6 +153,7 @@ export default function FormattedField({
       // la scheda si apre anche senza selezione, su tutto il testo: vedi OPEN_FORMAT_EVENT
       toolbar={bar ? () => <TextFormatBar editor={editor} /> : undefined}
       onFocus={(e) => onFocus?.(e.currentTarget)}
+      onPaste={onPaste}
       onKeyDown={(e) => {
         if (singleLine && e.key === 'Enter') e.preventDefault()
       }}

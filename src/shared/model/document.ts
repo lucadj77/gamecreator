@@ -76,6 +76,8 @@ export interface Callout {
   label: string
   /** Lato dell'etichetta; di base quello più vicino al livello */
   side?: 'left' | 'right'
+  /** Faccia del livello quando l'anatomia mostra fronte e retro; di base il fronte */
+  face?: Side
   /** Posizione della riga nel testo */
   from: number
   to: number
@@ -85,6 +87,8 @@ export interface Anatomy {
   /** Riferimento alla carta, come in card: (anche senza il prefisso) */
   card: string
   cardFrom: number
+  /** Fronte e retro affiancati (riga `sides: both`): le etichette del retro stanno a destra */
+  both: boolean
   callouts: Callout[]
   /** Righe che non si capiscono */
   bad: { from: number; to: number }[]
@@ -92,10 +96,11 @@ export interface Anatomy {
 
 /** Il blocco ```anatomy: le sue righe sono card: … e - livello: etichetta */
 export const ANATOMY_FENCE = 'anatomy'
-const CALLOUT_LINE = /^\s*[-*]\s*(.+?)(?:\s*\((left|right)\))?\s*:\s*(.*)$/
+const CALLOUT_LINE =
+  /^\s*[-*]\s*(.+?)(?:\s*\(((?:\s*(?:left|right|front|back)\s*,?)+)\))?\s*:\s*(.*)$/
 
 function parseAnatomy(lines: string[], starts: number[]): Anatomy {
-  const out: Anatomy = { card: '', cardFrom: -1, callouts: [], bad: [] }
+  const out: Anatomy = { card: '', cardFrom: -1, both: false, callouts: [], bad: [] }
   lines.forEach((l, k) => {
     const from = starts[k]
     const to = from + l.length
@@ -106,12 +111,21 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
       out.cardFrom = from
       return
     }
+    const sides = /^\s*sides\s*:\s*(both|one)\s*$/i.exec(l)
+    if (sides) {
+      out.both = sides[1].toLowerCase() === 'both'
+      return
+    }
     const m = CALLOUT_LINE.exec(l)
     if (m) {
+      const opts = (m[2] ?? '').split(/[\s,]+/)
+      const side = opts.find((o) => o === 'left' || o === 'right') as 'left' | 'right' | undefined
+      const face = opts.find((o) => o === 'front' || o === 'back') as Side | undefined
       out.callouts.push({
         layer: m[1].trim(),
         label: m[3].trim(),
-        ...(m[2] ? { side: m[2] as 'left' | 'right' } : {}),
+        ...(side ? { side } : {}),
+        ...(face ? { face } : {}),
         from,
         to
       })
@@ -121,13 +135,22 @@ function parseAnatomy(lines: string[], starts: number[]): Anatomy {
 }
 
 /** Testo del blocco anatomia di una carta */
-export function anatomySource(card: string, callouts: Omit<Callout, 'from' | 'to'>[]): string {
+export function anatomySource(
+  card: string,
+  callouts: Omit<Callout, 'from' | 'to'>[],
+  both = false
+): string {
+  const opts = (c: Omit<Callout, 'from' | 'to'>): string => {
+    const list = [both && c.face === 'back' ? 'back' : '', !both && c.side ? c.side : ''].filter(
+      Boolean
+    )
+    return list.length ? ` (${list.join(', ')})` : ''
+  }
   return [
     '```' + ANATOMY_FENCE,
     `card: ${card.replace(/^card:/i, '')}`,
-    ...callouts.map(
-      (c) => `- ${c.layer}${c.side ? ` (${c.side})` : ''}: ${c.label.replace(/\n/g, ' ')}`
-    ),
+    ...(both ? ['sides: both'] : []),
+    ...callouts.map((c) => `- ${c.layer}${opts(c)}: ${c.label.replace(/\n/g, ' ')}`),
     '```'
   ].join('\n')
 }
@@ -1027,6 +1050,13 @@ export function documentProblems(src: string, ctx: DocumentContext): DocumentPro
 export const anatomyCardSource = (card: string): string =>
   isCardSource(card) ? card.trim() : CARD_PREFIX + card.trim()
 
+/** La faccia della carta su cui sta il livello di un'etichetta */
+export const calloutFace = (
+  a: Pick<Anatomy, 'both'>,
+  c: Pick<Callout, 'face'>,
+  side: Side
+): Side => (a.both ? (c.face ?? 'front') : side)
+
 function anatomyProblems(b: Anatomy & { from: number }, ctx: DocumentContext): DocumentProblem[] {
   const out: DocumentProblem[] = b.bad.map((r) => ({ message: msg('doc.anatomy.badLine'), ...r }))
   if (!b.card) return [{ message: msg('doc.anatomy.noCard'), from: b.from, to: b.from + 3 }, ...out]
@@ -1040,7 +1070,7 @@ function anatomyProblems(b: Anatomy & { from: number }, ctx: DocumentContext): D
     found && !isMessage(found) ? ctx.templates?.find((x) => x.name === found.set.template) : null
   if (!template || isMessage(ref)) return out
   for (const c of b.callouts)
-    if (!layerBounds(template[ref.side], c.layer))
+    if (!layerBounds(template[calloutFace(b, c, ref.side)], c.layer))
       out.push({
         message: msg('doc.anatomy.noLayer', { layer: c.layer, template: template.name }),
         from: c.from,

@@ -1355,6 +1355,7 @@ export const it: Record<MessageKey, string> = {
   'documents.side': 'Lato',
   'documents.front': 'Fronte',
   'documents.back': 'Retro',
+  'documents.bothSides': 'Fronte e retro',
   'documents.width': 'Larghezza (mm)',
   'documents.findBy': 'Trova la carta per',
   'documents.byNumber': 'Numero di riga',
@@ -1659,7 +1660,7 @@ export const it: Record<MessageKey, string> = {
   'ai.saveHint':
     'Puoi anche salvarla come file: Claude Code legge le skill dalla cartella .claude/skills della tua cartella utente o di un progetto. La skill è in inglese, la lingua che gli agenti seguono meglio.',
   'ai.webHint':
-    "Nella versione web la skill trova da sola il comando naibi: usa l'app desktop se è installata, altrimenti propone di installare il comando (serve Node.js). Perché funzioni devi autorizzare il tuo agente a scaricare da GitHub e a installare il comando e gli aggiornamenti: ti chiederà il permesso la prima volta. Si aggiorna anche da sola, insieme al comando, quando esce una nuova versione. La skill è in inglese, la lingua che gli agenti seguono meglio.",
+    "Nella versione web la skill trova da sola il comando naibi: usa l'app desktop se è installata, altrimenti propone di installare il comando (serve Node.js, che se manca l'agente propone di installare). Perché funzioni devi autorizzare il tuo agente a scaricare da GitHub e a installare il comando e gli aggiornamenti: ti chiederà il permesso la prima volta. Si aggiorna anche da sola, insieme al comando, quando esce una nuova versione. La skill è in inglese, la lingua che gli agenti seguono meglio.",
   'ai.notBuilt':
     "Il comando naibi usato dalla skill funziona solo dopo aver compilato l'app una volta: esegui `npm run build` nella cartella del codice di Naibi.",
   'ai.copy': 'Copia la skill',

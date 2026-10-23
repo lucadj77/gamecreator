@@ -267,6 +267,30 @@ describe('anatomia della carta', () => {
     })
   })
 
+  it('fronte e retro: sides: both e (back) sulle etichette del retro', () => {
+    const both = anatomySource(
+      'Personaggi/1',
+      [
+        { layer: 'nome', label: 'Nome', face: 'front' },
+        { layer: 'logo', label: 'Logo', face: 'back' }
+      ],
+      true
+    )
+    expect(both).toBe(
+      '```anatomy\ncard: Personaggi/1\nsides: both\n- nome: Nome\n- logo (back): Logo\n```'
+    )
+    const [b] = parseDocument(both)
+    expect(b).toMatchObject({
+      kind: 'anatomy',
+      both: true,
+      callouts: [{ layer: 'nome' }, { layer: 'logo', face: 'back' }],
+      bad: []
+    })
+    // le due opzioni insieme si leggono ancora
+    const [c] = parseDocument('```anatomy\ncard: X/1\n- a (back, left): A\n```')
+    expect(c).toMatchObject({ callouts: [{ layer: 'a', face: 'back', side: 'left' }] })
+  })
+
   it('segnala righe, carte e livelli sbagliati', () => {
     const templates = [
       {

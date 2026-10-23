@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { Fragment, useMemo, useRef, useState } from 'react'
 import type { LoadedSet } from '../../../shared/project'
 import { isDrawn, type Layer, type Side, type Template } from '../../../shared/model/template'
 import { bindRow } from '../../../shared/model/bind'
@@ -11,6 +11,7 @@ import {
   isMessage,
   parseCardRef,
   anatomyCardSource,
+  calloutFace,
   type Anatomy,
   type CardRef
 } from '../../../shared/model/document'
@@ -21,6 +22,9 @@ import AnatomyDiagram from '../render/AnatomyDiagram'
 import { useBindContext } from '../render/assets'
 import Segmented from './Segmented'
 import FormattedField, { TextFormatBar } from './TextFormatBar'
+
+/** Chiave dell'etichetta di un livello: con fronte e retro lo stesso nome può stare su entrambi */
+const labelKey = (face: Side, layer: string): string => `${face}:${layer}`
 
 /** Carte mostrate al massimo nella griglia: con un set grande si cerca per nome */
 const MAX_SHOWN = 60
@@ -104,10 +108,18 @@ export default function InsertCardDialog({
   const key =
     keyChoice !== null && (keyChoice === '' || headers.includes(keyChoice)) ? keyChoice : defaultKey
   const [side, setSide] = useState<Side>(start?.ref.side ?? 'front')
+  /** Anatomia con fronte e retro affiancati */
+  const [both, setBoth] = useState(initial?.both ?? false)
   const [width, setWidth] = useState(start?.ref.width ? String(start.ref.width) : '')
-  /** Etichette dell'anatomia per livello; un livello senza voce non si spiega */
+  /** Etichette dell'anatomia per faccia e livello (labelKey); un livello senza voce non si spiega */
   const [labels, setLabels] = useState<Map<string, string>>(
-    () => new Map(initial?.callouts.map((c) => [c.layer, c.label]) ?? [])
+    () =>
+      new Map(
+        initial?.callouts.map((c) => [
+          labelKey(calloutFace(initial, c, start?.ref.side ?? 'front'), c.layer),
+          c.label
+        ]) ?? []
+      )
   )
   const [caption, setCaption] = useState<string | null>(null)
   /** L'ultima etichetta dell'anatomia in cui si è scritto: la barra di formattazione agisce lì */
@@ -129,12 +141,18 @@ export default function InsertCardDialog({
     ? {
         set: set.name,
         ...(byField ? { field: key, value } : { row: current + 1 }),
-        side,
+        side: anatomy && both ? 'front' : side,
         ...(Number(width) > 0 ? { width: Number(width) } : {})
       }
     : null
   const alt = caption ?? cards[current]?.label ?? ''
-  const layers = template ? layerNames(side === 'front' ? template.front : template.back) : []
+  /** Le facce di cui si spiegano i livelli, ciascuna con i suoi */
+  const faces: { face: Side; layers: ReturnType<typeof layerNames> }[] = template
+    ? (anatomy && both ? (['front', 'back'] as Side[]) : [side]).map((face) => ({
+        face,
+        layers: layerNames(face === 'front' ? template.front : template.back)
+      }))
+    : []
   const text = !ref
     ? ''
     : pick !== undefined
@@ -142,13 +160,17 @@ export default function InsertCardDialog({
       : anatomy
         ? anatomySource(
             cardRefSource(ref),
-            layers
-              .filter((l) => labels.has(l.name))
-              .map((l) => ({
-                layer: l.name,
-                label: labels.get(l.name)!.trim() || l.name,
-                side: initial?.callouts.find((c) => c.layer === l.name)?.side
-              }))
+            faces.flatMap(({ face, layers }) =>
+              layers
+                .filter((l) => labels.has(labelKey(face, l.name)))
+                .map((l) => ({
+                  layer: l.name,
+                  label: labels.get(labelKey(face, l.name))!.trim() || l.name,
+                  face,
+                  side: initial?.callouts.find((c) => c.layer === l.name)?.side
+                }))
+            ),
+            both
           )
         : `![${alt.replace(/[[\]]/g, '')}](${cardRefSource(ref)})`
 
@@ -211,14 +233,29 @@ export default function InsertCardDialog({
       <div className="dialog-row">
         <label>
           {t('documents.side')}
-          <Segmented<Side>
-            value={side}
-            options={[
-              ['front', t('documents.front')],
-              ['back', t('documents.back')]
-            ]}
-            onChange={setSide}
-          />
+          {anatomy ? (
+            <Segmented<Side | 'both'>
+              value={both ? 'both' : side}
+              options={[
+                ['front', t('documents.front')],
+                ['back', t('documents.back')],
+                ['both', t('documents.bothSides')]
+              ]}
+              onChange={(v) => {
+                setBoth(v === 'both')
+                if (v !== 'both') setSide(v)
+              }}
+            />
+          ) : (
+            <Segmented<Side>
+              value={side}
+              options={[
+                ['front', t('documents.front')],
+                ['back', t('documents.back')]
+              ]}
+              onChange={setSide}
+            />
+          )}
         </label>
         <label>
           {t('documents.width')}
@@ -254,33 +291,43 @@ export default function InsertCardDialog({
     <div className="anatomy-layers">
       <p className="muted small">{t('documents.anatomyHint')}</p>
       {labels.size > 0 && <TextFormatBar editor={labelField} />}
-      {layers.map((l) => (
-        <div key={l.name} className="anatomy-layer" style={{ paddingLeft: l.depth * 14 }}>
-          <label>
-            <input
-              type="checkbox"
-              checked={labels.has(l.name)}
-              onChange={(e) => {
-                const next = new Map(labels)
-                if (e.target.checked) next.set(l.name, l.name)
-                else next.delete(l.name)
-                setLabels(next)
-              }}
-            />
-            {l.name}
-          </label>
-          {labels.has(l.name) && (
-            <FormattedField
-              singleLine
-              value={labels.get(l.name) ?? ''}
-              placeholder={t('documents.anatomyLabel')}
-              onFocus={(el) => {
-                labelField.current = el
-              }}
-              onChange={(v) => setLabels(new Map(labels).set(l.name, v))}
-            />
+      {faces.map(({ face, layers }) => (
+        <Fragment key={face}>
+          {faces.length > 1 && (
+            <h4>{t(face === 'front' ? 'documents.front' : 'documents.back')}</h4>
           )}
-        </div>
+          {layers.map((l) => {
+            const k = labelKey(face, l.name)
+            return (
+              <div key={k} className="anatomy-layer" style={{ paddingLeft: l.depth * 14 }}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={labels.has(k)}
+                    onChange={(e) => {
+                      const next = new Map(labels)
+                      if (e.target.checked) next.set(k, l.name)
+                      else next.delete(k)
+                      setLabels(next)
+                    }}
+                  />
+                  {l.name}
+                </label>
+                {labels.has(k) && (
+                  <FormattedField
+                    singleLine
+                    value={labels.get(k) ?? ''}
+                    placeholder={t('documents.anatomyLabel')}
+                    onFocus={(el) => {
+                      labelField.current = el
+                    }}
+                    onChange={(v) => setLabels(new Map(labels).set(k, v))}
+                  />
+                )}
+              </div>
+            )
+          })}
+        </Fragment>
       ))}
     </div>
   )

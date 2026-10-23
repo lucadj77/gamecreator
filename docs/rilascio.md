@@ -4,19 +4,41 @@ Ogni versione pubblicata ha le sue novità, scritte in [CHANGELOG.md](../CHANGEL
 
 ## Durante lo sviluppo
 
-Chi unisce una modifica che si vede nell'app aggiunge una riga alla sezione della prossima versione di `CHANGELOG.md`, prima in inglese sotto `### English` e poi in italiano sotto `### Italiano`. Le righe descrivono cosa cambia per chi usa l'app, non come è fatto il codice.
+Chi unisce una modifica che si vede nell'app aggiunge una riga alla sezione della prossima versione di `CHANGELOG.md`, prima in inglese sotto `### English` e poi in italiano sotto `### Italiano`. Le righe descrivono cosa cambia per chi usa l'app, non come è fatto il codice. L'app divide le note con questi due titoli: eventuali sottotitoli vanno a un livello più basso (`####`). Per le versioni ufficiali conviene dividere le righe in **New**/**Nuovo**, **Changed**/**Cambiato** e **Fixed**/**Corretto**; per le beta basta l'elenco.
 
-## Beta e versioni ufficiali
+## Numerazione
 
-Una beta ha un suffisso nel numero: `1.2.0-beta.1`, poi `1.2.0-beta.2` e così via. Quando è pronta, la stessa versione esce come ufficiale con `1.2.0`. Il tag di una beta (`v1.2.0-beta.1`) crea su GitHub una release segnata come pre-release, e l'app mostra l'etichetta "beta" accanto alla versione nella schermata di ingresso.
+I numeri hanno la forma `MAGGIORE.MINORE.CORREZIONE` e dipendono da cosa cambia per chi usa Naibi:
 
-Chi ha installato una beta riceve l'avviso sia delle beta più recenti sia delle versioni ufficiali; chi ha una versione ufficiale riceve solo quello delle ufficiali.
+- **correzione** (1.2.0 → 1.2.1): solo correzioni di difetti, senza voci, opzioni o campi nuovi nei file del progetto. Va a chi ha scelto la stabile, quindi deve essere a basso rischio: un piccolo miglioramento aspetta la minore successiva;
+- **minore** (1.2 → 1.3): funzioni nuove, nuove opzioni, nuovi campi nei file, nuovi comandi o opzioni di `naibi`, piccoli miglioramenti;
+- **maggiore** (1 → 2): un progetto salvato non si apre più correttamente con la versione precedente, o i progetti vecchi vanno convertiti, o un comando `naibi` cambia nome o significato, o si toglie una funzione. Il comando `naibi` conta come interfaccia pubblica: gli agenti IA e la skill dipendono dai suoi nomi.
+
+Le minori e le maggiori passano dalle beta: `1.3.0-beta.1`, `1.3.0-beta.2`, poi `1.3.0`. Una correzione esce direttamente come `1.2.1`.
+
+## Canali
+
+Nel menu ⚙ dell'app, **Aggiornamenti** sceglie il canale:
+
+- **Stabile** (di base per una nuova installazione) propone solo le versioni ufficiali. Il controllo chiede a GitHub `releases/latest`, che non conta le pre-release.
+- **Beta** propone anche le beta: il controllo legge le ultime 30 release e prende la più recente, beta o ufficiale.
+
+La scelta sta in `update.json` nella cartella dei dati dell'app. Alla prima apertura di una versione che ha il canale, se la versione installata è una beta si salva Beta: così chi prova le beta resta in beta anche dopo aver ricevuto la versione ufficiale. Passando da Beta a Stabile non si torna indietro di versione: si aspetta la prima ufficiale più recente di quella installata.
+
+L'installazione automatica (setup di Windows e AppImage di Linux) usa electron-updater puntato sui file `latest.yml` / `latest-linux.yml` della release scelta dal controllo, non sulla più recente del feed di GitHub; il Mac scarica lo zip della stessa release. La versione web stabile sta all'indirizzo principale, la beta in `beta/` (vedi [web.md](web.md)). La skill e il pacchetto `naibi-cli` seguono la stabile, salvo chi ha già una beta.
+
+## Rami
+
+- `main` porta la prossima minore. Le beta escono da qui.
+- `release/1.2` nasce dal tag `v1.2.0` e riceve solo le correzioni della 1.2. Si abbandona quando esce la 1.3.0.
+
+Un difetto della versione stabile si corregge su un ramo nato da `release/1.2`, con una PR verso `release/1.2`; poi si alza la versione (`1.2.1`) con la sua sezione nel changelog, si pubblica con l'azione Release avviata su `release/1.2` e infine si unisce `release/1.2` in `main`. Gli unici conflitti attesi sono la versione in `package.json` (resta quella di `main`) e `CHANGELOG.md` (si tengono entrambe le sezioni, in ordine di uscita). Un difetto che c'è solo nella beta si corregge su `main` e basta.
 
 ## Al momento del rilascio
 
-1. Controlla che la sezione `## x.y.z` in cima a `CHANGELOG.md` sia completa e che `package.json` abbia la stessa versione (`npm version x.y.z --no-git-tag-version` aggiorna anche `package-lock.json`). Si alza il secondo numero per le funzioni nuove, il terzo per le sole correzioni.
-2. Unisci tutto in `main`.
-3. Su GitHub, **Actions → Release → Run workflow** (ramo `main`): l'azione crea il tag della versione di `package.json` sull'ultimo commit di `main` e avvia Build e Web su quel tag. Si ferma se il tag esiste già o se manca la sezione in `CHANGELOG.md`. La stessa azione la può avviare anche un'IA con accesso a GitHub.
+1. Controlla che la sezione `## x.y.z` in cima a `CHANGELOG.md` sia completa e che `package.json` abbia la stessa versione (`npm version x.y.z --no-git-tag-version` aggiorna anche `package-lock.json`).
+2. Unisci tutto nel ramo da cui esce la versione: `main`, o `release/x.y` per una correzione della stabile.
+3. Su GitHub, **Actions → Release → Run workflow** sul ramo: l'azione crea il tag della versione di `package.json` sull'ultimo commit del ramo e avvia Build e Web su quel tag. Si ferma se il tag esiste già o se manca la sezione in `CHANGELOG.md`. La stessa azione la può avviare anche un'IA con accesso a GitHub.
 
    In alternativa, dal Mac, nella cartella di Naibi:
 
@@ -28,14 +50,14 @@ Chi ha installato una beta riceve l'avviso sia delle beta più recenti sia delle
    git push origin v1.2.0-beta.1
    ```
 
-   con il numero della versione al posto di `1.2.0-beta.1`. Il comando su `package-lock.json` scarta la copia modificata da `npm install`, che altrimenti blocca `git pull`: in quel caso il tag finirebbe su una versione vecchia e GitHub lo rifiuterebbe.
+   con il ramo e il numero della versione al posto di `main` e `1.2.0-beta.1`. Il comando su `package-lock.json` scarta la copia modificata da `npm install`, che altrimenti blocca `git pull`: in quel caso il tag finirebbe su una versione vecchia e GitHub lo rifiuterebbe.
 
-4. L'azione **Build** di GitHub costruisce i pacchetti per Mac, Windows e Linux e pubblica la release con le novità. Se il tag non corrisponde alla versione di `package.json`, o manca la sezione in `CHANGELOG.md`, la release non viene creata e l'azione lo dice nel log.
+4. L'azione **Build** di GitHub costruisce i pacchetti per Mac, Windows e Linux e pubblica la release con le novità; un tag con il trattino (`v1.3.0-beta.1`) diventa una pre-release. Se il tag non corrisponde alla versione di `package.json`, o manca la sezione in `CHANGELOG.md`, la release non viene creata e l'azione lo dice nel log. L'azione **Web** pubblica di nuovo il sito, con la stabile e la beta.
 
-Da quel momento le copie di Naibi già installate segnalano la nuova versione al primo avvio.
+Da quel momento le copie di Naibi già installate segnalano la nuova versione al primo avvio, secondo il loro canale.
 
 ## Come funziona il controllo
 
-All'avvio Naibi chiede a GitHub le ultime release pubblicate di `lucadj77/naibi`. Se tra queste ce n'è una più recente della versione installata (le beta contano solo per chi ha una beta) mostra una striscia in alto con **Novità** e **Scarica**, che apre la pagina della release nel browser. **Salta questa versione** non la ripropone più; **Ricordamelo più tardi** la nasconde fino al prossimo avvio. Senza rete non compare nulla.
+All'avvio Naibi chiede a GitHub l'ultima release del suo canale. Se è più recente della versione installata mostra una striscia in alto con **Novità** e **Aggiorna e riavvia** (o **Scarica**, che apre la pagina della release, dove l'aggiornamento automatico non c'è). **Salta questa versione** non la ripropone più; **Ricordamelo più tardi** la nasconde fino al prossimo avvio. Senza rete non compare nulla. Ogni tentativo di aggiornamento è scritto in `update.log` nella cartella dei dati dell'app.
 
-L'aggiornamento non si installa da solo: l'app non è firmata con un certificato Apple o Microsoft, e senza firma macOS non permette di sostituirla in automatico.
+L'app non è firmata con un certificato Apple o Microsoft: sul Mac l'aggiornamento sostituisce l'app con uno script dopo la chiusura, e Windows può segnalare il programma scaricato come sconosciuto.

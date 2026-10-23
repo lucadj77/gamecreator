@@ -143,6 +143,7 @@ import StartScreen from './components/StartScreen'
 import { thumbnailTemplate } from '../../shared/model/thumbnail'
 import UpdateNotice from './components/UpdateNotice'
 import { checkForUpdateNow } from './components/updateCheck'
+import type { UpdateChannel } from '../../shared/update'
 import Tooltip from './components/Tooltip'
 import SidebarPreview from './components/SidebarPreview'
 import { useSidebarPreview } from './components/useSidebarPreview'
@@ -206,6 +207,21 @@ function App(): React.JSX.Element {
     } catch {
       // preferenza non essenziale
     }
+  }
+  // canale degli aggiornamenti; nel browser dice quale versione web è aperta
+  const [channel, setChannel] = useState<UpdateChannel | null>(null)
+  useEffect(() => {
+    window.api.updateChannel().then(setChannel, () => {})
+  }, [])
+  const changeChannel = (c: UpdateChannel): void => {
+    if (window.api.isWeb) {
+      // la stabile sta all'indirizzo principale, la beta nella sottocartella beta/
+      const here = location.pathname.replace(/[^/]*$/, '')
+      location.href = c === 'beta' ? `${here}beta/` : here.replace(/beta\/$/, '')
+      return
+    }
+    setChannel(c)
+    window.api.setUpdateChannel(c).then(checkForUpdateNow, () => {})
   }
   const [theme, setTheme] = useState(loadTheme)
   const changeTheme = (th: Theme): void => {
@@ -2082,6 +2098,22 @@ function App(): React.JSX.Element {
                 </option>
               ))}
             </select>
+            {channel && (
+              <>
+                <label className="muted" htmlFor="ui-channel" title={t('app.channelHint')}>
+                  {t(window.api.isWeb ? 'app.webChannel' : 'app.channel')}
+                </label>
+                <select
+                  id="ui-channel"
+                  value={channel}
+                  title={t('app.channelHint')}
+                  onChange={(e) => changeChannel(e.target.value as UpdateChannel)}
+                >
+                  <option value="stable">{t('app.channel.stable')}</option>
+                  <option value="beta">{t('app.channel.beta')}</option>
+                </select>
+              </>
+            )}
             <label className="muted" htmlFor="ui-language">
               {t('app.language')}
             </label>

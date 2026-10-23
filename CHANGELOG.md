@@ -5,6 +5,22 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.30
+
+### English
+
+- **Update channel**: in the ⚙ menu, **Updates** chooses between **Stable** (official versions only) and **Beta** (test versions too). If you already have a beta you stay on Beta, also after the official 1.2.0. Going from Beta back to Stable does not install an older version: Naibi waits for the next official one.
+- Automatic updates on Windows and Linux now install exactly the version shown in the notice.
+- Web version: the official version is at the main address and the beta at `/beta/`; **Version** in the ⚙ menu switches between them.
+- The AI skill installs the `naibi-cli` package from the latest official version, and from the betas only if you already have a beta or ask for it.
+
+### Italiano
+
+- **Canale degli aggiornamenti**: nel menu ⚙, **Aggiornamenti** sceglie tra **Stabile** (solo le versioni ufficiali) e **Beta** (anche quelle di prova). Chi ha già una beta resta su Beta, anche dopo la 1.2.0 ufficiale. Tornando da Beta a Stabile Naibi non installa una versione più vecchia: aspetta la prossima ufficiale.
+- L'aggiornamento automatico su Windows e Linux installa ora esattamente la versione indicata nell'avviso.
+- Versione web: la versione ufficiale sta all'indirizzo principale e la beta in `/beta/`; **Versione** nel menu ⚙ passa dall'una all'altra.
+- La skill per le IA installa il pacchetto `naibi-cli` dall'ultima versione ufficiale, e dalle beta solo se ne hai già una o lo chiedi.
+
 ## 1.2.0-beta.29
 
 ### English

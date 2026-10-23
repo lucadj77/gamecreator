@@ -1,9 +1,24 @@
 // Controllo degli aggiornamenti: l'app confronta la propria versione con l'ultima release
 // pubblicata su GitHub e ne mostra le novità. Le note arrivano da CHANGELOG.md, con una parte in
 // inglese e una in italiano (vedi docs/rilascio.md). Le versioni con un suffisso (1.2.0-beta.1)
-// sono beta: le segnala solo a chi ha già una beta.
+// sono beta: le segnala solo a chi ha scelto il canale Beta.
 
+/** Le ultime release, beta comprese: per il canale Beta */
 export const RELEASES_API = 'https://api.github.com/repos/lucadj77/naibi/releases?per_page=30'
+/** L'ultima release ufficiale (GitHub non vi conta le pre-release): per il canale Stabile */
+export const LATEST_RELEASE_API = 'https://api.github.com/repos/lucadj77/naibi/releases/latest'
+
+/** stable: solo le versioni ufficiali; beta: anche le beta, e le ufficiali più recenti */
+export type UpdateChannel = 'stable' | 'beta'
+
+/**
+ * Il canale di un'installazione: quello scelto, o senza scelta Beta per chi ha una beta (i
+ * collaudatori restano in beta anche dopo la versione ufficiale) e Stabile per gli altri
+ */
+export function channelFor(version: string, saved: unknown): UpdateChannel {
+  if (saved === 'stable' || saved === 'beta') return saved
+  return isPrerelease(version) ? 'beta' : 'stable'
+}
 
 /** auto: l'app si aggiorna da sola; manual: si scarica il pacchetto dalla pagina della release */
 export type UpdateMode = 'auto' | 'manual'
@@ -55,14 +70,19 @@ export function compareVersions(a: string, b: string): number {
 }
 
 /**
- * L'aggiornamento da proporre tra le release di GitHub: la più recente tra quelle pubblicate,
- * se lo è più della versione corrente. Le beta valgono solo per chi ha già una beta.
+ * L'aggiornamento da proporre tra le release di GitHub (un elenco, o la sola ultima ufficiale): la
+ * più recente, se lo è più della versione corrente. Le beta valgono solo per il canale Beta. Chi
+ * passa da Beta a Stabile non torna indietro: aspetta la prima ufficiale più recente della sua beta.
  */
-export function updateFromReleases(releases: unknown, current: string): UpdateInfo | null {
-  if (!Array.isArray(releases)) return null
-  const beta = isPrerelease(current)
+export function updateFromReleases(
+  releases: unknown,
+  current: string,
+  channel: UpdateChannel = channelFor(current, null)
+): UpdateInfo | null {
+  const list = Array.isArray(releases) ? releases : releases ? [releases] : []
+  const beta = channel === 'beta'
   let best: Record<string, unknown> | null = null
-  for (const r of releases) {
+  for (const r of list) {
     if (!r || typeof r !== 'object') continue
     const tag = (r as Record<string, unknown>).tag_name
     if (typeof tag !== 'string' || (r as Record<string, unknown>).draft) continue

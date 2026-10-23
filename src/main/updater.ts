@@ -1,15 +1,23 @@
 import { app, net, type WebContents } from 'electron'
 import { spawn, execFile } from 'child_process'
 import { constants } from 'fs'
-import { access, appendFile, mkdir, readdir, rm, writeFile } from 'fs/promises'
+import { access, appendFile, mkdir, readFile, readdir, rm, writeFile } from 'fs/promises'
 import { tmpdir } from 'os'
 import { dirname, join, resolve } from 'path'
 import { promisify } from 'util'
-import { isPrerelease, type UpdateMode } from '../shared/update'
+import {
+  channelFor,
+  LATEST_RELEASE_API,
+  RELEASES_API,
+  updateFromReleases,
+  type UpdateChannel,
+  type UpdateInfo,
+  type UpdateMode
+} from '../shared/update'
 
-// Aggiornamento dall'app. Su Windows (installato con il setup) e Linux (AppImage) lo fa
-// electron-updater, che legge i file beta.yml / latest.yml pubblicati con la release e sostituisce
-// l'app senza firma. Sul Mac Squirrel vuole una firma Apple vera: l'app scarica lo zip della
+// Aggiornamento dall'app. Il controllo sceglie la release secondo il canale (Stabile o Beta). Su
+// Windows (installato con il setup) e Linux (AppImage) la installa electron-updater, puntato sui
+// file latest.yml / latest-linux.yml di quella release, e sostituisce l'app senza firma. Sul Mac Squirrel vuole una firma Apple vera: l'app scarica lo zip della
 // release (scaricato così non ha la quarantena), lo estrae accanto a sé e, appena si chiude, uno
 // script la sostituisce e la riapre. La versione portabile di Windows e il .deb si aggiornano a
 // mano, dalla pagina della release.
@@ -43,6 +51,45 @@ export async function updateMode(): Promise<UpdateMode> {
     return (await writable(dirname(bundle))) && (await writable(bundle)) ? 'auto' : 'manual'
   }
   return 'manual'
+}
+
+/** Il canale scelto in Impostazioni, in <dati dell'app>/update.json */
+const channelPath = (): string => join(app.getPath('userData'), 'update.json')
+
+/**
+ * Il canale degli aggiornamenti. La prima volta lo si salva secondo la versione: chi ha una beta
+ * resta in Beta anche quando riceverà la versione ufficiale, che da sola non lo direbbe più.
+ */
+export async function updateChannel(): Promise<UpdateChannel> {
+  let saved: unknown = null
+  try {
+    saved = (JSON.parse(await readFile(channelPath(), 'utf8')) as { channel?: unknown }).channel
+  } catch {
+    // ancora nessuna scelta
+  }
+  const channel = channelFor(app.getVersion(), saved)
+  if (saved !== channel) await setUpdateChannel(channel).catch(() => undefined)
+  return channel
+}
+
+export async function setUpdateChannel(channel: UpdateChannel): Promise<void> {
+  await mkdir(dirname(channelPath()), { recursive: true })
+  await writeFile(channelPath(), JSON.stringify({ channel }, null, 2) + '\n')
+}
+
+/** La versione da proporre nel canale scelto: la Stabile chiede la sola ultima ufficiale */
+export async function checkForUpdate(): Promise<UpdateInfo | null> {
+  const channel = await updateChannel()
+  const res = await net.fetch(channel === 'stable' ? LATEST_RELEASE_API : RELEASES_API, {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': `Naibi/${app.getVersion()}`
+    }
+  })
+  // senza versioni ufficiali GitHub risponde 404: nessun aggiornamento
+  if (res.status === 404 && channel === 'stable') return null
+  if (!res.ok) throw new Error(`GitHub ${res.status}`)
+  return updateFromReleases(await res.json(), app.getVersion(), channel)
 }
 
 /** Registro dell'aggiornamento, per capire perché non è riuscito: <dati dell'app>/update.log */
@@ -85,8 +132,9 @@ async function install(version: string, sender: WebContents): Promise<void> {
   if (!autoUpdater.listenerCount('error')) autoUpdater.on('error', (e) => log('error', [e]))
   autoUpdater.autoDownload = false
   autoUpdater.autoInstallOnAppQuit = false
-  // chi ha una beta riceve anche le beta, come nel controllo dell'app
-  autoUpdater.allowPrerelease = isPrerelease(app.getVersion())
+  // la release scelta dal controllo, non la più recente del feed di GitHub: con le correzioni della
+  // stabile (1.2.1) uscite dopo una beta (1.3.0-beta.3) le due direbbero versioni diverse
+  autoUpdater.setFeedURL({ provider: 'generic', url: `${DOWNLOAD}/v${version}` })
   autoUpdater.removeAllListeners('download-progress')
   autoUpdater.on('download-progress', (p) => progress(p.percent / 100))
   const found = await autoUpdater.checkForUpdates()

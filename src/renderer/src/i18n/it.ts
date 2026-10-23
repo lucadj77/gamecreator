@@ -209,6 +209,12 @@ export const it: Record<MessageKey, string> = {
   'tip.selectNone': "Tieni solo la carta mostrata nell'anteprima (Esc)",
   'panel.moveRight': 'Sposta il pannello a destra',
   'panel.moveLeft': 'Sposta il pannello a sinistra',
+  'app.channel': 'Aggiornamenti',
+  'app.webChannel': 'Versione',
+  'app.channel.stable': 'Stabile',
+  'app.channel.beta': 'Beta',
+  'app.channelHint':
+    'Stabile propone solo le versioni ufficiali. Beta propone anche quelle di prova, con le novità prima e più probabilità di difetti. Tornando da Beta a Stabile non si installa una versione più vecchia: si aspetta la prossima ufficiale.',
   'app.theme': 'Tema',
   'app.theme.system': 'Sistema',
   'app.theme.light': 'Chiaro',

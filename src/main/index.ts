@@ -13,7 +13,13 @@ import { htmlToPdf } from './export/docPdf'
 import { dropDeleted, listDeleted, readDeleted } from './project/trash'
 import { readBackupVersion, readPrinted, savePrinted } from './project/versions'
 import { fetchGoogleSheet } from './project/googleSheets'
-import { installUpdate, updateMode } from './updater'
+import {
+  checkForUpdate,
+  installUpdate,
+  setUpdateChannel,
+  updateChannel,
+  updateMode
+} from './updater'
 import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
 import { saveData, type DataChanges } from './project/save'
@@ -60,7 +66,7 @@ import { IMAGE_EXTENSIONS } from '../shared/model/assets'
 import { downloadGoogleFont } from './library/googleFonts'
 import { adoptLegacyData } from './legacyData'
 import { runCli } from './cli'
-import { RELEASES_API, updateFromReleases } from '../shared/update'
+import type { UpdateChannel } from '../shared/update'
 import { backupDirFor, backupSettingsFile, defaultBackupRoot } from './project/backupPaths'
 import {
   autoBackup,
@@ -478,16 +484,11 @@ function registerIpc(): void {
   ipcMain.handle('app:version', () => app.getVersion())
   // l'ultima release su GitHub, se è più recente di questa versione; senza rete la richiesta
   // fallisce, e il renderer all'avvio tace mentre a un controllo chiesto a mano lo dice
-  ipcMain.handle('update:check', async () => {
-    const res = await net.fetch(RELEASES_API, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'User-Agent': `Naibi/${app.getVersion()}`
-      }
-    })
-    if (!res.ok) throw new Error(`GitHub ${res.status}`)
-    return updateFromReleases(await res.json(), app.getVersion())
-  })
+  ipcMain.handle('update:check', () => checkForUpdate())
+  ipcMain.handle('update:channel', () => updateChannel())
+  ipcMain.handle('update:set-channel', (_, channel: UpdateChannel) =>
+    setUpdateChannel(channel === 'beta' ? 'beta' : 'stable')
+  )
   ipcMain.handle('update:mode', () => updateMode())
   ipcMain.handle('update:install', (e, version: string) => installUpdate(version, e.sender))
   ipcMain.handle('ai:save-skill', async (_, folder: string, text: string) => {

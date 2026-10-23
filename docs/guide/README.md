@@ -57,6 +57,8 @@ The ⚙ button at the top right, on every screen, opens the settings: the interf
 
 When a new version is out, a strip appears at the top of the window at startup: **What's new** shows what changes, **Update and restart** downloads the new version, installs it and reopens Naibi. This works for Naibi installed with the setup on Windows, for the AppImage on Linux, and on the Mac for the app in Applications (or another folder you can write to); if there are unsaved changes Naibi asks first. The Windows portable version, the .deb package and an app opened from the downloaded disk image have **Download** instead, which opens the page to download it; the same happens if the automatic update fails. **Skip this version** stops showing it, **Remind me later** hides it until the next start.
 
+In the ⚙ menu, **Updates** chooses the channel. **Stable** offers only official versions; **Beta** also offers the test versions, which bring new features earlier but may have a few more bugs. If you already had a beta, you are on Beta. Going from Beta back to Stable does not install an older version: Naibi waits for the next official one.
+
 To create a project you write its name and location. The default location is `Documents/Naibi`; the data file can be Excel (`.xlsx`, recommended) or OpenDocument (`.ods`).
 
 ![The window to create a new project](img/nuovo-progetto.png)

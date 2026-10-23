@@ -1,4 +1,4 @@
-import type { UpdateInfo, UpdateMode } from './update'
+import type { UpdateChannel, UpdateInfo, UpdateMode } from './update'
 import type {
   DeletedContent,
   DeletedItem,
@@ -280,6 +280,9 @@ export interface Api {
   naibiCommand(): Promise<{ command: string; ready: boolean }>
   /** L'ultima versione pubblicata, se è più recente di questa; null anche senza rete */
   checkForUpdate(): Promise<UpdateInfo | null>
+  /** Canale degli aggiornamenti scelto in Impostazioni (Stabile o Beta) */
+  updateChannel(): Promise<UpdateChannel>
+  setUpdateChannel(channel: UpdateChannel): Promise<void>
   /** Se questa installazione si aggiorna da sola (setup di Windows, AppImage, Mac in una cartella scrivibile) */
   updateMode(): Promise<UpdateMode>
   /** Scarica la versione e riavvia l'app aggiornata; il progresso arriva a onUpdateProgress */

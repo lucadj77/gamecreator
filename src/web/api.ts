@@ -264,6 +264,10 @@ export const webApi: Api = {
   naibiCommand: async () => ({ command: '', ready: true }),
   // chi apre il sito ha sempre l'ultima versione
   checkForUpdate: async () => null,
+  // la versione web stabile sta all'indirizzo principale, la beta in /beta/
+  updateChannel: async () =>
+    /\/beta\/?$/.test(location.pathname.replace(/[^/]*$/, '')) ? 'beta' : 'stable',
+  setUpdateChannel: async () => {},
   updateMode: async () => 'manual',
   installUpdate: async () => {},
   onUpdateProgress: () => () => {},

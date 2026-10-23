@@ -1,6 +1,8 @@
 # Versione web (src/web, docs/web.md): si costruisce sulle PR che toccano il codice e si pubblica
 # su GitHub Pages a ogni tag v*, insieme alla release dell'app, oppure a mano (Actions → Web →
-# Run workflow). Serve una volta Settings → Pages → Source: GitHub Actions.
+# Run workflow). Il sito ha due versioni: la stabile all'indirizzo principale e la beta in beta/
+# (scripts/web-versions.mjs sceglie i tag). Serve una volta Settings → Pages → Source: GitHub
+# Actions.
 name: Web
 
 on:
@@ -14,6 +16,7 @@ on:
       - package-lock.json
       - vite.web.config.mts
       - tsconfig.webapp.json
+      - scripts/web-versions.mjs
       - .github/workflows/web.yml
 
 permissions:
@@ -24,17 +27,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # servono i tag per scegliere le versioni da pubblicare
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      # senza gli script di installazione: Electron qui non serve
-      - run: npm ci --ignore-scripts
-      - run: npm run typecheck:webapp
-      - run: npx vite build -c vite.web.config.mts
+      # sulle PR si costruisce solo il codice della PR, per controllarlo
+      - name: Versione della PR
+        if: github.event_name == 'pull_request'
+        run: |
+          npm ci --ignore-scripts
+          npm run typecheck:webapp
+          npx vite build -c vite.web.config.mts
+          mkdir -p site && cp -R out/web/. site/
+      - name: Versioni da pubblicare
+        if: github.event_name != 'pull_request'
+        run: node scripts/web-versions.mjs >> "$GITHUB_ENV"
+      # ogni versione si costruisce dal suo tag, in una cartella a parte; senza gli script di
+      # installazione: Electron qui non serve
+      - name: Stabile e beta
+        if: github.event_name != 'pull_request'
+        run: |
+          build() {
+            rm -rf "build-$1"
+            git worktree add --detach "build-$1" "$1"
+            (cd "build-$1" && npm ci --ignore-scripts && npx vite build -c vite.web.config.mts)
+          }
+          echo "Stabile: $STABLE, beta: $BETA"
+          build "$STABLE"
+          mkdir -p site && cp -R "build-$STABLE/out/web/." site/
+          if [ "$BETA" != "$STABLE" ]; then build "$BETA"; fi
+          mkdir -p site/beta && cp -R "build-$BETA/out/web/." site/beta/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: out/web
+          path: site
 
   deploy:
     if: github.event_name != 'pull_request'

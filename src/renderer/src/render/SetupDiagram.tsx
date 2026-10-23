@@ -23,6 +23,8 @@ import {
 // come una carta. L'editor dello schema lo usa per disegnare e aggiunge le sue maniglie.
 
 const INK = '#3a3a3c'
+/** Ingrandimento dei testi dentro il foreignObject */
+const ZOOM = 10
 /** Alone sotto le frecce, per staccarle dalle parti scure di carte e plance */
 const HALO = '#ffffff'
 const ZONE = '#8e8e93'
@@ -126,17 +128,23 @@ function Label({
 }): React.JSX.Element {
   // la posizione sta nel gruppo: l'esportazione in SVG converte il foreignObject da sé
   return (
-    <g transform={`translate(${x} ${y})`}>
-      <foreignObject width={w} height={font * LINE * 6} style={{ overflow: 'visible' }}>
-        <div style={{ fontSize: font, lineHeight: LINE, textAlign: align }}>
+    // il testo si impagina 10 volte più grande e si riduce: con un corpo di 3-4 px il browser lo
+    // ingrandirebbe fino al suo minimo
+    <g transform={`translate(${x} ${y}) scale(${1 / ZOOM})`}>
+      <foreignObject
+        width={w * ZOOM}
+        height={font * LINE * 6 * ZOOM}
+        style={{ overflow: 'visible' }}
+      >
+        <div style={{ fontSize: font * ZOOM, lineHeight: LINE, textAlign: align }}>
           <span
             style={
               background
-                ? { background: 'rgba(255,255,255,0.85)', padding: `0 ${font * 0.3}px` }
+                ? { background: 'rgba(255,255,255,0.85)', padding: `0 ${font * 0.3 * ZOOM}px` }
                 : undefined
             }
           >
-            <MarkupInline text={text} unit={1} />
+            <MarkupInline text={text} unit={ZOOM} />
           </span>
         </div>
       </foreignObject>

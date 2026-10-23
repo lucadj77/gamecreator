@@ -24,6 +24,8 @@ const CARD_GAP = 6
 /** Larghezza minima della carta quando si riduce per stare nella pagina */
 const CARD_MIN = 30
 const LINE = 1.25
+/** Ingrandimento dei testi delle etichette dentro il foreignObject */
+const ZOOM = 10
 /** Spazio minimo tra due etichette */
 const SPACING = 1.5
 const INK = '#3a3a3c'
@@ -177,17 +179,23 @@ export default function AnatomyDiagram({
         />
         <circle cx={p.ax} cy={p.ay} r={0.9} fill={INK} stroke={HALO} strokeWidth={0.45} />
         {/* la posizione sta nel gruppo: l'esportazione in SVG converte il foreignObject da sé */}
-        <g transform={`translate(${x} ${p.y})`}>
-          <foreignObject width={labelW} height={p.h + font}>
+        {/* il testo si impagina 10 volte più grande e si riduce: con un corpo di 3-4 px il
+            browser lo ingrandisce fino al suo minimo e il foreignObject lo taglia */}
+        <g transform={`translate(${x} ${p.y}) scale(${1 / ZOOM})`}>
+          <foreignObject
+            width={labelW * ZOOM}
+            height={(p.h + font) * ZOOM}
+            style={{ overflow: 'visible' }}
+          >
             <div
               style={{
-                fontSize: font,
+                fontSize: font * ZOOM,
                 lineHeight: LINE,
                 textAlign: side === 'left' ? 'right' : 'left',
                 color: 'inherit'
               }}
             >
-              <MarkupInline text={p.label} unit={1} />
+              <MarkupInline text={p.label} unit={ZOOM} />
             </div>
           </foreignObject>
         </g>

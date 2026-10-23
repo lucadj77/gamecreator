@@ -17,6 +17,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Documents in other languages: `language: en` (or `lang: en`) at the top of a document, or **Card language** in **Page**, draws its cards and variables in that language; without it a document uses the main language. `naibi export-doc --lang en` exports in another language without changing the file.
 - Missing translations: `naibi check` lists fixed texts, variables and empty `@language` cells still to translate, as warnings that do not change the exit code; `--lang en` checks one language and binds the cards in it. The **Languages** window shows how many texts are left in each language.
 - Card anatomy and table setup: leader lines, points and arrows have a thin light halo, so they stay visible over dark parts of the cards.
+- Card anatomy and table setup: labels are no longer cut off or drawn larger than set when the page preview is small.
 
 ### Italiano
 
@@ -28,6 +29,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Documenti in altre lingue: `language: en` (o `lang: en`) in testa a un documento, o **Lingua delle carte** in **Pagina**, disegna carte e variabili del documento in quella lingua; senza, il documento usa la lingua principale. `naibi export-doc --lang en` esporta in un'altra lingua senza cambiare il file.
 - Traduzioni mancanti: `naibi check` elenca testi fissi, variabili e celle `@lingua` vuote ancora da tradurre, come avvisi che non cambiano il codice di uscita; `--lang en` controlla una lingua sola e lega le carte in quella lingua. La finestra **Lingue** mostra quanti testi restano in ogni lingua.
 - Anatomia della carta e schema del tavolo: linee, punti e frecce hanno un sottile alone chiaro, così restano visibili sopra le parti scure delle carte.
+- Anatomia della carta e schema del tavolo: le etichette non sono più tagliate né più grandi del corpo scelto quando l'anteprima della pagina è piccola.
 
 ## 1.2.0-beta.28
 

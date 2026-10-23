@@ -8,6 +8,7 @@ import { imageVariable, palette, resolveColor, resolveFont } from '../../../shar
 import {
   DOC_PAGES,
   documentText,
+  figureAlign,
   isCardSource,
   parseDocument,
   type DocSettings,
@@ -291,6 +292,7 @@ export async function documentDocx(
         break
       }
       case 'figure': {
+        const jc = `<w:jc w:val="${figureAlign(b.images)}"/>`
         const pics: { run: string; alt: string }[] = []
         for (const img of b.images) {
           const fig = figureOf(img.from)
@@ -315,10 +317,11 @@ export async function documentDocx(
           body.push(
             para(
               pics[0].run,
-              '<w:keepNext/><w:spacing w:after="60" w:line="240" w:lineRule="auto"/><w:jc w:val="center"/>'
+              `<w:keepNext/><w:spacing w:after="60" w:line="240" w:lineRule="auto"/>${jc}`
             )
           )
-          if (pics[0].alt) body.push(para(await inline(pics[0].alt), '<w:pStyle w:val="Caption"/>'))
+          if (pics[0].alt)
+            body.push(para(await inline(pics[0].alt), `<w:pStyle w:val="Caption"/>${jc}`))
           break
         }
         // più immagini affiancate: una tabella senza bordi, con la didascalia sotto ciascuna
@@ -333,7 +336,7 @@ export async function documentDocx(
           )
         )
         body.push(
-          `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:jc w:val="center"/><w:tblBorders>` +
+          `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/>${jc}<w:tblBorders>` +
             `<w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/>` +
             `<w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders></w:tblPr><w:tblGrid>${`<w:gridCol w:w="${w}"/>`.repeat(
               pics.length

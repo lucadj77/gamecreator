@@ -822,7 +822,7 @@ export const it: Record<MessageKey, string> = {
   'doc.card.badRef':
     '"{ref}" non è una carta: scrivi card:Set/numero o card:Set/colonna=valore, per esempio card:Personaggi/nome=Mago',
   'doc.card.badOption':
-    'Opzione sconosciuta "{option}" in "{ref}": usa side=front o side=back, e width=40 (mm)',
+    'Opzione sconosciuta "{option}" in "{ref}": usa side=front o side=back, width=40 (mm) e align=left, center o right',
   'doc.card.noSet': 'Non c\'è un set "{set}"',
   'doc.card.noRow': 'Il set "{set}" non ha la carta {n}',
   'doc.card.noField': 'Il set "{set}" non ha la colonna "{field}"',
@@ -1936,5 +1936,17 @@ export const it: Record<MessageKey, string> = {
   'docTools.styleHint': 'Applica uno stile del progetto al testo selezionato ([testo]{.stile})',
   'docTools.sample': 'testo',
   'docTools.image': 'Immagine',
-  'docTools.imageHint': "Inserisci un'immagine degli asset del progetto"
+  'docTools.imageHint': "Inserisci un'immagine degli asset del progetto",
+  'doc.image.badOption':
+    'Opzione sconosciuta "{option}" in "{ref}": usa width=40 (mm) e align=left, center o right',
+  'docImage.insert': 'Inserisci immagine',
+  'docImage.edit': 'Modifica immagine',
+  'docImage.save': 'Salva',
+  'docImage.choose': 'Scegli…',
+  'docImage.none': 'Nessuna immagine scelta',
+  'docImage.notFound': 'Non si trova negli asset',
+  'docImage.auto': 'auto',
+  'docImage.align': 'Allineamento',
+  'docImage.alignHint':
+    "Larghezza vuota: la misura dell'immagine, ridotta se non ci sta nella pagina. L'allineamento vale per tutta la riga di immagini."
 }

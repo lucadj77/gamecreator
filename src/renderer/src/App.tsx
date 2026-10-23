@@ -3172,7 +3172,12 @@ function SetView({
             />
           </span>
           <span className="action-group">
-            <button disabled={none} onClick={remove} title={t('tip.deleteCards')}>
+            <button
+              className="danger"
+              disabled={none}
+              onClick={remove}
+              title={t('tip.deleteCards')}
+            >
               {t('set.delete')}
             </button>
           </span>

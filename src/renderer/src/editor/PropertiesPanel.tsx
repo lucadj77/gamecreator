@@ -118,7 +118,7 @@ export default function PropertiesPanel({
               <button onClick={cmd.duplicate} title={t('tip.duplicate')}>
                 {t('layers.duplicate')}
               </button>
-              <button onClick={cmd.remove} title={t('tip.delete')}>
+              <button className="danger" onClick={cmd.remove} title={t('tip.delete')}>
                 {t('layers.delete')}
               </button>
             </div>

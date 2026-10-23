@@ -4,6 +4,9 @@ import {
   DEFAULT_DOC_SETTINGS,
   documentProblems,
   documentProperties,
+  figureAlign,
+  imageSourceWith,
+  splitImageSource,
   documentSettings,
   documentText,
   findCard,
@@ -403,5 +406,31 @@ describe('barra di formattazione', () => {
   it('cambia solo il tratto diverso', () => {
     expect(changedRange('abcdef', 'abXYef')).toEqual({ from: 2, to: 4, insert: 'XY' })
     expect(changedRange('aa', 'aaa')).toEqual({ from: 2, to: 2, insert: 'a' })
+  })
+})
+
+describe('opzioni delle immagini', () => {
+  it('larghezza e allineamento dopo ?', () => {
+    expect(splitImageSource('icone/mappa.png?width=40&align=left')).toEqual({
+      path: 'icone/mappa.png',
+      options: { width: 40, align: 'left' },
+      bad: []
+    })
+    expect(splitImageSource('mappa.png?size=3').bad).toEqual(['size=3'])
+    // un indirizzo web resta intero
+    expect(splitImageSource('https://x.it/a.png?w=1').path).toBe('https://x.it/a.png?w=1')
+    expect(imageSourceWith('mappa.png', { width: 30, align: 'right' })).toBe(
+      'mappa.png?width=30&align=right'
+    )
+    expect(imageSourceWith('mappa.png', { align: 'center' })).toBe('mappa.png')
+    expect(parseCardRef('card:Personaggi/1?align=right')).toMatchObject({ align: 'right' })
+    expect(figureAlign([{ src: 'a.png' }, { src: 'card:S/1?align=left' }])).toBe('left')
+    expect(figureAlign([{ src: 'a.png' }])).toBe('center')
+  })
+
+  it('si segnalano le opzioni sbagliate', () => {
+    const problems = documentProblems('![](mappa.png?colore=rosso)\n', { assets: ['mappa.png'] })
+    expect(problems.map((p) => p.message.key)).toContain('doc.image.badOption')
+    expect(documentProblems('![](mappa.png?width=20)\n', { assets: ['mappa.png'] })).toEqual([])
   })
 })

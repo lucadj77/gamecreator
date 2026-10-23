@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react'
+import { useContext } from 'react'
 import { BUILTIN_STYLES } from '../../../shared/model/markup'
 import {
   applyStyle,
@@ -11,7 +11,6 @@ import {
 } from '../../../shared/model/docEdit'
 import { useI18n } from '../i18n/context'
 import { StylesContext } from '../render/assets'
-import AssetPicker from './AssetPicker'
 import type { FormatControl } from './MarkupTextarea'
 import Menu from './Menu'
 import { ImageIcon } from './icons'
@@ -25,7 +24,7 @@ interface Props {
   format: FormatControl
   /** Livello del titolo dove sta il cursore, 0 per un paragrafo */
   level: number
-  onImage(name: string): void
+  onImage(): void
   onTable(): void
   onCard(): void
   onAnatomy(): void
@@ -63,7 +62,6 @@ export default function DocumentToolbar({
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const styles = useContext(StylesContext)
-  const [picking, setPicking] = useState(false)
   const styleNames = [...new Set([...Object.keys(styles), ...Object.keys(BUILTIN_STYLES)])].sort()
 
   const wrap = (mark: WrapMark) => () => run(editor.current, (s, a, b) => toggleWrap(s, a, b, mark))
@@ -141,22 +139,12 @@ export default function DocumentToolbar({
           <ImageIcon /> {t('docTools.image')}
         </>,
         t('docTools.imageHint'),
-        () => setPicking(true)
+        onImage
       )}
       {button(t('documents.table'), t('documents.tableButtonHint'), onTable)}
       {button(t('documents.insertCard'), t('documents.insertCardHint'), onCard)}
       {button(t('documents.anatomy'), t('documents.anatomyButtonHint'), onAnatomy)}
       {button(t('documents.setup'), t('documents.setupButtonHint'), onSetup)}
-      {picking && (
-        <AssetPicker
-          value=""
-          onPick={(name) => {
-            setPicking(false)
-            onImage(name)
-          }}
-          onClose={() => setPicking(false)}
-        />
-      )}
     </div>
   )
 }

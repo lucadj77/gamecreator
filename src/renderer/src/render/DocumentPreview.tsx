@@ -13,9 +13,11 @@ import {
   DOC_PAGES,
   documentSettings,
   documentText,
+  figureAlign,
   imageProblem,
   isCardSource,
   parseDocument,
+  splitImageSource,
   type DocBlock,
   type DocSettings,
   type DocumentContext
@@ -221,7 +223,7 @@ function Block({
     }
     case 'figure':
       return (
-        <div className="doc-figure">
+        <div className={`doc-figure align-${figureAlign(b.images)}`}>
           {b.images.map((img, k) => (
             <Figure
               key={k}
@@ -293,8 +295,15 @@ function CardImage({
 
 function AssetImage({ src, ctx }: { src: string; ctx: DocumentContext }): React.JSX.Element {
   if (/^https?:\/\//i.test(src)) return <img src={src} alt="" />
-  const name = src.replace(/^\{(.*)\}$/, '$1')
+  const { path, options } = splitImageSource(src)
+  const name = path.replace(/^\{(.*)\}$/, '$1')
   const v = imageVariable(name, ctx.variables)
   const r = resolveAsset(v ? v.src : name, ctx.assets ?? [])
-  return r.ok ? <img src={assetUrl(r.path)} alt="" /> : <span className="doc-missing">{src}</span>
+  // con la larghezza scritta l'altezza segue le proporzioni; la pagina resta il limite
+  const style = options.width ? { width: options.width * DOC_UNIT } : undefined
+  return r.ok ? (
+    <img src={assetUrl(r.path)} alt="" style={style} />
+  ) : (
+    <span className="doc-missing">{src}</span>
+  )
 }

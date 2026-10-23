@@ -1007,8 +1007,8 @@ export default function ExportDialog({
               </p>
             ))}
             {/* pochi file (un PDF, un mazzo): si aprono direttamente */}
-            {!window.api.isWeb &&
-              (result.paths?.length ?? 0) <= MAX_OPEN_FILES &&
+            {/* nel browser il file si apre in una scheda o si scarica */}
+            {(result.paths?.length ?? 0) <= MAX_OPEN_FILES &&
               result.paths?.map((f) => (
                 <button
                   key={f}

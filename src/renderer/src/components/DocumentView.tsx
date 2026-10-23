@@ -7,6 +7,7 @@ import {
   documentProblems,
   documentText,
   documentSettings,
+  isCardSource,
   parseDocument,
   withDocumentSettings,
   type Anatomy
@@ -24,6 +25,7 @@ import SetupDialog from './SetupDialog'
 import type { Setup } from '../../../shared/model/setup'
 import MarkupTextarea from './MarkupTextarea'
 import DocumentToolbar from './DocumentToolbar'
+import ImageDialog, { type DocImageValue } from './ImageDialog'
 import DocumentProperties from './DocumentProperties'
 import { headingAt } from '../../../shared/model/docEdit'
 import Menu from './Menu'
@@ -76,6 +78,12 @@ export default function DocumentView({
   const [setupEdit, setSetupEdit] = useState<{ value?: Setup; from?: number; to?: number } | null>(
     null
   )
+  /** Immagine degli asset aperta: nuova, o quella del testo tra from e to */
+  const [imageEdit, setImageEdit] = useState<{
+    value?: DocImageValue
+    from?: number
+    to?: number
+  } | null>(null)
   const [pageOpen, setPageOpen] = useState(false)
   /** Livello del titolo dove sta il cursore, per la barra */
   const [level, setLevel] = useState(0)
@@ -162,6 +170,19 @@ export default function DocumentView({
         : parseDocument(text).find((b) => b.kind === 'anatomy' && b.from <= at && at <= b.to)
     if (found?.kind === 'anatomy') setAnatomyEdit({ value: found, from: found.from, to: found.to })
     else setAnatomyEdit({})
+  }
+
+  /** Apre l'immagine: quella degli asset dove sta il cursore, se c'è */
+  const openImage = (): void => {
+    const at = lastCaret.current === null ? null : (editor.current?.selectionStart ?? null)
+    const img =
+      at === null
+        ? undefined
+        : parseDocument(text)
+            .flatMap((b) => (b.kind === 'figure' ? b.images : []))
+            .find((i) => i.from <= at && at <= i.to && !isCardSource(i.src))
+    if (img) setImageEdit({ value: { alt: img.alt, src: img.src }, from: img.from, to: img.to })
+    else setImageEdit({})
   }
 
   /** Apre lo schema del tavolo: quello dove sta il cursore, se c'è */
@@ -316,7 +337,7 @@ export default function DocumentView({
                 editor={editor}
                 format={format}
                 level={level}
-                onImage={(name) => insertBlock(`![](${name})`)}
+                onImage={openImage}
                 onTable={openTable}
                 onCard={() => setInserting(true)}
                 onAnatomy={openAnatomy}
@@ -384,6 +405,16 @@ export default function DocumentView({
           problems={problems.length}
           onExport={exportAs}
           onClose={() => setExporting(false)}
+        />
+      )}
+      {imageEdit && (
+        <ImageDialog
+          initial={imageEdit.value}
+          onClose={() => setImageEdit(null)}
+          onSave={(md) => {
+            setImageEdit(null)
+            putBlock(md, imageEdit.from, imageEdit.to)
+          }}
         />
       )}
       {tableEdit && (

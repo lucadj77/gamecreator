@@ -158,7 +158,7 @@ export default function GenerateDialog({
                 </label>
                 {list.length > 1 && (
                   <button
-                    className="icon-btn"
+                    className="icon-btn danger"
                     title={t('generate.removeSet')}
                     onClick={() => setList((l) => l.filter((_, j) => j !== i))}
                   >

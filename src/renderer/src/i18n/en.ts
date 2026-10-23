@@ -812,7 +812,7 @@ export const en = {
   'doc.card.badRef':
     '"{ref}" is not a card: write card:Set/number or card:Set/column=value, for example card:Characters/name=Wizard',
   'doc.card.badOption':
-    'Unknown option "{option}" in "{ref}": use side=front or side=back, and width=40 (mm)',
+    'Unknown option "{option}" in "{ref}": use side=front or side=back, width=40 (mm) and align=left, center or right',
   'doc.card.noSet': 'There is no set named "{set}"',
   'doc.card.noRow': 'The set "{set}" has no card {n}',
   'doc.card.noField': 'The set "{set}" has no column "{field}"',
@@ -1913,7 +1913,19 @@ export const en = {
   'docTools.styleHint': 'Apply a style of the project to the selected text ([text]{.style})',
   'docTools.sample': 'text',
   'docTools.image': 'Image',
-  'docTools.imageHint': 'Insert an image of the project assets'
+  'docTools.imageHint': 'Insert an image of the project assets',
+  'doc.image.badOption':
+    'Unknown option "{option}" in "{ref}": use width=40 (mm) and align=left, center or right',
+  'docImage.insert': 'Insert image',
+  'docImage.edit': 'Edit image',
+  'docImage.save': 'Save',
+  'docImage.choose': 'Choose…',
+  'docImage.none': 'No image chosen',
+  'docImage.notFound': 'Not found in the assets',
+  'docImage.auto': 'auto',
+  'docImage.align': 'Alignment',
+  'docImage.alignHint':
+    'Empty width: the size of the image, reduced if it does not fit the page. The alignment applies to the whole row of images.'
 }
 
 export type MessageKey = keyof typeof en

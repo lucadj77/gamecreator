@@ -13,11 +13,11 @@ import {
 } from '../backup'
 
 async function project(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), 'naibi-backup-'))
+  const root = await mkdtemp(join(tmpdir(), 'stella-backup-'))
   const folder = join(root, 'Assedio')
   await mkdir(join(folder, 'assets', 'icons'), { recursive: true })
   await mkdir(join(folder, 'export'), { recursive: true })
-  await writeFile(join(folder, 'naibi.json'), '{"name":"Assedio"}')
+  await writeFile(join(folder, 'stella.json'), '{"name":"Assedio"}')
   await writeFile(join(folder, 'assets', 'icons', 'spada.svg'), '<svg/>')
   await writeFile(join(folder, 'export', 'carte.pdf'), 'pdf')
   await writeFile(join(folder, '.DS_Store'), 'x')
@@ -35,7 +35,7 @@ describe('backup', () => {
 
     const restored = await restoreBackup(item.file, join(folder, '..'))
     expect(restored.endsWith('Assedio 2026-10-19 15.30.05')).toBe(true)
-    expect((await readdir(restored)).sort()).toEqual(['assets', 'naibi.json'])
+    expect((await readdir(restored)).sort()).toEqual(['assets', 'stella.json'])
     expect(await readFile(join(restored, 'assets', 'icons', 'spada.svg'), 'utf8')).toBe('<svg/>')
     // un secondo ripristino non sovrascrive il primo
     expect(await restoreBackup(item.file, join(folder, '..'))).toBe(restored + ' 2')
@@ -53,14 +53,14 @@ describe('backup', () => {
     expect((await readdir(join(dir, 'assets'))).length).toBe(2)
     expect(await backupsSize(dir)).toBeGreaterThan(0)
 
-    const out = await mkdtemp(join(tmpdir(), 'naibi-r-'))
+    const out = await mkdtemp(join(tmpdir(), 'stella-r-'))
     const old = await restoreBackup(first.file, out)
     expect(await readFile(join(old, 'assets', 'icons', 'spada.svg'), 'utf8')).toBe('<svg/>')
     const recent = await restoreBackup(third.file, out)
     expect(await readFile(join(recent, 'assets', 'icons', 'spada.svg'), 'utf8')).toBe(
       '<svg id="2"/>'
     )
-    expect(await readdir(recent)).not.toContain('naibi-backup.json')
+    expect(await readdir(recent)).not.toContain('stella-backup.json')
 
     // tenendo solo l'ultimo, la versione vecchia dell'immagine non serve più
     await pruneBackups(dir, 1)
@@ -72,8 +72,8 @@ describe('backup', () => {
     const dir = join(folder, 'backup')
     await createBackup(folder, 'Assedio', dir, false, new Date(2026, 9, 19, 10, 0, 0))
     const second = await createBackup(folder, 'Assedio', dir, false, new Date(2026, 9, 19, 11, 0))
-    const restored = await restoreBackup(second.file, await mkdtemp(join(tmpdir(), 'naibi-r-')))
-    expect((await readdir(restored)).sort()).toEqual(['assets', 'naibi.json'])
+    const restored = await restoreBackup(second.file, await mkdtemp(join(tmpdir(), 'stella-r-')))
+    expect((await readdir(restored)).sort()).toEqual(['assets', 'stella.json'])
   })
 
   it("automatico: non più di uno all'ora, e tiene solo gli ultimi", async () => {
@@ -103,7 +103,7 @@ describe('backup', () => {
   it('due progetti con lo stesso nome hanno cartelle di backup distinte', async () => {
     const a = await project()
     const b = await project()
-    const root = await mkdtemp(join(tmpdir(), 'naibi-backup-root-'))
+    const root = await mkdtemp(join(tmpdir(), 'stella-backup-root-'))
     // elencare non crea cartelle
     expect(await projectBackupDir(root, 'Assedio', a)).toBe(join(root, 'Assedio'))
     expect(await readdir(root)).toEqual([])

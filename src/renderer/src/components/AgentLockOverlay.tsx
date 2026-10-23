@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import type { AgentLock } from '../../../shared/api'
 import { useI18n } from '../i18n/context'
 
-// Un'IA sta lavorando sul progetto con il comando naibi (`naibi begin`): l'app non si usa finché
-// non finisce (`naibi end`), poi ricarica il progetto da sola. Vedi docs/cli.md.
+// Un'IA sta lavorando sul progetto con il comando stella (`stella begin`): l'app non si usa finché
+// non finisce (`stella end`), poi ricarica il progetto da sola. Vedi docs/cli.md.
 
 export default function AgentLockOverlay({
   lock,

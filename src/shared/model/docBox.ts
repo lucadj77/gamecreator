@@ -1,6 +1,6 @@
 // Riquadri dei documenti: uno sfondo colorato (e se si vuole un bordo) che comincia e finisce dove
 // si decide, per dare risalto a un pezzo di testo o staccare dal foglio immagini bianche senza
-// bordo. Il Markdown non ha un modo per dirlo: Naibi scrive due commenti attorno ai blocchi,
+// bordo. Il Markdown non ha un modo per dirlo: Stella scrive due commenti attorno ai blocchi,
 //   <!-- box fill=#fff3c4 border=#e0b000 -->
 //   ...titoli, paragrafi, elenchi, tabelle, carte...
 //   <!-- /box -->

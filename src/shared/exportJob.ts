@@ -5,7 +5,7 @@ import { localizationOf } from './model/language'
 import { cardTemplate } from './model/inherit'
 import { systemOfSet, usesCopy } from './model/system'
 
-// Carte da esportare: le usano la finestra di esportazione e il comando naibi.
+// Carte da esportare: le usano la finestra di esportazione e il comando stella.
 
 /**
  * Le carte dei set scelti, con i valori della riga applicati al template; con `language` i testi

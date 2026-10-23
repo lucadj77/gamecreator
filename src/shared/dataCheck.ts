@@ -14,13 +14,13 @@ export interface SheetInspection {
   /** Righe vuote tra le intestazioni e l'ultima riga con dati */
   emptyRows: number[]
   duplicateHeaders: string[]
-  /** Colonne con dati ma senza intestazione: Naibi le ignora */
+  /** Colonne con dati ma senza intestazione: Stella le ignora */
   unnamedColumns: string[]
   /** Celle unite (solo .xlsx), come A1:C1 */
   merged: string[]
   /** Celle con un errore (solo .xlsx), come "D4 #DIV/0!" */
   errors: string[]
-  /** Celle con una formula senza risultato salvato (solo .xlsx): Naibi le legge vuote */
+  /** Celle con una formula senza risultato salvato (solo .xlsx): Stella le legge vuote */
   noResult: string[]
 }
 

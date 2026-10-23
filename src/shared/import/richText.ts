@@ -1,5 +1,5 @@
 // Testo formattato di Tabletop Creator (tag in stile TextMeshPro: <b>, <color=#..>, <size=..>,
-// <align=..>, <br>...) convertito nel markup di Naibi (docs/specifica.md, 2.1).
+// <align=..>, <br>...) convertito nel markup di Stella (docs/specifica.md, 2.1).
 
 /** Da mm (unità delle dimensioni di testo di Tabletop Creator) a punti */
 export const MM_TO_PT = 72 / 25.4

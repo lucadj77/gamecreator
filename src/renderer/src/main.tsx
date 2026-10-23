@@ -18,7 +18,7 @@ if (location.hash === '#export') {
     </I18nProvider>
   )
 } else if (location.hash === '#document') {
-  // finestra nascosta che esporta un documento dal comando naibi
+  // finestra nascosta che esporta un documento dal comando stella
   root.render(
     <I18nProvider>
       <DocumentExportPage />

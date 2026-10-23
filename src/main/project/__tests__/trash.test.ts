@@ -7,7 +7,7 @@ import { dropDeleted, listDeleted, readDeleted } from '../trash'
 
 let folder: string
 beforeEach(async () => {
-  folder = await mkdtemp(join(tmpdir(), 'naibi-trash-'))
+  folder = await mkdtemp(join(tmpdir(), 'stella-trash-'))
   const dir = join(folder, 'deleted')
   await mkdir(dir)
   await writeFile(
@@ -52,7 +52,7 @@ describe('cestino del progetto', () => {
   })
 
   it('non legge fuori dal cestino', async () => {
-    await expect(readDeleted(folder, '../naibi 2026-10-21-09-30-00.json')).rejects.toThrow()
+    await expect(readDeleted(folder, '../stella 2026-10-21-09-30-00.json')).rejects.toThrow()
     await expect(dropDeleted(folder, ['altro.txt'])).rejects.toThrow()
   })
 })

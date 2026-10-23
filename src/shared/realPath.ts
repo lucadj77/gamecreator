@@ -2,7 +2,7 @@
 // serve a Tabletop Simulator per trovare le immagini del mazzo. L'utente lo scrive una volta per
 // ogni cartella, e il sito lo ricorda in questo browser.
 
-const KEY = 'naibi.realPath:'
+const KEY = 'stella.realPath:'
 
 /** Cartella scelta a cui appartiene un percorso virtuale: /<nome> */
 export function virtualRoot(path: string): string {

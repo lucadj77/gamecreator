@@ -8,7 +8,7 @@ import { MessageError, msg } from '../../shared/messages'
 export const PROJECT_FOLDERS = ['data', 'templates', 'assets', 'assets/fonts', 'docs', 'notes']
 
 /**
- * Crea un progetto vuoto in <parent>/<nome>: naibi.json e le cartelle. Il file dati si
+ * Crea un progetto vuoto in <parent>/<nome>: stella.json e le cartelle. Il file dati si
  * scrive al primo salvataggio di un set, oppure è la copia di `existing`, un file che c'è già:
  * i suoi fogli diventano set con "Nuovo set". La cartella deve essere nuova o vuota.
  */

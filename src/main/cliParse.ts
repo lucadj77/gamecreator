@@ -3,7 +3,7 @@ import { en } from '../renderer/src/i18n/en'
 import type { Message } from '../shared/messages'
 import type { Sheet } from '../shared/project'
 
-// Parti del comando naibi che non usano Electron: argomenti, messaggi, file di righe.
+// Parti del comando stella che non usano Electron: argomenti, messaggi, file di righe.
 
 export class CliError extends Error {}
 

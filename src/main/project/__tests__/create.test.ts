@@ -10,7 +10,7 @@ describe('createProject', () => {
     const source = join(dir, 'Gioco.csv')
     await writeFile(source, 'nome\nDrago\n')
     const folder = await createProject('Prova', dir, undefined, source)
-    const file = JSON.parse(await readFile(join(folder, 'naibi.json'), 'utf8'))
+    const file = JSON.parse(await readFile(join(folder, 'stella.json'), 'utf8'))
     expect(file.dataFile).toBe('data/Gioco.csv')
     expect(await readFile(join(folder, 'data', 'Gioco.csv'), 'utf8')).toBe('nome\nDrago\n')
     await expect(createProject('Altro', dir, undefined, join(dir, 'x.xls'))).rejects.toThrow()

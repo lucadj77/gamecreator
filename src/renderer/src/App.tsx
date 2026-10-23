@@ -161,7 +161,7 @@ const FILTER_FROM = 12
 const NO_VARIABLES: Variables = {}
 const UI_ZOOM_KEY = 'uiZoom'
 const UI_ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6]
-const WEBSITE = 'https://github.com/lucadj77/naibi'
+const WEBSITE = 'https://github.com/lucadj77/stella'
 
 function loadUiZoom(): number {
   try {
@@ -250,7 +250,7 @@ function App(): React.JSX.Element {
   // la versione installata resta visibile nel titolo della finestra
   const projectName = project?.file.name
   useEffect(() => {
-    document.title = [projectName, `Naibi ${__APP_VERSION__}`].filter(Boolean).join(' — ')
+    document.title = [projectName, `Stella ${__APP_VERSION__}`].filter(Boolean).join(' — ')
   }, [projectName])
   // icone e font importati: gli asset cambiano senza ricaricare il progetto
   useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [setProject])
@@ -314,7 +314,7 @@ function App(): React.JSX.Element {
   const [trashedSheets, setTrashedSheets] = useState<Set<string>>(new Set())
   /** file di progetto da riscrivere (set nuovi) */
   const [fileDirty, setFileDirty] = useState(false)
-  /** Il file dati è cambiato fuori da Naibi e non si è ancora riletto */
+  /** Il file dati è cambiato fuori da Stella e non si è ancora riletto */
   const [dataChanged, setDataChanged] = useState(false)
   /** Finestra Controlla file dati aperta */
   const [checkingData, setCheckingData] = useState(false)
@@ -378,7 +378,7 @@ function App(): React.JSX.Element {
     }
   }, [])
 
-  /** Rilegge solo i dati, quando il file dati è cambiato fuori da Naibi; i template restano */
+  /** Rilegge solo i dati, quando il file dati è cambiato fuori da Stella; i template restano */
   const reloadData = useCallback(async () => {
     try {
       const loaded = await window.api.reloadData()
@@ -434,7 +434,7 @@ function App(): React.JSX.Element {
     setFileDirty(true)
   }
 
-  // Un'IA che lavora con il comando naibi (vedi docs/cli.md): `naibi begin` legge da qui se ci sono
+  // Un'IA che lavora con il comando stella (vedi docs/cli.md): `stella begin` legge da qui se ci sono
   // modifiche non salvate; mentre lavora l'app è bloccata, quando finisce si ricarica il progetto
   const [agentLock, setAgentLock] = useState<{ folder: string; lock: AgentLock } | null>(null)
   const folder = project?.folder ?? null
@@ -936,7 +936,7 @@ function App(): React.JSX.Element {
     const removed = readOnlyData
       ? []
       : (project.diskSheets ?? []).filter((x) => !used.has(x) || trashedSheets.has(x))
-    // grafici e simili che il salvataggio toglierebbe dal file dati: Naibi li tiene quando cambia
+    // grafici e simili che il salvataggio toglierebbe dal file dati: Stella li tiene quando cambia
     // solo celle, li perde quando deve riscrivere il file (fogli nuovi, rinominati o tolti)
     const losses = project.dataFileLosses ?? []
     const lossConfirm = (): boolean =>

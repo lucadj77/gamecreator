@@ -1,8 +1,8 @@
-# Naibi
+# Stella
 
 App desktop per creare carte e altri elementi di gioco a partire da fogli di calcolo. Funziona su file locali.
 
-Il nome viene da _naibi_, la parola con cui nel Trecento si chiamavano in Italia le carte da gioco, dall'arabo _nā'ib_ ("luogotenente"), una delle figure dei mazzi mamelucchi. L'app prima si chiamava GameCreator: i progetti con `gamecreator.json` si aprono ancora.
+L'app prima si chiamava Naibi e, ancora prima, GameCreator: i progetti con `naibi.json` o `gamecreator.json` si aprono ancora.
 
 Stato: apre una cartella di progetto, legge template e fogli dati e disegna le carte di ogni set, in tabella con anteprima o in griglia. Interfaccia in inglese e italiano.
 
@@ -25,17 +25,17 @@ npm run dev     # avvia l'app
 npm test        # test
 ```
 
-Per provare, apri la cartella `examples/demo`. Il comando `naibi` e la skill per gli agenti IA sono descritti in [docs/cli.md](docs/cli.md). Il formato è descritto in [docs/formato.md](docs/formato.md).
+Per provare, apri la cartella `examples/demo`. Il comando `stella` e la skill per gli agenti IA sono descritti in [docs/cli.md](docs/cli.md). Il formato è descritto in [docs/formato.md](docs/formato.md).
 
 ## Installazione
 
-I pacchetti si scaricano dalla pagina [Releases](https://github.com/lucadj77/naibi/releases) o, per una build non ancora rilasciata, dagli artefatti dell'azione **Build** in [Actions](https://github.com/lucadj77/naibi/actions/workflows/build.yml).
+I pacchetti si scaricano dalla pagina [Releases](https://github.com/lucadj77/stella/releases) o, per una build non ancora rilasciata, dagli artefatti dell'azione **Build** in [Actions](https://github.com/lucadj77/stella/actions/workflows/build.yml).
 
-- **Mac**: `Naibi-<versione>-mac-arm64.dmg` per i Mac con chip Apple (M1 e successivi), `-mac-x64.dmg` per quelli con processore Intel. Si apre il .dmg e si trascina Naibi in Applicazioni. L'app non è firmata con un certificato Apple, quindi alla prima apertura macOS dice che non può verificarla: si chiude l'avviso, si apre **Impostazioni di Sistema → Privacy e sicurezza** e in fondo si preme **Apri comunque**. In alternativa, da Terminale: `xattr -dr com.apple.quarantine /Applications/Naibi.app`. Serve solo la prima volta.
-- **Windows**: `Naibi-<versione>-windows-setup.exe`. Senza firma, Windows SmartScreen mostra "Windows ha protetto il PC": si preme **Ulteriori informazioni** e poi **Esegui comunque**. Per la versione portable, che non si installa, c'è `Naibi-<versione>-windows-portable.exe`: si avvia direttamente, anche da una chiavetta, e tiene i suoi dati (progetti recenti, preferenze) nella cartella `Naibi data` accanto al file.
-- **Linux**: `Naibi-<versione>-linux-x86_64.AppImage`, da rendere eseguibile (`chmod +x`) e avviare, oppure `Naibi-<versione>-linux-amd64.deb` per Debian e Ubuntu (per esempio `sudo apt install ./Naibi-1.0.0-linux-amd64.deb`). L'AppImage richiede libfuse2 (su Ubuntu `sudo apt install libfuse2t64`).
+- **Mac**: `Stella-<versione>-mac-arm64.dmg` per i Mac con chip Apple (M1 e successivi), `-mac-x64.dmg` per quelli con processore Intel. Si apre il .dmg e si trascina Stella in Applicazioni. L'app non è firmata con un certificato Apple, quindi alla prima apertura macOS dice che non può verificarla: si chiude l'avviso, si apre **Impostazioni di Sistema → Privacy e sicurezza** e in fondo si preme **Apri comunque**. In alternativa, da Terminale: `xattr -dr com.apple.quarantine /Applications/Stella.app`. Serve solo la prima volta.
+- **Windows**: `Stella-<versione>-windows-setup.exe`. Senza firma, Windows SmartScreen mostra "Windows ha protetto il PC": si preme **Ulteriori informazioni** e poi **Esegui comunque**. Per la versione portable, che non si installa, c'è `Stella-<versione>-windows-portable.exe`: si avvia direttamente, anche da una chiavetta, e tiene i suoi dati (progetti recenti, preferenze) nella cartella `Stella data` accanto al file.
+- **Linux**: `Stella-<versione>-linux-x86_64.AppImage`, da rendere eseguibile (`chmod +x`) e avviare, oppure `Stella-<versione>-linux-amd64.deb` per Debian e Ubuntu (per esempio `sudo apt install ./Stella-1.0.0-linux-amd64.deb`). L'AppImage richiede libfuse2 (su Ubuntu `sudo apt install libfuse2t64`).
 
-Dove non si può installare nulla c'è la **versione web**, da aprire con Chrome, Edge o Opera (in Brave va attivata `brave://flags/#file-system-access-api`): <https://lucadj77.github.io/naibi/>. Lavora sugli stessi progetti, con alcune funzioni in meno; vedi [docs/web.md](docs/web.md).
+Dove non si può installare nulla c'è la **versione web**, da aprire con Chrome, Edge o Opera (in Brave va attivata `brave://flags/#file-system-access-api`): <https://lucadj77.github.io/stella/>. Lavora sugli stessi progetti, con alcune funzioni in meno; vedi [docs/web.md](docs/web.md).
 
 ## Build
 
@@ -47,9 +47,9 @@ Ogni sistema costruisce bene solo i propri pacchetti (il .dmg richiede un Mac, l
 
 ## Licenza
 
-Naibi è software libero, distribuito con la licenza [GNU GPL versione 3 o successive](LICENSE): si può usare, studiare, modificare e ridistribuire, anche con modifiche, a patto che le versioni ridistribuite restino sotto la stessa licenza e con il codice sorgente disponibile. Le carte e gli altri file creati con Naibi appartengono a chi li crea e non sono vincolati dalla licenza. Icone, font e librerie inclusi hanno le loro licenze, elencate in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Stella è software libero, distribuito con la licenza [GNU GPL versione 3 o successive](LICENSE): si può usare, studiare, modificare e ridistribuire, anche con modifiche, a patto che le versioni ridistribuite restino sotto la stessa licenza e con il codice sorgente disponibile. Le carte e gli altri file creati con Stella appartengono a chi li crea e non sono vincolati dalla licenza. Icone, font e librerie inclusi hanno le loro licenze, elencate in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
-_English_: Naibi is free software, licensed under the [GNU GPL version 3 or later](LICENSE). Cards and other files made with Naibi belong to their authors and are not covered by this license. Bundled icons, fonts and libraries keep their own licenses, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+_English_: Stella is free software, licensed under the [GNU GPL version 3 or later](LICENSE). Cards and other files made with Stella belong to their authors and are not covered by this license. Bundled icons, fonts and libraries keep their own licenses, listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## Stack
 

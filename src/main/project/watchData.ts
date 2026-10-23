@@ -2,9 +2,9 @@ import { watch, type FSWatcher } from 'fs'
 import { stat } from 'fs/promises'
 import { basename, dirname } from 'path'
 
-// Il file dati del progetto aperto, sorvegliato per accorgersi quando cambia fuori da Naibi
-// (Excel, LibreOffice, il comando naibi). Si guarda la cartella e non il file, perché i
-// programmi di solito salvano scrivendo un file nuovo e rinominandolo. Le scritture di Naibi
+// Il file dati del progetto aperto, sorvegliato per accorgersi quando cambia fuori da Stella
+// (Excel, LibreOffice, il comando stella). Si guarda la cartella e non il file, perché i
+// programmi di solito salvano scrivendo un file nuovo e rinominandolo. Le scritture di Stella
 // stesso non contano: dopo ognuna si aggiorna l'impronta (markDataWritten).
 
 const DEBOUNCE_MS = 1000
@@ -46,7 +46,7 @@ export async function watchDataFile(path: string, onChange: () => void): Promise
   current = { path, watcher, sig }
 }
 
-/** Dopo una scrittura di Naibi: il file com'è adesso non è un cambiamento esterno */
+/** Dopo una scrittura di Stella: il file com'è adesso non è un cambiamento esterno */
 export async function markDataWritten(): Promise<void> {
   if (current) current.sig = await signature(current.path)
 }

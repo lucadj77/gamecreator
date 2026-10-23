@@ -8,7 +8,7 @@ import { join } from 'path'
 
 export async function htmlToPdf(html: string): Promise<Uint8Array> {
   // un file e non un data: URL, che con molte immagini supererebbe i limiti di lunghezza
-  const dir = await mkdtemp(join(tmpdir(), 'naibi-doc-'))
+  const dir = await mkdtemp(join(tmpdir(), 'stella-doc-'))
   const file = join(dir, 'document.html')
   await writeFile(file, html)
   const win = new BrowserWindow({

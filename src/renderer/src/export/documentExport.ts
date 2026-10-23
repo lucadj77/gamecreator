@@ -150,7 +150,7 @@ const escapeHtml = (s: string): string =>
 /**
  * Markdown semplice del documento, con le immagini in una cartella accanto: le carte come PNG,
  * le icone e le altre immagini come i loro file. Restano grassetto, corsivo e barrato; gli altri
- * stili del markup di Naibi si perdono. Le impostazioni della pagina non si scrivono.
+ * stili del markup di Stella si perdono. Le impostazioni della pagina non si scrivono.
  */
 export async function documentMarkdown(
   page: HTMLElement,

@@ -15,17 +15,17 @@ const shims = resolve('src/web/shims')
  */
 function assetFiles(): Plugin {
   return {
-    name: 'naibi-asset-files',
+    name: 'stella-asset-files',
     enforce: 'pre',
     async resolveId(source, importer) {
       if (!source.endsWith('?asset')) return null
       const r = await this.resolve(source.slice(0, -6), importer, { skipSelf: true })
       // l'id non finisce in .json: il plugin dei JSON di Vite proverebbe a leggerlo
-      return r ? `\0naibi-asset:${r.id}.js` : null
+      return r ? `\0stella-asset:${r.id}.js` : null
     },
     load(id) {
-      if (!id.startsWith('\0naibi-asset:')) return null
-      const file = id.slice('\0naibi-asset:'.length, -'.js'.length)
+      if (!id.startsWith('\0stella-asset:')) return null
+      const file = id.slice('\0stella-asset:'.length, -'.js'.length)
       return `import url from ${JSON.stringify(file + '?url')}\nexport default 'web-asset:' + url`
     }
   }

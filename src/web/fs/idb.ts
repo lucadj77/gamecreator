@@ -1,7 +1,7 @@
 // Database del browser per ciò che l'app desktop tiene nei suoi dati: le cartelle autorizzate
 // (handle della File System Access API) e i progetti recenti con le miniature.
 
-const DB_NAME = 'naibi'
+const DB_NAME = 'stella'
 const VERSION = 1
 export const ROOTS = 'roots'
 export const RECENT = 'recent'

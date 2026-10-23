@@ -8,7 +8,7 @@ import { documentHtml, documentMarkdown } from './documentExport'
 import { documentDocx } from './documentDocx'
 import { settle } from './settle'
 
-// Pagina della finestra nascosta che esporta un documento senza l'app (naibi export-doc): lo
+// Pagina della finestra nascosta che esporta un documento senza l'app (stella export-doc): lo
 // disegna come l'anteprima, alla misura vera, e ne ricava l'HTML o il Markdown con le carte in
 // PNG o il file Word, come il tasto Esporta documento.
 
@@ -70,9 +70,9 @@ export default function DocumentExportPage(): React.JSX.Element {
   useRegisterFonts(job?.input.fonts)
 
   useEffect(() => {
-    const w = window as unknown as { naibiDocument?: (input: DocRenderInput) => Promise<unknown> }
+    const w = window as unknown as { stellaDocument?: (input: DocRenderInput) => Promise<unknown> }
     // il processo principale riceve bene solo un testo come errore
-    w.naibiDocument = (input) =>
+    w.stellaDocument = (input) =>
       new Promise((done, fail) => setJob({ input, done, fail })).catch((e: Error) => {
         throw e.message || String(e)
       })

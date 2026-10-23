@@ -16,7 +16,7 @@ import { CHECK_EVENT, checkForUpdateNow } from './updateCheck'
 // saltata e, se non c'è niente di nuovo, l'avviso dice che la versione è l'ultima.
 
 const SKIPPED_KEY = 'skippedUpdate'
-const RELEASES_PAGE = 'https://github.com/lucadj77/naibi/releases'
+const RELEASES_PAGE = 'https://github.com/lucadj77/stella/releases'
 
 function skipped(): string | null {
   try {

@@ -133,7 +133,7 @@ export class ExportWindow {
   /** SVG autonomo della carta mostrata, con immagini e font del progetto dentro il file */
   async toSvg(background: string | null): Promise<Buffer> {
     const svg: string = await this.win.webContents.executeJavaScript(
-      `window.naibiCardSvg(${JSON.stringify(background)})`
+      `window.stellaCardSvg(${JSON.stringify(background)})`
     )
     return Buffer.from(svg, 'utf8')
   }

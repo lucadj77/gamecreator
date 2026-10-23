@@ -5,12 +5,12 @@ import { join } from 'path'
 import type { AgentLock } from '../../shared/api'
 
 // Un'IA e l'app non lavorano insieme sullo stesso progetto. L'app scrive nella cartella del
-// progetto se ha modifiche non salvate (.naibi-app); `naibi begin` rifiuta di partire se ne ha,
-// altrimenti scrive .naibi-ai e l'app si blocca finché `naibi end` non lo cancella, poi ricarica.
+// progetto se ha modifiche non salvate (.stella-app); `stella begin` rifiuta di partire se ne ha,
+// altrimenti scrive .stella-ai e l'app si blocca finché `stella end` non lo cancella, poi ricarica.
 // I file che iniziano con il punto restano fuori dai backup.
 
-export const APP_STATE_FILE = '.naibi-app'
-export const AGENT_LOCK_FILE = '.naibi-ai'
+export const APP_STATE_FILE = '.stella-app'
+export const AGENT_LOCK_FILE = '.stella-ai'
 
 export interface AppState {
   pid: number

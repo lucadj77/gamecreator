@@ -22,7 +22,7 @@ import { isBoxEnd, isBoxStart, parseBoxStyle, type DocBox } from './docBox'
 import { isLanguageCode, localizationOf, type Localization } from './language'
 
 // Documenti del progetto (docs/<nome>.md): regolamento, sell sheet, appendici. Sono Markdown con
-// il markup di Naibi nel testo ({icona}, [testo]{.stile}) e le carte del progetto come immagini:
+// il markup di Stella nel testo ({icona}, [testo]{.stile}) e le carte del progetto come immagini:
 // ![Mago](card:Personaggi/nome=Mago) disegna la carta dal progetto, quindi si aggiorna da sola.
 
 export const DOCUMENTS_DIR = 'docs'

@@ -59,11 +59,11 @@ import {
   UnsavedChangesError
 } from './project/agentLock'
 
-// Il comando naibi: lo stesso programma dell'app, avviato con --cli, senza finestre. Serve a chi
+// Il comando stella: lo stesso programma dell'app, avviato con --cli, senza finestre. Serve a chi
 // lavora su un progetto da terminale, in particolare a un'IA: legge, controlla, scrive i dati e
 // disegna le carte. Vedi docs/cli.md. Testi in inglese, come gli identificatori dei file.
 
-const HELP = `Usage: naibi <command> [options]
+const HELP = `Usage: stella <command> [options]
 
 Commands:
   info <project>                       Summary: sets, templates, variables, styles, assets
@@ -90,7 +90,7 @@ Commands:
                                        and the cards' template column follow (backup first)
   render <project> [--set S] [--card N[,M,A-B]] [--side front|back|both]
          [--dpi 150] [--out folder] [--lang L]
-                                       Draw cards as PNG files (default folder: export/naibi-render)
+                                       Draw cards as PNG files (default folder: export/stella-render)
   export <project> --profile NAME [--lang L|all]
                                        Run a named export profile saved in the project
   new <name> <parent folder>           Create an empty project
@@ -107,14 +107,14 @@ Commands:
                                        the cards as PNG files (default folder: export/docs);
                                        --lang draws the cards in that language instead of the
                                        document's 'language' setting
-  begin <project> [--note TEXT]        Start working: fails (exit code 3) if the Naibi app has
+  begin <project> [--note TEXT]        Start working: fails (exit code 3) if the Stella app has
                                        unsaved changes in the project, otherwise the app locks
                                        itself until 'end'
   end <project>                        Finish working: the app unlocks and reloads the project
-  version                              The version of this naibi command (also --version)
+  version                              The version of this stella command (also --version)
   help                                 This text
 
-<project> is the project folder (the one with naibi.json).
+<project> is the project folder (the one with stella.json).
 Add --json to info, check, check-data, template, stats, notes and docs for machine-readable output.`
 
 const print = (s = ''): void => {
@@ -407,9 +407,9 @@ async function rows(p: Parsed): Promise<number> {
 }
 
 const UNSAVED =
-  'the Naibi app has unsaved changes in this project: ask the user to save (or reload) in the app, then try again'
+  'the Stella app has unsaved changes in this project: ask the user to save (or reload) in the app, then try again'
 const NOT_BEGUN =
-  'the Naibi app is open on this project: run "begin" first, so that the app locks itself and reloads the project at "end"'
+  'the Stella app is open on this project: run "begin" first, so that the app locks itself and reloads the project at "end"'
 
 /**
  * Prima di scrivere nel progetto: con modifiche non salvate nell'app si rifiuta; con l'app
@@ -421,11 +421,11 @@ async function checkWritable(folder: string): Promise<void> {
   if (app && !(await readAgentLock(folder))) throw new CliError(NOT_BEGUN)
 }
 
-/** Con il file dati in sola lettura (dataReadOnly in naibi.json) i dati si cambiano solo fuori */
+/** Con il file dati in sola lettura (dataReadOnly in stella.json) i dati si cambiano solo fuori */
 function checkDataWritable(project: LoadedProject): void {
   if (project.file.dataReadOnly)
     throw new CliError(
-      `the data file ${project.file.dataFile} is read-only (dataReadOnly in naibi.json): change the data in the file itself`
+      `the data file ${project.file.dataFile} is read-only (dataReadOnly in stella.json): change the data in the file itself`
     )
 }
 
@@ -611,7 +611,7 @@ function cliLanguages(project: LoadedProject, p: Parsed, all = false): (string |
   if (flag === undefined) return [undefined]
   const langs = projectLanguages(project.file)
   if (!langs.length)
-    throw new CliError('--lang: the project has only one language (languages in naibi.json)')
+    throw new CliError('--lang: the project has only one language (languages in stella.json)')
   if (all && flag === 'all') return langs.map((l, i) => (i === 0 ? undefined : l))
   if (typeof flag !== 'string' || !langs.includes(flag))
     throw new CliError(`--lang: one of ${langs.join(', ')}${all ? ' or all' : ''}`)
@@ -632,7 +632,7 @@ async function render(p: Parsed): Promise<number> {
   const out =
     typeof p.flags.out === 'string'
       ? resolve(p.flags.out)
-      : join(project.folder, 'export', 'naibi-render')
+      : join(project.folder, 'export', 'stella-render')
   return exportJob(project, {
     kind: 'images',
     project: project.file.name,
@@ -678,7 +678,7 @@ async function exportProfile(p: Parsed): Promise<number> {
 
 async function create(p: Parsed): Promise<number> {
   const [name, parent] = p.positional
-  if (!name || !parent) throw new CliError('usage: naibi new <name> <parent folder>')
+  if (!name || !parent) throw new CliError('usage: stella new <name> <parent folder>')
   const folder = await createProject(name, resolve(parent))
   print(`Created ${folder}`)
   return 0
@@ -691,13 +691,13 @@ async function begin(p: Parsed): Promise<number> {
     await beginAgent(project.folder, note)
   } catch (e) {
     if (!(e instanceof UnsavedChangesError)) throw e
-    process.stderr.write(`naibi: ${UNSAVED}\n`)
+    process.stderr.write(`stella: ${UNSAVED}\n`)
     return 3
   }
   const app = await readAppState(project.folder)
   print(
     app
-      ? 'The Naibi app is now locked on this project. Run "end" when you have finished.'
+      ? 'The Stella app is now locked on this project. Run "end" when you have finished.'
       : 'Ready. Run "end" when you have finished.'
   )
   return 0
@@ -895,7 +895,7 @@ async function notes(p: Parsed): Promise<number> {
 async function end(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
   await endAgent(project.folder)
-  print('Done: the Naibi app, if open, reloads the project.')
+  print('Done: the Stella app, if open, reloads the project.')
   return 0
 }
 
@@ -933,7 +933,7 @@ export async function runCli(args: string[]): Promise<number> {
   }
   const fn = COMMANDS[command]
   if (!fn) {
-    process.stderr.write(`naibi: unknown command "${command}"\n\n${HELP}\n`)
+    process.stderr.write(`stella: unknown command "${command}"\n\n${HELP}\n`)
     return 2
   }
   try {
@@ -941,7 +941,7 @@ export async function runCli(args: string[]): Promise<number> {
   } catch (e) {
     const m = messageFromError(e)
     const text = m.key === 'error.generic' ? String(m.params?.text ?? '') : messageText(m)
-    process.stderr.write(`naibi: ${text}\n`)
+    process.stderr.write(`stella: ${text}\n`)
     return 2
   }
 }

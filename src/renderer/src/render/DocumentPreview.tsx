@@ -43,7 +43,7 @@ import {
 import type { Localization } from '../../../shared/model/language'
 
 // Anteprima di un documento del progetto (model/document.ts): il Markdown come una pagina, con il
-// markup di Naibi nel testo e le carte disegnate dal progetto, come nell'esportazione.
+// markup di Stella nel testo e le carte disegnate dal progetto, come nell'esportazione.
 
 /** Pixel per millimetro: le carte si vedono alla loro misura vera (96 punti per pollice) */
 export const DOC_UNIT = 96 / 25.4

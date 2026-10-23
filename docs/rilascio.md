@@ -1,6 +1,6 @@
 # Preparare una nuova versione
 
-Ogni versione pubblicata ha le sue novità, scritte in [CHANGELOG.md](../CHANGELOG.md): Naibi le mostra a chi ha una versione precedente quando segnala l'aggiornamento, e GitHub le usa come testo della release.
+Ogni versione pubblicata ha le sue novità, scritte in [CHANGELOG.md](../CHANGELOG.md): Stella le mostra a chi ha una versione precedente quando segnala l'aggiornamento, e GitHub le usa come testo della release.
 
 ## Durante lo sviluppo
 
@@ -8,11 +8,11 @@ Chi unisce una modifica che si vede nell'app aggiunge una riga alla sezione dell
 
 ## Numerazione
 
-I numeri hanno la forma `MAGGIORE.MINORE.CORREZIONE` e dipendono da cosa cambia per chi usa Naibi:
+I numeri hanno la forma `MAGGIORE.MINORE.CORREZIONE` e dipendono da cosa cambia per chi usa Stella:
 
 - **correzione** (1.2.0 → 1.2.1): solo correzioni di difetti, senza voci, opzioni o campi nuovi nei file del progetto. Va a chi ha scelto la stabile, quindi deve essere a basso rischio: un piccolo miglioramento aspetta la minore successiva;
-- **minore** (1.2 → 1.3): funzioni nuove, nuove opzioni, nuovi campi nei file, nuovi comandi o opzioni di `naibi`, piccoli miglioramenti;
-- **maggiore** (1 → 2): un progetto salvato non si apre più correttamente con la versione precedente, o i progetti vecchi vanno convertiti, o un comando `naibi` cambia nome o significato, o si toglie una funzione. Il comando `naibi` conta come interfaccia pubblica: gli agenti IA e la skill dipendono dai suoi nomi.
+- **minore** (1.2 → 1.3): funzioni nuove, nuove opzioni, nuovi campi nei file, nuovi comandi o opzioni di `stella`, piccoli miglioramenti;
+- **maggiore** (1 → 2): un progetto salvato non si apre più correttamente con la versione precedente, o i progetti vecchi vanno convertiti, o un comando `stella` cambia nome o significato, o si toglie una funzione. Il comando `stella` conta come interfaccia pubblica: gli agenti IA e la skill dipendono dai suoi nomi.
 
 Le minori e le maggiori passano dalle beta: `1.3.0-beta.1`, `1.3.0-beta.2`, poi `1.3.0`. Una correzione esce direttamente come `1.2.1`.
 
@@ -25,7 +25,7 @@ Nel menu ⚙ dell'app, **Aggiornamenti** sceglie il canale:
 
 La scelta sta in `update.json` nella cartella dei dati dell'app. Alla prima apertura di una versione che ha il canale, se la versione installata è una beta si salva Beta: così chi prova le beta resta in beta anche dopo aver ricevuto la versione ufficiale. Passando da Beta a Stabile non si torna indietro di versione: si aspetta la prima ufficiale più recente di quella installata.
 
-L'installazione automatica (setup di Windows e AppImage di Linux) usa electron-updater puntato sui file `latest.yml` / `latest-linux.yml` della release scelta dal controllo, non sulla più recente del feed di GitHub; il Mac scarica lo zip della stessa release. La versione web stabile sta all'indirizzo principale, la beta in `beta/` (vedi [web.md](web.md)). La skill e il pacchetto `naibi-cli` seguono la stabile, salvo chi ha già una beta.
+L'installazione automatica (setup di Windows e AppImage di Linux) usa electron-updater puntato sui file `latest.yml` / `latest-linux.yml` della release scelta dal controllo, non sulla più recente del feed di GitHub; il Mac scarica lo zip della stessa release. La versione web stabile sta all'indirizzo principale, la beta in `beta/` (vedi [web.md](web.md)). La skill e il pacchetto `stella-cli` seguono la stabile, salvo chi ha già una beta.
 
 ## Rami
 
@@ -40,7 +40,7 @@ Un difetto della versione stabile si corregge su un ramo nato da `release/1.2`, 
 2. Unisci tutto nel ramo da cui esce la versione: `main`, o `release/x.y` per una correzione della stabile.
 3. Su GitHub, **Actions → Release → Run workflow** sul ramo: l'azione crea il tag della versione di `package.json` sull'ultimo commit del ramo e avvia Build e Web su quel tag. Si ferma se il tag esiste già o se manca la sezione in `CHANGELOG.md`. La stessa azione la può avviare anche un'IA con accesso a GitHub.
 
-   In alternativa, dal Mac, nella cartella di Naibi:
+   In alternativa, dal Mac, nella cartella di Stella:
 
    ```bash
    git checkout main
@@ -54,10 +54,10 @@ Un difetto della versione stabile si corregge su un ramo nato da `release/1.2`, 
 
 4. L'azione **Build** di GitHub costruisce i pacchetti per Mac, Windows e Linux e pubblica la release con le novità; un tag con il trattino (`v1.3.0-beta.1`) diventa una pre-release. Se il tag non corrisponde alla versione di `package.json`, o manca la sezione in `CHANGELOG.md`, la release non viene creata e l'azione lo dice nel log. L'azione **Web** pubblica di nuovo il sito, con la stabile e la beta.
 
-Da quel momento le copie di Naibi già installate segnalano la nuova versione al primo avvio, secondo il loro canale.
+Da quel momento le copie di Stella già installate segnalano la nuova versione al primo avvio, secondo il loro canale.
 
 ## Come funziona il controllo
 
-All'avvio Naibi chiede a GitHub l'ultima release del suo canale. Se è più recente della versione installata mostra una striscia in alto con **Novità** e **Aggiorna e riavvia** (o **Scarica**, che apre la pagina della release, dove l'aggiornamento automatico non c'è). **Salta questa versione** non la ripropone più; **Ricordamelo più tardi** la nasconde fino al prossimo avvio. Senza rete non compare nulla. Ogni tentativo di aggiornamento è scritto in `update.log` nella cartella dei dati dell'app.
+All'avvio Stella chiede a GitHub l'ultima release del suo canale. Se è più recente della versione installata mostra una striscia in alto con **Novità** e **Aggiorna e riavvia** (o **Scarica**, che apre la pagina della release, dove l'aggiornamento automatico non c'è). **Salta questa versione** non la ripropone più; **Ricordamelo più tardi** la nasconde fino al prossimo avvio. Senza rete non compare nulla. Ogni tentativo di aggiornamento è scritto in `update.log` nella cartella dei dati dell'app.
 
 L'app non è firmata con un certificato Apple o Microsoft: sul Mac l'aggiornamento sostituisce l'app con uno script dopo la chiusura, e Windows può segnalare il programma scaricato come sconosciuto.

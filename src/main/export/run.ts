@@ -290,7 +290,7 @@ async function exportTts(
   if (o.destination !== 'tts') targets.push(join(env.projectFolder, 'export', ...lang, 'tts'))
   if (o.destination !== 'project') {
     const root = o.ttsFolder.trim() || defaultTtsFolder(env.platform, env.home, env.documents)
-    targets.push(join(root, safeName(project || 'Naibi'), ...lang))
+    targets.push(join(root, safeName(project || 'Stella'), ...lang))
   }
   for (const t of targets) if (!ctx.result.folders.includes(t)) ctx.result.folders.push(t)
 

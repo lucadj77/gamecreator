@@ -22,7 +22,7 @@ import {
 // script la sostituisce e la riapre. La versione portabile di Windows e il .deb si aggiornano a
 // mano, dalla pagina della release.
 
-const DOWNLOAD = 'https://github.com/lucadj77/naibi/releases/download'
+const DOWNLOAD = 'https://github.com/lucadj77/stella/releases/download'
 
 /** Il pacchetto .app che contiene questo eseguibile, sul Mac */
 function macBundle(): string | null {
@@ -83,7 +83,7 @@ export async function checkForUpdate(): Promise<UpdateInfo | null> {
   const res = await net.fetch(channel === 'stable' ? LATEST_RELEASE_API : RELEASES_API, {
     headers: {
       Accept: 'application/vnd.github+json',
-      'User-Agent': `Naibi/${app.getVersion()}`
+      'User-Agent': `Stella/${app.getVersion()}`
     }
   })
   // senza versioni ufficiali GitHub risponde 404: nessun aggiornamento
@@ -148,7 +148,7 @@ async function install(version: string, sender: WebContents): Promise<void> {
 async function installMac(version: string, progress: (p: number) => void): Promise<void> {
   const bundle = macBundle()
   if (!bundle) throw new Error('app bundle not found')
-  const file = `Naibi-${version}-mac-${process.arch}.zip`
+  const file = `Stella-${version}-mac-${process.arch}.zip`
   const res = await net.fetch(`${DOWNLOAD}/v${version}/${file}`)
   if (!res.ok || !res.body) throw new Error(`download failed: HTTP ${res.status}`)
   const total = Number(res.headers.get('content-length')) || 0
@@ -165,7 +165,7 @@ async function installMac(version: string, progress: (p: number) => void): Promi
   const zip = join(tmpdir(), file)
   await writeFile(zip, Buffer.concat(chunks))
   // estratta nella stessa cartella dell'app: lo scambio è uno spostamento sullo stesso disco
-  const staging = join(dirname(bundle), '.naibi-update')
+  const staging = join(dirname(bundle), '.stella-update')
   await rm(staging, { recursive: true, force: true })
   await mkdir(staging, { recursive: true })
   await promisify(execFile)('/usr/bin/ditto', ['-x', '-k', zip, staging])
@@ -173,25 +173,30 @@ async function installMac(version: string, progress: (p: number) => void): Promi
   const found = (await readdir(staging)).find((n) => n.endsWith('.app'))
   if (!found) throw new Error('no app in the update')
   progress(1)
+  // la nuova app prende il proprio nome (Stella.app anche al posto di Naibi.app), a meno che una
+  // cartella con quel nome ci sia già: allora resta al posto della vecchia
   const script = [
-    'while kill -0 "$NAIBI_PID" 2>/dev/null; do sleep 0.3; done',
-    'rm -rf "$NAIBI_OLD.old"',
-    'if mv "$NAIBI_OLD" "$NAIBI_OLD.old"; then',
-    '  if mv "$NAIBI_NEW" "$NAIBI_OLD"; then rm -rf "$NAIBI_OLD.old"; else mv "$NAIBI_OLD.old" "$NAIBI_OLD"; fi',
-    'fi',
-    'xattr -cr "$NAIBI_OLD" 2>/dev/null',
-    'rm -rf "$NAIBI_STAGING"',
-    'open "$NAIBI_OLD"'
+    'while kill -0 "$STELLA_PID" 2>/dev/null; do sleep 0.3; done',
+    'T="$STELLA_TARGET"',
+    'if [ "$T" != "$STELLA_OLD" ] && [ -e "$T" ]; then T="$STELLA_OLD"; fi',
+    'rm -rf "$STELLA_OLD.old"',
+    'if mv "$STELLA_OLD" "$STELLA_OLD.old"; then',
+    '  if mv "$STELLA_NEW" "$T"; then rm -rf "$STELLA_OLD.old"; else mv "$STELLA_OLD.old" "$STELLA_OLD"; T="$STELLA_OLD"; fi',
+    'else T="$STELLA_OLD"; fi',
+    'xattr -cr "$T" 2>/dev/null',
+    'rm -rf "$STELLA_STAGING"',
+    'open "$T"'
   ].join('\n')
   const child = spawn('/bin/sh', ['-c', script], {
     detached: true,
     stdio: 'ignore',
     env: {
       ...process.env,
-      NAIBI_PID: String(process.pid),
-      NAIBI_OLD: bundle,
-      NAIBI_NEW: join(staging, found),
-      NAIBI_STAGING: staging
+      STELLA_PID: String(process.pid),
+      STELLA_OLD: bundle,
+      STELLA_NEW: join(staging, found),
+      STELLA_TARGET: join(dirname(bundle), found),
+      STELLA_STAGING: staging
     }
   })
   child.unref()

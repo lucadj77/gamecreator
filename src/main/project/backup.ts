@@ -26,7 +26,9 @@ export function backupDirName(projectName: string): string {
 }
 
 /** File nella cartella dei backup che dice a quale progetto (cartella) appartiene */
-const OWNER = '.naibi-project'
+const OWNER = '.stella-project'
+/** Lo stesso file, scritto quando l'app si chiamava Naibi */
+const OLD_OWNER = '.naibi-project'
 
 /**
  * Cartella dei backup del progetto `folder` dentro `root`: `<nome>`, oppure `<nome> 2`, `<nome> 3`...
@@ -43,10 +45,13 @@ export async function projectBackupDir(
     const dir = join(root, n === 1 ? name : `${name} ${n}`)
     const marker = join(dir, OWNER)
     let owner: string | null = null
-    try {
-      owner = JSON.parse(await readFile(marker, 'utf8')).folder
-    } catch {
-      // cartella nuova o senza proprietario
+    for (const file of [marker, join(dir, OLD_OWNER)]) {
+      try {
+        owner = JSON.parse(await readFile(file, 'utf8')).folder
+        break
+      } catch {
+        // cartella nuova o senza proprietario
+      }
     }
     if (owner === mine) return dir
     if (owner === null) {
@@ -66,7 +71,11 @@ function stamp(d: Date): string {
 /** Cartella comune dei file di assets/, dentro la cartella dei backup del progetto */
 const STORE = 'assets'
 /** Elenco dei file di assets/ nello zip: percorso nel progetto → file nella cartella comune */
-export const MANIFEST = 'naibi-backup.json'
+export const MANIFEST = 'stella-backup.json'
+/** Il manifesto dei backup fatti quando l'app si chiamava Naibi */
+const OLD_MANIFEST = 'naibi-backup.json'
+/** File del backup che non fanno parte del progetto */
+export const isManifest = (name: string): boolean => name === MANIFEST || name === OLD_MANIFEST
 
 interface Manifest {
   version: 1
@@ -153,7 +162,7 @@ export async function createBackup(
 }
 
 async function readManifest(zip: JSZip): Promise<Manifest> {
-  const entry = zip.file(MANIFEST)
+  const entry = zip.file(MANIFEST) ?? zip.file(OLD_MANIFEST)
   if (!entry) return { version: 1, assets: {} }
   const m = JSON.parse(await entry.async('string'))
   return { version: 1, assets: m && typeof m.assets === 'object' ? m.assets : {} }
@@ -238,7 +247,7 @@ export async function restoreBackup(file: string, parent: string): Promise<strin
   }
   for (const entry of Object.values(zip.files)) {
     const out = inside(entry.name)
-    if (entry.dir || entry.name === MANIFEST || !out) continue
+    if (entry.dir || isManifest(entry.name) || !out) continue
     await mkdir(dirname(out), { recursive: true })
     await writeFile(out, await entry.async('nodebuffer'))
   }

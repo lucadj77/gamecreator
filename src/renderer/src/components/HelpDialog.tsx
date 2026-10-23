@@ -13,7 +13,7 @@ import Segmented from './Segmented'
 type Tab = 'text' | 'variables' | 'formulas' | 'keys'
 
 /** Guida completa su GitHub, nella lingua dell'interfaccia */
-const GUIDE = 'https://github.com/lucadj77/naibi/blob/main/docs'
+const GUIDE = 'https://github.com/lucadj77/stella/blob/main/docs'
 const guideUrl = (lang: string): string => `${GUIDE}/${lang === 'it' ? 'guida' : 'guide'}/README.md`
 
 /** Markdown: cosa si scrive ($ è un testo di esempio) e la chiave della spiegazione */

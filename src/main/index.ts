@@ -116,15 +116,18 @@ async function pollAgentLock(): Promise<void> {
   for (const w of BrowserWindow.getAllWindows()) w.webContents.send('agent:lock', JSON.parse(json))
 }
 
-/** Argomenti del comando naibi: tutto ciò che segue --cli (vedi cli.ts) */
+/** Argomenti del comando stella: tutto ciò che segue --cli (vedi cli.ts) */
 const cliIndex = process.argv.indexOf('--cli')
 const cliArgs = cliIndex >= 0 ? process.argv.slice(cliIndex + 1) : null
 
 // versione portable per Windows: i dati dell'app (recenti, preferenze, cataloghi) stanno accanto
 // al file .exe, così la cartella si porta su un'altra macchina o una chiavetta
-if (process.env.PORTABLE_EXECUTABLE_DIR)
-  app.setPath('userData', join(process.env.PORTABLE_EXECUTABLE_DIR, 'Naibi data'))
-else adoptLegacyData()
+// (la cartella di prima del cambio di nome, se c'è, resta quella in uso)
+if (process.env.PORTABLE_EXECUTABLE_DIR) {
+  const dir = process.env.PORTABLE_EXECUTABLE_DIR
+  const old = join(dir, 'Naibi data')
+  app.setPath('userData', existsSync(old) ? old : join(dir, 'Stella data'))
+} else adoptLegacyData()
 registerAssetScheme()
 
 if (cliArgs) {
@@ -145,7 +148,7 @@ function createWindow(): void {
     height: 800,
     show: false,
     autoHideMenuBar: true,
-    title: 'Naibi',
+    title: 'Stella',
     ...(process.platform !== 'darwin' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -211,7 +214,7 @@ function registerIpc(): void {
     const project = await loadProject(folder)
     setProjectFolder(folder)
     projectName = project.file.name || folder
-    // un cambiamento del file dati fatto fuori da Naibi si segnala alla finestra
+    // un cambiamento del file dati fatto fuori da Stella si segnala alla finestra
     const sender = event.sender
     await watchDataFile(join(folder, project.file.dataFile), () => {
       if (!sender.isDestroyed()) sender.send('project:data-changed')
@@ -242,7 +245,7 @@ function registerIpc(): void {
     }
   )
 
-  ipcMain.handle('project:default-parent', () => join(app.getPath('documents'), 'Naibi'))
+  ipcMain.handle('project:default-parent', () => join(app.getPath('documents'), 'Stella'))
   ipcMain.handle(
     'project:create',
     (_, name: string, parent: string, data?: 'xlsx' | 'ods', existing?: string) =>
@@ -347,7 +350,7 @@ function registerIpc(): void {
     return inspectDataFile(join(folder, file.dataFile))
   })
 
-  // solo i dati, senza backup né elenco dei recenti: dopo un cambiamento fatto fuori da Naibi
+  // solo i dati, senza backup né elenco dei recenti: dopo un cambiamento fatto fuori da Stella
   ipcMain.handle('project:reload-data', async () => {
     const folder = getProjectFolder()
     if (!folder) throw new MessageError(msg('template.noProject'))
@@ -464,20 +467,20 @@ function registerIpc(): void {
     return result.canceled ? null : result.filePaths[0]
   })
 
-  // Strumenti per gli agenti IA: il comando naibi di questa installazione e la skill da salvare.
+  // Strumenti per gli agenti IA: il comando stella di questa installazione e la skill da salvare.
   // Vedi docs/cli.md.
   ipcMain.handle('ai:command', () => {
     if (app.isPackaged) {
-      // su Windows naibi.exe è un programma a finestre: il terminale non ne aspetterebbe la fine
-      // né il codice di uscita. naibi-cli.cmd, installato accanto, lo avvia nel modo giusto
-      const cmd = join(dirname(process.execPath), 'naibi-cli.cmd')
+      // su Windows stella.exe è un programma a finestre: il terminale non ne aspetterebbe la fine
+      // né il codice di uscita. stella-cli.cmd, installato accanto, lo avvia nel modo giusto
+      const cmd = join(dirname(process.execPath), 'stella-cli.cmd')
       if (process.platform === 'win32' && existsSync(cmd))
         return { command: `"${cmd}"`, ready: true }
       return { command: `"${process.execPath}" --cli`, ready: true }
     }
     const root = app.getAppPath()
     return {
-      command: `node "${join(root, 'bin', 'naibi.mjs')}"`,
+      command: `node "${join(root, 'bin', 'stella.mjs')}"`,
       ready: existsSync(join(root, 'out', 'renderer', 'index.html'))
     }
   })
@@ -492,7 +495,7 @@ function registerIpc(): void {
   ipcMain.handle('update:mode', () => updateMode())
   ipcMain.handle('update:install', (e, version: string) => installUpdate(version, e.sender))
   ipcMain.handle('ai:save-skill', async (_, folder: string, text: string) => {
-    const file = join(folder, 'naibi', 'SKILL.md')
+    const file = join(folder, 'stella', 'SKILL.md')
     await mkdir(dirname(file), { recursive: true })
     await writeFile(file, text)
     return file
@@ -544,7 +547,7 @@ function registerIpc(): void {
   ipcMain.handle('ttc:import', (_, options: TtcImportOptions) => importTtc(options))
 
   // Blocco mentre lavora un'IA (vedi project/agentLock.ts): il renderer dice se ha modifiche non
-  // salvate, qui si scrive il file per `naibi begin` e si controlla ogni secondo il file dell'IA
+  // salvate, qui si scrive il file per `stella begin` e si controlla ogni secondo il file dell'IA
   ipcMain.handle('agent:app-state', async (_, folder: string | null, dirty: boolean) => {
     if (stateFolder && stateFolder !== folder) clearAppState(stateFolder)
     stateFolder = folder
@@ -585,7 +588,7 @@ function registerIpc(): void {
 
 if (!cliArgs)
   app.whenReady().then(() => {
-    electronApp.setAppUserModelId('com.naibi.app')
+    electronApp.setAppUserModelId('com.stella.app')
     // nell'app pacchettizzata l'icona del Dock viene dal pacchetto; con npm run dev si imposta qui
     if (process.platform === 'darwin' && is.dev) app.dock?.setIcon(icon)
 
@@ -606,7 +609,7 @@ if (!cliArgs)
   })
 
 app.on('window-all-closed', () => {
-  // il comando naibi esce da solo quando ha finito
+  // il comando stella esce da solo quando ha finito
   if (process.platform !== 'darwin' && !cliArgs) {
     app.quit()
   }

@@ -56,7 +56,7 @@ export interface RecentProject {
 
 /** API esposta dal preload al renderer come window.api */
 export interface BackupSettings {
-  /** Cartella dei backup; vuota per quella di base (Documenti/Naibi/Backup) */
+  /** Cartella dei backup; vuota per quella di base (Documenti/Stella/Backup) */
   folder: string
   /** Backup automatico all'apertura del progetto */
   auto: boolean
@@ -92,7 +92,7 @@ export interface DocExportFile {
 }
 
 /**
- * Un documento da esportare nella finestra nascosta (comando naibi export-doc): il testo e quel
+ * Un documento da esportare nella finestra nascosta (comando stella export-doc): il testo e quel
  * che serve a disegnarlo. Per il PDF la pagina restituisce l'HTML, che il processo principale stampa.
  */
 export interface DocRenderInput {
@@ -201,13 +201,13 @@ export interface Api {
     removed?: string[]
     keepParts?: boolean
   }): Promise<{ rewritten: boolean }>
-  /** Rilegge il progetto aperto senza backup: serve per i dati cambiati fuori da Naibi */
+  /** Rilegge il progetto aperto senza backup: serve per i dati cambiati fuori da Stella */
   reloadData(): Promise<LoadedProject>
   /** Controlla file dati: com'è fatto ogni foglio del file dati del progetto aperto */
   inspectData(): Promise<SheetInspection[]>
   /** Sceglie un altro file di dati e ne legge i fogli, per importarne uno in un set; null se annullato */
   chooseImportFile(): Promise<{ file: string; sheets: Sheet[] } | null>
-  /** Chiamato quando il file dati cambia fuori da Naibi; nel browser non arriva mai */
+  /** Chiamato quando il file dati cambia fuori da Stella; nel browser non arriva mai */
   onDataFileChanged(cb: () => void): () => void
   /** Ingrandimento di tutta l'interfaccia, 1 = 100% */
   setUiZoom(factor: number): void
@@ -276,8 +276,8 @@ export interface Api {
   defaultTtcTarget(source: string): Promise<string>
   /** Converte un progetto Tabletop Creator in un progetto nuovo; l'originale non si modifica */
   importTtc(options: TtcImportOptions): Promise<TtcImportResult>
-  /** Come lanciare il comando naibi su questo computer; ready è falso se va prima compilato */
-  naibiCommand(): Promise<{ command: string; ready: boolean }>
+  /** Come lanciare il comando stella su questo computer; ready è falso se va prima compilato */
+  stellaCommand(): Promise<{ command: string; ready: boolean }>
   /** L'ultima versione pubblicata, se è più recente di questa; null anche senza rete */
   checkForUpdate(): Promise<UpdateInfo | null>
   /** Canale degli aggiornamenti scelto in Impostazioni (Stabile o Beta) */
@@ -290,11 +290,11 @@ export interface Api {
   onUpdateProgress(cb: (p: number) => void): () => void
   /** Versione dell'app, per esempio 1.2.0-beta.1 */
   appVersion(): Promise<string>
-  /** Scrive la skill in <cartella>/naibi/SKILL.md e ne restituisce il percorso */
+  /** Scrive la skill in <cartella>/stella/SKILL.md e ne restituisce il percorso */
   saveSkill(folder: string, text: string): Promise<string>
   /** Cartella proposta per salvare la skill: quella delle skill di Claude Code, se c'è */
   skillsFolder(): Promise<string>
-  /** Progetto aperto (null alla chiusura) e modifiche non salvate, per `naibi begin` */
+  /** Progetto aperto (null alla chiusura) e modifiche non salvate, per `stella begin` */
   setAppState(folder: string | null, dirty: boolean): Promise<void>
   /** Chiamato quando un'IA inizia (con il blocco) o finisce (null) di lavorare sul progetto */
   onAgentLock(cb: (lock: AgentLock | null) => void): () => void
@@ -322,7 +322,7 @@ export interface ExportPageApi {
 export interface TtcImportOptions {
   /** Cartella del progetto Tabletop Creator */
   source: string
-  /** Cartella nuova (o vuota) del progetto Naibi */
+  /** Cartella nuova (o vuota) del progetto Stella */
   target: string
   /** Cartella in cui cercare le icone della libreria che non sono nei cataloghi dell'app */
   iconFolder?: string

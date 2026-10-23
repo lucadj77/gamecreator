@@ -114,7 +114,7 @@ export function resolveTemplate(
     const r = insertAdded(sides[a.side], a)
     if (r) sides[a.side] = r
     else {
-      // il posto non c'è più (livello del base eliminato o rinominato fuori da Naibi): in cima
+      // il posto non c'è più (livello del base eliminato o rinominato fuori da Stella): in cima
       problems.push(msg('inherit.lostPosition', { template: own.name, layer: a.layer.name }))
       sides[a.side] = [a.layer, ...sides[a.side]]
     }

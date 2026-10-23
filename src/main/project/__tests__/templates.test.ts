@@ -46,7 +46,7 @@ describe('file dei template', () => {
     const { join } = await import('path')
     const { normalizeTemplate } = await import('../../../shared/model/normalize')
     const { saveTemplate, trashTemplate } = await import('../templates')
-    const folder = await mkdtemp(join(tmpdir(), 'naibi-tpl-'))
+    const folder = await mkdtemp(join(tmpdir(), 'stella-tpl-'))
     await mkdir(join(folder, 'templates'))
     await writeFile(join(folder, 'templates', 'carta.json'), '{"width": 63}\n')
     const tpl = normalizeTemplate({ name: 'base', width: 70, height: 88 })

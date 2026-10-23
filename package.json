@@ -1,12 +1,12 @@
 {
-  "name": "naibi",
-  "productName": "Naibi",
-  "version": "1.2.0-beta.31",
+  "name": "stella",
+  "productName": "Stella",
+  "version": "1.2.0-beta.32",
   "description": "Create cards and other game components",
   "main": "./out/main/index.js",
   "author": "Luca",
   "license": "GPL-3.0-or-later",
-  "homepage": "https://github.com/lucadj77/naibi",
+  "homepage": "https://github.com/lucadj77/stella",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -28,7 +28,7 @@
     "preview:web": "vite preview -c vite.web.config.mts",
     "demo-data": "node scripts/make-demo-data.mjs",
     "test": "vitest run",
-    "naibi": "node bin/naibi.mjs"
+    "stella": "node bin/stella.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -67,6 +67,6 @@
     "vitest": "^5.0.5"
   },
   "bin": {
-    "naibi": "bin/naibi.mjs"
+    "stella": "bin/stella.mjs"
   }
 }

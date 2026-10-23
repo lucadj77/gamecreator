@@ -3,8 +3,8 @@
 La versione web è la stessa app nel browser, senza installazione: serve dove un programma non si
 può installare o avviare, per esempio sui computer aziendali che bloccano i file .exe non firmati.
 Lavora sulle cartelle dei progetti del computer come l'app desktop, e i progetti sono gli stessi
-file. È pubblicata su GitHub Pages: <https://lucadj77.github.io/naibi/> è l'ultima versione
-ufficiale, <https://lucadj77.github.io/naibi/beta/> l'ultima beta (o l'ultima ufficiale, se è più
+file. È pubblicata su GitHub Pages: <https://lucadj77.github.io/stella/> è l'ultima versione
+ufficiale, <https://lucadj77.github.io/stella/beta/> l'ultima beta (o l'ultima ufficiale, se è più
 recente). Nel menu ⚙, **Versione** passa dall'una all'altra. Le due stanno sullo stesso sito e
 condividono ciò che il browser ricorda (progetti recenti, impostazioni).
 
@@ -32,11 +32,11 @@ arriva nel web va tolta da lì.
   (`src/shared/realPath.ts`, ricordato nel browser per ogni cartella). Un percorso che non finisce
   con il nome della cartella scelta viene rifiutato. Su macOS Chrome non apre le
   cartelle dentro `~/Library`, dove sta `Saved Objects`: si sceglie un'altra cartella, per
-  esempio `Documenti/Naibi TTS`, e una volta sola si crea in `Saved Objects` un collegamento a
+  esempio `Documenti/Stella TTS`, e una volta sola si crea in `Saved Objects` un collegamento a
   essa dal Terminale (da verificare con Tabletop Simulator):
 
   ```bash
-  ln -s ~/Documents/"Naibi TTS" ~/Library/"Tabletop Simulator"/Saves/"Saved Objects"/"Naibi TTS"
+  ln -s ~/Documents/"Stella TTS" ~/Library/"Tabletop Simulator"/Saves/"Saved Objects"/"Stella TTS"
   ```
 
 - Google Fonts: nel browser Google dà file WOFF2 divisi per alfabeto, e si salva solo quello
@@ -52,7 +52,7 @@ arriva nel web va tolta da lì.
   finestra del browser e deve essere vuota.
 - I cataloghi di game-icons.net e dei font Google sono quelli della versione pubblicata: non si
   aggiornano dall'app.
-- Non ci sono: comando `naibi` e skill per gli agenti IA, controllo degli aggiornamenti (il sito
+- Non ci sono: comando `stella` e skill per gli agenti IA, controllo degli aggiornamenti (il sito
   è sempre all'ultima versione), dimensione dell'interfaccia (si usa lo zoom del browser).
 
 ## Come funziona
@@ -70,7 +70,7 @@ arriva nel web va tolta da lì.
 - Le esportazioni usano `src/main/export/run.ts` con un iframe invisibile al posto della finestra
   nascosta di Electron (`src/web/exportFrame.ts`).
 - I dati dell'app (impostazioni dei backup, backup senza cartella scelta) stanno nell'Origin
-  Private File System del sito, montato come `/.naibi` (`DATA_ROOT` in `src/web/fs/roots.ts`);
+  Private File System del sito, montato come `/.stella` (`DATA_ROOT` in `src/web/fs/roots.ts`);
   `src/web/shims/electron.ts` vi fa puntare `app.getPath`.
 - I cataloghi inclusi (`resources/catalogs`, importati con `?asset`) diventano file della build e
   si leggono con `fetch` (plugin `assetFiles` in `vite.web.config.mts`).

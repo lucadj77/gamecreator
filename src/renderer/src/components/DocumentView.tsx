@@ -47,7 +47,7 @@ import Menu from './Menu'
 import { runEdit } from './editRun'
 
 // Un documento del progetto (docs/<nome>.md: regolamento, sell sheet, appendice): a sinistra il
-// testo in Markdown con il markup di Naibi, a destra l'anteprima sempre visibile, con le carte
+// testo in Markdown con il markup di Stella, a destra l'anteprima sempre visibile, con le carte
 // disegnate dal progetto. Si salva da solo mentre si scrive, come le note.
 
 interface Props {

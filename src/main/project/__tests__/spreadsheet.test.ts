@@ -20,18 +20,18 @@ async function workbook(path: string): Promise<void> {
 }
 
 describe('writeSpreadsheet', () => {
-  it('in sola lettura saveData rifiuta i fogli e salva solo naibi.json', async () => {
+  it('in sola lettura saveData rifiuta i fogli e salva solo stella.json', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'gc-'))
     await workbook(join(dir, 'dati.xlsx'))
     const before = await readFile(join(dir, 'dati.xlsx'))
     const file = { formatVersion: 1, name: 'p', dataFile: 'dati.xlsx', sets: [] }
-    await writeFile(join(dir, 'naibi.json'), JSON.stringify({ ...file, dataReadOnly: true }))
+    await writeFile(join(dir, 'stella.json'), JSON.stringify({ ...file, dataReadOnly: true }))
     const sheet = { name: 'Personaggi', headers: ['a'], rows: [['b']] }
     await expect(saveData(dir, { sheets: [sheet] })).rejects.toThrow('data.readOnly')
     await expect(saveData(dir, { sheets: [], removed: ['Altro'] })).rejects.toThrow('data.readOnly')
     // togliere la sola lettura nello stesso salvataggio lascia scrivere
     await saveData(dir, { file: { ...file, name: 'q' }, sheets: [] })
-    expect(JSON.parse(await readFile(join(dir, 'naibi.json'), 'utf8')).name).toBe('q')
+    expect(JSON.parse(await readFile(join(dir, 'stella.json'), 'utf8')).name).toBe('q')
     expect(await readFile(join(dir, 'dati.xlsx'))).toEqual(before)
   })
 
@@ -63,7 +63,7 @@ describe('writeSpreadsheet', () => {
     const dir = await mkdtemp(join(tmpdir(), 'gc-'))
     await workbook(join(dir, 'dati.xlsx'))
     const file = { version: 1, dataFile: 'dati.xlsx', sets: [] }
-    await writeFile(join(dir, 'naibi.json'), JSON.stringify(file))
+    await writeFile(join(dir, 'stella.json'), JSON.stringify(file))
     await saveData(dir, {
       sheets: [{ name: 'Personaggi', origin: 'Altro', headers: ['a'], rows: [['b']] }],
       removed: ['Personaggi']

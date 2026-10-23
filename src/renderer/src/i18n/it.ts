@@ -97,22 +97,22 @@ export const it: Record<MessageKey, string> = {
   'table.rowHint': 'Clic per selezionare (Maiuscolo o ⌘ per più righe), trascina per spostare',
   'table.empty': 'Nessuna carta. Aggiungine una con + Carta.',
   'data.readOnly':
-    'Il file dei dati è in sola lettura: modifica i dati nel file (per esempio in Excel), salva, e Naibi li rilegge da solo. La sola lettura si toglie in fondo alla barra laterale.',
+    'Il file dei dati è in sola lettura: modifica i dati nel file (per esempio in Excel), salva, e Stella li rilegge da sola. La sola lettura si toglie in fondo alla barra laterale.',
   'data.saveFirst': 'Prima salva o annulla le modifiche ai dati, poi attiva la sola lettura.',
   'data.readOnlyLabel': '{file} in sola lettura',
   'data.readOnlyHint':
-    'Naibi non scrive mai nel file dei dati: le carte si modificano solo nel file, per esempio in Excel. Template, anteprime ed esportazioni funzionano come sempre.',
+    'Stella non scrive mai nel file dei dati: le carte si modificano solo nel file, per esempio in Excel. Template, anteprime ed esportazioni funzionano come sempre.',
   'data.readOnlyBadge': 'sola lettura',
   'data.changedOutside':
-    'Il file dei dati è stato modificato fuori da Naibi. Ricaricando si perdono le modifiche non salvate.',
+    'Il file dei dati è stato modificato fuori da Stella. Ricaricando si perdono le modifiche non salvate.',
   'data.ignore': 'Ignora',
   'check.title': 'Controlla file dati',
   'check.intro':
-    'Come Naibi legge {file}: per ogni foglio, i set che lo usano e cosa potrebbe non andare. Il controllo non modifica il file.',
+    'Come Stella legge {file}: per ogni foglio, i set che lo usano e cosa potrebbe non andare. Il controllo non modifica il file.',
   'check.readOnly': 'Il file è in sola lettura.',
   'check.reading': 'Lettura del file…',
   'check.losses':
-    'Il file contiene {what}. Naibi li tiene quando modifica le celle, ma li toglie quando deve riscrivere tutto il file: aggiungendo, rinominando o eliminando un set. Con la sola lettura il file non viene mai scritto.',
+    'Il file contiene {what}. Stella li tiene quando modifica le celle, ma li toglie quando deve riscrivere tutto il file: aggiungendo, rinominando o eliminando un set. Con la sola lettura il file non viene mai scritto.',
   'check.missingSheet': 'Il set {set} usa il foglio "{sheet}", che nel file non c\'è.',
   'check.linked': 'usato da {sets}',
   'check.unlinked': 'non collegato a un set',
@@ -122,7 +122,7 @@ export const it: Record<MessageKey, string> = {
   'check.ok': 'Nessun problema trovato.',
   'check.emptySheet': 'Il foglio è vuoto.',
   'check.titleAbove':
-    'La riga {row} sembra un titolo, ma Naibi la prende per la riga delle intestazioni. Togli il titolo o usa un foglio con le intestazioni nella prima riga.',
+    'La riga {row} sembra un titolo, ma Stella la prende per la riga delle intestazioni. Togli il titolo o usa un foglio con le intestazioni nella prima riga.',
   'check.headerRow': 'Le intestazioni sono nella riga {row}: le righe sopra sono vuote.',
   'check.noRows': 'Ci sono le intestazioni ma nessuna riga di dati.',
   'check.duplicateHeaders':
@@ -130,11 +130,11 @@ export const it: Record<MessageKey, string> = {
   'check.errors':
     "Celle con un errore di Excel: {cells}. Sulle carte compare il codice dell'errore.",
   'check.noResult':
-    'Formule senza risultato salvato: {cells}. Naibi le legge vuote: apri e salva il file in Excel per calcolarle.',
-  'check.merged': "Celle unite: {cells}. Naibi ripete il valore in ogni cella dell'unione.",
-  'check.unnamedColumns': 'Colonne con dati ma senza intestazione: {columns}. Naibi le ignora.',
+    'Formule senza risultato salvato: {cells}. Stella le legge vuote: apri e salva il file in Excel per calcolarle.',
+  'check.merged': "Celle unite: {cells}. Stella ripete il valore in ogni cella dell'unione.",
+  'check.unnamedColumns': 'Colonne con dati ma senza intestazione: {columns}. Stella le ignora.',
   'check.emptyRows':
-    'Righe vuote tra i dati: {rows}. Naibi le salta, e salvando restano dove sono.',
+    'Righe vuote tra i dati: {rows}. Stella le salta, e salvando restano dove sono.',
   'sidebar.checkData': 'Controlla file dati…',
   'import.open': 'Importa un foglio da un altro file…',
   'import.title': 'Importa un foglio da un altro file',
@@ -157,7 +157,7 @@ export const it: Record<MessageKey, string> = {
   'import.newColumns': 'Colonne nuove: {columns}',
   'import.keepColumns': 'Tieni le colonne che il file non ha: {columns}',
   'import.backupNote':
-    'Prima di importare Naibi fa un backup del progetto. La modifica si annulla con ⌘Z e va salvata come le altre.',
+    'Prima di importare Stella fa un backup del progetto. La modifica si annulla con ⌘Z e va salvata come le altre.',
   'import.import': 'Importa',
   'newSet.title': 'Nuovo set',
   'newSet.template': 'Template',
@@ -425,7 +425,7 @@ export const it: Record<MessageKey, string> = {
   'editor.showSafe': 'Area sicura',
   'editor.zoomHint': 'Zoom con ⌘/Ctrl + rotella del mouse o pizzicando il trackpad',
   'editor.zoomFit': 'Adatta',
-  'tip.openProject': 'Apri una cartella che contiene un progetto Naibi',
+  'tip.openProject': 'Apri una cartella che contiene un progetto Stella',
   'tip.reload': 'Rileggi il progetto dal disco; le modifiche non salvate si perdono',
   'tip.export': 'Esporta le carte come immagini, PDF o mazzi per Tabletop Simulator',
   'tip.openSet': 'Mostra e modifica le carte di questo set. Trascina per riordinare',
@@ -842,7 +842,7 @@ export const it: Record<MessageKey, string> = {
     'Questo riquadro non ha la riga <!-- /box -->: arriva fino alla fine del documento',
   'doc.setting.unknown': '"{name}" non è un\'impostazione della pagina',
   'doc.language.unknown':
-    'Il progetto non ha la lingua "{language}": le carte si disegnano nella lingua principale (languages in naibi.json)',
+    'Il progetto non ha la lingua "{language}": le carte si disegnano nella lingua principale (languages in stella.json)',
   'doc.setting.bad': '"{value}" non è un valore valido per {name}',
   'doc.anatomy.badLine':
     "Questa riga dell'anatomia non si capisce: scrivi card: … oppure - livello: etichetta",
@@ -899,9 +899,9 @@ export const it: Record<MessageKey, string> = {
     'La carta usa il template "{name}", che ha misure diverse da quello del set',
   'load.missingSheet': 'Il set "{set}" non trova il foglio "{sheet}"',
   'save.dataLossConfirm':
-    'Il file dei dati contiene {what}. Per salvare queste modifiche Naibi deve riscrivere tutto il file, e li toglie ovunque, anche dai fogli non collegati. Salvare comunque?',
+    'Il file dei dati contiene {what}. Per salvare queste modifiche Stella deve riscrivere tutto il file, e li toglie ovunque, anche dai fogli non collegati. Salvare comunque?',
   'save.needsRewrite':
-    'Non salvato: Naibi dovrebbe riscrivere tutto il file dei dati e toglierebbe grafici o altre parti che non sa scrivere.',
+    'Non salvato: Stella dovrebbe riscrivere tutto il file dei dati e toglierebbe grafici o altre parti che non sa scrivere.',
   'dataLoss.charts': 'grafici',
   'dataLoss.pivotTables': 'tabelle pivot',
   'dataLoss.slicers': 'filtri dati e sequenze temporali',
@@ -1439,7 +1439,7 @@ export const it: Record<MessageKey, string> = {
   'variable.delete': 'Elimina variabile',
   'variable.save': 'Salva variabile',
   'tip.importTtc':
-    "Importa da Tabletop Creator: converte un progetto in un nuovo progetto Naibi; l'originale non cambia",
+    "Importa da Tabletop Creator: converte un progetto in un nuovo progetto Stella; l'originale non cambia",
   'ttc.title': 'Importa da Tabletop Creator',
   'ttc.intro':
     'Il progetto si converte in una cartella nuova: template, set, variabili e immagini. La cartella di Tabletop Creator viene solo letta.',
@@ -1503,7 +1503,7 @@ export const it: Record<MessageKey, string> = {
   'web.desktopLink': 'Cosa ha in più la versione desktop',
   'web.desktopTitle': 'Cosa ha in più la versione desktop',
   'web.desktopIntro':
-    "Questa è la versione web di Naibi: si apre nel browser senza installare nulla e lavora sulle cartelle dei progetti del tuo computer, come l'app desktop. Alcune cose ci sono solo nella versione desktop (Windows, macOS, Linux):",
+    "Questa è la versione web di Stella: si apre nel browser senza installare nulla e lavora sulle cartelle dei progetti del tuo computer, come l'app desktop. Alcune cose ci sono solo nella versione desktop (Windows, macOS, Linux):",
   'web.desktop.pdf':
     'PDF salvato direttamente, senza la finestra di stampa, e conversione in CMYK per le tipografie',
   'web.desktop.tts':
@@ -1514,7 +1514,7 @@ export const it: Record<MessageKey, string> = {
     "Aggiornamento dall'app dei cataloghi di game-icons.net e dei font Google",
   'web.desktop.data':
     'Partire da un file di dati che hai già, importare un foglio da un altro file e rileggere da solo il file dei dati quando cambia',
-  'web.desktop.ai': 'Il comando naibi e la skill per gli agenti IA (Claude, Codex…)',
+  'web.desktop.ai': 'Il comando stella e la skill per gli agenti IA (Claude, Codex…)',
   'web.desktop.browser':
     'Indipendente dal browser: la versione web funziona solo con Chrome, Edge e Opera (in Brave dopo aver attivato brave://flags/#file-system-access-api), e chiede di nuovo il permesso sulla cartella ogni volta che riapri il sito',
   'web.desktopOutro':
@@ -1522,7 +1522,7 @@ export const it: Record<MessageKey, string> = {
   'web.download': 'Scarica la versione desktop',
   'web.desktopOnly': "Questa funzione c'è solo nella versione desktop.",
   'web.permissionDenied':
-    "Naibi ha bisogno del permesso di leggere e scrivere nella cartella del progetto. Riaprilo e consenti l'accesso.",
+    "Stella ha bisogno del permesso di leggere e scrivere nella cartella del progetto. Riaprilo e consenti l'accesso.",
   'web.chooseParent': 'Scegli la cartella in cui creare il progetto.',
   'web.noLocalFonts':
     'Questo browser non permette al sito di leggere i font installati sul computer (Chrome ed Edge sì, dopo averlo consentito).',
@@ -1548,21 +1548,9 @@ export const it: Record<MessageKey, string> = {
     "Il backup verrà estratto in una nuova cartella dentro quella scelta, e si aprirà al posto di questo progetto. Il progetto attuale resta com'è. Continuare?",
   'web.pdfHint':
     'Nella versione web le pagine vanno alla finestra di stampa del browser: scegli "Salva come PDF", margini "Nessuno" e attiva "Grafica di sfondo". Una finestra per ogni PDF.',
-  'about.link': 'Cosa vuol dire Naibi?',
-  'about.title': 'Cosa vuol dire Naibi?',
-  'about.p1':
-    "*Naibi* (si pronuncia **nàibi**, con l'accento sulla *a*) è il nome con cui le carte da gioco arrivarono in Italia, nel Trecento.",
-  'about.p2':
-    "La parola viene dall'arabo *nā'ib*, \"luogotenente\". Nei mazzi dei Mamelucchi, che regnavano su Egitto e Siria, le figure erano il re (*malik*), il suo luogotenente (*nā'ib malik*) e un secondo luogotenente. Gli europei presero il nome di una figura per indicare il gioco intero.",
-  'about.p3':
-    'Il 23 marzo 1377 Firenze vietò "un gioco chiamato *naibbe*" appena arrivato in città. Pochi anni dopo una cronaca di Viterbo racconta che il gioco delle carte "venne de Seracinia e chiamasi tra loro naib".',
-  'about.p4':
-    'In italiano la parola è stata poi sostituita da "carte", mentre in spagnolo vive ancora: le carte si chiamano *naipes*. Sono rimasti anche i semi. Coppe, denari e spade vengono dai mazzi mamelucchi. I bastoni erano in origine mazze da polo, un gioco allora sconosciuto in Europa.',
-  'about.p5':
-    "Naibi è un'app per creare carte e componenti di gioco: ci è sembrato giusto chiamarla con il primo nome che le carte hanno avuto da noi.",
   'about.close': 'Chiudi',
   'app.aiTools': 'Strumenti IA…',
-  'tip.aiTools': 'Fai lavorare un agente IA (Claude Code, Codex…) sui progetti Naibi',
+  'tip.aiTools': 'Fai lavorare un agente IA (Claude Code, Codex…) sui progetti Stella',
   'app.help': 'Aiuto',
   'tip.help': 'Markup del testo, variabili di sistema, formule e scorciatoie da tastiera (F1)',
   'help.title': 'Aiuto',
@@ -1602,7 +1590,7 @@ export const it: Record<MessageKey, string> = {
   'help.imageAttributes': 'Attributi delle icone',
   'help.system': 'Variabili di sistema',
   'help.systemIntro':
-    'Valori che Naibi conosce da sé. Si scrivono come i campi, nei testi e nelle formule; un campo o una variabile del progetto con lo stesso nome ha la precedenza.',
+    'Valori che Stella conosce da sé. Si scrivono come i campi, nei testi e nelle formule; un campo o una variabile del progetto con lo stesso nome ha la precedenza.',
   'system.project.name': 'Nome del progetto (il gioco)',
   'system.set.name': 'Nome del set',
   'system.template.name': 'Nome del template della carta',
@@ -1680,25 +1668,25 @@ export const it: Record<MessageKey, string> = {
   'help.keys.help': 'Questo aiuto',
   'ai.title': 'Strumenti per gli agenti IA',
   'ai.intro':
-    'Un agente IA che può eseguire comandi su questo computer (per esempio Claude Code, Codex o Cursor) può lavorare sui progetti Naibi: leggere e modificare carte, modelli e stili, cercare i problemi e disegnare le carte per guardarle. Gli serve la skill di Naibi qui sotto.',
+    'Un agente IA che può eseguire comandi su questo computer (per esempio Claude Code, Codex o Cursor) può lavorare sui progetti Stella: leggere e modificare carte, modelli e stili, cercare i problemi e disegnare le carte per guardarle. Gli serve la skill di Stella qui sotto.',
   'ai.step1': 'Copia la skill.',
   'ai.step2':
     'Incollala nel tuo agente e chiedigli di installarla come skill (o come istruzioni del progetto, se non gestisce le skill).',
   'ai.step3':
-    'Poi chiedigli quello che ti serve, indicando la cartella del progetto. Quando ha finito, premi Ricarica in Naibi per vedere le modifiche.',
+    'Poi chiedigli quello che ti serve, indicando la cartella del progetto. Quando ha finito, premi Ricarica in Stella per vedere le modifiche.',
   'ai.saveHint':
     'Puoi anche salvarla come file: Claude Code legge le skill dalla cartella .claude/skills della tua cartella utente o di un progetto. La skill è in inglese, la lingua che gli agenti seguono meglio.',
   'ai.webHint':
-    "Nella versione web la skill trova da sola il comando naibi: usa l'app desktop se è installata, altrimenti propone di installare il comando (serve Node.js, che se manca l'agente propone di installare). Perché funzioni devi autorizzare il tuo agente a scaricare da GitHub e a installare il comando e gli aggiornamenti: ti chiederà il permesso la prima volta. Si aggiorna anche da sola, insieme al comando, quando esce una nuova versione. La skill è in inglese, la lingua che gli agenti seguono meglio.",
+    "Nella versione web la skill trova da sola il comando stella: usa l'app desktop se è installata, altrimenti propone di installare il comando (serve Node.js, che se manca l'agente propone di installare). Perché funzioni devi autorizzare il tuo agente a scaricare da GitHub e a installare il comando e gli aggiornamenti: ti chiederà il permesso la prima volta. Si aggiorna anche da sola, insieme al comando, quando esce una nuova versione. La skill è in inglese, la lingua che gli agenti seguono meglio.",
   'ai.notBuilt':
-    "Il comando naibi usato dalla skill funziona solo dopo aver compilato l'app una volta: esegui `npm run build` nella cartella del codice di Naibi.",
+    "Il comando stella usato dalla skill funziona solo dopo aver compilato l'app una volta: esegui `npm run build` nella cartella del codice di Stella.",
   'ai.copy': 'Copia la skill',
   'ai.save': 'Salva come file…',
   'ai.copied': 'Skill copiata. Incollala nel tuo agente.',
   'ai.saved': 'Skill salvata in {file}',
   'agent.title': "Un'IA sta lavorando su questo progetto",
   'agent.text':
-    'Un agente IA ha iniziato a lavorare su questo progetto con il comando naibi. Naibi resta bloccato finché non finisce, poi ricarica il progetto da solo.',
+    'Un agente IA ha iniziato a lavorare su questo progetto con il comando stella. Stella resta bloccata finché non finisce, poi ricarica il progetto da sola.',
   'agent.since': 'Iniziato alle {time}',
   'agent.unlock': 'Sblocca ora',
   'agent.unlockHint': "Da usare se l'IA si è fermata senza sbloccare il progetto",
@@ -1742,7 +1730,7 @@ export const it: Record<MessageKey, string> = {
   'languages.main': 'lingua principale',
   'languages.untranslated': '{n} testi da tradurre',
   'languages.untranslatedHint':
-    'Testi fissi, variabili e celle @lingua vuote senza traduzione: le carte usano la lingua principale. naibi check li elenca.',
+    'Testi fissi, variabili e celle @lingua vuote senza traduzione: le carte usano la lingua principale. stella check li elenca.',
   'languages.remove': 'Togli',
   'languages.removeHint': 'Toglie la lingua dal progetto; le sue colonne restano nei fogli',
   'languages.add': 'Aggiungi lingua',
@@ -1783,7 +1771,7 @@ export const it: Record<MessageKey, string> = {
   'tip.split': "Divide un'immagine grande tra le carte del set: ogni carta ne mostra un pezzo",
   'split.title': "Dividi un'immagine tra le carte",
   'split.hint':
-    "Ogni carta mostra un pezzo dell'immagine: messe in griglia una accanto all'altra, le carte ricompongono l'immagine intera. Naibi scrive nelle colonne delle carte l'immagine, il ritaglio e, dove serve, il riquadro del livello.",
+    "Ogni carta mostra un pezzo dell'immagine: messe in griglia una accanto all'altra, le carte ricompongono l'immagine intera. Stella scrive nelle colonne delle carte l'immagine, il ritaglio e, dove serve, il riquadro del livello.",
   'split.noLayer':
     'Il template non ha un livello immagine da dividere (quelli dentro un gruppo o ruotati non si possono).',
   'split.layer': 'Livello immagine',
@@ -1916,27 +1904,27 @@ export const it: Record<MessageKey, string> = {
   'newProject.existing': 'Un file che hai già (.xlsx, .ods, .csv)…',
   'newProject.existingFile': 'File',
   'newProject.existingNote':
-    'Naibi lavora su una copia del file, nella cartella data del progetto: l\'originale non cambia. I fogli si collegano ai set con Nuovo set. Prima leggi "Usare un file Excel che hai già" nella guida.',
+    'Stella lavora su una copia del file, nella cartella data del progetto: l\'originale non cambia. I fogli si collegano ai set con Nuovo set. Prima leggi "Usare un file Excel che hai già" nella guida.',
   'newProject.notEmpty': 'La cartella {folder} esiste già e non è vuota.',
-  'update.available': 'È disponibile Naibi {version}.',
+  'update.available': 'È disponibile Stella {version}.',
   'update.whatsNew': 'Novità',
   'update.download': 'Scarica',
   'update.install': 'Aggiorna e riavvia',
   'update.installing': 'Scaricamento… {percent}%',
   'update.installFailed':
-    'Non è stato possibile installare Naibi {version} da solo: scaricalo dalla pagina della release.',
+    'Non è stato possibile installare Stella {version} da sola: scaricala dalla pagina della release.',
   'translation.placeholder': 'Vuoto: usa la lingua principale',
   'update.reason': ' Motivo: {reason}',
   'update.unsaved':
-    'Ci sono modifiche non salvate: andranno perse al riavvio di Naibi. Aggiornare comunque?',
+    'Ci sono modifiche non salvate: andranno perse al riavvio di Stella. Aggiornare comunque?',
   'update.skip': 'Salta questa versione',
   'update.later': 'Ricordamelo più tardi',
-  'update.title': 'Novità di Naibi {version}',
+  'update.title': 'Novità di Stella {version}',
   'update.noNotes': 'Questa versione non ha note.',
   'update.whatsNewTip': 'Le novità di questa versione',
   'update.check': 'Controlla aggiornamenti',
   'update.checking': 'Controllo degli aggiornamenti…',
-  'update.latest': "Hai l'ultima versione di Naibi.",
+  'update.latest': "Hai l'ultima versione di Stella.",
   'update.failed': 'Non è stato possibile controllare gli aggiornamenti: GitHub non risponde.',
   'update.allVersions': 'Tutte le versioni',
   'app.settings': 'Impostazioni',
@@ -1958,7 +1946,7 @@ export const it: Record<MessageKey, string> = {
   'menu.uiSmaller': 'Interfaccia più piccola',
   'menu.uiReset': 'Dimensione normale',
   'menu.whatsNew': 'Novità',
-  'menu.website': 'Naibi su GitHub',
+  'menu.website': 'Stella su GitHub',
   'documents.exportButton': 'Esporta documento…',
   'menu.undo': 'Annulla',
   'menu.redo': 'Ripeti',
@@ -1968,7 +1956,7 @@ export const it: Record<MessageKey, string> = {
   'menu.selectAll': 'Seleziona tutto',
   'menu.fullScreen': 'Schermo intero',
   'menu.devTools': 'Strumenti per sviluppatori',
-  'menu.quit': 'Esci da Naibi',
+  'menu.quit': 'Esci da Stella',
   'documents.duplicateHint': 'Fai una copia del documento',
   'documents.openFile': 'Apri il file',
   'export.openFile': 'Apri {file}',

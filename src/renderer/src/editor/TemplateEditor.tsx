@@ -41,7 +41,7 @@ interface Props {
 }
 
 /** Evento della barra dell'app per annullare o ripetere nell'editor */
-export const EDITOR_UNDO = 'naibi-editor-undo'
+export const EDITOR_UNDO = 'stella-editor-undo'
 
 const NUDGE = 0.5
 

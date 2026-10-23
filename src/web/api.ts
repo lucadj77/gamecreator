@@ -109,7 +109,7 @@ const desktopOnly = (): Promise<never> => Promise.reject(new MessageError(msg('w
 export const webApi: Api = {
   isWeb: true,
   assetUrl,
-  chooseProjectFolder: () => pickFolder('naibi-project'),
+  chooseProjectFolder: () => pickFolder('stella-project'),
   recentProjects: () => listRecent(),
   removeRecentProject: (f) => removeRecent(f),
   saveThumbnail: async (template, context, onlyIfMissing) => {
@@ -199,7 +199,7 @@ export const webApi: Api = {
     progressListeners.add(cb)
     return () => progressListeners.delete(cb)
   },
-  chooseExportFolder: () => pickFolder('naibi-export'),
+  chooseExportFolder: () => pickFolder('stella-export'),
   saveExportProfiles: async (profiles) => {
     if (folder) await saveExportProfiles(folder, profiles)
   },
@@ -226,7 +226,7 @@ export const webApi: Api = {
     await writeFile(file, text)
     return file
   },
-  chooseFolder: () => pickFolder('naibi-folder'),
+  chooseFolder: () => pickFolder('stella-folder'),
   backups: () => backupState(),
   createBackup: async () => {
     const f = projectFolder()
@@ -260,8 +260,8 @@ export const webApi: Api = {
       if (p && !(await ensurePermission(p))) throw new MessageError(msg('web.permissionDenied'))
     return importTtc(options)
   },
-  // il comando lo trova la skill: l'app desktop se c'è, se no il pacchetto naibi-cli
-  naibiCommand: async () => ({ command: '', ready: true }),
+  // il comando lo trova la skill: l'app desktop se c'è, se no il pacchetto stella-cli
+  stellaCommand: async () => ({ command: '', ready: true }),
   // chi apre il sito ha sempre l'ultima versione
   checkForUpdate: async () => null,
   // la versione web stabile sta all'indirizzo principale, la beta in /beta/

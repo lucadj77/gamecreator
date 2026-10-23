@@ -22,12 +22,12 @@ export default function ExportPage(): React.JSX.Element {
   // il processo principale chiede l'SVG della carta disegnata (esportazione in SVG)
   useEffect(() => {
     const w = window as unknown as {
-      naibiCardSvg?: (bg: string | null) => Promise<string>
-      naibiPageCards?: () => Promise<PageCard[]>
+      stellaCardSvg?: (bg: string | null) => Promise<string>
+      stellaPageCards?: () => Promise<PageCard[]>
     }
-    w.naibiCardSvg = (bg) => cardToSvg(rootRef.current!, context.fonts, bg)
+    w.stellaCardSvg = (bg) => cardToSvg(rootRef.current!, context.fonts, bg)
     // versione web: ogni carta della pagina con la sua posizione, per disegnarle su un canvas
-    w.naibiPageCards = () => pageCards(rootRef.current!, context.fonts)
+    w.stellaPageCards = () => pageCards(rootRef.current!, context.fonts)
   }, [context.fonts])
 
   useEffect(() => {

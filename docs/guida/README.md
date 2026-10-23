@@ -67,7 +67,7 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 
 ![La finestra del progetto, con le parti numerate](img/progetto.png)
 
-1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), **Salva** (⌘S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**.
+1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), il menu della lingua delle carte (solo nei progetti con più lingue), **Salva** (⌘S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Lingue…** ([5.7](#57-carte-in-più-lingue)), **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**.
 2. **Set.** Un clic apre le carte del set; il numero è il totale delle carte, copie comprese.
 3. **Template.** Un clic apre il template nell'editor; accanto c'è il formato in millimetri.
 4. **Stili** di testo del progetto ([capitolo 7](#7-variabili-e-stili)).
@@ -241,6 +241,22 @@ Il file dei dati è un normale foglio di calcolo e si può modificare anche con 
 Se tieni i dati in un foglio Google, **Google Sheets…**, nel menu **Progetto**, li porta nel progetto. Nel foglio Google scegli **Condividi** → **Chiunque abbia il link** (lettore), copia il link e incollalo; **Scarica** legge tutte le schede. Ogni scheda va al set con lo stesso nome (senza badare a maiuscole); dal menu puoi sceglierne un altro o **non importare** la scheda. Se una scheda non ha alcune colonne del set, la finestra le elenca: dopo l'importazione quelle colonne non ci sono più. **Importa** sostituisce i dati dei set scelti (⌘Z annulla) e **Salva** li scrive nel file dei dati del progetto, che resta la copia locale: Naibi funziona anche senza rete.
 
 Il link resta nel progetto: la volta dopo basta aprire la finestra e premere **Scarica**. Un foglio non condiviso con il link non si può scaricare, e Naibi lo dice. Un'IA può fare lo stesso con `naibi pull-sheets`.
+
+### 5.7 Carte in più lingue
+
+Un progetto può stampare le stesse carte in più lingue. **Lingue…**, nel menu **Progetto**, apre la finestra delle lingue: la prima è la principale, quella in cui sono scritte le colonne di sempre. Con **Aggiungi lingua** scrivi il codice della lingua (en per l'inglese, fr per il francese, de per il tedesco…). Sotto, **Nomi tradotti** dà il nome del progetto e dei set nelle altre lingue: lo usano `{project.name}` e `{set.name}`. Lasciando spuntata la casella in fondo, **Salva** aggiunge ai fogli le colonne da tradurre.
+
+![La finestra delle lingue](img/lingue.png)
+
+La traduzione di una colonna sta in una colonna con lo stesso nome seguito da @ e dal codice della lingua: `nome@en` accanto a `nome`, `testo@en` accanto a `testo`. Le colonne con soli numeri non servono. Una cella tradotta vuota usa il testo della lingua principale, così puoi tradurre poco alla volta.
+
+Il menu accanto al nome del progetto, in alto, sceglie in che lingua mostrare le carte: griglia, anteprima, editor e documenti cambiano subito. Il doppio clic sulla carta modifica il testo tradotto, se la colonna c'è.
+
+![Le carte mostrate in inglese, con la colonna nome@en nella scheda della carta](img/lingua-carte.png)
+
+Si traduce solo ciò che si legge sulla carta. Nomi delle immagini, colori e formule che cominciano con `=` usano sempre i valori della lingua principale: una formula come `=IF({tipo}="Attacco"; ...)` funziona in ogni lingua senza cambiarla. Per avere un'immagine diversa in una lingua aggiungi la sua colonna tradotta, per esempio `icona@en`.
+
+In **Esporta…** scegli la lingua, o **Tutte le lingue**. La lingua principale va nella cartella di sempre, le altre in una sottocartella con il loro codice, per esempio `export/en`; i nomi dei file restano gli stessi. Un'IA fa lo stesso con `naibi render --lang en` e `naibi export --profile NOME --lang all`.
 
 ## 6. Testo e markup
 
@@ -508,7 +524,9 @@ I fogli si richiamano con indirizzi locali, quindi il mazzo funziona sul compute
 
 ## 12. Documenti
 
-Nella sezione **Documenti** della barra laterale si scrivono i testi che accompagnano il gioco: il regolamento, una sell sheet, un'appendice, le domande frequenti. Il + crea un documento, un clic lo apre al posto del set o del template aperto. A sinistra si scrive, a destra l'anteprima mostra la pagina mentre si scrive e segue il cursore; un clic su un punto dell'anteprima porta il cursore a quel punto del testo. Il nome si cambia dal titolo; il ⋯ accanto al titolo ha **Rinomina** ed **Elimina**, che sposta il documento in `deleted`. I documenti si salvano da soli mentre si scrive, come file `docs/<nome>.md` del progetto, e si possono scrivere anche con un altro editor o da un agente IA.
+Nella sezione **Documenti** della barra laterale si scrivono i testi che accompagnano il gioco: il regolamento, una sell sheet, un'appendice, le domande frequenti. Il + crea un documento, un clic lo apre al posto del set o del template aperto. A sinistra si scrive, a destra l'anteprima mostra la pagina mentre si scrive e segue il cursore; un clic su un punto dell'anteprima porta il cursore a quel punto del testo. Il nome si cambia dal titolo; il ⋯ accanto al titolo, e il clic destro sul documento nella barra laterale, hanno **Rinomina**, **Duplica** (una copia con il nome seguito da un numero) ed **Elimina**, che sposta il documento in `deleted`. I documenti si salvano da soli mentre si scrive, come file `docs/<nome>.md` del progetto, e si possono scrivere anche con un altro editor o da un agente IA.
+
+Sopra il testo c'è la barra di formattazione: il menu **Testo** fa della riga un titolo di primo, secondo o terzo livello o la riporta a paragrafo; **B**, _I_, U e S mettono o tolgono grassetto, corsivo, sottolineato e barrato al testo selezionato (senza selezione lasciano il cursore tra i due segni); i tre tasti successivi fanno delle righe scelte un elenco puntato, un elenco numerato o una citazione, e un secondo clic li toglie. **Stile** applica al testo selezionato uno stile del progetto e ha in fondo **Aa Formatta…**, la formattazione avanzata del [capitolo 6](#6-testo-e-markup). Gli ultimi tasti inseriscono un'immagine degli asset, una tabella, una carta, un'anatomia o uno schema del tavolo. La barra scrive nel testo il markup che si scriverebbe a mano, e ⌘Z (Ctrl+Z) lo annulla.
 
 Il testo è Markdown, con il markup di Naibi del [capitolo 6](#6-testo-e-markup) dentro le righe:
 
@@ -529,7 +547,7 @@ Le carte non si copiano nel documento: Naibi le disegna dal progetto, quindi una
 
 **Tabella** apre una griglia da compilare: la prima riga è l'intestazione, ogni colonna ha il suo allineamento, **+ Riga** e **+ Colonna** la allargano e × toglie una riga o una colonna. Si possono incollare celle copiate da Excel o da un altro foglio di calcolo. Con il cursore dentro una tabella già scritta, lo stesso tasto la apre per modificarla. Nel testo la tabella diventa Markdown con le colonne allineate.
 
-**Anatomia carta** disegna una carta con le etichette che ne spiegano le parti, collegate da una linea ai livelli del template. Nella finestra si sceglie la carta come in **Inserisci carta**, poi si spuntano i livelli da spiegare e si scrive l'etichetta di ciascuno. Ogni etichetta va dal lato della carta più vicino al suo livello; carta ed etichette si riducono per stare nella pagina. Con il cursore dentro un'anatomia, lo stesso tasto la apre per modificarla. Nel testo l'anatomia è un blocco come questo, che si può anche scrivere a mano:
+**Anatomia carta** disegna una carta con le etichette che ne spiegano le parti, collegate da una linea ai livelli del template. La finestra ha due colonne: a sinistra si sceglie la carta come in **Inserisci carta**, a destra si vede l'anatomia come uscirà nel documento e sotto si spuntano i livelli da spiegare e si scrive l'etichetta di ciascuno. Ogni etichetta va dal lato della carta più vicino al suo livello; carta ed etichette si riducono per stare nella pagina. Con il cursore dentro un'anatomia, lo stesso tasto la apre per modificarla. Nel testo l'anatomia è un blocco come questo, che si può anche scrivere a mano:
 
 ````
 ```anatomy
@@ -558,9 +576,11 @@ image icone/moneta.png 270,75 width=12
 
 Ogni riga è un elemento, con le misure in millimetri dall'angolo in alto a sinistra: `zone x,y LxA "etichetta"`, `card <carta> x,y`, `deck <carta> x,y count=N`, `text x,y width=L "testo"`, `arrow x,y -> x2,y2 "etichetta"`, `image <file> x,y width=L`. Carte e mazzi accettano `rotate=90` (anche 180 e 270) e un'etichetta tra virgolette; la carta si scrive come nei riferimenti alle carte, con `%20` al posto degli spazi. `size LxA` fissa la misura del tavolo. Nei testi e nelle etichette si può usare il markup. Le righe che non si capiscono e le carte che non si trovano vengono segnalate sotto il testo e da `naibi check`.
 
+**Proprietà**, sopra la barra, raccoglie le note sul documento, come le proprietà di Obsidian: titolo, autore, versione, tag o altro. Ogni proprietà ha un nome (lettere, cifre, `-` e `_`) e un valore; un elenco, segnato con ≡, ha le voci separate da virgole. **+ Aggiungi proprietà** ne aggiunge una, × la toglie. Le proprietà sono scritte in testa al file tra due righe `---`, in YAML, insieme alle impostazioni della pagina, e un documento scritto con Obsidian o con un altro editor Markdown le conserva. Non si stampano: con **Mostra nel documento** compaiono in una tabella in testa alla pagina, anche nelle esportazioni.
+
 **Pagina** apre a destra le impostazioni del documento: formato (A4, A5, Letter), margini, carattere del testo e dei titoli, dimensione del testo, interlinea, spazio dopo i paragrafi, allineamento (a sinistra o giustificato) e colore del testo e dei titoli. L'anteprima mostra la pagina alla sua larghezza vera, ridotta se non ci sta. Le impostazioni sono scritte in testa al file, tra due righe `---`, come `size: 12` o `lineHeight: 1.6`: si possono cambiare anche lì, e **Torna ai valori di base** le toglie.
 
-**Esporta documento…** salva il documento in `export/docs/` del progetto in quattro forme: **PDF**, da stampare o inviare, con il formato e i margini del documento (solo nell'app per computer); **HTML**, una pagina web in un solo file, con carte, immagini e font dentro; **Word**, un file `.docx` da modificare in Word o LibreOffice, con titoli, elenchi, tabelle e citazioni come stili di Word, formato pagina, margini e caratteri del documento, e carte, schemi e immagini come PNG; **Markdown**, testo semplice per altri programmi, con le carte in PNG a 300 dpi e le immagini in una cartella accanto (`<nome> images`). Nel Markdown restano grassetto, corsivo e barrato; gli altri stili si perdono. Le carte e le immagini che non si trovano restano fuori, e la finestra lo ricorda se il documento ha dei problemi.
+**Esporta documento…** salva il documento in `export/docs/` del progetto in quattro forme: **PDF**, da stampare o inviare, con il formato e i margini del documento (solo nell'app per computer); **HTML**, una pagina web in un solo file, con carte, immagini e font dentro; **Word**, un file `.docx` da modificare in Word o LibreOffice, con titoli, elenchi, tabelle e citazioni come stili di Word, formato pagina, margini e caratteri del documento, e carte, schemi e immagini come PNG; **Markdown**, testo semplice per altri programmi, con le carte in PNG a 300 dpi e le immagini in una cartella accanto (`<nome> images`). Nel Markdown restano grassetto, corsivo e barrato; gli altri stili si perdono. Le carte e le immagini che non si trovano restano fuori, e la finestra lo ricorda se il documento ha dei problemi. Finita l'esportazione, **Apri il file** apre il file con il programma predefinito e **Apri la cartella** la cartella che lo contiene.
 
 Sotto il testo compaiono i problemi: carte che non si trovano, immagini che non sono negli asset, nomi tra graffe sconosciuti; un clic porta al punto del testo. `naibi check` li segnala insieme a quelli delle carte, `naibi docs` mostra i documenti a un agente IA e `naibi export-doc` li esporta senza aprire l'app (vedi [cli.md](../cli.md)).
 

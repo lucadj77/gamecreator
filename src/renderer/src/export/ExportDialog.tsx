@@ -6,6 +6,7 @@ import { resolveAsset } from '../../../shared/model/assets'
 import { isGenericFont, markupFonts } from '../../../shared/model/fonts'
 import {
   DEFAULT_IMAGE,
+  MAX_OPEN_FILES,
   DEFAULT_PDF,
   DEFAULT_TTS,
   pdfGrid,
@@ -34,6 +35,8 @@ import { EXPORT_PRESETS } from '../../../shared/exportPresets'
 import { useProjectFonts, type FontCheck } from '../render/fonts'
 import Segmented from '../components/Segmented'
 import { buildSets } from '../../../shared/exportJob'
+import { projectLanguages } from '../../../shared/model/language'
+import { languageName } from '../i18n/languageName'
 import { cardFingerprints } from '../../../shared/model/compare'
 import { ColorSwatch } from '../components/ColorPicker'
 import { useI18n } from '../i18n/context'
@@ -45,18 +48,26 @@ const DPIS = [150, 300, 600]
 export default function ExportDialog({
   project,
   changed,
+  language = null,
   onProfiles,
   onClose
 }: {
   project: LoadedProject
+  /** Lingua delle carte mostrata nell'app, se non è la principale: la prima proposta */
+  language?: string | null
   /** Con un confronto attivo, le righe nuove o cambiate di ogni set: si possono esportare solo quelle */
   changed?: Record<string, number[]> | null
   /** Opzioni salvate nel file di progetto dopo un'esportazione */
   onProfiles(p: ExportProfiles): void
   onClose(): void
 }): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang: ui } = useI18n()
   const saved = project.file.export ?? {}
+  const languages = projectLanguages(project.file)
+  /** Lingua da esportare: un codice, o * per tutte (le altre lingue nelle loro sottocartelle) */
+  const [exportLanguage, setExportLanguage] = useState(language ?? languages[0] ?? '')
+  const jobLanguages =
+    exportLanguage === '*' ? languages : [exportLanguage || languages[0] || ''].filter(Boolean)
   const [kind, setKindState] = useState<ExportKind>(() => {
     const k = localStorage.getItem(KIND_KEY)
     return k === 'pdf' || k === 'tts' ? k : 'images'
@@ -137,8 +148,10 @@ export default function ExportDialog({
   }, [project, selected])
 
   /** Il lavoro con le opzioni attuali: lo stesso per l'anteprima e per l'esportazione */
-  const buildJob = (): ExportJob => {
-    const all = buildSets(project, selected)
+  const buildJob = (lang: string | null = jobLanguages[0] ?? null): ExportJob => {
+    // la lingua principale resta nella cartella di sempre
+    const other = lang && lang !== languages[0] ? lang : undefined
+    const all = buildSets(project, selected, other)
     // solo le carte cambiate dal confronto: i set senza carte cambiate non escono
     const sets =
       changed && onlyChanged
@@ -149,7 +162,7 @@ export default function ExportDialog({
             })
             .filter((s) => s.cards.length)
         : all
-    const base = { project: project.file.name, sets }
+    const base = { project: project.file.name, sets, ...(other ? { language: other } : {}) }
     return kind === 'images'
       ? { ...base, kind, options: img }
       : kind === 'pdf'
@@ -222,14 +235,26 @@ export default function ExportDialog({
     try {
       window.api.saveExportProfiles(profiles).catch(() => undefined)
       onProfiles(profiles)
-      const job = buildJob()
-      const sets = job.sets
-      const r = await window.api.runExport(job, {
-        assets: project.assets,
-        fonts: project.fonts,
-        styles: project.file.styles ?? {},
-        variables: project.file.variables ?? {}
-      })
+      const jobs = jobLanguages.length ? jobLanguages.map((l) => buildJob(l)) : [buildJob(null)]
+      const sets = jobs[0].sets
+      const r: ExportResult = { files: 0, folders: [], warnings: [], cancelled: false }
+      // una lingua dopo l'altra, ognuna nella sua cartella
+      for (const job of jobs) {
+        const one = await window.api.runExport(job, {
+          assets: project.assets,
+          fonts: project.fonts,
+          styles: project.file.styles ?? {},
+          variables: project.file.variables ?? {}
+        })
+        r.files += one.files
+        r.folders.push(...one.folders.filter((f) => !r.folders.includes(f)))
+        r.paths = [...(r.paths ?? []), ...(one.paths ?? [])]
+        r.warnings.push(...one.warnings)
+        if (one.cancelled) {
+          r.cancelled = true
+          break
+        }
+      }
       const sides: Side[] =
         kind === 'images'
           ? sidesOf(img.sides)
@@ -401,6 +426,19 @@ export default function ExportDialog({
               ))}
             </div>
           )}
+          {languages.length > 0 &&
+            field(
+              'export.language',
+              <select value={exportLanguage} onChange={(e) => setExportLanguage(e.target.value)}>
+                {languages.map((l) => (
+                  <option key={l} value={l}>
+                    {languageName(l, ui)}
+                  </option>
+                ))}
+                <option value="*">{t('export.allLanguages')}</option>
+              </select>,
+              t('export.languageHint')
+            )}
           {changed &&
             field(
               'export.onlyChanged',
@@ -968,6 +1006,19 @@ export default function ExportDialog({
                 {t(w)}
               </p>
             ))}
+            {/* pochi file (un PDF, un mazzo): si aprono direttamente */}
+            {!window.api.isWeb &&
+              (result.paths?.length ?? 0) <= MAX_OPEN_FILES &&
+              result.paths?.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className="link"
+                  onClick={() => window.api.showFolder(f)}
+                >
+                  {t('export.openFile', { file: f.split(/[\\/]/).pop() ?? f })}
+                </button>
+              ))}
             {result.folders.map((f) =>
               // il browser non apre le cartelle: si dice solo dove sono i file
               window.api.isWeb ? (

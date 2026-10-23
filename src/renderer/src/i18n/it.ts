@@ -1671,6 +1671,32 @@ export const it: Record<MessageKey, string> = {
   'set.generate': 'Genera…',
   'app.googleSheets': 'Google Sheets…',
   'tip.googleSheets': 'Importa i dati dei set da un foglio Google condiviso con il link',
+  'app.languages': 'Lingue…',
+  'tip.languages': 'Lingue del progetto: nomi tradotti, colonne da tradurre',
+  'app.cardLanguage': 'Lingua delle carte',
+  'tip.cardLanguage':
+    'Lingua in cui si mostrano le carte: i testi tradotti vengono dalle colonne nome@lingua',
+  'languages.title': 'Lingue del progetto',
+  'languages.hint':
+    'La prima lingua è la principale: le colonne senza @ contengono i suoi testi. Le traduzioni di una colonna vanno in una colonna con lo stesso nome seguito da @ e dal codice della lingua, per esempio nome@en. Una cella tradotta vuota usa la lingua principale.',
+  'languages.main': 'lingua principale',
+  'languages.remove': 'Togli',
+  'languages.removeHint': 'Toglie la lingua dal progetto; le sue colonne restano nei fogli',
+  'languages.add': 'Aggiungi lingua',
+  'languages.codePlaceholder': 'Codice della lingua, per esempio en',
+  'languages.invalid': 'Usa un codice di due o tre lettere minuscole, per esempio en o pt-BR',
+  'languages.exists': 'Il progetto ha già questa lingua',
+  'languages.names': 'Nomi tradotti',
+  'languages.namesHint':
+    'Nomi del progetto e dei set nelle altre lingue, per {project.name} e {set.name}. Vuoto: il nome nella lingua principale.',
+  'languages.addColumns': 'Aggiungi ai fogli le colonne da tradurre ({n})',
+  'languages.columnsHint':
+    'Si aggiunge una colonna nome@lingua per ogni colonna letta da un livello di testo o valore.',
+  'languages.save': 'Salva',
+  'export.language': 'Lingua',
+  'export.allLanguages': 'Tutte le lingue',
+  'export.languageHint':
+    'Le altre lingue vanno in una sottocartella con il loro codice, per esempio export/en',
   'gsheets.title': 'Dati da Google Sheets',
   'gsheets.hint':
     'Condividi il foglio Google con «Chiunque abbia il link» (lettore) e incolla il link. Ogni scheda sostituisce i dati del set scelto, di solito quello con lo stesso nome; il file dati del progetto si aggiorna quando salvi. Il link resta nel progetto per la prossima importazione.',
@@ -1877,5 +1903,38 @@ export const it: Record<MessageKey, string> = {
   'menu.selectAll': 'Seleziona tutto',
   'menu.fullScreen': 'Schermo intero',
   'menu.devTools': 'Strumenti per sviluppatori',
-  'menu.quit': 'Esci da Naibi'
+  'menu.quit': 'Esci da Naibi',
+  'documents.duplicateHint': 'Fai una copia del documento',
+  'documents.openFile': 'Apri il file',
+  'export.openFile': 'Apri {file}',
+  'documents.properties': 'Proprietà',
+  'documents.showProperties': 'Mostra nel documento',
+  'documents.showPropertiesHint':
+    'Stampa le proprietà come tabella in testa al documento e nelle esportazioni',
+  'documents.propertiesHint':
+    'Le proprietà sono note sul documento (autore, versione, tag…). Restano nel file e non si stampano, a meno di spuntare "Mostra nel documento".',
+  'documents.propertyList': 'Elenco: separa le voci con virgole',
+  'documents.propertyListHint': 'voce, voce, …',
+  'documents.removeProperty': 'Togli la proprietà',
+  'documents.propertyName': 'nome',
+  'documents.propertyValue': 'valore',
+  'documents.addProperty': 'Aggiungi proprietà',
+  'documents.propertyInvalid':
+    "Usa lettere, cifre, - e _; deve cominciare con una lettera e non essere un'impostazione della pagina (page, font, size…)",
+  'documents.propertyExists': "C'è già una proprietà con questo nome",
+  'docTools.headingHint': 'Tipo di riga: paragrafo o titolo (#, ##, ###)',
+  'docTools.paragraph': 'Testo',
+  'docTools.heading': 'Titolo {n}',
+  'docTools.bold': 'Grassetto (**testo**)',
+  'docTools.italic': 'Corsivo (*testo*)',
+  'docTools.underline': 'Sottolineato (++testo++)',
+  'docTools.strike': 'Barrato (~~testo~~)',
+  'docTools.bullets': 'Elenco puntato',
+  'docTools.numbers': 'Elenco numerato',
+  'docTools.quote': 'Citazione (>)',
+  'docTools.style': 'Stile ▾',
+  'docTools.styleHint': 'Applica uno stile del progetto al testo selezionato ([testo]{.stile})',
+  'docTools.sample': 'testo',
+  'docTools.image': 'Immagine',
+  'docTools.imageHint': "Inserisci un'immagine degli asset del progetto"
 }

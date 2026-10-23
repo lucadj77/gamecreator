@@ -1647,6 +1647,33 @@ export const en = {
   'set.generate': 'Generate…',
   'app.googleSheets': 'Google Sheets…',
   'tip.googleSheets': 'Import set data from a Google sheet shared by link',
+  'app.languages': 'Languages…',
+  'tip.languages': 'Languages of the project: translated names, columns to translate',
+  'app.cardLanguage': 'Card language',
+  'tip.cardLanguage':
+    'Language in which cards are shown: translated texts come from the name@language columns',
+  'languages.title': 'Project languages',
+  'languages.hint':
+    'The first language is the main one: the columns without @ hold its texts. The translations of a column go in a column with the same name followed by @ and the language code, for example name@en. An empty translated cell uses the main language.',
+  'languages.main': 'main language',
+  'languages.remove': 'Remove',
+  'languages.removeHint': 'Remove the language from the project; its columns stay in the sheets',
+  'languages.add': 'Add language',
+  'languages.codePlaceholder': 'Language code, for example en',
+  'languages.invalid':
+    'Use a language code of two or three lowercase letters, for example en or pt-BR',
+  'languages.exists': 'The project already has this language',
+  'languages.names': 'Translated names',
+  'languages.namesHint':
+    'Names of the project and of the sets in the other languages, for {project.name} and {set.name}. Empty: the name in the main language.',
+  'languages.addColumns': 'Add the columns to translate to the sheets ({n})',
+  'languages.columnsHint':
+    'A name@language column is added for each column read by a text or value layer.',
+  'languages.save': 'Save',
+  'export.language': 'Language',
+  'export.allLanguages': 'All languages',
+  'export.languageHint':
+    'Other languages go in a subfolder named after their code, for example export/en',
   'gsheets.title': 'Data from Google Sheets',
   'gsheets.hint':
     'Share the Google sheet with “Anyone with the link” (viewer) and paste the link. Each tab replaces the data of the chosen set, by default the one with the same name; the project data file is updated when you save. The link stays in the project for the next import.',
@@ -1853,7 +1880,40 @@ export const en = {
   'menu.selectAll': 'Select all',
   'menu.fullScreen': 'Full screen',
   'menu.devTools': 'Developer tools',
-  'menu.quit': 'Quit Naibi'
+  'menu.quit': 'Quit Naibi',
+  'documents.duplicateHint': 'Make a copy of the document',
+  'documents.openFile': 'Open file',
+  'export.openFile': 'Open {file}',
+  'documents.properties': 'Properties',
+  'documents.showProperties': 'Show in the document',
+  'documents.showPropertiesHint':
+    'Print the properties as a table at the top of the document and in the exports',
+  'documents.propertiesHint':
+    'Properties are notes about the document (author, version, tags…). They stay in the file and are not printed unless you tick "Show in the document".',
+  'documents.propertyList': 'List: separate the items with commas',
+  'documents.propertyListHint': 'item, item, …',
+  'documents.removeProperty': 'Remove the property',
+  'documents.propertyName': 'name',
+  'documents.propertyValue': 'value',
+  'documents.addProperty': 'Add property',
+  'documents.propertyInvalid':
+    'Use letters, digits, - and _; it must start with a letter and not be a page setting (page, font, size…)',
+  'documents.propertyExists': 'There is already a property with this name',
+  'docTools.headingHint': 'Kind of line: paragraph or heading (#, ##, ###)',
+  'docTools.paragraph': 'Text',
+  'docTools.heading': 'Heading {n}',
+  'docTools.bold': 'Bold (**text**)',
+  'docTools.italic': 'Italic (*text*)',
+  'docTools.underline': 'Underline (++text++)',
+  'docTools.strike': 'Strikethrough (~~text~~)',
+  'docTools.bullets': 'Bulleted list',
+  'docTools.numbers': 'Numbered list',
+  'docTools.quote': 'Quote (>)',
+  'docTools.style': 'Style ▾',
+  'docTools.styleHint': 'Apply a style of the project to the selected text ([text]{.style})',
+  'docTools.sample': 'text',
+  'docTools.image': 'Image',
+  'docTools.imageHint': 'Insert an image of the project assets'
 }
 
 export type MessageKey = keyof typeof en

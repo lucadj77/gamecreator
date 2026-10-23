@@ -23,6 +23,9 @@ import TableDialog, { type TableValue } from './TableDialog'
 import SetupDialog from './SetupDialog'
 import type { Setup } from '../../../shared/model/setup'
 import MarkupTextarea from './MarkupTextarea'
+import DocumentToolbar from './DocumentToolbar'
+import DocumentProperties from './DocumentProperties'
+import { headingAt } from '../../../shared/model/docEdit'
 import Menu from './Menu'
 
 // Un documento del progetto (docs/<nome>.md: regolamento, sell sheet, appendice): a sinistra il
@@ -41,6 +44,7 @@ interface Props {
   onChange(text: string): void
   onRename(name: string): void
   onDelete(): void
+  onDuplicate(): void
 }
 
 export default function DocumentView({
@@ -53,7 +57,8 @@ export default function DocumentView({
   fonts,
   onChange,
   onRename,
-  onDelete
+  onDelete,
+  onDuplicate
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -72,6 +77,8 @@ export default function DocumentView({
     null
   )
   const [pageOpen, setPageOpen] = useState(false)
+  /** Livello del titolo dove sta il cursore, per la barra */
+  const [level, setLevel] = useState(0)
   const [exporting, setExporting] = useState(false)
   /** La tabella aperta nello strumento: nuova, o quella del testo tra from e to */
   const [tableEdit, setTableEdit] = useState<{
@@ -209,7 +216,10 @@ export default function DocumentView({
   const followCaret = (): void => {
     const el = editor.current
     const box = preview.current
-    if (el) lastCaret.current = el.selectionEnd
+    if (el) {
+      lastCaret.current = el.selectionEnd
+      setLevel(headingAt(el.value, el.selectionStart))
+    }
     if (!el || !box || document.activeElement !== el) return
     const at = el.selectionStart
     let target: HTMLElement | null = null
@@ -263,6 +273,11 @@ export default function DocumentView({
                 nameInput.current?.select()
               }
             },
+            {
+              label: t('sidebar.duplicate'),
+              title: t('documents.duplicateHint'),
+              onClick: onDuplicate
+            },
             'sep',
             {
               label: t('documents.deleteShort'),
@@ -272,19 +287,6 @@ export default function DocumentView({
             }
           ]}
         />
-        <button onClick={() => setInserting(true)} title={t('documents.insertCardHint')}>
-          {t('documents.insertCard')}
-        </button>
-        <button onClick={openAnatomy} title={t('documents.anatomyButtonHint')}>
-          {t('documents.anatomy')}
-        </button>
-        <button onClick={openSetup} title={t('documents.setupButtonHint')}>
-          {t('documents.setup')}
-        </button>
-        <button onClick={openTable} title={t('documents.tableButtonHint')}>
-          {t('documents.table')}
-        </button>
-        <span className="sep" />
         <button
           className={pageOpen ? 'active' : ''}
           onClick={() => setPageOpen((o) => !o)}
@@ -298,11 +300,29 @@ export default function DocumentView({
       </div>
       <div className={pageOpen ? 'document-body with-settings' : 'document-body'}>
         <div className="document-editor">
+          <DocumentProperties
+            text={text}
+            shown={settings.showProperties}
+            onChange={onChange}
+            onShow={(show) => onChange(withDocumentSettings(text, { showProperties: show }))}
+          />
           <MarkupTextarea
             ref={editor}
             fields={[]}
             value={text}
             placeholder={t('documents.placeholder')}
+            toolbar={(format) => (
+              <DocumentToolbar
+                editor={editor}
+                format={format}
+                level={level}
+                onImage={(name) => insertBlock(`![](${name})`)}
+                onTable={openTable}
+                onCard={() => setInserting(true)}
+                onAnatomy={openAnatomy}
+                onSetup={openSetup}
+              />
+            )}
             onChange={(e) => {
               lastCaret.current = e.target.selectionEnd
               onChange(e.target.value)

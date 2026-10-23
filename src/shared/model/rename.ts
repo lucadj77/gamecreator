@@ -1,4 +1,5 @@
 import type { Sheet } from '../project'
+import { splitLanguage } from './language'
 import type { Template } from './template'
 import type { Variables } from './variables'
 import { walkLayers } from './normalize'
@@ -133,7 +134,9 @@ export function renameInSheet(
           .map((l) => l.name)
       : []
   )
-  const plain = s.headers.map((h) => {
+  // una colonna tradotta (nome@en) è come la sua colonna
+  const plain = s.headers.map((header) => {
+    const h = splitLanguage(header).base
     const dot = h.indexOf('.')
     if (dot < 0) return plainLayers.has(h)
     return PLAIN_KEYS.has(h.slice(dot + 1))

@@ -34,6 +34,7 @@ export default function MarkupTextarea({
   onBlur,
   ref: outerRef,
   showProblems = true,
+  toolbar,
   ...rest
 }: TextareaProps & {
   value: string
@@ -42,6 +43,8 @@ export default function MarkupTextarea({
   onChange(e: React.ChangeEvent<HTMLTextAreaElement>): void
   /** Errori sotto il campo; nelle celle della tabella non c'è spazio */
   showProblems?: boolean
+  /** Barra sopra il campo, che prende il posto del pulsante "Formatta…" sotto */
+  toolbar?(format: FormatControl): React.ReactNode
 }): React.JSX.Element {
   const { t } = useI18n()
   const assets = useContext(AssetsContext)
@@ -136,6 +139,7 @@ export default function MarkupTextarea({
 
   return (
     <span className="markup-input">
+      {toolbar?.({ enabled: !!target, open: () => target && setFormatting(target) })}
       <span className="markup-field">
         <textarea
           {...rest}
@@ -230,7 +234,7 @@ export default function MarkupTextarea({
           )}
         </div>
       )}
-      {showProblems && (
+      {showProblems && !toolbar && (
         <span className="markup-tools">
           <button
             className="small-btn"
@@ -438,6 +442,13 @@ function caretPosition(
     y: box.bottom + 2,
     top: box.top - 2
   }
+}
+
+/** Il "Formatta…" del campo, per una barra esterna */
+export interface FormatControl {
+  /** C'è un testo selezionato o una porzione [testo]{...} sotto il cursore */
+  enabled: boolean
+  open(): void
 }
 
 interface FormatTarget {

@@ -269,8 +269,8 @@ Valori che Naibi conosce da sé, scritti come i campi nei testi e nelle formule.
 
 | Variabile         | Valore                                                                                    |
 | ----------------- | ----------------------------------------------------------------------------------------- |
-| `{project.name}`  | nome del progetto                                                                         |
-| `{set.name}`      | nome del set                                                                              |
+| `{project.name}`  | nome del progetto (nella lingua delle carte, se tradotto)                                 |
+| `{set.name}`      | nome del set (nella lingua delle carte, se tradotto)                                      |
 | `{template.name}` | nome del template della carta (anche quello scelto nella colonna `template`)              |
 | `{card.number}`   | riga della carta nel set, da 1                                                            |
 | `{set.rows}`      | righe del set                                                                             |
@@ -310,6 +310,18 @@ Scelta rivista il 2026-10-18: i calcoli stanno nel template, non nei set (vedi d
 - **Espressione.** Con `=` iniziale è un'espressione come in Excel: `=IF({forza}>3; "Forte"; "Debole")`. Testi tra virgolette, confronti `= <> < > <= >=`, `&` per unire testi, argomenti separati da `;` o `,`. Funzioni (nomi in inglese): `IF`, `AND`, `OR`, `NOT`, `MIN`, `MAX`, `ABS`, `ROUND`, `FLOOR`, `CEILING`, `UPPER`, `LOWER`, `LEN`, `CONCAT`, `ISBLANK`, `COUNTIN` (quante volte un testo compare in un altro, senza badare alle maiuscole: `COUNTIN({risorse}; "legno")`).
 - **Numeri.** Un campo è un numero anche scritto come lo mostra un foglio: `1,5`, `50%` (vale 0,5), `1 234,50 €`, `1.234,5`. Nei calcoli e nei confronti vale il numero; dove non si calcola resta com'è scritto, quindi `=IF({forza}>1; {prob}; "")` dà `50%`.
 - I campi mancanti e gli errori sono segnalati sotto la carta e nel pannello proprietà.
+
+### 7.1 Lingue
+
+Un progetto può avere più lingue (`languages` in `naibi.json`, la prima è la principale; vedi docs/formato.md). I testi tradotti stanno nelle colonne `campo@lingua` del foglio, accanto a quelle della lingua principale.
+
+- **Lingua delle carte.** Il selettore accanto al nome del progetto sceglie in che lingua mostrare le carte: anteprime, griglia, editor e documenti. In un'altra lingua una cella `nome@en` non vuota prende il posto di `nome`; una vuota lascia il testo della lingua principale. Doppio clic sulla carta e clic su un campo vanno alla colonna tradotta, se il foglio la ha.
+- **Cosa si traduce.** Solo ciò che si legge: il testo dei livelli di testo, `{campo}` dentro i testi, le formule senza `=` dei livelli di testo e dei livelli valore. Nomi di immagini e font, colori, ripetizioni e formule con `=` usano i valori della lingua principale: così `=IF({tipo}="Attacco"; ...)` funziona in ogni lingua e `{nome}.png` resta il nome del file. Per cambiare apposta un'immagine o un'altra proprietà in una lingua si usa la sua colonna tradotta: `icona@en`, `nome.size@en`.
+- **Nomi.** Progetto e set hanno un nome per lingua (`names`), usato da `{project.name}` e `{set.name}`. I nomi dei file esportati restano quelli della lingua principale.
+- **Esportazione.** La finestra **Esporta** sceglie la lingua, o tutte. La lingua principale va nella cartella di sempre, le altre in una sottocartella con il loro codice (`export/en/`); per Tabletop Simulator `export/en/tts` e, nella cartella di Tabletop Simulator, `<progetto>/en`. Da riga di comando: `naibi render --lang en`, `naibi export --profile NOME --lang en|all`.
+- **Finestra Lingue** (menu **Progetto**): aggiunge e toglie lingue, scrive i nomi tradotti e aggiunge ai fogli le colonne da tradurre (una per ogni colonna letta da un livello di testo o valore, tranne quelle con soli numeri).
+
+Prossimi passi (studio del 2026-10-22): documenti per lingua, controllo delle traduzioni mancanti e dei caratteri che il font non ha, comando per esportare e reimportare i testi da tradurre, variabili e testi fissi dei template per lingua.
 
 ## 8. Template e set
 

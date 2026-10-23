@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'fs/promises'
+import { mkdir, readFile, readdir } from 'fs/promises'
 import { exists } from '../fs'
 import { basename, extname, join } from 'path'
 import {
@@ -9,6 +9,7 @@ import {
   type Sheet
 } from '../../shared/project'
 import { projectFilePath } from './projectFile'
+import { PROJECT_FOLDERS } from './create'
 import { readSpreadsheet, xlsxLosses } from './spreadsheet'
 import { listAssets } from './assets'
 import { readProjectFonts } from './fonts'
@@ -37,6 +38,9 @@ export async function loadProject(folder: string): Promise<LoadedProject> {
     throw new MessageError(
       msg('load.unreadableProjectFile', { file: basename(path), error: 'dataFile missing' })
     )
+  // i progetti creati prima di documenti e note non hanno le loro cartelle: si aggiungono vuote
+  for (const sub of PROJECT_FOLDERS)
+    await mkdir(join(folder, sub), { recursive: true }).catch(() => undefined)
   const warnings: Message[] = []
   if (file.formatVersion > FORMAT_VERSION) {
     warnings.push(msg('load.newerFormat', { version: file.formatVersion }))

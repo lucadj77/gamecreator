@@ -9,6 +9,7 @@ import {
   type ColumnInfo
 } from '../../../shared/model/sheet'
 import { walkLayers } from '../../../shared/model/normalize'
+import { splitLanguage } from '../../../shared/model/language'
 import {
   PRIMARY_PROPERTY,
   type Crop,
@@ -73,14 +74,18 @@ function CardForm({
 }: Props): React.JSX.Element {
   const { t } = useI18n()
   const boxRef = useRef<HTMLDivElement>(null)
-  const columnsOf = (type: 'text' | 'image'): Set<string> =>
-    new Set(
+  const columnsOf = (type: 'text' | 'image'): Set<string> => {
+    const out = new Set(
       template
         ? walkLayers([...template.front, ...template.back])
             .filter((l) => l.type === type && l.source.kind === 'column')
             .map((l) => (l.source.kind === 'column' && l.source.column) || l.name)
         : []
     )
+    // le traduzioni (nome@en) si scrivono come la loro colonna
+    for (const h of sheet.headers) if (out.has(splitLanguage(h).base)) out.add(h)
+    return out
+  }
   const textColumns = columnsOf('text')
   const imageColumns = columnsOf('image')
   /** Colonna di cui si sta scegliendo l'immagine */

@@ -224,7 +224,8 @@ export async function documentMarkdown(
           a === 'center' ? ':---:' : a === 'right' ? '---:' : a === 'left' ? ':---' : '---'
         out.push(
           [
-            await row(b.header),
+            // Markdown vuole un'intestazione: vuota per le proprietà
+            await row(b.header.length ? b.header : b.align.map(() => '')),
             `| ${b.align.map(sep).join(' | ')} |`,
             ...(await Promise.all(b.rows.map(row)))
           ].join('\n')

@@ -1,4 +1,5 @@
 import type { Sheet } from '../project'
+import { splitLanguage } from './language'
 import { plainText } from './markup'
 import { walkLayers } from './normalize'
 import type { Template } from './template'
@@ -136,15 +137,20 @@ export function applyOrder(s: Sheet, v: RowView): Sheet {
   return { ...s, rows: order.map((i) => s.rows[i]) }
 }
 
-/** Nuova colonna; le colonne delle proprietà vanno subito dopo quella del loro livello */
+/**
+ * Nuova colonna; le colonne delle proprietà e le traduzioni (`nome@en`) vanno subito dopo quella
+ * del loro livello
+ */
 export function addColumn(s: Sheet, header: string): Sheet {
   if (s.headers.includes(header)) return s
   let at = s.headers.length
+  const translated = splitLanguage(header)
   const dot = header.indexOf('.')
-  if (dot > 0) {
-    const base = header.slice(0, dot)
+  const base = translated.language ? translated.base : dot > 0 ? header.slice(0, dot) : null
+  if (base) {
     const last = s.headers.reduce(
-      (found, h, i) => (h === base || h.startsWith(base + '.') ? i : found),
+      (found, h, i) =>
+        h === base || h.startsWith(base + '.') || splitLanguage(h).base === base ? i : found,
       -1
     )
     if (last >= 0) at = last + 1
@@ -187,6 +193,15 @@ export function templateColumns(t: Template): string[] {
     const col = l.source.column ?? l.name
     if (!cols.includes(col)) cols.push(col)
   }
+  return cols
+}
+
+/** Colonne di testo che il template legge: quelle che si traducono con `nome@lingua` */
+export function textColumns(t: Template): Set<string> {
+  const cols = new Set<string>()
+  for (const l of walkLayers([...t.front, ...t.back]))
+    if ((l.type === 'text' || l.type === 'value') && l.source.kind === 'column')
+      cols.add(l.source.column ?? l.name)
   return cols
 }
 

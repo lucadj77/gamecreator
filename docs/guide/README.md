@@ -67,7 +67,7 @@ A new project is empty: the app suggests creating a template first, then a set t
 
 ![The project window, with numbered parts](img/progetto.png)
 
-1. **Top bar.** Project name (hover it to see the folder), undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), **Save** (⌘S), **Export…**, the **Project** menu, **Help** (F1, [chapter 6](#6-text-and-markup)) and ⚙ for the settings. The **Project** menu holds the commands used less often: **Backup…**, **Trash…**, **Google Sheets…**, **Reload from disk** (reads the project again, losing unsaved changes) and **Close project**.
+1. **Top bar.** Project name (hover it to see the folder), undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), the card language menu (only in projects with several languages), **Save** (⌘S), **Export…**, the **Project** menu, **Help** (F1, [chapter 6](#6-text-and-markup)) and ⚙ for the settings. The **Project** menu holds the commands used less often: **Backup…**, **Trash…**, **Google Sheets…**, **Languages…** ([5.7](#57-cards-in-several-languages)), **Reload from disk** (reads the project again, losing unsaved changes) and **Close project**.
 2. **Sets.** A click opens the cards of the set; the number is the total of cards, copies included.
 3. **Templates.** A click opens the template in the editor; next to it is the format in millimeters.
 4. Project text **styles** ([chapter 7](#7-variables-and-styles)).
@@ -241,6 +241,22 @@ The data file is an ordinary spreadsheet and can also be edited with Excel, Libr
 If you keep the data in a Google sheet, **Google Sheets…**, in the **Project** menu, brings it into the project. In the Google sheet choose **Share** → **Anyone with the link** (viewer), copy the link and paste it; **Download** reads all the tabs. Each tab goes to the set with the same name (ignoring case); from the menu you can pick another one or **do not import** the tab. If a tab lacks some columns of the set, the window lists them: after the import those columns are gone. **Import** replaces the data of the chosen sets (⌘Z undoes it) and **Save** writes them to the project's data file, which stays the local copy: Naibi works without a network too.
 
 The link stays in the project: next time just open the window and press **Download**. A sheet not shared by link cannot be downloaded, and Naibi says so. An AI can do the same with `naibi pull-sheets`.
+
+### 5.7 Cards in several languages
+
+A project can print the same cards in several languages. **Languages…**, in the **Project** menu, opens the languages window: the first one is the main language, the one the usual columns are written in. With **Add language** you type the language code (en for English, fr for French, de for German…). Below, **Translated names** gives the name of the project and of the sets in the other languages: `{project.name}` and `{set.name}` use it. With the box at the bottom ticked, **Save** adds the columns to translate to the sheets.
+
+![The languages window](img/lingue.png)
+
+The translation of a column goes in a column with the same name followed by @ and the language code: `name@en` next to `name`, `text@en` next to `text`. Columns with only numbers do not need one. An empty translated cell uses the text of the main language, so you can translate a little at a time.
+
+The menu next to the project name, at the top, picks the language the cards are shown in: grid, preview, editor and documents change at once. Double-clicking the card edits the translated text, if the column exists.
+
+![The cards shown in English, with the nome@en column in the card form](img/lingua-carte.png)
+
+Only what is read on the card is translated. Image names, colours and formulas starting with `=` always use the values of the main language: a formula such as `=IF({type}="Attack"; ...)` works in every language without changing it. To have a different image in one language, add its translated column, for example `icon@en`.
+
+In **Export…** choose the language, or **All languages**. The main language goes to the usual folder, the others to a subfolder named after their code, for example `export/en`; file names stay the same. An AI does the same with `naibi render --lang en` and `naibi export --profile NAME --lang all`.
 
 ## 6. Text and markup
 
@@ -508,7 +524,7 @@ Sheets are referenced by local addresses, so the deck works on the computer that
 
 ## 12. Documents
 
-The **Documents** section of the sidebar holds the texts that go with the game: the rules, a sell sheet, an appendix, a FAQ. The + creates a document, a click opens it in place of the open set or template. You write on the left; on the right the preview shows the page as you type and follows the cursor, and a click on a point of the preview moves the cursor to that point of the text. The name changes from the title; the ⋯ next to the title has **Rename** and **Delete**, which moves the document to `deleted`. Documents save themselves as you type, as `docs/<name>.md` files in the project, so another editor or an AI agent can write them too.
+The **Documents** section of the sidebar holds the texts that go with the game: the rules, a sell sheet, an appendix, a FAQ. The + creates a document, a click opens it in place of the open set or template. You write on the left; on the right the preview shows the page as you type and follows the cursor, and a click on a point of the preview moves the cursor to that point of the text. The name changes from the title; the ⋯ next to the title, and a right click on the document in the sidebar, have **Rename**, **Duplicate** (a copy whose name ends with a number) and **Delete**, which moves the document to `deleted`. Documents save themselves as you type, as `docs/<name>.md` files in the project, so another editor or an AI agent can write them too.
 
 The text is Markdown, with Naibi's markup from [chapter 6](#6-text-and-markup) inside the lines:
 
@@ -525,11 +541,13 @@ The text is Markdown, with Naibi's markup from [chapter 6](#6-text-and-markup) i
 | `![The wizard](card:Characters/name=Wizard)` | a card of the game, with the caption "The wizard"                |
 | `![](icons/map.png)`                         | an image from assets                                             |
 
+Above the text is the formatting bar: the **Text** menu turns the line into a first, second or third level heading, or back into a paragraph; **B**, _I_, U and S add or remove bold, italic, underline and strikethrough on the selected text (with no selection they leave the cursor between the two marks); the next three buttons turn the chosen lines into a bulleted list, a numbered list or a quote, and a second click removes them. **Style** applies a style of the project to the selected text and ends with **Aa Format…**, the advanced formatting of [chapter 6](#6-text-and-markup). The last buttons insert an image of the assets, a table, a card, an anatomy or a table setup. The bar writes in the text the markup you would write by hand, and ⌘Z (Ctrl+Z) undoes it.
+
 Cards are not copied into the document: Naibi draws them from the project, so a change to the data or the template shows in the document at once. **Insert card** opens a window where you choose the set and the card (search by name), the side, the width in millimetres (empty for the real size) and the caption, and writes the reference at the cursor. By hand you write `card:Set/3` for the card on row 3, or `card:Set/column=value` for the card with that value in a column; after a `?` add `side=back` for the back and `width=40` for the width, joined by `&`, as in `card:Characters/name=Wizard?side=back&width=40`. A column value, like the name, is safer than the number, which changes when the rows are reordered. Several images on the same line of text sit side by side.
 
 **Table** opens a grid to fill in: the first row is the heading, each column has its own alignment, **+ Row** and **+ Column** make it bigger and × removes a row or a column. You can paste cells copied from Excel or another spreadsheet. With the cursor inside a table already written, the same button opens it for editing. In the text the table becomes Markdown with aligned columns.
 
-**Card anatomy** draws a card with labels that explain its parts, joined by a line to the layers of the template. In the window you choose the card as in **Insert card**, then tick the layers to explain and write a label for each. Each label goes on the side of the card nearest to its layer; card and labels shrink to fit the page. With the cursor inside an anatomy, the same button opens it for editing. In the text the anatomy is a block like this, which you can also write by hand:
+**Card anatomy** draws a card with labels that explain its parts, joined by a line to the layers of the template. The window has two columns: on the left you choose the card as in **Insert card**, on the right you see the anatomy as it will look in the document, and below it you tick the layers to explain and write a label for each. Each label goes on the side of the card nearest to its layer; card and labels shrink to fit the page. With the cursor inside an anatomy, the same button opens it for editing. In the text the anatomy is a block like this, which you can also write by hand:
 
 ````
 ```anatomy
@@ -558,9 +576,11 @@ image icons/coin.png 270,75 width=12
 
 Each line is an element, with sizes in millimetres from the top left corner: `zone x,y WxH "label"`, `card <card> x,y`, `deck <card> x,y count=N`, `text x,y width=W "text"`, `arrow x,y -> x2,y2 "label"`, `image <file> x,y width=W`. Cards and decks take `rotate=90` (also 180 and 270) and a label in quotes; the card is written as in card references, with `%20` for spaces. `size WxH` fixes the size of the table. Texts and labels can use markup. Lines that are not understood and cards that are not found are reported under the text and by `naibi check`.
 
+**Properties**, above the bar, holds notes about the document, like Obsidian properties: title, author, version, tags or anything else. Each property has a name (letters, digits, `-` and `_`) and a value; a list, marked with ≡, has its items separated by commas. **+ Add property** adds one, × removes it. Properties are written at the top of the file between two `---` lines, in YAML, together with the page settings, and a document written with Obsidian or another Markdown editor keeps them. They are not printed: with **Show in the document** they appear as a table at the top of the page, in the exports too.
+
 **Page** opens the document settings on the right: page size (A4, A5, Letter), margins, text and heading fonts, text size, line spacing, space after paragraphs, alignment (left or justified), and text and heading colors. The preview shows the page at its real width, scaled down if it does not fit. The settings are written at the top of the file, between two `---` lines, such as `size: 12` or `lineHeight: 1.6`: you can change them there too, and **Reset to default** removes them.
 
-**Export document…** saves the document in the project's `export/docs/` in four forms: **PDF**, to print or send, with the page size and margins of the document (desktop app only); **HTML**, one web page in a single file, with cards, images and fonts inside; **Word**, a `.docx` file to edit in Word or LibreOffice, with headings, lists, tables and quotes as Word styles, the page size, margins and fonts of the document, and cards, diagrams and images as PNG; **Markdown**, plain text for other programs, with the cards as 300 dpi PNG files and the images in a folder beside it (`<name> images`). Markdown keeps bold, italic and strikethrough; other styles are lost. Cards and images that are not found are left out, and the window reminds you when the document has problems.
+**Export document…** saves the document in the project's `export/docs/` in four forms: **PDF**, to print or send, with the page size and margins of the document (desktop app only); **HTML**, one web page in a single file, with cards, images and fonts inside; **Word**, a `.docx` file to edit in Word or LibreOffice, with headings, lists, tables and quotes as Word styles, the page size, margins and fonts of the document, and cards, diagrams and images as PNG; **Markdown**, plain text for other programs, with the cards as 300 dpi PNG files and the images in a folder beside it (`<name> images`). Markdown keeps bold, italic and strikethrough; other styles are lost. Cards and images that are not found are left out, and the window reminds you when the document has problems. When the export is done, **Open file** opens the file with its default program and **Open folder** the folder that holds it.
 
 Below the text the problems are listed: cards that are not found, images not in assets, unknown names in braces; a click goes to that point of the text. `naibi check` reports them with those of the cards, `naibi docs` shows the documents to an AI agent and `naibi export-doc` exports them without opening the app (see [cli.md](../cli.md)).
 

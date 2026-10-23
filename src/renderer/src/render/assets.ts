@@ -2,6 +2,7 @@ import type { AssetsUpdate } from '../../../shared/library'
 import { createContext, useContext, useMemo } from 'react'
 import type { BindContext } from '../../../shared/model/bind'
 import type { Variables } from '../../../shared/model/variables'
+import type { Localization } from '../../../shared/model/language'
 import { useProjectFonts } from './fonts'
 
 /** File sotto assets/ del progetto aperto, per risolvere i nomi delle immagini */
@@ -38,14 +39,18 @@ export function onAssetsUpdate(cb: (u: AssetsUpdate) => void): () => void {
 /** Variabili del progetto aperto (docs/specifica.md, 6.1) */
 export const VariablesContext = createContext<Variables>({})
 
-/** Ciò che serve per applicare una riga a un template: immagini, stili e variabili */
+/** Lingua in cui si mostrano le carte, se non è quella principale del progetto */
+export const LocalizationContext = createContext<Localization | undefined>(undefined)
+
+/** Ciò che serve per applicare una riga a un template: immagini, stili, variabili e lingua */
 export function useBindContext(): BindContext {
   const assets = useContext(AssetsContext)
   const styles = useContext(StylesContext)
   const variables = useContext(VariablesContext)
+  const localization = useContext(LocalizationContext)
   const { has: hasFont } = useProjectFonts()
   return useMemo(
-    () => ({ assets, styles, variables, hasFont }),
-    [assets, styles, variables, hasFont]
+    () => ({ assets, styles, variables, hasFont, localization }),
+    [assets, styles, variables, hasFont, localization]
   )
 }

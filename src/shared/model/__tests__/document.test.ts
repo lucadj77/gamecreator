@@ -3,6 +3,7 @@ import {
   cardRefSource,
   DEFAULT_DOC_SETTINGS,
   documentProblems,
+  documentProperties,
   documentSettings,
   documentText,
   findCard,
@@ -11,8 +12,10 @@ import {
   layerBounds,
   parseDocument,
   tableSource,
+  withDocumentProperties,
   withDocumentSettings
 } from '../document'
+import { applyStyle, changedRange, setHeading, toggleLines, toggleWrap } from '../docEdit'
 import type { LoadedSet } from '../../project'
 
 const sets: LoadedSet[] = [
@@ -290,5 +293,115 @@ describe('anatomia della carta', () => {
     ] as never
     expect(layerBounds(layers, 'nome')).toEqual({ x: 6, y: 4, w: 50, h: 10 })
     expect(layerBounds(layers, 'altro')).toBeNull()
+  })
+})
+
+describe('proprietà del documento', () => {
+  const src = [
+    '---',
+    'title: Farmony',
+    'tags:',
+    '  - regolamento',
+    '  - "bozza"',
+    'versione: 0.3',
+    'riassunto: "Un gioco',
+    '  di fattorie"',
+    'size: 12',
+    '---',
+    '# Regole',
+    ''
+  ].join('\n')
+
+  it('si leggono dalla testa, accanto alle impostazioni', () => {
+    expect(documentProperties(src)).toEqual([
+      { key: 'title', value: 'Farmony', list: false },
+      { key: 'tags', value: 'regolamento, bozza', list: true },
+      { key: 'versione', value: '0.3', list: false },
+      { key: 'riassunto', value: 'Un gioco di fattorie', list: false }
+    ])
+    const { settings, problems } = documentSettings(src)
+    expect(settings.size).toBe(12)
+    expect(problems).toEqual([])
+    // non si stampano
+    expect(parseDocument(src).map((b) => b.kind)).toEqual(['heading'])
+  })
+
+  it('con showProperties si stampano in una tabella senza intestazione', () => {
+    const shown = withDocumentSettings(src, { showProperties: true })
+    const [table] = parseDocument(shown)
+    expect(table).toMatchObject({
+      kind: 'table',
+      header: [],
+      rows: [
+        ['**title**', 'Farmony'],
+        ['**tags**', 'regolamento, bozza'],
+        ['**versione**', '0.3'],
+        ['**riassunto**', 'Un gioco di fattorie']
+      ]
+    })
+    // le proprietà restano quando cambiano le impostazioni
+    expect(documentProperties(shown)).toEqual(documentProperties(src))
+  })
+
+  it('si scrivono senza toccare le impostazioni', () => {
+    // quelle che non cambiano restano scritte com'erano
+    expect(withDocumentProperties(src, documentProperties(src))).toBe(src)
+    const out = withDocumentProperties(src, [
+      { key: 'title', value: 'Farmony: il gioco', list: false },
+      { key: 'tags', value: 'regolamento, finale', list: true }
+    ])
+    expect(out).toBe(
+      '---\ntitle: "Farmony: il gioco"\ntags: [regolamento, finale]\nsize: 12\n---\n# Regole\n'
+    )
+    expect(documentSettings(out).settings.size).toBe(12)
+    expect(
+      withDocumentProperties('# Regole\n', [{ key: 'autore', value: 'Luca', list: false }])
+    ).toBe('---\nautore: Luca\n---\n\n# Regole\n')
+    // senza proprietà e impostazioni la testa sparisce
+    expect(withDocumentProperties('---\nautore: Luca\n---\n\n# Regole\n', [])).toBe('# Regole\n')
+  })
+})
+
+describe('barra di formattazione', () => {
+  it('mette e toglie grassetto, corsivo, sottolineato', () => {
+    const a = toggleWrap('una parola qui', 4, 10, '**')
+    expect(a).toEqual({ text: 'una **parola** qui', from: 6, to: 12 })
+    expect(toggleWrap(a.text, a.from, a.to, '**')).toEqual({
+      text: 'una parola qui',
+      from: 4,
+      to: 10
+    })
+    expect(toggleWrap(a.text, 4, 14, '**').text).toBe('una parola qui')
+    // il corsivo dentro un grassetto non toglie le stelle del grassetto
+    expect(toggleWrap(a.text, 6, 12, '*').text).toBe('una ***parola*** qui')
+    // gli spazi restano fuori
+    expect(toggleWrap('a parola b', 1, 9, '++').text).toBe('a ++parola++ b')
+    expect(toggleWrap('ab', 1, 1, '~~')).toEqual({ text: 'a~~~~b', from: 3, to: 3 })
+  })
+
+  it('titoli ed elenchi sulle righe scelte', () => {
+    expect(setHeading('uno\n## due\ntre', 5, 6, 1).text).toBe('uno\n# due\ntre')
+    expect(setHeading('# uno', 2, 2, 0)).toEqual({ text: 'uno', from: 0, to: 0 })
+    const list = toggleLines('a\n\nb\nc', 0, 6, 'number')
+    expect(list.text).toBe('1. a\n\n2. b\n3. c')
+    expect(toggleLines(list.text, 0, list.text.length, 'number').text).toBe('a\n\nb\nc')
+    expect(toggleLines('1. a\n2. b', 0, 9, 'bullet').text).toBe('- a\n- b')
+    expect(toggleLines('a', 0, 0, 'quote').text).toBe('> a')
+  })
+
+  it('applica uno stile alla selezione o alla porzione', () => {
+    expect(applyStyle('una parola', 4, 10, 'keyword', 'testo').text).toBe('una [parola]{.keyword}')
+    expect(applyStyle('[x]{.a color=red}', 1, 1, 'b', 'testo').text).toBe('[x]{.b color=red}')
+    expect(applyStyle('ab', 1, 1, 'note', 'testo')).toEqual({
+      text: 'a[testo]{.note}b',
+      from: 2,
+      to: 7
+    })
+    expect(applyStyle('- uno\n- due', 0, 11, 'k', 't').text).toBe('- [uno]{.k}\n- [due]{.k}')
+  })
+
+  it('cambia solo il tratto diverso', () => {
+    expect(changedRange('abcdef', 'abXYef')).toEqual({ from: 2, to: 4, insert: 'XY' })
+    expect(changedRange('aa', 'aaa')).toEqual({ from: 2, to: 2, insert: 'a' })
   })
 })

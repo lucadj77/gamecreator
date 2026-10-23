@@ -1,17 +1,27 @@
 import type { ExportSet } from './export'
 import type { LoadedProject } from './project'
-import { bindCard, cardFields, rowToCard } from './model/bind'
+import { bindCard, fieldSets, rowToCard } from './model/bind'
+import { localizationOf } from './model/language'
 import { cardTemplate } from './model/inherit'
 import { systemOfSet, usesCopy } from './model/system'
 
 // Carte da esportare: le usano la finestra di esportazione e il comando naibi.
 
-/** Le carte dei set scelti, con i valori della riga applicati al template */
-export function buildSets(project: LoadedProject, names: string[]): ExportSet[] {
+/**
+ * Le carte dei set scelti, con i valori della riga applicati al template; con `language` i testi
+ * e i nomi sono quelli di quella lingua
+ */
+export function buildSets(
+  project: LoadedProject,
+  names: string[],
+  language?: string | null
+): ExportSet[] {
+  const localization = localizationOf(project.file, project.sets, language)
   const ctx = {
     assets: project.assets,
     styles: project.file.styles,
-    variables: project.file.variables
+    variables: project.file.variables,
+    localization
   }
   return project.sets
     .filter((s) => !names.length || names.includes(s.name))
@@ -38,7 +48,8 @@ export function buildSets(project: LoadedProject, names: string[]): ExportSet[] 
           n: i + 1,
           amount: card.amount,
           label: bound.label,
-          fields: cardFields(own, card, ctx.variables, system),
+          fields: fieldSets(own, card, ctx.variables, system, 'front', localization?.language)
+            .shown,
           template: bound.template,
           ...(perCopy ? { perCopy } : {})
         }

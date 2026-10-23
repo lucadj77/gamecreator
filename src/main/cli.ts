@@ -29,6 +29,7 @@ import {
   type SidesChoice
 } from '../shared/export'
 import { buildSets } from '../shared/exportJob'
+import { projectLanguages } from '../shared/model/language'
 import { runExport } from './export/run'
 import { renderDocument } from './export/docWindow'
 import { writeDocumentExport } from './project/docExport'
@@ -85,8 +86,10 @@ Commands:
                                        Rename a template and its file; sets, derived templates
                                        and the cards' template column follow (backup first)
   render <project> [--set S] [--card N[,M,A-B]] [--side front|back|both]
-         [--dpi 150] [--out folder]    Draw cards as PNG files (default folder: export/naibi-render)
-  export <project> --profile NAME      Run a named export profile saved in the project
+         [--dpi 150] [--out folder] [--lang L]
+                                       Draw cards as PNG files (default folder: export/naibi-render)
+  export <project> --profile NAME [--lang L|all]
+                                       Run a named export profile saved in the project
   new <name> <parent folder>           Create an empty project
   stats <project> <set> [--column C]  How many cards have each value of every column (or one),
                                        with sum, average, min and max of numeric columns
@@ -185,8 +188,11 @@ async function info(p: Parsed): Promise<number> {
     folder: project.folder,
     dataFile: f.dataFile,
     dataReadOnly: !!f.dataReadOnly,
+    languages: projectLanguages(f),
+    ...(f.names ? { names: f.names } : {}),
     sets: project.sets.map((s) => ({
       name: s.name,
+      ...(s.names ? { names: s.names } : {}),
       template: s.template,
       sheet: s.sheet ?? s.name,
       rows: s.data?.rows.length ?? 0,
@@ -217,6 +223,8 @@ async function info(p: Parsed): Promise<number> {
   }
   print(`Project: ${data.name}  (${data.folder})`)
   print(`Data file: ${data.dataFile}${data.dataReadOnly ? ' (read-only)' : ''}`)
+  if (data.languages.length)
+    print(`Languages: ${data.languages.join(', ')} (main: ${data.languages[0]})`)
   print('Sets:')
   for (const s of data.sets)
     print(
@@ -547,11 +555,28 @@ async function exportJob(project: LoadedProject, job: ExportJob): Promise<number
   return 0
 }
 
+/**
+ * Lingue scelte con --lang: un codice del progetto, o all per tutte. Senza --lang la principale;
+ * null vale la principale, che resta nella cartella di sempre
+ */
+function cliLanguages(project: LoadedProject, p: Parsed, all = false): (string | undefined)[] {
+  const flag = p.flags.lang
+  if (flag === undefined) return [undefined]
+  const langs = projectLanguages(project.file)
+  if (!langs.length)
+    throw new CliError('--lang: the project has only one language (languages in naibi.json)')
+  if (all && flag === 'all') return langs.map((l, i) => (i === 0 ? undefined : l))
+  if (typeof flag !== 'string' || !langs.includes(flag))
+    throw new CliError(`--lang: one of ${langs.join(', ')}${all ? ' or all' : ''}`)
+  return [flag === langs[0] ? undefined : flag]
+}
+
 async function render(p: Parsed): Promise<number> {
   const project = await open(p.positional[0])
   const setName = typeof p.flags.set === 'string' ? p.flags.set : null
   if (setName) findSet(project, setName)
-  const sets = selectCards(buildSets(project, setName ? [setName] : []), p.flags.card)
+  const [language] = cliLanguages(project, p)
+  const sets = selectCards(buildSets(project, setName ? [setName] : [], language), p.flags.card)
   if (!sets.some((s) => s.cards.length)) throw new CliError('no cards to draw')
   const side = (typeof p.flags.side === 'string' ? p.flags.side : 'front') as SidesChoice
   if (!['front', 'back', 'both'].includes(side)) throw new CliError('--side: front, back or both')
@@ -565,6 +590,7 @@ async function render(p: Parsed): Promise<number> {
     kind: 'images',
     project: project.file.name,
     sets,
+    ...(language ? { language } : {}),
     options: {
       ...DEFAULT_IMAGE,
       folder: out,
@@ -584,19 +610,23 @@ async function exportProfile(p: Parsed): Promise<number> {
     throw new CliError(
       `no export profile "${typeof name === 'string' ? name : ''}" (profiles: ${named.map((n) => n.name).join(', ') || 'none'})`
     )
-  const sets = buildSets(project, profile.options.sets ?? [])
-  const base = { project: project.file.name, sets }
-  const job: ExportJob =
-    profile.kind === 'images'
-      ? { ...base, kind: 'images', options: { ...DEFAULT_IMAGE, ...profile.options } }
-      : profile.kind === 'pdf'
-        ? { ...base, kind: 'pdf', options: { ...DEFAULT_PDF, ...profile.options } }
-        : {
-            ...base,
-            kind: 'tts',
-            options: { ...DEFAULT_TTS, nickname: project.file.name, ...profile.options }
-          }
-  return exportJob(project, job)
+  for (const language of cliLanguages(project, p, true)) {
+    const sets = buildSets(project, profile.options.sets ?? [], language)
+    const base = { project: project.file.name, sets, ...(language ? { language } : {}) }
+    const job: ExportJob =
+      profile.kind === 'images'
+        ? { ...base, kind: 'images', options: { ...DEFAULT_IMAGE, ...profile.options } }
+        : profile.kind === 'pdf'
+          ? { ...base, kind: 'pdf', options: { ...DEFAULT_PDF, ...profile.options } }
+          : {
+              ...base,
+              kind: 'tts',
+              options: { ...DEFAULT_TTS, nickname: project.file.name, ...profile.options }
+            }
+    const code = await exportJob(project, job)
+    if (code) return code
+  }
+  return 0
 }
 
 async function create(p: Parsed): Promise<number> {

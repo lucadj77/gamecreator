@@ -7,6 +7,7 @@ import { isGenericFont, markupFonts } from './fonts'
 import { evaluateFormula } from './formula'
 import { markupProblems, markupRefs } from './markup'
 import { walkLayers } from './normalize'
+import { splitLanguage, translatedCells, type Localization } from './language'
 import { cardTemplate } from './inherit'
 import { systemFields, usesSide, type SystemInfo } from './system'
 import {
@@ -76,12 +77,34 @@ export interface BindContext {
   variables?: Variables
   /** Progetto, set e posizione della carta, per le variabili di sistema */
   system?: SystemInfo
+  /** Lingua in cui disegnare la carta, se non è la principale: vedi model/language.ts */
+  localization?: Localization
+}
+
+/** Progetto e set con i nomi della lingua scelta */
+function localizeSystem(system?: SystemInfo, loc?: Localization): SystemInfo | undefined {
+  if (!system || !loc) return system
+  return {
+    ...system,
+    project: loc.project ?? system.project,
+    set: (system.set !== undefined && loc.sets?.[system.set]) || system.set
+  }
+}
+
+/** Una formula con = (logica e calcoli) usa i valori della lingua principale */
+function isExpression(expr: string): boolean {
+  return expr.trimStart().startsWith('=')
 }
 
 export function bindCard(template: Template, card: CardData, ctx: BindContext = {}): BoundCard {
   const problems: Message[] = []
+  const language = ctx.localization?.language
+  const system = localizeSystem(ctx.system, ctx.localization)
+  // le colonne nome@lingua valgono solo nella loro lingua, al posto della colonna nome
+  const cells = Object.entries(card.fields).filter(([h]) => splitLanguage(h).language === null)
+  if (language) cells.push(...Object.entries(translatedCells(card.fields, language)))
   const overrides = new Map<string, Map<string, string>>()
-  for (const [header, value] of Object.entries(card.fields)) {
+  for (const [header, value] of cells) {
     if (value === '' || header === 'amount') continue
     const dot = header.indexOf('.')
     const layer = dot < 0 ? header : header.slice(0, dot)
@@ -93,13 +116,23 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
     overrides.get(layer)!.set(prop ?? '', value.trim() === '' ? '' : value)
   }
 
-  const fields = cardFields(template, card, ctx.variables, ctx.system)
+  const front = fieldSets(template, card, ctx.variables, system, 'front', language)
   // {card.side} vale back sul retro: solo allora servono campi a parte
-  const backFields = usesSide(template)
-    ? cardFields(template, card, ctx.variables, ctx.system, 'back')
-    : fields
+  const back = usesSide(template)
+    ? fieldSets(template, card, ctx.variables, system, 'back', language)
+    : front
   const pal = palette(ctx.variables)
-  const bindSide = (layers: Layer[], fields: Record<string, string>): Layer[] => {
+  // i testi tradotti valgono solo per ciò che si legge: nomi di immagini e font, colori,
+  // ripetizioni e formule con = usano i valori della lingua principale. Una colonna immagine
+  // tradotta (icona@en) cambia l'immagine apposta, e vale anche per {icona} nei testi.
+  const bindSide = (layers: Layer[], { main, shown }: FieldSets): Layer[] => {
+    const fields = main === shown ? main : { ...main }
+    if (main !== shown)
+      for (const l of walkLayers([...template.front, ...template.back])) {
+        if (l.type !== 'image' || l.source.kind !== 'column') continue
+        const column = l.source.column ?? l.name
+        if (shown[column] !== main[column]) fields[column] = shown[column]
+      }
     const images = imageFields(template, fields)
     const apply = (layers: Layer[]): Layer[] =>
       layers.map((layer) => {
@@ -110,7 +143,8 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
         // il valore principale segue la fonte scelta; le colonne delle altre proprietà valgono sempre
         if (src.kind === 'fixed') props.delete('')
         if (src.kind === 'formula') {
-          const r = evaluateFormula(src.expr, fields)
+          const read = layer.type === 'text' && !isExpression(src.expr) ? shown : fields
+          const r = evaluateFormula(src.expr, read)
           for (const f of r.missing)
             problems.push(msg('bind.formulaField', { layer: layer.name, field: f }))
           if (r.error)
@@ -137,7 +171,7 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
           // il font può essere una variabile o un campo: {titoli}
           out = {
             ...out,
-            text: substituteFields(out.text, fields, images),
+            text: substituteFields(out.text, shown, images),
             font: substituteFields(out.font, fields).trim()
           }
           if (out.visible) {
@@ -185,12 +219,12 @@ export function bindCard(template: Template, card: CardData, ctx: BindContext = 
   return {
     template: {
       ...template,
-      front: bindSide(template.front, fields),
-      back: bindSide(template.back, backFields)
+      front: bindSide(template.front, front),
+      back: bindSide(template.back, back)
     },
     amount: card.amount,
     problems,
-    label: cardLabel(template, card, fields)
+    label: cardLabel(template, cells, front.shown)
   }
 }
 
@@ -219,9 +253,15 @@ function textProblems(layer: string, text: string, ctx: BindContext): Message[] 
   return out
 }
 
-function cardLabel(template: Template, card: CardData, fields: Record<string, string>): string {
+function cardLabel(
+  template: Template,
+  cells: [string, string][],
+  fields: Record<string, string>
+): string {
   if (template.labelField) return fields[template.labelField] ?? ''
-  const first = Object.entries(card.fields).find(
+  // le celle tradotte sono in fondo: valgono quelle, al posto della colonna nella lingua principale
+  const byColumn = new Map(cells)
+  const first = [...byColumn].find(
     ([h, v]) => h !== 'amount' && !h.includes('.') && v.trim() !== ''
   )
   return first?.[1] ?? ''
@@ -266,6 +306,29 @@ export function cardFields(
   system?: SystemInfo,
   side: Side = 'front'
 ): Record<string, string> {
+  return fieldSets(template, card, variables, system, side).main
+}
+
+/** I campi di una carta nella lingua principale e in quella scelta */
+export interface FieldSets {
+  /** Valori della lingua principale: li usano le formule con = */
+  main: Record<string, string>
+  /** Valori che si vedono: le celle tradotte al posto di quelle della lingua principale */
+  shown: Record<string, string>
+}
+
+/**
+ * Come cardFields, nella lingua principale e in `language`: senza lingua (o senza celle tradotte)
+ * i due insiemi sono uguali.
+ */
+export function fieldSets(
+  template: Template,
+  card: CardData,
+  variables?: Variables,
+  system?: SystemInfo,
+  side: Side = 'front',
+  language?: string
+): FieldSets {
   const all = walkLayers([...template.front, ...template.back])
   // le variabili di testo e valore valgono come campi, ma un campo con lo stesso nome vince;
   // sotto ancora le variabili di sistema
@@ -279,17 +342,29 @@ export function cardFields(
   }
   for (const [k, v] of Object.entries(card.fields))
     if (v !== '' || !(k in fields)) fields[k] = v.trim() === '' ? '' : v
+  const local = language ? translatedCells(card.fields, language) : {}
+  const translated = Object.keys(local).length > 0
+  const shown = translated ? { ...fields } : fields
+  for (const [k, v] of Object.entries(local)) shown[k] = v.trim() === '' ? '' : v
   for (const l of all) {
     if (l.type !== 'value') continue
     const src = l.source
-    if (src.kind === 'fixed') fields[l.name] = l.value
-    else if (src.kind === 'formula') fields[l.name] = evaluateFormula(src.expr, fields).value
-    else if (src.column) {
+    if (src.kind === 'fixed') fields[l.name] = shown[l.name] = l.value
+    else if (src.kind === 'formula') {
+      fields[l.name] = evaluateFormula(src.expr, fields).value
+      if (translated)
+        shown[l.name] = isExpression(src.expr)
+          ? fields[l.name]
+          : evaluateFormula(src.expr, shown).value
+    } else if (src.column) {
       const cell = card.fields[src.column]
       fields[l.name] = cell ? (cell.trim() ? cell : '') : l.value
+      if (translated && src.column in local)
+        shown[l.name] = local[src.column].trim() ? local[src.column] : ''
+      else if (translated) shown[l.name] = fields[l.name]
     }
   }
-  return fields
+  return { main: fields, shown }
 }
 
 /**

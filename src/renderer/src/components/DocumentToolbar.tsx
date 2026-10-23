@@ -6,7 +6,7 @@ import { StyleMenu, ToolButton, WrapTools } from './TextFormatBar'
 import { ImageIcon } from './icons'
 
 // Barra sopra il testo di un documento: grassetto, corsivo, titoli, elenchi, stili e gli
-// inserimenti (immagine, tabella, carta, anatomia, tavolo). Scrive nel campo come si scriverebbe
+// inserimenti (immagine, tabella, riquadro, carta, anatomia, tavolo). Scrive nel campo come si scriverebbe
 // a mano, così ⌘Z annulla anche questi cambiamenti.
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
   level: number
   onImage(): void
   onTable(): void
+  onBox(): void
   onCard(): void
   onAnatomy(): void
   onSetup(): void
@@ -27,6 +28,7 @@ export default function DocumentToolbar({
   level,
   onImage,
   onTable,
+  onBox,
   onCard,
   onAnatomy,
   onSetup
@@ -80,6 +82,7 @@ export default function DocumentToolbar({
         onImage
       )}
       {button(t('documents.table'), t('documents.tableButtonHint'), onTable)}
+      {button(t('documents.box'), t('documents.boxButtonHint'), onBox)}
       {button(t('documents.insertCard'), t('documents.insertCardHint'), onCard)}
       {button(t('documents.anatomy'), t('documents.anatomyButtonHint'), onAnatomy)}
       {button(t('documents.setup'), t('documents.setupButtonHint'), onSetup)}

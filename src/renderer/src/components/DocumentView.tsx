@@ -4,6 +4,7 @@ import type { Template } from '../../../shared/model/template'
 import {
   DOC_PAGES,
   DOCUMENTS_DIR,
+  documentBoxes,
   documentProblems,
   documentText,
   documentSettings,
@@ -26,9 +27,12 @@ import type { Setup } from '../../../shared/model/setup'
 import MarkupTextarea from './MarkupTextarea'
 import DocumentToolbar from './DocumentToolbar'
 import ImageDialog, { type DocImageValue } from './ImageDialog'
+import BoxDialog from './BoxDialog'
+import { boxStartLine, unwrapBox, wrapInBox, type DocBox } from '../../../shared/model/docBox'
 import DocumentProperties from './DocumentProperties'
 import { headingAt } from '../../../shared/model/docEdit'
 import Menu from './Menu'
+import { runEdit } from './editRun'
 
 // Un documento del progetto (docs/<nome>.md: regolamento, sell sheet, appendice): a sinistra il
 // testo in Markdown con il markup di Naibi, a destra l'anteprima sempre visibile, con le carte
@@ -89,6 +93,12 @@ export default function DocumentView({
   const [level, setLevel] = useState(0)
   const [exporting, setExporting] = useState(false)
   /** La tabella aperta nello strumento: nuova, o quella del testo tra from e to */
+  const [boxEdit, setBoxEdit] = useState<{
+    box?: DocBox
+    /** Selezione quando si è aperto: le righe da mettere nel riquadro */
+    from: number
+    to: number
+  } | null>(null)
   const [tableEdit, setTableEdit] = useState<{
     value?: TableValue
     from?: number
@@ -161,6 +171,15 @@ export default function DocumentView({
     else setTableEdit({})
   }
 
+  /** Apre il riquadro: quello dove sta il cursore, o uno nuovo attorno alle righe selezionate */
+  const openBox = (): void => {
+    const el = editor.current
+    const from = lastCaret.current === null ? text.length : (el?.selectionStart ?? text.length)
+    const to = lastCaret.current === null ? from : (el?.selectionEnd ?? from)
+    const box = documentBoxes(text).find((b) => b.from <= from && from <= b.to)
+    setBoxEdit({ box, from, to })
+  }
+
   /** Apre l'anatomia della carta: quella dove sta il cursore, se c'è */
   const openAnatomy = (): void => {
     const at = lastCaret.current === null ? null : (editor.current?.selectionStart ?? null)
@@ -196,12 +215,21 @@ export default function DocumentView({
     else setSetupEdit({})
   }
 
+  /** Cambia il testo come se lo si scrivesse nel campo: ⌘Z nel testo lo annulla */
+  const rewrite = (next: string, at: number): void => {
+    const el = editor.current
+    if (el) runEdit(el, () => ({ text: next, from: at, to: at }))
+    else {
+      caret.current = at
+      onChange(next)
+    }
+  }
+
   /** Riscrive il testo tra from e to, o inserisce un blocco al cursore */
   const putBlock = (md: string, from?: number, to?: number): void => {
     if (from === undefined || to === undefined) insertBlock(md)
     else {
-      caret.current = from + md.length
-      onChange(text.slice(0, from) + md + text.slice(to))
+      rewrite(text.slice(0, from) + md + text.slice(to), from + md.length)
     }
   }
 
@@ -262,8 +290,7 @@ export default function DocumentView({
     const after = text.slice(at)
     const lead = !before || before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n'
     const tail = after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n'
-    caret.current = before.length + lead.length + block.length
-    onChange(before + lead + block + tail + after)
+    rewrite(before + lead + block + tail + after, before.length + lead.length + block.length)
   }
 
   return (
@@ -339,6 +366,7 @@ export default function DocumentView({
                 level={level}
                 onImage={openImage}
                 onTable={openTable}
+                onBox={openBox}
                 onCard={() => setInserting(true)}
                 onAnatomy={openAnatomy}
                 onSetup={openSetup}
@@ -414,6 +442,35 @@ export default function DocumentView({
           onSave={(md) => {
             setImageEdit(null)
             putBlock(md, imageEdit.from, imageEdit.to)
+          }}
+        />
+      )}
+      {boxEdit && (
+        <BoxDialog
+          initial={boxEdit.box?.style}
+          onClose={() => setBoxEdit(null)}
+          onRemove={
+            boxEdit.box
+              ? () => {
+                  const box = boxEdit.box!
+                  setBoxEdit(null)
+                  rewrite(unwrapBox(text, box), box.from)
+                }
+              : undefined
+          }
+          onSave={(style) => {
+            setBoxEdit(null)
+            const { box, from, to } = boxEdit
+            if (box) {
+              const head = boxStartLine(style)
+              rewrite(
+                text.slice(0, box.from) + head + text.slice(box.headTo),
+                box.from + head.length
+              )
+              return
+            }
+            const out = wrapInBox(text, from, to, style, t('documents.boxSample'))
+            rewrite(out.text, out.caret)
           }}
         />
       )}

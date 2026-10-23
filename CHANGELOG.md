@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.2.0-beta.29
+
+### English
+
+- Documents: **Box** puts a colored background, and if you want a border, behind any part of a document, from where it starts to where it ends: to make a piece of text stand out, or to set white images without a border apart from the page. It keeps text, lists, tables, cards and images inside; the HTML, PDF and Word exports keep it.
+- ⌘Z / Ctrl+Z (and ⇧⌘Z / Ctrl+Y to redo) now work inside the table setup, card anatomy, table and box windows. What these windows write into the document can be undone with ⌘Z / Ctrl+Z in the text.
+- Card details: the color picker swatch also appears for outline, border and shadow columns of the sheet (for example `rect.stroke`), even when the cell is empty.
+
+### Italiano
+
+- Documenti: **Riquadro** mette uno sfondo colorato, e se si vuole un bordo, dietro qualunque parte di un documento, da dove comincia a dove finisce: per dare risalto a un pezzo di testo o staccare dal foglio immagini bianche senza bordo. Dentro possono stare testo, elenchi, tabelle, carte e immagini; le esportazioni HTML, PDF e Word lo mantengono.
+- ⌘Z / Ctrl+Z (e ⇧⌘Z / Ctrl+Y per rifare) funzionano ora nelle finestre dello schema del tavolo, dell'anatomia della carta, della tabella e del riquadro. Quello che queste finestre scrivono nel documento si annulla con ⌘Z / Ctrl+Z nel testo.
+- Dettaglio della carta: il quadratino del selettore del colore compare anche per le colonne del foglio con contorno, bordo e ombra (per esempio `rect.stroke`), anche con la cella vuota.
+
 ## 1.2.0-beta.28
 
 ### English

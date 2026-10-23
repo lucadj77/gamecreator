@@ -18,6 +18,7 @@ import {
   tableStyleSource,
   type TableStyle
 } from './docTable'
+import { isBoxEnd, isBoxStart, parseBoxStyle, type DocBox } from './docBox'
 
 // Documenti del progetto (docs/<nome>.md): regolamento, sell sheet, appendici. Sono Markdown con
 // il markup di Naibi nel testo ({icona}, [testo]{.stile}) e le carte del progetto come immagini:
@@ -42,7 +43,11 @@ export interface DocListItem {
   number: number
 }
 
-export type DocBlock = { from: number } & (
+export type DocBlock = {
+  from: number
+  /** Riquadro colorato in cui sta il blocco (docBox.ts); lo stesso oggetto per tutti i suoi blocchi */
+  box?: DocBox
+} & (
   | { kind: 'heading'; level: 1 | 2 | 3; text: string }
   | { kind: 'paragraph'; text: string }
   | { kind: 'list'; items: DocListItem[] }
@@ -215,7 +220,8 @@ export function parseDocument(src: string): DocBlock[] {
   while (i < lines.length) {
     const line = lines[i]
     const from = starts[i]
-    if (blank(line)) {
+    // le righe dei riquadri non sono blocchi: i blocchi tra le due stanno nel riquadro (in fondo)
+    if (blank(line) || isBoxStart(line) || isBoxEnd(line)) {
       i++
       continue
     }
@@ -354,13 +360,49 @@ export function parseDocument(src: string): DocBlock[] {
       blocks.push({ kind: 'figure', images, from })
     } else blocks.push({ kind: 'paragraph', text: joinLines(body), from })
   }
+  const boxes = documentBoxes(src)
+  for (const b of blocks) {
+    const inside = boxes.find((x) => b.from > x.headTo && b.from < x.to)
+    if (inside) b.box = inside
+  }
   return blocks
+}
+
+/** I riquadri del documento, anche quelli vuoti */
+export function documentBoxes(src: string): DocBox[] {
+  const out: DocBox[] = []
+  const lines = src.replace(/\r\n?/g, '\n').split('\n')
+  let pos = 0
+  let open: DocBox | null = null
+  let fence: string | null = null
+  for (const line of lines) {
+    const f = /^\s*(```|~~~)/.exec(line)
+    if (fence) {
+      if (line.trimStart().startsWith(fence)) fence = null
+    } else if (f) fence = f[1]
+    else if (isBoxStart(line) || isBoxEnd(line)) {
+      if (open) {
+        open.endFrom = isBoxEnd(line) ? pos : null
+        open.to = isBoxEnd(line) ? pos + line.length : pos
+        open = null
+      }
+      if (isBoxStart(line)) {
+        const { style, bad } = parseBoxStyle(line)
+        open = { style, bad, from: pos, headTo: pos + line.length, endFrom: null, to: src.length }
+        out.push(open)
+      }
+    }
+    pos += line.length + 1
+  }
+  return out
 }
 
 /** Una riga che apre un blocco nuovo anche senza una riga vuota prima */
 function startsBlock(l: string): boolean {
   return (
     /^\s{0,3}(#{1,6}\s|>|```|~~~)/.test(l) ||
+    isBoxStart(l) ||
+    isBoxEnd(l) ||
     LIST_ITEM.test(l) ||
     /^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(l)
   )
@@ -969,6 +1011,12 @@ export interface DocumentProblem {
 export function documentProblems(src: string, ctx: DocumentContext): DocumentProblem[] {
   const out: DocumentProblem[] = [...documentSettings(src).problems]
   const texts: { text: string; from: number }[] = []
+  for (const box of documentBoxes(src)) {
+    const at = { from: box.from, to: box.headTo }
+    if (box.bad.length)
+      out.push({ message: msg('doc.box.badOption', { option: box.bad[0] }), ...at })
+    if (box.endFrom === null) out.push({ message: msg('doc.box.notClosed'), ...at })
+  }
   for (const b of parseDocument(src)) {
     switch (b.kind) {
       case 'heading':

@@ -820,6 +820,9 @@ export const en = {
   'doc.card.noValue': 'No card in "{set}" has {field} = "{value}"',
   'doc.table.badOption':
     '"{option}" is not a table option (width, columns, border, borderWidth, lines, header, fill, stripes)',
+  'doc.box.badOption':
+    '"{option}" is not a box option (fill, border, borderWidth, padding, radius)',
+  'doc.box.notClosed': 'This box has no <!-- /box --> line: it goes on to the end of the document',
   'doc.setting.unknown': '"{name}" is not a page setting',
   'doc.setting.bad': '"{value}" is not a valid value for {name}',
   'doc.anatomy.badLine':
@@ -1252,6 +1255,19 @@ export const en = {
     'The document has problems ({n}), listed under the text: cards and images that are not found are left out.',
   'documents.table': 'Table',
   'documents.tableButtonHint': 'Insert a table, or edit the table where the cursor is',
+  'documents.box': 'Box',
+  'documents.boxButtonHint':
+    'Put the selected lines in a box with a colored background, or change the box where the cursor is',
+  'documents.boxHint':
+    'The box starts and ends where its two lines are in the text: anything between them (text, lists, tables, cards, images) gets the background.',
+  'documents.boxFill': 'Background',
+  'documents.boxBorder': 'Border',
+  'documents.boxBorderWidth': 'Border thickness',
+  'documents.boxPadding': 'Inner space',
+  'documents.boxRadius': 'Rounded corners',
+  'documents.boxSample': 'Text in the box',
+  'documents.boxRemove': 'Remove box',
+  'documents.boxRemoveHint': 'Removes the box and keeps what is inside',
   'documents.insertTable': 'Insert table',
   'documents.editTable': 'Edit table',
   'documents.tableAlign': 'Column alignment',

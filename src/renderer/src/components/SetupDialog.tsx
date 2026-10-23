@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useUndo } from './useUndo'
 import type { LoadedSet } from '../../../shared/project'
 import type { Template } from '../../../shared/model/template'
 import {
@@ -84,6 +85,14 @@ export default function SetupDialog({
   const [frozen, setFrozen] = useState<Box | null>(null)
   const drag = useRef<Drag | null>(null)
   const svg = useRef<SVGSVGElement>(null)
+  useUndo(
+    [items, size],
+    ([i, s]) => {
+      setItems(i)
+      setSize(s)
+    },
+    !pickingCard && !pickingImage
+  )
 
   const setup: Setup = { size, items, bad: [] }
   const view = setupView(setup, sets, templates, maxWidth, font)

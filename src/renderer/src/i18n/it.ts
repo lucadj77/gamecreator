@@ -830,6 +830,10 @@ export const it: Record<MessageKey, string> = {
   'doc.card.noValue': 'Nessuna carta di "{set}" ha {field} = "{value}"',
   'doc.table.badOption':
     '"{option}" non è un\'opzione della tabella (width, columns, border, borderWidth, lines, header, fill, stripes)',
+  'doc.box.badOption':
+    '"{option}" non è un\'opzione del riquadro (fill, border, borderWidth, padding, radius)',
+  'doc.box.notClosed':
+    'Questo riquadro non ha la riga <!-- /box -->: arriva fino alla fine del documento',
   'doc.setting.unknown': '"{name}" non è un\'impostazione della pagina',
   'doc.setting.bad': '"{value}" non è un valore valido per {name}',
   'doc.anatomy.badLine':
@@ -1272,6 +1276,19 @@ export const it: Record<MessageKey, string> = {
     'Il documento ha dei problemi ({n}), elencati sotto il testo: le carte e le immagini che non si trovano restano fuori.',
   'documents.table': 'Tabella',
   'documents.tableButtonHint': 'Inserisce una tabella, o modifica quella dove si trova il cursore',
+  'documents.box': 'Riquadro',
+  'documents.boxButtonHint':
+    'Mette le righe selezionate in un riquadro con lo sfondo colorato, o modifica il riquadro dove si trova il cursore',
+  'documents.boxHint':
+    "Il riquadro comincia e finisce dove stanno le sue due righe nel testo: tutto quello che c'è in mezzo (testo, elenchi, tabelle, carte, immagini) prende lo sfondo.",
+  'documents.boxFill': 'Sfondo',
+  'documents.boxBorder': 'Bordo',
+  'documents.boxBorderWidth': 'Spessore del bordo',
+  'documents.boxPadding': 'Spazio interno',
+  'documents.boxRadius': 'Angoli arrotondati',
+  'documents.boxSample': 'Testo nel riquadro',
+  'documents.boxRemove': 'Togli il riquadro',
+  'documents.boxRemoveHint': "Toglie il riquadro e lascia quello che c'è dentro",
   'documents.insertTable': 'Inserisci tabella',
   'documents.editTable': 'Modifica tabella',
   'documents.tableAlign': 'Allineamento della colonna',

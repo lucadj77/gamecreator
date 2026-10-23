@@ -388,6 +388,9 @@ function CardForm({
         </label>
       )
     }
+    // contorno, bordo e ombra scritti come testo anche fuori dai dettagli: il colore è la prima parte
+    const strokePart =
+      dot > 0 && !colors.has(h) ? colorPartOf(propKey, common.value, fallback) : null
     return (
       <label key={h} className={index < 0 && !opts.prop ? className + ' new-field' : className}>
         <span className="field-label">{label}</span>
@@ -409,6 +412,15 @@ function CardForm({
                 // senza valore nella cella il selettore parte dal colore del template
                 value={common.value.trim() || colors.get(h) || ''}
                 onChange={(v) => write(h, v)}
+              />
+            </span>
+          ) : strokePart ? (
+            <span className="color-cell">
+              <input {...common} />
+              <ColorSwatch
+                title={t('cardForm.pickColor')}
+                value={strokePart.color}
+                onChange={(c) => write(h, strokePart.set(c))}
               />
             </span>
           ) : imageColumns.has(h) ? (

@@ -205,6 +205,12 @@ export const en = {
   'tip.selectNone': 'Keep only the card shown in the preview (Esc)',
   'panel.moveRight': 'Move this panel to the right',
   'panel.moveLeft': 'Move this panel to the left',
+  'app.channel': 'Updates',
+  'app.webChannel': 'Version',
+  'app.channel.stable': 'Stable',
+  'app.channel.beta': 'Beta',
+  'app.channelHint':
+    'Stable offers only official versions. Beta also offers the test versions, with new features earlier and more chance of bugs. Going from Beta back to Stable does not install an older version: you wait for the next official one.',
   'app.theme': 'Theme',
   'app.theme.system': 'System',
   'app.theme.light': 'Light',

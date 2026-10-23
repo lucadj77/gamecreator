@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   changelogSection,
+  channelFor,
   compareVersions,
   isPrerelease,
   notesForLanguage,
@@ -50,6 +51,28 @@ describe('aggiornamenti', () => {
     expect(updateFromReleases([rel('v1.2.0'), ...list], '1.2.0-beta.2')?.version).toBe('1.2.0')
     expect(updateFromReleases([rel('v1.3.0', { draft: true })], '1.0.0')).toBeNull()
     expect(updateFromReleases({ message: 'Not Found' }, '1.0.0')).toBeNull()
+  })
+
+  it('segue il canale scelto', () => {
+    const rel = (tag: string): Record<string, unknown> => ({
+      tag_name: tag,
+      body: '',
+      html_url: `https://x/${tag}`,
+      prerelease: tag.includes('-')
+    })
+    const list = [rel('v1.3.0-beta.3'), rel('v1.2.1'), rel('v1.3.0-beta.2'), rel('v1.2.0')]
+    // una versione ufficiale con il canale Beta riceve le beta
+    expect(updateFromReleases(list, '1.2.0', 'beta')?.version).toBe('1.3.0-beta.3')
+    expect(updateFromReleases(list, '1.2.0', 'stable')?.version).toBe('1.2.1')
+    // da Beta a Stabile non si torna indietro
+    expect(updateFromReleases(list, '1.3.0-beta.2', 'stable')).toBeNull()
+    // releases/latest restituisce una release sola
+    expect(updateFromReleases(rel('v1.2.1'), '1.2.0', 'stable')?.version).toBe('1.2.1')
+    // senza scelta: Beta per chi ha una beta, Stabile per gli altri
+    expect(channelFor('1.2.0-beta.30', undefined)).toBe('beta')
+    expect(channelFor('1.2.0', null)).toBe('stable')
+    expect(channelFor('1.2.0-beta.30', 'stable')).toBe('stable')
+    expect(channelFor('1.2.0', 'beta')).toBe('beta')
   })
 
   it('sceglie le note nella lingua dell interfaccia', () => {

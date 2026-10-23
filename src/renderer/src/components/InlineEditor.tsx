@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { Bounds } from '../../../shared/model/edit'
 import type { Layer } from '../../../shared/model/template'
+import { ColorSwatch } from './ColorPicker'
 import { useI18n } from '../i18n/context'
 import AssetPicker from './AssetPicker'
 import MarkupTextarea from './MarkupTextarea'
@@ -51,7 +52,8 @@ export default function InlineEditor({
     if (edit.type === 'image') return
     const onDown = (e: PointerEvent): void => {
       const el = e.target as Element
-      if (boxRef.current?.contains(el)) return
+      // nemmeno il selettore del colore, che si apre fuori dal riquadro
+      if (boxRef.current?.contains(el) || el.closest?.('.color-popover')) return
       // una finestra aperta sopra (formato, icone) non chiude; quella che contiene la carta sì
       const dialog = el.closest?.('.dialog-backdrop')
       if (dialog && !dialog.contains(boxRef.current)) return
@@ -103,17 +105,15 @@ export default function InlineEditor({
     >
       {edit.type === 'shape' ? (
         <span className="inline-editor-color">
+          <ColorSwatch
+            value={value || edit.original}
+            title={t('cardForm.pickColor')}
+            onChange={onChange}
+          />
           <input
-            type="color"
             ref={(el) => {
               inputRef.current = el
             }}
-            value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#000000'}
-            title={t('cardForm.pickColor')}
-            onChange={(e) => onChange(e.target.value.toUpperCase())}
-            onKeyDown={onKeyDown}
-          />
-          <input
             value={value}
             placeholder={edit.original}
             onChange={(e) => onChange(e.target.value)}

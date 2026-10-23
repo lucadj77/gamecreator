@@ -23,7 +23,7 @@ import MarkupTextarea from './MarkupTextarea'
 import AssetPicker from './AssetPicker'
 import { ColorSwatch } from './ColorPicker'
 import { EyeIcon, EyeOffIcon, ImageIcon, SlidersIcon } from './icons'
-import { propControl, propLabel } from './cardProps'
+import { colorPartOf, propControl, propLabel } from './cardProps'
 import CropDialog from './CropDialog'
 import { cropText, parseCrop } from '../../../shared/model/crop'
 import { resolveAsset } from '../../../shared/model/assets'
@@ -298,6 +298,7 @@ function CardForm({
       )
     const control = opts.prop && layer ? propControl(layer, propKey) : null
     if (control?.kind === 'select' || control?.kind === 'number' || control?.kind === 'text') {
+      const colorPart = control.kind === 'text' ? colorPartOf(propKey, value ?? '', fallback) : null
       const optionLabel = (v: string): string => {
         const found = control.kind === 'select' && control.options.find(([o]) => o === v)
         return found && found[1] ? t(found[1]) : v
@@ -335,6 +336,13 @@ function CardForm({
                     ? t('cardForm.mixed')
                     : hint || (control.kind === 'text' && control.hint ? t(control.hint) : '')
                 }
+              />
+            )}
+            {colorPart && (
+              <ColorSwatch
+                title={t('cardForm.pickColor')}
+                value={colorPart.color}
+                onChange={(c) => write(h, colorPart.set(c))}
               />
             )}
             {layer?.type === 'image' && propKey === 'crop' && (

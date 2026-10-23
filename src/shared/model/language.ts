@@ -3,7 +3,7 @@ import { walkLayers } from './normalize'
 import type { Template } from './template'
 import type { Variables } from './variables'
 
-// Progetti in più lingue: le lingue stanno in naibi.json (languages, la prima è la principale),
+// Progetti in più lingue: le lingue stanno in stella.json (languages, la prima è la principale),
 // i testi tradotti nelle colonne `campo@lingua` del foglio, i nomi tradotti di progetto e set in
 // `names`. Vedi docs/formato.md, "Lingue".
 
@@ -122,7 +122,7 @@ function hasWords(text: string): boolean {
   return /\p{L}/u.test(text.replace(/\{[^{}]*\}/g, ''))
 }
 
-/** Una traduzione che manca, per `naibi check`: dove sta e cosa dice nella lingua principale */
+/** Una traduzione che manca, per `stella check`: dove sta e cosa dice nella lingua principale */
 export interface MissingTranslation {
   where: string
   text: string

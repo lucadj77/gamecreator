@@ -323,14 +323,14 @@ export function layersToClipboard(template: Template, side: Side, ids: string[])
   }
   visit(template[side])
   if (!layers.length) return null
-  return JSON.stringify({ naibi: 'layers', template: template.name, layers })
+  return JSON.stringify({ stella: 'layers', template: template.name, layers })
 }
 
 /** I livelli negli appunti, o null se il testo non viene da layersToClipboard */
 export function layersFromClipboard(text: string): { template: string; layers: Layer[] } | null {
   try {
     const data = JSON.parse(text)
-    if (data?.naibi !== 'layers' || !Array.isArray(data.layers) || !data.layers.length) return null
+    if (data?.stella !== 'layers' || !Array.isArray(data.layers) || !data.layers.length) return null
     return {
       template: typeof data.template === 'string' ? data.template : '',
       layers: data.layers.map((l: RawLayer, i: number) => normalizeLayer(l, i))

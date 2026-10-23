@@ -1,4 +1,4 @@
-// Formato di progetto Naibi: vedi docs/formato.md
+// Formato di progetto Stella: vedi docs/formato.md
 
 import type { Template } from './model/template'
 import type { Message } from './messages'
@@ -7,9 +7,9 @@ import type { Sources } from './library'
 import type { Variables } from './model/variables'
 import type { ListOrder } from './model/order'
 
-export const PROJECT_FILE = 'naibi.json'
-/** Nome del file dei progetti creati quando l'app si chiamava GameCreator */
-export const LEGACY_PROJECT_FILE = 'gamecreator.json'
+export const PROJECT_FILE = 'stella.json'
+/** Nomi del file dei progetti creati quando l'app si chiamava Naibi e, prima, GameCreator */
+export const LEGACY_PROJECT_FILES = ['naibi.json', 'gamecreator.json']
 export const FORMAT_VERSION = 1
 
 export interface SetDefinition {
@@ -46,7 +46,7 @@ export interface ProjectFile {
   order?: ListOrder
   /** Link del foglio Google da cui si importano i dati dei set */
   googleSheet?: string
-  /** Naibi non scrive nel file dati: i dati si modificano solo fuori (per esempio in Excel) */
+  /** Stella non scrive nel file dati: i dati si modificano solo fuori (per esempio in Excel) */
   dataReadOnly?: boolean
   /**
    * Lingue del progetto, come codici (it, en, pt-BR): la prima è la principale. I testi tradotti
@@ -98,7 +98,7 @@ export interface LoadedProject {
   warnings: Message[]
 }
 
-/** Oggetti di un file dati .xlsx che Naibi non sa riscrivere */
+/** Oggetti di un file dati .xlsx che Stella non sa riscrivere */
 export type DataFileLoss = 'charts' | 'pivotTables' | 'slicers' | 'macros' | 'externalLinks'
 
 /** Una versione del progetto da confrontare con quella di adesso */

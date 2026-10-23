@@ -61,8 +61,8 @@ export async function svgOfCard(
   // filtro che rende bianca ogni parte opaca: le maschere delle icone colorate lo usano
   const defs = document.createElementNS(SVG_NS, 'defs')
   defs.innerHTML =
-    '<filter id="naibi-white"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/></filter>'
-  if (clone.querySelector('[filter="url(#naibi-white)"]'))
+    '<filter id="stella-white"><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/></filter>'
+  if (clone.querySelector('[filter="url(#stella-white)"]'))
     clone.insertBefore(defs, clone.firstChild)
 
   await inlineImages(clone)
@@ -225,7 +225,7 @@ function boxDecorations(
       const img = image(maskUrl, b)
       img.setAttribute('preserveAspectRatio', 'xMidYMid meet')
       // la maschera usa la luminanza: l'icona diventa bianca dove è opaca
-      img.setAttribute('filter', 'url(#naibi-white)')
+      img.setAttribute('filter', 'url(#stella-white)')
       m.appendChild(img)
       out.appendChild(m)
       const shape = rect(b)

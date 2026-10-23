@@ -4,7 +4,7 @@ import { is } from '@electron-toolkit/utils'
 import type { DocExportFile, DocRenderFile, DocRenderInput } from '../../shared/api'
 import { htmlToPdf } from './docPdf'
 
-// Esportazione di un documento senza l'app (naibi export-doc): una finestra nascosta apre la
+// Esportazione di un documento senza l'app (stella export-doc): una finestra nascosta apre la
 // pagina #document del renderer, che lo disegna come l'anteprima e restituisce i file.
 
 /** Al massimo tanto per un documento: carte e immagini sono già nel progetto */
@@ -28,12 +28,12 @@ export async function renderDocument(input: DocRenderInput): Promise<DocExportFi
     else await win.loadFile(join(__dirname, '../renderer/index.html'), { hash: 'document' })
     // la pagina è pronta quando ha registrato la funzione
     await win.webContents.executeJavaScript(
-      `new Promise((r) => { const t = () => (window.naibiDocument ? r(true) : setTimeout(t, 50)); t() })`
+      `new Promise((r) => { const t = () => (window.stellaDocument ? r(true) : setTimeout(t, 50)); t() })`
     )
     let timer: NodeJS.Timeout | undefined
     const files = (await Promise.race([
       win.webContents
-        .executeJavaScript(`window.naibiDocument(${JSON.stringify(input)})`)
+        .executeJavaScript(`window.stellaDocument(${JSON.stringify(input)})`)
         .catch((e: unknown) => {
           // l'errore della pagina arriva come oggetto semplice
           const m = e && typeof e === 'object' && 'message' in e ? String(e.message) : String(e)

@@ -1,5 +1,5 @@
 appId: com.naibi.app
-productName: Naibi
+productName: Stella
 copyright: Copyright © 2026 Luca
 directories:
   buildResources: build
@@ -15,11 +15,11 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: naibi
-  # comando naibi da terminale e per gli agenti IA, accanto a naibi.exe (vedi docs/cli.md)
+  executableName: stella
+  # comando stella da terminale e per gli agenti IA, accanto a stella.exe (vedi docs/cli.md)
   extraFiles:
-    - from: build/win/naibi-cli.cmd
-      to: naibi-cli.cmd
+    - from: build/win/stella-cli.cmd
+      to: stella-cli.cmd
   target:
     - target: nsis
       arch: x64
@@ -50,13 +50,13 @@ mac:
   hardenedRuntime: false
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
-    - NSDocumentsFolderUsageDescription: Naibi opens and saves projects in your Documents folder.
-    - NSDownloadsFolderUsageDescription: Naibi opens and saves projects in your Downloads folder.
+    - NSDocumentsFolderUsageDescription: Stella opens and saves projects in your Documents folder.
+    - NSDownloadsFolderUsageDescription: Stella opens and saves projects in your Downloads folder.
   notarize: false
 dmg:
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
 linux:
-  executableName: naibi
+  executableName: stella
   target:
     - target: AppImage
       arch: x64
@@ -75,4 +75,4 @@ npmRebuild: false
 publish:
   provider: github
   owner: lucadj77
-  repo: naibi
+  repo: stella

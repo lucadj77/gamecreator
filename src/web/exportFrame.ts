@@ -22,14 +22,14 @@ interface Channel {
   scene?(id: number, scene: Scene): void
 }
 
-type Host = Window & { naibiExportChannels?: Record<string, Channel> }
+type Host = Window & { stellaExportChannels?: Record<string, Channel> }
 
 /** Per la pagina dell'iframe: la sua window.api.exportPage */
 export function exportPageApi(): ExportPageApi | null {
   try {
     const host = window.parent as Host
     return host !== (window as Window)
-      ? (host.naibiExportChannels?.[window.name]?.page ?? null)
+      ? (host.stellaExportChannels?.[window.name]?.page ?? null)
       : null
   } catch {
     return null
@@ -49,7 +49,7 @@ export class FrameWindow implements RenderWindow {
   ) {}
 
   static async open(context: ExportContext): Promise<FrameWindow> {
-    const name = `naibi-export-${nextFrame++}`
+    const name = `stella-export-${nextFrame++}`
     const frame = document.createElement('iframe')
     frame.name = name
     frame.setAttribute('aria-hidden', 'true')
@@ -81,7 +81,7 @@ export class FrameWindow implements RenderWindow {
           alive: (id) => channel.onAlive(id)
         }
       }
-      host.naibiExportChannels = { ...host.naibiExportChannels, [name]: channel }
+      host.stellaExportChannels = { ...host.stellaExportChannels, [name]: channel }
     })
     frame.src = location.pathname + location.search + '#export'
     document.body.appendChild(frame)
@@ -91,7 +91,7 @@ export class FrameWindow implements RenderWindow {
   }
 
   private channel(): Channel {
-    return (window as Host).naibiExportChannels![this.name]
+    return (window as Host).stellaExportChannels![this.name]
   }
 
   private settle(id: number, error?: Error): void {
@@ -120,9 +120,9 @@ export class FrameWindow implements RenderWindow {
 
   private async svg(background: string | null): Promise<string> {
     const page = this.frame.contentWindow as
-      (Window & { naibiCardSvg?: (bg: string | null) => Promise<string> }) | null
-    if (!page?.naibiCardSvg) throw new Error('the export page is not ready')
-    return page.naibiCardSvg(background)
+      (Window & { stellaCardSvg?: (bg: string | null) => Promise<string> }) | null
+    if (!page?.stellaCardSvg) throw new Error('the export page is not ready')
+    return page.stellaCardSvg(background)
   }
 
   /**
@@ -134,8 +134,8 @@ export class FrameWindow implements RenderWindow {
     const w = Math.max(1, Math.round(width))
     const h = Math.max(1, Math.round(height))
     const page = this.frame.contentWindow as
-      (Window & { naibiPageCards?: () => Promise<PageCard[]> }) | null
-    if (!page?.naibiPageCards) throw new Error('the export page is not ready')
+      (Window & { stellaPageCards?: () => Promise<PageCard[]> }) | null
+    if (!page?.stellaPageCards) throw new Error('the export page is not ready')
     const canvas = document.createElement('canvas')
     canvas.width = w
     canvas.height = h
@@ -144,7 +144,7 @@ export class FrameWindow implements RenderWindow {
       ctx.fillStyle = this.background
       ctx.fillRect(0, 0, w, h)
     }
-    for (const card of await page.naibiPageCards()) {
+    for (const card of await page.stellaPageCards()) {
       // l'SVG è in mm: si disegna alle dimensioni che la carta ha nella pagina
       const doc = new DOMParser().parseFromString(card.svg, 'image/svg+xml')
       doc.documentElement.setAttribute('width', String(card.width))
@@ -193,6 +193,6 @@ export class FrameWindow implements RenderWindow {
     for (const id of [...this.waiting.keys()]) this.settle(id, new Error('export closed'))
     this.frame.remove()
     const host = window as Host
-    if (host.naibiExportChannels) delete host.naibiExportChannels[this.name]
+    if (host.stellaExportChannels) delete host.stellaExportChannels[this.name]
   }
 }

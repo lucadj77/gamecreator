@@ -8,7 +8,7 @@ import { existsSync } from 'fs'
 import { createRequire } from 'module'
 import { dirname, join } from 'path'
 
-const NAME = 'Naibi'
+const NAME = 'Stella'
 
 if (process.platform === 'darwin') {
   try {

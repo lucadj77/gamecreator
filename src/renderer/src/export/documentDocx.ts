@@ -491,7 +491,7 @@ export async function documentDocx(
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
       `<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ` +
       `xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${esc(name)}</dc:title>` +
-      `<dc:creator>Naibi</dc:creator></cp:coreProperties>`
+      `<dc:creator>Stella</dc:creator></cp:coreProperties>`
   )
   zip.file(
     'word/_rels/document.xml.rels',

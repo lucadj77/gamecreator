@@ -1,12 +1,12 @@
 # Third-party notices
 
-Naibi is free software under the GNU General Public License, version 3 or later (see [LICENSE](LICENSE)). It includes the following works by others, each under its own license.
+Stella is free software under the GNU General Public License, version 3 or later (see [LICENSE](LICENSE)). It includes the following works by others, each under its own license.
 
 ## Icons
 
 - **game-icons.net**: icons by Lorc, Delapouite and the other authors listed in `resources/catalogs/game-icons.json`, under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) (two authors under CC0 1.0). The **Credits** dialog lists the authors and licenses of the icons a project uses.
 - **Kenney** (kenney.nl): icons and images, under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
-- Icons downloaded from Iconify and fonts downloaded from Google Fonts are not part of Naibi: each keeps its own license, which Naibi shows when choosing them.
+- Icons downloaded from Iconify and fonts downloaded from Google Fonts are not part of Stella: each keeps its own license, which Stella shows when choosing them.
 
 ## Fonts
 

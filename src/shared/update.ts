@@ -4,9 +4,9 @@
 // sono beta: le segnala solo a chi ha scelto il canale Beta.
 
 /** Le ultime release, beta comprese: per il canale Beta */
-export const RELEASES_API = 'https://api.github.com/repos/lucadj77/naibi/releases?per_page=30'
+export const RELEASES_API = 'https://api.github.com/repos/lucadj77/stella/releases?per_page=30'
 /** L'ultima release ufficiale (GitHub non vi conta le pre-release): per il canale Stabile */
-export const LATEST_RELEASE_API = 'https://api.github.com/repos/lucadj77/naibi/releases/latest'
+export const LATEST_RELEASE_API = 'https://api.github.com/repos/lucadj77/stella/releases/latest'
 
 /** stable: solo le versioni ufficiali; beta: anche le beta, e le ufficiali più recenti */
 export type UpdateChannel = 'stable' | 'beta'

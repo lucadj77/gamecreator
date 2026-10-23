@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Avvia il comando naibi: lo stesso programma dell'app, con --cli e senza finestre.
-// Si usa dalla cartella del codice (npm run naibi -- info <progetto>) o, dopo `npm link`,
-// come `naibi` da qualsiasi cartella. Vedi docs/cli.md.
+// Avvia il comando stella: lo stesso programma dell'app, con --cli e senza finestre.
+// Si usa dalla cartella del codice (npm run stella -- info <progetto>) o, dopo `npm link`,
+// come `stella` da qualsiasi cartella. Vedi docs/cli.md.
 import { spawn } from 'child_process'
 import { existsSync } from 'fs'
 import { createRequire } from 'module'
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 if (!existsSync(join(root, 'out', 'renderer', 'index.html'))) {
-  console.error('naibi: the app is not built yet. Run `npm run build` in ' + root)
+  console.error('stella: the app is not built yet. Run `npm run build` in ' + root)
   process.exit(2)
 }
 // in Node, require('electron') restituisce il percorso del programma Electron

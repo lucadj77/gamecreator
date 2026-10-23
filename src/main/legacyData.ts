@@ -2,13 +2,20 @@ import { cpSync, existsSync } from 'fs'
 import { join } from 'path'
 import { app } from 'electron'
 
-// Fino al cambio di nome l'app si chiamava GameCreator, e i suoi dati (progetti recenti con le
-// miniature, preferenze dell'interfaccia) stanno in una cartella con quel nome. Al primo avvio
-// di Naibi si copiano nella cartella nuova; quella vecchia resta com'è. Lo stesso vale per la
-// cartella `naibi`, usata prima che il nome dell'app avesse la maiuscola (conta solo su Linux).
+// Prima di Stella l'app si chiamava Naibi e, ancora prima, GameCreator: i suoi dati (progetti
+// recenti con le miniature, preferenze dell'interfaccia, canale degli aggiornamenti) stanno in
+// una cartella con quel nome. Al primo avvio di Stella si copiano nella cartella nuova; quella
+// vecchia resta com'è. Le cartelle in minuscolo valgono per le versioni in cui il nome dell'app
+// non aveva la maiuscola (conta solo su Linux).
 
-const OLD_NAMES = ['naibi', 'GameCreator', 'gamecreator']
-const ITEMS = ['recent-projects.json', 'thumbnails', 'Local Storage', 'backup-settings.json']
+const OLD_NAMES = ['Naibi', 'naibi', 'GameCreator', 'gamecreator']
+const ITEMS = [
+  'recent-projects.json',
+  'thumbnails',
+  'Local Storage',
+  'backup-settings.json',
+  'update.json'
+]
 
 /** Da chiamare prima che l'app sia pronta, quando nessuno ha ancora aperto i dati */
 export function adoptLegacyData(): void {
@@ -27,6 +34,6 @@ export function adoptLegacyData(): void {
     }
   } catch (e) {
     // senza i dati vecchi l'app parte comunque, con l'elenco dei recenti vuoto
-    console.error('Copia dei dati di GameCreator non riuscita', e)
+    console.error('Copia dei dati della versione precedente non riuscita', e)
   }
 }

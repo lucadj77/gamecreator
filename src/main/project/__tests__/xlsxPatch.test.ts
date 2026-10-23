@@ -68,7 +68,7 @@ describe('scrittura diretta nell xlsx', () => {
     const path = await copyOfChart()
     const dir = join(path, '..')
     const file = { formatVersion: 1, name: 'p', dataFile: 'dati.xlsx', sets: [] }
-    await writeFile(join(dir, 'naibi.json'), JSON.stringify(file))
+    await writeFile(join(dir, 'stella.json'), JSON.stringify(file))
     const [s] = await readSpreadsheet(path)
     s.rows[1][0] = 'bb'
     expect(await saveData(dir, { sheets: [s], keepParts: true })).toEqual({ rewritten: false })

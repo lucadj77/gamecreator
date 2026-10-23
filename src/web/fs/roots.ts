@@ -11,7 +11,7 @@ const roots = new Map<string, FileSystemDirectoryHandle>()
  * browser non mostra e non chiede di autorizzare. Il punto all'inizio lo separa dalle cartelle
  * scelte, che non possono chiamarsi così.
  */
-const DATA_KEY = '.naibi'
+const DATA_KEY = '.stella'
 export const DATA_ROOT = '/' + DATA_KEY
 
 /** Le cartelle già autorizzate in passato, da leggere prima di avviare l'app */
@@ -77,7 +77,7 @@ export function fsError(code: string, path: string): Error {
 }
 
 /** Sceglie una cartella con la finestra del browser; null se l'utente annulla */
-export async function pickFolder(id = 'naibi'): Promise<string | null> {
+export async function pickFolder(id = 'stella'): Promise<string | null> {
   try {
     const handle = await window.showDirectoryPicker({ id, mode: 'readwrite' })
     return await addRoot(handle)

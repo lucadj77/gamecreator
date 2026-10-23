@@ -6,7 +6,7 @@ import { readNotes, saveNote, trashNote } from '../notes'
 
 let folder: string
 beforeEach(async () => {
-  folder = await mkdtemp(join(tmpdir(), 'naibi-notes-'))
+  folder = await mkdtemp(join(tmpdir(), 'stella-notes-'))
 })
 afterEach(async () => {
   await rm(folder, { recursive: true, force: true })

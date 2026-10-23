@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Pacchetto npm del solo comando naibi, per chi usa la versione web e vuole lavorare con un
+// Pacchetto npm del solo comando stella, per chi usa la versione web e vuole lavorare con un
 // agente IA: lo stesso programma dell'app (Electron serve a disegnare le carte), senza finestre
-// e senza installer. La release lo pubblica come naibi-cli-<versione>.tgz e la skill lo installa
+// e senza installer. La release lo pubblica come stella-cli-<versione>.tgz e la skill lo installa
 // con `npm install -g <indirizzo del file>`. Va eseguito dopo `npx electron-vite build`.
 // Uso: node scripts/cli-package.mjs [cartella di uscita, di base dist]
 import { execFileSync } from 'child_process'
@@ -27,15 +27,15 @@ writeFileSync(
   join(stage, 'package.json'),
   JSON.stringify(
     {
-      name: 'naibi-cli',
+      name: 'stella-cli',
       // productName come l'app: le impostazioni (backup, cartelle) sono le stesse
       productName: pkg.productName,
       version: pkg.version,
-      description: 'The naibi command, to work on Naibi projects from a terminal or an AI agent',
+      description: 'The stella command, to work on Stella projects from a terminal or an AI agent',
       license: pkg.license,
       homepage: pkg.homepage,
       main: './out/main/index.js',
-      bin: { naibi: 'bin/naibi.mjs' },
+      bin: { stella: 'bin/stella.mjs' },
       // il pacchetto electron non scarica più il programma da solo
       scripts: { postinstall: 'install-electron' },
       // Electron disegna le carte: si scarica all'installazione
@@ -47,7 +47,7 @@ writeFileSync(
 )
 writeFileSync(
   join(stage, 'README.md'),
-  `# naibi-cli\n\nThe \`naibi\` command of [Naibi](${pkg.homepage}) ${pkg.version}, without the app.\nRun \`naibi help\`. See docs/cli.md in the repository.\n`
+  `# stella-cli\n\nThe \`stella\` command of [Stella](${pkg.homepage}) ${pkg.version}, without the app.\nRun \`stella help\`. See docs/cli.md in the repository.\n`
 )
 
 mkdirSync(out, { recursive: true })
@@ -57,4 +57,4 @@ execFileSync('npm', ['pack', '--pack-destination', out], {
   shell: process.platform === 'win32'
 })
 rmSync(stage, { recursive: true, force: true })
-console.log(join(out, `naibi-cli-${pkg.version}.tgz`))
+console.log(join(out, `stella-cli-${pkg.version}.tgz`))

@@ -890,7 +890,7 @@ function bag(name: string, contained: Record<string, unknown>[]): Record<string,
   }
 }
 
-// Un dado a sei facce è un modello 3D fatto da Naibi: un cubo (file .obj) con la sua immagine,
+// Un dado a sei facce è un modello 3D fatto da Stella: un cubo (file .obj) con la sua immagine,
 // sei carte in un foglio 3 × 2. La carta k (da 0) va sulla faccia del valore k + 1; le facce
 // opposte fanno 7 come nei dadi veri. Il modello è scritto in coordinate destrorse con Y in alto,
 // come tutti i file .obj; Tabletop Simulator (Unity) lo carica specchiando l'asse X, quindi nelle
@@ -972,7 +972,7 @@ export function ttsDieObj(side: number): string {
     const c = (j: number): string => `${i * 4 + j}/${i * 4 + j}`
     fs.push(`f ${c(1)} ${c(2)} ${c(3)}`, `f ${c(1)} ${c(3)} ${c(4)}`)
   }
-  return ['# Naibi: dado a sei facce', 'o die', ...vs, ...vts, ...fs].join('\n') + '\n'
+  return ['# Stella: dado a sei facce', 'o die', ...vs, ...vts, ...fs].join('\n') + '\n'
 }
 
 /** Un dado: l'immagine delle sei facce e i valori */

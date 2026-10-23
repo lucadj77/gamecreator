@@ -1,7 +1,7 @@
 import type { LoadedSet } from '../project'
 import type { Side, Template } from './template'
 
-// Variabili di sistema: valori che Naibi conosce da sé (progetto, set, posizione della carta, data)
+// Variabili di sistema: valori che Stella conosce da sé (progetto, set, posizione della carta, data)
 // e che si richiamano come i campi, con {set.name} nei testi e nelle formule. Il punto le separa
 // dalle variabili del progetto, che non possono contenerlo. Vedi docs/specifica.md, 6.2.
 

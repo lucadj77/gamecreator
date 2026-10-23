@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
-import skillSource from '../../../../skill/naibi/SKILL.md?raw'
+import skillSource from '../../../../skill/stella/SKILL.md?raw'
 
-// Strumenti per gli agenti IA: la skill di Naibi, in inglese, con il comando naibi di questo
+// Strumenti per gli agenti IA: la skill di Stella, in inglese, con il comando stella di questo
 // computer già inserito, da copiare nell'agente o salvare come file. Solo le istruzioni
 // intorno sono tradotte. Vedi docs/cli.md.
 
@@ -15,14 +15,14 @@ export default function AiToolsDialog({ onClose }: { onClose(): void }): React.J
   const [error, setError] = useState<Message | null>(null)
 
   useEffect(() => {
-    window.api.naibiCommand().then(setCommand, (e) => setError(messageFromError(e)))
+    window.api.stellaCommand().then(setCommand, (e) => setError(messageFromError(e)))
   }, [])
 
   // nel web non c'è un comando di questo computer: lo cerca (o lo installa) la skill stessa
   const skill = command
     ? skillSource
-        .replaceAll('{{NAIBI_VERSION}}', __APP_VERSION__)
-        .replaceAll('{{NAIBI_COMMAND}}', command.command || '{{NAIBI_COMMAND}}')
+        .replaceAll('{{STELLA_VERSION}}', __APP_VERSION__)
+        .replaceAll('{{STELLA_COMMAND}}', command.command || '{{STELLA_COMMAND}}')
     : ''
 
   const copy = async (): Promise<void> => {

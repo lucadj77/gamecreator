@@ -1,9 +1,31 @@
 # Novità
 
-Ogni versione ha una parte in inglese e una in italiano, in quest'ordine: Naibi mostra quella
+Ogni versione ha una parte in inglese e una in italiano, in quest'ordine: Stella mostra quella
 nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con un suffisso, come
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
+
+## 1.2.0-beta.32
+
+### English
+
+- **Naibi is now called Stella.** The app, the `stella` command (it replaces `naibi`), the AI skill and the web version (now at <https://lucadj77.github.io/stella/>) all take the new name. Nothing to do by hand.
+- Projects with `naibi.json` (or `gamecreator.json`) open and keep saving in that file; new projects get `stella.json`.
+- Recent projects, preferences and update channel are copied from Naibi at the first start; backups stay in `Documents/Naibi/Backup` if you have them there.
+- On the Mac the update installs over Naibi.app and, from the next update, the app is called Stella.app (a Dock shortcut to Naibi.app may need to be added again).
+- An AI agent with the old `naibi` skill is told to install the `stella` one.
+- New icon: five cards forming a star, on a light pearl rounded square.
+- The "What does Naibi mean?" link on the start screen is gone.
+
+### Italiano
+
+- **Naibi ora si chiama Stella.** L'app, il comando `stella` (al posto di `naibi`), la skill per l'IA e la versione web (ora in <https://lucadj77.github.io/stella/>) prendono il nuovo nome. Non c'è niente da fare a mano.
+- I progetti con `naibi.json` (o `gamecreator.json`) si aprono e continuano a salvare in quel file; i progetti nuovi hanno `stella.json`.
+- Progetti recenti, preferenze e canale degli aggiornamenti si copiano da Naibi al primo avvio; i backup restano in `Documenti/Naibi/Backup` se li hai lì.
+- Sul Mac l'aggiornamento si installa al posto di Naibi.app e, dall'aggiornamento successivo, l'app si chiama Stella.app (un collegamento a Naibi.app nel Dock può andare rimesso).
+- Un agente IA con la vecchia skill `naibi` viene invitato a installare quella di `stella`.
+- Nuova icona: cinque carte che formano una stella, su un quadrato color perla arrotondato.
+- Non c'è più il link "Cosa vuol dire Naibi?" nella schermata iniziale.
 
 ## 1.2.0-beta.31
 

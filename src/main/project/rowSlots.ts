@@ -1,7 +1,7 @@
 // Dove scrivere le carte di un set nel suo foglio. In lettura le righe vuote in mezzo ai dati
 // si saltano: in scrittura le carte tornano nelle righe che avevano dati, nello stesso ordine,
 // così le righe vuote restano dove sono e le carte non scivolano verso l'alto rispetto alle
-// colonne che Naibi non usa e alle formule che puntano a quelle righe.
+// colonne che Stella non usa e alle formule che puntano a quelle righe.
 
 export interface RowPlacement {
   /** Riga di ogni carta, nell'ordine del set */

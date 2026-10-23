@@ -187,7 +187,7 @@ export async function addImages(folder: string): Promise<AssetsUpdate | null> {
   try {
     handles = await (window as PickerWindow).showOpenFilePicker!({
       multiple: true,
-      id: 'naibi-images',
+      id: 'stella-images',
       types: [{ description: 'Images', accept: { 'image/*': IMAGE_EXTENSIONS } }]
     })
   } catch (e) {

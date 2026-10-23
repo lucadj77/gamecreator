@@ -25,7 +25,7 @@ async function findGhostscript(): Promise<string | null> {
 export async function toCmyk(pdf: Buffer): Promise<Buffer | null> {
   const gs = await findGhostscript()
   if (!gs) return null
-  const dir = await mkdtemp(join(tmpdir(), 'naibi-cmyk-'))
+  const dir = await mkdtemp(join(tmpdir(), 'stella-cmyk-'))
   try {
     const input = join(dir, 'rgb.pdf')
     const output = join(dir, 'cmyk.pdf')

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { messageText, parseArgs, parseCardList, parseRowsFile } from '../cliParse'
 
-describe('comando naibi', () => {
+describe('comando stella', () => {
   it('legge argomenti e opzioni', () => {
     expect(parseArgs(['progetto', '--set', 'Oggetti', '--json', '--dpi=200', 'x'])).toEqual({
       positional: ['progetto', 'x'],

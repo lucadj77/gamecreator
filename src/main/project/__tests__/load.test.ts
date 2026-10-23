@@ -7,7 +7,7 @@ import { loadProject } from '../load'
 let folder: string
 
 beforeEach(async () => {
-  folder = await mkdtemp(join(tmpdir(), 'naibi-load-'))
+  folder = await mkdtemp(join(tmpdir(), 'stella-load-'))
   await mkdir(join(folder, 'templates'))
 })
 
@@ -20,13 +20,13 @@ const template = (name: string): string =>
 
 describe('lettura del progetto', () => {
   it('un file di progetto senza dataFile è un errore chiaro', async () => {
-    await writeFile(join(folder, 'naibi.json'), '{"name":"x","formatVersion":1}')
+    await writeFile(join(folder, 'stella.json'), '{"name":"x","formatVersion":1}')
     await expect(loadProject(folder)).rejects.toThrow(/dataFile missing/)
   })
 
   it('due file con lo stesso nome di template: vale il primo, con avviso', async () => {
     await writeFile(
-      join(folder, 'naibi.json'),
+      join(folder, 'stella.json'),
       JSON.stringify({ name: 'x', formatVersion: 1, dataFile: 'data/cards.xlsx', sets: [] })
     )
     await writeFile(join(folder, 'templates', 'a.json'), template('Carta'))

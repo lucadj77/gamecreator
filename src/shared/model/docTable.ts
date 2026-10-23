@@ -1,5 +1,5 @@
 // Aspetto delle tabelle dei documenti e immagini nelle celle. Il Markdown non ha un modo per dire
-// bordi e colori di una tabella: Naibi li scrive in un commento subito sotto l'ultima riga,
+// bordi e colori di una tabella: Stella li scrive in un commento subito sotto l'ultima riga,
 //   <!-- table width=100% columns=30,20,50 border=#c8c8c2 lines=rows header=#f3f3f0 -->
 // che gli altri programmi non mostrano e l'esportazione in Markdown non scrive. Nelle celle
 // un'immagine o una carta si scrive come altrove: ![didascalia](icone/mappa.png?width=12).

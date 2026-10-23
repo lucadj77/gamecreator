@@ -93,22 +93,22 @@ export const en = {
   'table.rowHint': 'Click to select (Shift or ⌘ for several), drag to reorder',
   'table.empty': 'No cards yet. Add one with + Card.',
   'data.readOnly':
-    'The data file is read-only: change the data in the file (for example in Excel), save, and Naibi reads it again by itself. Read-only can be turned off at the bottom of the sidebar.',
+    'The data file is read-only: change the data in the file (for example in Excel), save, and Stella reads it again by itself. Read-only can be turned off at the bottom of the sidebar.',
   'data.saveFirst': 'Save or undo the changes to the data first, then turn on read-only.',
   'data.readOnlyLabel': '{file} read-only',
   'data.readOnlyHint':
-    'Naibi never writes to the data file: cards are changed only in the file, for example in Excel. Templates, previews and exports work as usual.',
+    'Stella never writes to the data file: cards are changed only in the file, for example in Excel. Templates, previews and exports work as usual.',
   'data.readOnlyBadge': 'read-only',
   'data.changedOutside':
-    'The data file was changed outside Naibi. Reloading loses the unsaved changes.',
+    'The data file was changed outside Stella. Reloading loses the unsaved changes.',
   'data.ignore': 'Ignore',
   'check.title': 'Check data file',
   'check.intro':
-    'How Naibi reads {file}: for each sheet, the sets that use it and what might be wrong. The check does not change the file.',
+    'How Stella reads {file}: for each sheet, the sets that use it and what might be wrong. The check does not change the file.',
   'check.readOnly': 'The file is read-only.',
   'check.reading': 'Reading the file…',
   'check.losses':
-    'The file contains {what}. Naibi keeps them when it changes cells, but removes them when it has to rewrite the whole file: adding, renaming or deleting a set. With read-only the file is never written.',
+    'The file contains {what}. Stella keeps them when it changes cells, but removes them when it has to rewrite the whole file: adding, renaming or deleting a set. With read-only the file is never written.',
   'check.missingSheet': 'The set {set} uses the sheet "{sheet}", which is not in the file.',
   'check.linked': 'used by {sets}',
   'check.unlinked': 'not linked to a set',
@@ -118,18 +118,18 @@ export const en = {
   'check.ok': 'No problems found.',
   'check.emptySheet': 'The sheet is empty.',
   'check.titleAbove':
-    'Row {row} looks like a title, but Naibi takes it as the heading row. Remove the title or use a sheet with the headings in the first row.',
+    'Row {row} looks like a title, but Stella takes it as the heading row. Remove the title or use a sheet with the headings in the first row.',
   'check.headerRow': 'The headings are in row {row}: the rows above are empty.',
   'check.noRows': 'There are headings but no data rows.',
   'check.duplicateHeaders':
     'Repeated headings: {names}. Only one of the columns with the same name counts for the cards.',
   'check.errors': 'Cells with an Excel error: {cells}. The cards show the error code.',
   'check.noResult':
-    'Formulas without a saved result: {cells}. Naibi reads them as empty: open and save the file in Excel to calculate them.',
-  'check.merged': 'Merged cells: {cells}. Naibi repeats the value in every cell of the merge.',
-  'check.unnamedColumns': 'Columns with data but no heading: {columns}. Naibi ignores them.',
+    'Formulas without a saved result: {cells}. Stella reads them as empty: open and save the file in Excel to calculate them.',
+  'check.merged': 'Merged cells: {cells}. Stella repeats the value in every cell of the merge.',
+  'check.unnamedColumns': 'Columns with data but no heading: {columns}. Stella ignores them.',
   'check.emptyRows':
-    'Empty rows between the data: {rows}. Naibi skips them, and they stay where they are when saving.',
+    'Empty rows between the data: {rows}. Stella skips them, and they stay where they are when saving.',
   'sidebar.checkData': 'Check data file…',
   'import.open': 'Import a sheet from another file…',
   'import.title': 'Import a sheet from another file',
@@ -152,7 +152,7 @@ export const en = {
   'import.newColumns': 'New columns: {columns}',
   'import.keepColumns': 'Keep the columns the file does not have: {columns}',
   'import.backupNote':
-    'Before importing Naibi makes a backup of the project. The change can be undone with ⌘Z and is saved like the others.',
+    'Before importing Stella makes a backup of the project. The change can be undone with ⌘Z and is saved like the others.',
   'import.import': 'Import',
   'newSet.title': 'New set',
   'newSet.template': 'Template',
@@ -419,7 +419,7 @@ export const en = {
   'editor.showSafe': 'Safe area',
   'editor.zoomHint': 'Zoom with ⌘/Ctrl + mouse wheel or by pinching the trackpad',
   'editor.zoomFit': 'Fit',
-  'tip.openProject': 'Open a folder that contains a Naibi project',
+  'tip.openProject': 'Open a folder that contains a Stella project',
   'tip.reload': 'Read the project again from disk; unsaved changes are lost',
   'tip.export': 'Export the cards as images, PDF or Tabletop Simulator decks',
   'tip.openSet': 'Show and edit the cards of this set. Drag to reorder',
@@ -831,7 +831,7 @@ export const en = {
   'doc.box.notClosed': 'This box has no <!-- /box --> line: it goes on to the end of the document',
   'doc.setting.unknown': '"{name}" is not a page setting',
   'doc.language.unknown':
-    'The project has no language "{language}": the cards are drawn in the main language (languages in naibi.json)',
+    'The project has no language "{language}": the cards are drawn in the main language (languages in stella.json)',
   'doc.setting.bad': '"{value}" is not a valid value for {name}',
   'doc.anatomy.badLine':
     'This line of the anatomy is not understood: write card: … or - layer: label',
@@ -886,9 +886,9 @@ export const en = {
     'The card uses template "{name}", which has a different size from the set\'s',
   'load.missingSheet': 'Set "{set}" cannot find sheet "{sheet}"',
   'save.dataLossConfirm':
-    'The data file contains {what}. To save these changes Naibi has to rewrite the whole file, and removes them everywhere, unlinked sheets included. Save anyway?',
+    'The data file contains {what}. To save these changes Stella has to rewrite the whole file, and removes them everywhere, unlinked sheets included. Save anyway?',
   'save.needsRewrite':
-    'Not saved: Naibi would have to rewrite the whole data file and would remove charts or other parts it cannot write.',
+    'Not saved: Stella would have to rewrite the whole data file and would remove charts or other parts it cannot write.',
   'dataLoss.charts': 'charts',
   'dataLoss.pivotTables': 'pivot tables',
   'dataLoss.slicers': 'slicers and timelines',
@@ -1418,7 +1418,7 @@ export const en = {
   'variable.delete': 'Delete variable',
   'variable.save': 'Save variable',
   'tip.importTtc':
-    'Import from Tabletop Creator: convert a project into a new Naibi project; the original is not changed',
+    'Import from Tabletop Creator: convert a project into a new Stella project; the original is not changed',
   'ttc.title': 'Import from Tabletop Creator',
   'ttc.intro':
     'The project is converted into a new folder: templates, sets, variables and images. The Tabletop Creator folder is only read.',
@@ -1480,7 +1480,7 @@ export const en = {
   'web.desktopLink': 'What the desktop app adds',
   'web.desktopTitle': 'What the desktop app adds',
   'web.desktopIntro':
-    'This is the web version of Naibi: it opens in the browser without installing anything and works on the project folders of your computer, like the desktop app. Some things are only in the desktop app (Windows, macOS, Linux):',
+    'This is the web version of Stella: it opens in the browser without installing anything and works on the project folders of your computer, like the desktop app. Some things are only in the desktop app (Windows, macOS, Linux):',
   'web.desktop.pdf':
     'PDF saved directly, without the print window, and conversion to CMYK for printers',
   'web.desktop.tts':
@@ -1490,7 +1490,7 @@ export const en = {
   'web.desktop.catalogs': 'Updating the game-icons.net and Google Fonts catalogs from the app',
   'web.desktop.data':
     'Starting from a data file you already have, importing a sheet from another file and reading the data file again by itself when it changes',
-  'web.desktop.ai': 'The naibi command and the skill for AI agents (Claude, Codex…)',
+  'web.desktop.ai': 'The stella command and the skill for AI agents (Claude, Codex…)',
   'web.desktop.browser':
     'Independent of the browser: the web version works only in Chrome, Edge and Opera (in Brave after turning on brave://flags/#file-system-access-api), and asks again for permission on the folder each time you open the site',
   'web.desktopOutro':
@@ -1498,7 +1498,7 @@ export const en = {
   'web.download': 'Download the desktop app',
   'web.desktopOnly': 'This is available only in the desktop app.',
   'web.permissionDenied':
-    'Naibi needs permission to read and write the project folder. Open it again and allow access.',
+    'Stella needs permission to read and write the project folder. Open it again and allow access.',
   'web.chooseParent': 'Choose the folder in which to create the project.',
   'web.noLocalFonts':
     'This browser does not let the site read the fonts installed on the computer (Chrome and Edge do, after you allow it).',
@@ -1524,21 +1524,9 @@ export const en = {
     'The backup will be extracted into a new folder inside the chosen one, and it will open in place of this project. The current project stays as it is. Continue?',
   'web.pdfHint':
     'In the web version the pages go to the browser print window: choose "Save as PDF", margins "None" and turn on "Background graphics". One window for each PDF.',
-  'about.link': 'What does Naibi mean?',
-  'about.title': 'What does Naibi mean?',
-  'about.p1':
-    '*Naibi* (pronounced **NYE-bee**, /ˈnaɪ.bi/) is the name playing cards had when they reached Italy in the 14th century.',
-  'about.p2':
-    'The word comes from the Arabic *nā\'ib*, "deputy". In the decks of the Mamluks, who ruled Egypt and Syria, the court cards were the king (*malik*), his deputy (*nā\'ib malik*) and a second deputy. Europeans took the name of one card and used it for the whole game.',
-  'about.p3':
-    'On 23 March 1377 Florence banned "a game called *naibbe*" that had just arrived in the city. A few years later a chronicle from Viterbo says that the game of cards "came from the land of the Saracens, and among them it is called naib".',
-  'about.p4':
-    'Italian later replaced the word with "carte", but Spanish still uses it: cards are *naipes*. The suits survived too. Cups, coins and swords come from the Mamluk decks, and batons were originally polo sticks, a game unknown in Europe at the time.',
-  'about.p5':
-    'Naibi is an app for making cards and game components, so we named it after the first name cards had in Italy.',
   'about.close': 'Close',
   'app.aiTools': 'AI tools…',
-  'tip.aiTools': 'Let an AI agent (Claude Code, Codex…) work on Naibi projects',
+  'tip.aiTools': 'Let an AI agent (Claude Code, Codex…) work on Stella projects',
   'app.help': 'Help',
   'tip.help': 'Text markup, system variables, formulas and keyboard shortcuts (F1)',
   'help.title': 'Help',
@@ -1578,7 +1566,7 @@ export const en = {
   'help.imageAttributes': 'Icon attributes',
   'help.system': 'System variables',
   'help.systemIntro':
-    'Values Naibi knows by itself. They are written like fields, in texts and formulas; a field or project variable with the same name wins.',
+    'Values Stella knows by itself. They are written like fields, in texts and formulas; a field or project variable with the same name wins.',
   'system.project.name': 'Name of the project (the game)',
   'system.set.name': 'Name of the set',
   'system.template.name': "Name of the card's template",
@@ -1656,25 +1644,25 @@ export const en = {
   'help.keys.help': 'This help',
   'ai.title': 'Tools for AI agents',
   'ai.intro':
-    'An AI agent that can run commands on this computer (for example Claude Code, Codex or Cursor) can work on Naibi projects: read and change cards, templates and styles, check for problems and draw the cards to look at them. It needs the Naibi skill below.',
+    'An AI agent that can run commands on this computer (for example Claude Code, Codex or Cursor) can work on Stella projects: read and change cards, templates and styles, check for problems and draw the cards to look at them. It needs the Stella skill below.',
   'ai.step1': 'Copy the skill.',
   'ai.step2':
     'Paste it into your agent and ask it to install it as a skill (or as project instructions, if it has no skills).',
   'ai.step3':
-    'Then ask it what you need, naming the project folder. When it has finished, press Reload in Naibi to see the changes.',
+    'Then ask it what you need, naming the project folder. When it has finished, press Reload in Stella to see the changes.',
   'ai.saveHint':
     'You can also save it as a file: Claude Code reads skills from the .claude/skills folder of your home folder or of a project. The skill is in English, which agents follow best.',
   'ai.webHint':
-    'In the web version the skill finds the naibi command by itself: it uses the desktop app if it is installed, otherwise it offers to install the command (it needs Node.js, which the agent offers to install if missing). For this to work you must allow your agent to download from GitHub and to install the command and its updates: it will ask for permission the first time. It also updates itself and the command when a new version comes out. The skill is in English, the language agents follow best.',
+    'In the web version the skill finds the stella command by itself: it uses the desktop app if it is installed, otherwise it offers to install the command (it needs Node.js, which the agent offers to install if missing). For this to work you must allow your agent to download from GitHub and to install the command and its updates: it will ask for permission the first time. It also updates itself and the command when a new version comes out. The skill is in English, the language agents follow best.',
   'ai.notBuilt':
-    'The naibi command used by the skill works only after building the app once: run `npm run build` in the Naibi code folder.',
+    'The stella command used by the skill works only after building the app once: run `npm run build` in the Stella code folder.',
   'ai.copy': 'Copy the skill',
   'ai.save': 'Save as file…',
   'ai.copied': 'Skill copied. Paste it into your agent.',
   'ai.saved': 'Skill saved in {file}',
   'agent.title': 'An AI is working on this project',
   'agent.text':
-    'An AI agent started working on this project with the naibi command. Naibi stays locked until it finishes, then reloads the project by itself.',
+    'An AI agent started working on this project with the stella command. Stella stays locked until it finishes, then reloads the project by itself.',
   'agent.since': 'Started at {time}',
   'agent.unlock': 'Unlock now',
   'agent.unlockHint': 'Use it if the AI has stopped without unlocking the project',
@@ -1717,7 +1705,7 @@ export const en = {
   'languages.main': 'main language',
   'languages.untranslated': '{n} texts to translate',
   'languages.untranslatedHint':
-    'Fixed texts, variables and empty @language cells without a translation: the cards use the main language. naibi check lists them.',
+    'Fixed texts, variables and empty @language cells without a translation: the cards use the main language. stella check lists them.',
   'languages.remove': 'Remove',
   'languages.removeHint': 'Remove the language from the project; its columns stay in the sheets',
   'languages.add': 'Add language',
@@ -1759,7 +1747,7 @@ export const en = {
   'tip.split': 'Split one big image across the cards of the set: each card shows its piece',
   'split.title': 'Split an image across the cards',
   'split.hint':
-    "Each card shows one piece of the image: placed side by side in a grid, the cards make up the whole image. Naibi writes the image, the crop and, where needed, the box of the layer in the cards' columns.",
+    "Each card shows one piece of the image: placed side by side in a grid, the cards make up the whole image. Stella writes the image, the crop and, where needed, the box of the layer in the cards' columns.",
   'split.noLayer':
     'The template has no image layer that can be split (image layers inside groups or rotated cannot).',
   'split.layer': 'Image layer',
@@ -1892,27 +1880,27 @@ export const en = {
   'newProject.existing': 'A file you already have (.xlsx, .ods, .csv)…',
   'newProject.existingFile': 'File',
   'newProject.existingNote':
-    'Naibi works on a copy of the file, in the project\'s data folder: the original does not change. Sheets are linked to sets with New set. Read "Using an Excel file you already have" in the guide first.',
+    'Stella works on a copy of the file, in the project\'s data folder: the original does not change. Sheets are linked to sets with New set. Read "Using an Excel file you already have" in the guide first.',
   'newProject.notEmpty': 'The folder {folder} already exists and is not empty.',
-  'update.available': 'Naibi {version} is available.',
+  'update.available': 'Stella {version} is available.',
   'update.whatsNew': "What's new",
   'update.download': 'Download',
   'update.install': 'Update and restart',
   'update.installing': 'Downloading… {percent}%',
   'update.installFailed':
-    'Naibi {version} could not be installed automatically: download it from the release page.',
+    'Stella {version} could not be installed automatically: download it from the release page.',
   'translation.placeholder': 'Empty: uses the main language',
   'update.reason': ' Reason: {reason}',
   'update.unsaved':
-    'There are unsaved changes: they will be lost when Naibi restarts. Update anyway?',
+    'There are unsaved changes: they will be lost when Stella restarts. Update anyway?',
   'update.skip': 'Skip this version',
   'update.later': 'Remind me later',
-  'update.title': "What's new in Naibi {version}",
+  'update.title': "What's new in Stella {version}",
   'update.noNotes': 'This version has no notes.',
   'update.whatsNewTip': "What's new in this version",
   'update.check': 'Check for updates',
   'update.checking': 'Checking for updates…',
-  'update.latest': 'You have the latest version of Naibi.',
+  'update.latest': 'You have the latest version of Stella.',
   'update.failed': 'Could not check for updates: no connection to GitHub.',
   'update.allVersions': 'All versions',
   'app.settings': 'Settings',
@@ -1934,7 +1922,7 @@ export const en = {
   'menu.uiSmaller': 'Smaller interface',
   'menu.uiReset': 'Normal interface size',
   'menu.whatsNew': "What's new",
-  'menu.website': 'Naibi on GitHub',
+  'menu.website': 'Stella on GitHub',
   'documents.exportButton': 'Export document…',
   'menu.undo': 'Undo',
   'menu.redo': 'Redo',
@@ -1944,7 +1932,7 @@ export const en = {
   'menu.selectAll': 'Select all',
   'menu.fullScreen': 'Full screen',
   'menu.devTools': 'Developer tools',
-  'menu.quit': 'Quit Naibi',
+  'menu.quit': 'Quit Stella',
   'documents.duplicateHint': 'Make a copy of the document',
   'documents.openFile': 'Open file',
   'export.openFile': 'Open {file}',

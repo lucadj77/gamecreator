@@ -4,7 +4,7 @@ import { useI18n } from '../i18n/context'
 // Solo nella versione web: cosa c'è in più nell'app desktop, con il link per scaricarla.
 // Quando una di queste funzioni arriva anche nel web, la sua voce si toglie da qui.
 
-const RELEASES = 'https://github.com/lucadj77/naibi/releases'
+const RELEASES = 'https://github.com/lucadj77/stella/releases'
 
 const ITEMS = [
   'web.desktop.pdf',

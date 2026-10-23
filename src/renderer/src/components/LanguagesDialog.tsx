@@ -69,7 +69,7 @@ export default function LanguagesDialog({
     sheets.set(key, Math.max(sheets.get(key) ?? 0, columns[i].length))
   })
   const missing = [...sheets.values()].reduce((a, b) => a + b, 0)
-  // testi ancora da tradurre (livelli fissi, variabili, celle @lingua vuote), come in naibi check
+  // testi ancora da tradurre (livelli fissi, variabili, celle @lingua vuote), come in stella check
   const untranslated = (l: string): number =>
     missingTranslations(
       { templates: project.templates, variables: project.file.variables, sets: project.sets },

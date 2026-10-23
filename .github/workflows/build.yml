@@ -46,7 +46,7 @@ jobs:
           CSC_FOR_PULL_REQUEST: 'true'
       - uses: actions/upload-artifact@v4
         with:
-          name: naibi-${{ runner.os }}
+          name: stella-${{ runner.os }}
           path: |
             dist/*.dmg
             dist/*.exe
@@ -58,7 +58,7 @@ jobs:
             dist/*.blockmap
           if-no-files-found: error
 
-  # il solo comando naibi come pacchetto npm, per chi usa la versione web (scripts/cli-package.mjs)
+  # il solo comando stella come pacchetto npm, per chi usa la versione web (scripts/cli-package.mjs)
   cli:
     runs-on: ubuntu-latest
     steps:
@@ -72,8 +72,8 @@ jobs:
       - run: node scripts/cli-package.mjs dist
       - uses: actions/upload-artifact@v4
         with:
-          name: naibi-cli
-          path: dist/naibi-cli-*.tgz
+          name: stella-cli
+          path: dist/stella-cli-*.tgz
           if-no-files-found: error
 
   release:
@@ -88,11 +88,16 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+      # sul Mac le versioni installate quando l'app si chiamava Naibi scaricano l'aggiornamento
+      # con il vecchio nome: se ne pubblica una copia anche così
+      - run: |
+          cd dist
+          for f in Stella-*-mac-*.zip; do cp "$f" "Naibi${f#Stella}"; done
       - uses: softprops/action-gh-release@v2
         with:
           draft: false
           # un tag con il trattino (v1.2.0-beta.1) è una beta: su GitHub appare come pre-release
           prerelease: ${{ contains(github.ref_name, '-') }}
-          name: Naibi ${{ github.ref_name }}
+          name: Stella ${{ github.ref_name }}
           body_path: release-notes.md
           files: dist/*

@@ -17,7 +17,7 @@ import {
 let folder: string
 
 beforeEach(async () => {
-  folder = await mkdtemp(join(tmpdir(), 'naibi-lock-'))
+  folder = await mkdtemp(join(tmpdir(), 'stella-lock-'))
 })
 
 afterEach(async () => {

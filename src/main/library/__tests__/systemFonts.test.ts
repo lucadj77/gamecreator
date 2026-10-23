@@ -16,7 +16,7 @@ describe('font installati', () => {
   afterEach(() => rm(dir, { recursive: true, force: true }))
 
   it('legge un ttf e una raccolta senza caricare il file intero', async () => {
-    dir = await mkdtemp(join(tmpdir(), 'naibi-fonts-'))
+    dir = await mkdtemp(join(tmpdir(), 'stella-fonts-'))
     const ttf = join(dir, 'Nunito-BoldItalic.ttf')
     const ttc = join(dir, 'Nunito.ttc')
     await writeFile(ttf, woffToSfnt(woff))

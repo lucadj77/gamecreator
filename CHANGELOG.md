@@ -14,6 +14,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Recent projects, preferences and update channel are copied from Naibi at the first start; backups stay in `Documents/Naibi/Backup` if you have them there.
 - On the Mac the update installs over Naibi.app and, from the next update, the app is called Stella.app (a Dock shortcut to Naibi.app may need to be added again).
 - An AI agent with the old `naibi` skill is told to install the `stella` one.
+- New icon: five cards forming a star, on a pearl rounded square.
 - The "What does Naibi mean?" link on the start screen is gone.
 
 ### Italiano
@@ -23,6 +24,7 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 - Progetti recenti, preferenze e canale degli aggiornamenti si copiano da Naibi al primo avvio; i backup restano in `Documenti/Naibi/Backup` se li hai lì.
 - Sul Mac l'aggiornamento si installa al posto di Naibi.app e, dall'aggiornamento successivo, l'app si chiama Stella.app (un collegamento a Naibi.app nel Dock può andare rimesso).
 - Un agente IA con la vecchia skill `naibi` viene invitato a installare quella di `stella`.
+- Nuova icona: cinque carte che formano una stella, su un quadrato color perla arrotondato.
 - Non c'è più il link "Cosa vuol dire Naibi?" nella schermata iniziale.
 
 ## 1.2.0-beta.31

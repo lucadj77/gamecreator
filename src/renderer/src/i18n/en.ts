@@ -1636,7 +1636,7 @@ export const en = {
   'ai.saveHint':
     'You can also save it as a file: Claude Code reads skills from the .claude/skills folder of your home folder or of a project. The skill is in English, which agents follow best.',
   'ai.webHint':
-    'In the web version the skill finds the naibi command by itself: it uses the desktop app if it is installed, otherwise it offers to install the command (it needs Node.js). It also updates itself and the command when a new version comes out. The skill is in English, the language agents follow best.',
+    'In the web version the skill finds the naibi command by itself: it uses the desktop app if it is installed, otherwise it offers to install the command (it needs Node.js). For this to work you must allow your agent to download from GitHub and to install the command and its updates: it will ask for permission the first time. It also updates itself and the command when a new version comes out. The skill is in English, the language agents follow best.',
   'ai.notBuilt':
     'The naibi command used by the skill works only after building the app once: run `npm run build` in the Naibi code folder.',
   'ai.copy': 'Copy the skill',

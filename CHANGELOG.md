@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.3.1
+
+### English
+
+#### Fixed
+
+- **Template editor after a reload**: when an AI agent finishes (`stella end`) or the project is reloaded from disk, the open template now shows the layers on disk. Before, it kept showing the old layers, and saving could overwrite the agent's changes.
+
+### Italiano
+
+#### Correzioni
+
+- **Editor del template dopo una ricarica**: quando un agente IA finisce (`stella end`) o il progetto si ricarica dal disco, il template aperto mostra i livelli del disco. Prima continuava a mostrare quelli vecchi, e salvando si potevano perdere le modifiche dell'agente.
+
 ## 1.3.0
 
 ### English

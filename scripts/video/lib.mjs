@@ -128,7 +128,17 @@ export class Recorder {
   async click(loc0, { ms = 700, before = 400, after = 900 } = {}) {
     const loc = loc0.first()
     await loc.waitFor({ timeout: 10000 })
-    const b = await loc.boundingBox()
+    let b = await loc.boundingBox()
+    // con lo zoom l'elemento può essere fuori dallo schermo: si torna alla vista intera
+    const vw = await this.win.evaluate(() => [
+      innerWidth,
+      innerHeight,
+      !!document.getElementById('root')?.dataset.vz
+    ])
+    if (vw[2] && (b.x < 0 || b.y < 0 || b.x + b.width > vw[0] || b.y + b.height > vw[1])) {
+      await this.unzoom()
+      b = await loc.boundingBox()
+    }
     await this.glide(b.x + b.width / 2, b.y + b.height / 2, ms)
     await this.wait(before)
     await this.win.evaluate(() => {
@@ -207,6 +217,68 @@ export class Recorder {
       [boxes, text, side, dim, pad]
     )
     await this.wait(ms ?? Math.max(2600, 1500 + 65 * text.length))
+  }
+
+  /**
+   * ingrandisce l'app attorno a uno o più elementi (zoom morbido, il testo resta nitido perché è l'app a
+   * essere ridisegnata in scala); i riquadri e il cursore restano fuori dallo zoom. unzoom() torna indietro
+   */
+  async zoom(locs, { max = 2, fill = 0.75, ms = 900 } = {}) {
+    const boxes = []
+    for (const l of [].concat(locs)) {
+      await l.first().waitFor({ timeout: 10000 })
+      await l.first().scrollIntoViewIfNeeded()
+      boxes.push(await l.first().boundingBox())
+    }
+    await this.win.evaluate(
+      ([boxes, max, fill]) => {
+        // i riquadri sono nella vista di prima: si tolgono prima di muoverla
+        document.querySelectorAll('.v-box, .v-call').forEach((e) => e.remove())
+        const root = document.getElementById('root')
+        const W = innerWidth,
+          H = innerHeight
+        // le misure sono già nello zoom attuale: si riportano alla vista intera
+        const [s0, x0, y0] = (root.dataset.vz || '1,0,0').split(',').map(Number)
+        const un = (b) => ({
+          x: (b.x - x0) / s0,
+          y: (b.y - y0) / s0,
+          w: b.width / s0,
+          h: b.height / s0
+        })
+        const bs = boxes.map(un)
+        const l = Math.min(...bs.map((b) => b.x)),
+          t = Math.min(...bs.map((b) => b.y)),
+          r = Math.max(...bs.map((b) => b.x + b.w)),
+          bt = Math.max(...bs.map((b) => b.y + b.h))
+        const s = Math.max(1, Math.min(max, (W * fill) / (r - l), (H * fill) / (bt - t)))
+        let x = W / 2 - ((l + r) / 2) * s,
+          y = H / 2 - ((t + bt) / 2) * s
+        x = Math.min(0, Math.max(W - W * s, x))
+        y = Math.min(0, Math.max(H - H * s, y))
+        document.documentElement.style.overflow = document.body.style.overflow = 'hidden'
+        Object.assign(root.style, {
+          transformOrigin: '0 0',
+          transition: 'transform .8s cubic-bezier(.4,0,.2,1)',
+          transform: `translate(${x}px, ${y}px) scale(${s})`
+        })
+        root.dataset.vz = [s, x, y].join(',')
+      },
+      [boxes, max, fill]
+    )
+    // la transizione dura 0,8 s anche nelle prove veloci: le misure dopo lo zoom devono essere quelle finali
+    await this.win.waitForTimeout(Math.max(850, ms))
+  }
+
+  async unzoom(ms = 900) {
+    const zoomed = await this.win.evaluate(() => {
+      const root = document.getElementById('root')
+      if (!root.dataset.vz) return false
+      document.querySelectorAll('.v-box, .v-call').forEach((e) => e.remove())
+      root.style.transform = 'translate(0px, 0px) scale(1)'
+      delete root.dataset.vz
+      return true
+    })
+    if (zoomed) await this.win.waitForTimeout(Math.max(850, ms))
   }
 
   /** testo grande al centro, senza riquadro (titoli di sezione) */

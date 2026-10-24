@@ -1,7 +1,7 @@
 // Video 7: plance, tessere, segnalini e dadi (circa 6 minuti, senza voce). Il progetto di esempio con i
 // componenti di progetto-plance.mjs: tessere esagonali e un template derivato, un segnalino con la
-// sagoma di un'immagine, la plancia con la mappa a esagoni e un tracciato del punteggio (la formula
-// MOD e i riempimenti diversi per casella), il dado delle risorse con più di sei facce.
+// sagoma di un'immagine, la plancia con la mappa a esagoni e un tracciato del punteggio (le formule nelle
+// caselle sono solo accennate: le spiega il video sulle griglie), il dado delle risorse con più di sei facce.
 // Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/plance.mjs it|en
 // FAST=1 accorcia attese e scrittura, per provare il percorso senza badare al ritmo.
 import { launch, makeProject, mockOpen } from './lib.mjs'
@@ -38,6 +38,37 @@ r.click = async (loc, opts) => {
   return click0(loc, opts)
 }
 
+/** zoom sui campi delle proprietà e delle finestre; sulla tela si torna alla vista intera */
+async function zoomTo(locs) {
+  const targets = []
+  for (const l of [].concat(locs)) {
+    const kind = await l
+      .first()
+      .evaluate((el) => {
+        // i campi delle proprietà e delle finestre; una finestra intera resta nella vista normale
+        if (el.closest('[role=dialog]')) return el.closest('.field') ? 'field' : ''
+        if (el.closest('aside.properties')) return el.closest('.field') ? 'field' : 'el'
+        return ''
+      })
+      .catch(() => '')
+    if (!kind) return r.unzoom()
+    targets.push(
+      kind === 'field' ? l.first().locator('xpath=ancestor::*[contains(@class,"field")][1]') : l
+    )
+  }
+  await r.zoom(targets, { max: 1.8 })
+}
+const focus0 = r.focus.bind(r)
+r.focus = async (locs, ...rest) => {
+  await zoomTo(locs)
+  return focus0(locs, ...rest)
+}
+const title0 = r.title.bind(r)
+r.title = async (...a) => {
+  await r.unzoom(700)
+  return title0(...a)
+}
+
 const dialog = () => win.locator('[role="dialog"]').last()
 const props = win.locator('aside.properties')
 const stage = () => win.locator('.canvas-stage').first()
@@ -52,7 +83,9 @@ const layer = (n) => win.locator('.layers .layer-name', { hasText: new RegExp(`^
 const tool = (key) =>
   win.locator(`button.tool[title="${T[key]}"], button.tool[data-tip="${T[key]}"]`).first()
 const side = (name) => win.locator('.sidebar').getByText(name, { exact: true }).first()
-const asset = (name) => dialog().locator(`.asset-tile[title*="${name}"]`).first()
+// con il mouse sopra, il suggerimento dell'app sposta title in data-tip
+const asset = (name) =>
+  dialog().locator(`.asset-tile[title*="${name}"], .asset-tile[data-tip*="${name}"]`).first()
 const saveButton = () =>
   win
     .locator('header.toolbar button')
@@ -61,6 +94,7 @@ const saveButton = () =>
 
 async function fill(loc, text, { tab = true } = {}) {
   await loc.scrollIntoViewIfNeeded()
+  await zoomTo(loc)
   await r.click(loc, { after: 250, before: 200, ms: 450 })
   await win.keyboard.press('Control+A')
   await r.type(text)
@@ -69,6 +103,7 @@ async function fill(loc, text, { tab = true } = {}) {
 }
 async function choose(loc, value) {
   await loc.scrollIntoViewIfNeeded()
+  await zoomTo(loc)
   await r.click(loc, { after: 200, before: 200, ms: 450 })
   await win.keyboard.press('Escape')
   await loc.selectOption(value)
@@ -385,120 +420,24 @@ await r.focus(
   { pad: 0 }
 )
 
-// la formula MOD
-await r.title(t('Come funziona MOD', 'How MOD works'))
-await r.clear()
-await r.click(layer(it ? 'tracciato' : 'track'), { after: 400 })
-await zoomOnSelection(6)
-await r.click(layer(N.number), { after: 500 })
-await r.focus(
-  field(T['source.formula']),
-  t(
-    'La formula del numero: i multipli di 10 in rosso e in grassetto',
-    'The number formula: multiples of 10 in bold red'
-  ),
-  'left'
-)
-for (const [line, ms] of [
-  [
-    t(
-      'MOD(a; b) è il resto della divisione di a per b',
-      'MOD(a; b) is the remainder of a divided by b'
-    ),
-    3800
-  ],
-  [t('MOD(23; 10) = 3      23 = 2 × 10 + 3', 'MOD(23; 10) = 3      23 = 2 × 10 + 3'), 3800],
-  [t('MOD(30; 10) = 0      30 = 3 × 10 + 0', 'MOD(30; 10) = 0      30 = 3 × 10 + 0'), 3800],
-  [
-    t(
-      'Resto 0 vuol dire multiplo di 10: IF scrive il numero in rosso, altrimenti lo lascia com’è',
-      'Remainder 0 means a multiple of 10: IF writes the number in red, otherwise leaves it as it is'
-    ),
-    5200
-  ]
-])
-  await r.title(line, ms)
-await r.clear()
-const numberExpr = (n) =>
-  `=IF(MOD({cell.index}; ${n}) = 0; "[" & {cell.index} & "]{color=#A33A2A weight=900}"; {cell.index})`
-await r.focus(
-  field(T['source.formula']),
-  t('Proviamo con 5 al posto di 10', 'Let’s try 5 instead of 10'),
-  'left'
-)
-await fill(field(T['source.formula']), numberExpr(5), { tab: false })
-await win.keyboard.press('Tab')
-await r.wait(600)
-await r.focus(stage(), t('Ora sono rossi 5, 10, 15, 20…', 'Now 5, 10, 15, 20… are red'), 'left', {
-  pad: 0
-})
-await fill(field(T['source.formula']), numberExpr(10), { tab: false })
-await win.keyboard.press('Tab')
-await r.wait(600)
-
-// riempimenti diversi per casella
-await r.title(t('Un colore diverso per alcune caselle', 'A different color for some cells'))
-await r.clear()
-await r.click(layer(N.cellBg), { after: 500 })
-await r.focus(
-  field(T['source.label']),
-  t(
-    'Nel gruppo c’è anche il fondo della casella: diamogli una formula',
-    'The group also has the cell background: let’s give it a formula'
-  ),
-  'left'
-)
-await choose(field(T['source.label']), 'formula')
-await fill(field(T['source.formula']), '=IF(MOD({cell.index}; 10) = 0; "#F2C9BC"; "#FFFFFF")', {
-  tab: false
-})
-await win.keyboard.press('Tab')
-await r.wait(800)
+// le formule nelle caselle: solo un accenno, i dettagli sono nel video sulle griglie
 await r.focus(
   stage(),
   t(
-    'Stessa condizione: le caselle 10, 20, 30… hanno il fondo rosato',
-    'Same condition: cells 10, 20, 30… get a pink background'
+    'Con le formule ogni casella può cambiare: numeri evidenziati, colori diversi, caselle nascoste',
+    'With formulas each cell can change: highlighted numbers, different colors, hidden cells'
   ),
   'left',
   { pad: 0 }
-)
-await zoomFit()
-await r.click(layer(N.hex), { after: 500 })
-await r.focus(
-  field(T['source.formula']),
-  t(
-    'Anche la mappa: ogni esagono è una forma nel gruppo, con il colore scelto da una formula',
-    'The map too: each hexagon is a shape in the group, with its color picked by a formula'
-  ),
-  'left'
 )
 await r.title(
   t(
-    '{cell.random} è un numero a caso, fisso per casella. MOD(…; 4) + 1 dà 1, 2, 3 o 4, e PICK sceglie il colore',
-    '{cell.random} is a random number, fixed per cell. MOD(…; 4) + 1 gives 1, 2, 3 or 4, and PICK picks the color'
+    'Come si scrivono queste formule lo vediamo con calma nel video sulle griglie',
+    'We’ll see how to write these formulas, step by step, in the grids video'
   ),
-  6200
+  4200
 )
 await r.clear()
-await r.click(layer(N.visible), { after: 500 })
-await r.focus(
-  field(T['source.formula']),
-  t(
-    'Le caselle d’angolo spariscono: il gruppo è visibile solo se la formula è vera',
-    'The corner cells disappear: the group is visible only when the formula is true'
-  ),
-  'left'
-)
-await r.focus(
-  stage(),
-  t(
-    'Così la plancia non è più un rettangolo. La formula vale per il colore, non per il contorno',
-    'So the board is no longer a rectangle. The formula sets the color, not the outline'
-  ),
-  'left',
-  { pad: 0 }
-)
 await save()
 await r.title(
   t(

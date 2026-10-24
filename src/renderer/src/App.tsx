@@ -363,6 +363,8 @@ function App(): React.JSX.Element {
       setCompareBase(null)
       setFileDirty(false)
       setHistory({ past: [], future: [], at: 0 })
+      // l'editor del template aperto riparte dal disco (Ricarica, o un agente che ha finito)
+      setEditorRev((r) => r + 1)
       setSelected((s) =>
         s.kind === 'set'
           ? { kind: 'set', index: s.index < loaded.sets.length ? s.index : 0 }

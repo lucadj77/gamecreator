@@ -1,7 +1,7 @@
 // Video 2: il primo componente da zero (circa 4-5 minuti, senza voce). Progetto vuoto, template con
 // testo, immagine e icone nel testo, colore dello sfondo calcolato con una formula, set con tre
 // colonne, esportazione in PDF; in chiusura lo stesso metodo per un segnalino.
-// Uso: xvfb-run -a -s "-screen 0 1600x1100x24" node --experimental-strip-types --no-warnings scripts/video/primo-componente.mjs it|en
+// Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/primo-componente.mjs it|en
 // FAST=1 accorcia attese e scrittura, per provare il percorso senza badare al ritmo.
 import { launch, mockOpen } from './lib.mjs'
 import { docs } from '../guide/lib.mjs'
@@ -30,10 +30,11 @@ const S = it
       fire: 'Fuoco',
       water: 'Acqua',
       cards: [
-        ['Drago', 'Fuoco', 'Attacco: 3 {flame}'],
-        ['Fenice', 'Fuoco', 'Attacco: 2 {flame}'],
-        ['Sirena', 'Acqua', 'Cura: 2 {drop}']
+        ['Drago', 'Fuoco', 'Attacco: 3 {fuoco}'],
+        ['Fenice', 'Fuoco', 'Attacco: 2 {fuoco}'],
+        ['Sirena', 'Acqua', 'Cura: 2 {acqua}']
       ],
+      icons: ['fuoco', 'acqua'],
       name: 'nome',
       type: 'tipo',
       text: 'testo',
@@ -47,10 +48,11 @@ const S = it
       fire: 'Fire',
       water: 'Water',
       cards: [
-        ['Dragon', 'Fire', 'Attack: 3 {flame}'],
-        ['Phoenix', 'Fire', 'Attack: 2 {flame}'],
-        ['Mermaid', 'Water', 'Heal: 2 {drop}']
+        ['Dragon', 'Fire', 'Attack: 3 {fire}'],
+        ['Phoenix', 'Fire', 'Attack: 2 {fire}'],
+        ['Mermaid', 'Water', 'Heal: 2 {water}']
       ],
+      icons: ['fire', 'water'],
       name: 'name',
       type: 'type',
       text: 'text',
@@ -65,7 +67,7 @@ const field = (label, scope = props) =>
   scope
     .locator('.field')
     .filter({ has: win.locator('.field-label', { hasText: new RegExp(`^${label}$`) }) })
-    .locator('input, textarea, select')
+    .locator('input:not([type=range]), textarea, select')
     .first()
 const layer = (n) => win.locator('.layers .layer-name', { hasText: new RegExp(`^${n}$`) }).first()
 // il suggerimento dell'app sposta il title in data-tip al passaggio del mouse
@@ -78,6 +80,7 @@ const dlgField = (label) =>
     .filter({ hasText: new RegExp(`^\\s*${label}`) })
     .locator('input, select')
     .first()
+const side = (name) => win.locator('.sidebar').getByText(name, { exact: true }).first()
 const saveButton = () =>
   win
     .locator('header.toolbar button')
@@ -99,6 +102,28 @@ async function choose(loc, value) {
   await win.keyboard.press('Escape')
   await loc.selectOption(value)
   await r.wait(500)
+}
+/** trascina con il mouse da un punto a un altro, lentamente */
+async function drag(from, to, ms = 900) {
+  await r.clear(150)
+  await r.glide(from.x, from.y, 600)
+  await r.wait(300)
+  await win.mouse.down()
+  await r.glide(to.x, to.y, ms)
+  await r.wait(200)
+  await win.mouse.up()
+  await r.wait(600)
+}
+const center = async (loc) => {
+  const b = await loc.first().boundingBox()
+  return { x: b.x + b.width / 2, y: b.y + b.height / 2 }
+}
+/** scorre il pannello delle proprietà fino in fondo e torna su */
+async function scrollProps() {
+  await props.evaluate((el) => el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }))
+  await r.wait(2200)
+  await props.evaluate((el) => el.scrollTo({ top: 0, behavior: 'smooth' }))
+  await r.wait(1200)
 }
 /** posizione e dimensioni in millimetri */
 async function place(x, y, w, h) {
@@ -239,6 +264,16 @@ await r.focus(
 )
 await r.click(dialog().getByRole('button', { name: T['assetPicker.importIcons'] }))
 await r.clear(1500)
+await r.focus(
+  [
+    dialog().getByRole('button', { name: T['icons.collection.game-icons'], exact: true }),
+    dialog().getByRole('button', { name: T['icons.collection.iconify'], exact: true })
+  ],
+  it
+    ? 'Raccolte pronte: game-icons.net, Kenney (icone, carte, dadi, pedine) e, online, Iconify'
+    : 'Ready collections: game-icons.net, Kenney (icons, cards, dice, pawns) and, online, Iconify',
+  'below'
+)
 for (const [q, name] of [
   ['swords', 'crossed-swords'],
   ['flame', 'flame'],
@@ -248,17 +283,66 @@ for (const [q, name] of [
   await r.wait(900)
   await r.click(dialog().getByText(name, { exact: true }), { after: 500 })
 }
+const names = dialog().locator('.icon-chosen-row input')
+await r.focus(
+  names.nth(1),
+  it
+    ? 'Prima di importarle si può cambiare il nome: fiamma diventa «fuoco»'
+    : 'Before importing you can rename them: flame becomes “fire”',
+  'above'
+)
+await fill(names.nth(1), S.icons[0], { tab: false })
+await fill(names.nth(2), S.icons[1], { tab: false })
+await r.wait(500)
 await r.focus(
   dialog().locator('button.primary'),
   it
-    ? 'Tre icone: l’emblema, la fiamma e la goccia. La licenza viene annotata'
-    : 'Three icons: the emblem, the flame and the drop. The license is recorded',
+    ? 'Tre icone: l’emblema, il fuoco e l’acqua. La licenza viene annotata'
+    : 'Three icons: the emblem, fire and water. The license is recorded',
   'above'
 )
 await r.click(dialog().locator('button.primary'))
 await r.clear(1500)
 await r.click(dialog().locator('[title*="crossed-swords"]').first())
 await r.clear(1000)
+// sulla tela: trascinare, ridimensionare con le maniglie, ruotare
+const stage = win.locator('.canvas-stage').first()
+await r.focus(
+  stage,
+  it
+    ? 'Sulla tela si lavora con il mouse: trascina per spostare'
+    : 'On the canvas you work with the mouse: drag to move',
+  'left',
+  { pad: 0, ms: 2600 }
+)
+const body = await center(win.locator('.handle.h-se'))
+const nw = await center(win.locator('.handle.h-nw'))
+const mid = { x: (body.x + nw.x) / 2, y: (body.y + nw.y) / 2 }
+await drag(mid, { x: mid.x, y: mid.y - 70 })
+await r.focus(
+  stage,
+  it ? 'Le maniglie agli angoli cambiano le dimensioni' : 'The corner handles change the size',
+  'left',
+  { pad: 0, ms: 2400 }
+)
+const se = await center(win.locator('.handle.h-se'))
+await drag(se, { x: se.x + 50, y: se.y + 50 })
+await r.focus(stage, it ? 'Quella in alto lo ruota' : 'The one on top rotates it', 'left', {
+  pad: 0,
+  ms: 2200
+})
+const rot = await center(win.locator('.handle.rotate'))
+await drag(rot, { x: rot.x + 90, y: rot.y + 20 })
+await r.focus(
+  props.locator('.field-grid').first(),
+  it
+    ? 'Per misure precise, i numeri nel pannello delle proprietà'
+    : 'For exact measures, the numbers in the properties panel',
+  'left',
+  { ms: 2800 }
+)
+await r.clear(200)
+await fill(field(T['prop.rotation']), '0')
 await place(16, 22, 31, 31)
 await r.wait(600)
 
@@ -271,8 +355,8 @@ await fill(field(T['prop.name']), S.text)
 await r.focus(
   field(T['prop.text']),
   it
-    ? 'Un testo di prova. {flame} è l’icona fiamma, nel testo'
-    : 'A sample text. {flame} is the flame icon, inside the text',
+    ? 'Un testo di prova. {fuoco} è l’icona del fuoco, dentro il testo'
+    : 'A sample text. {fire} is the fire icon, inside the text',
   'left'
 )
 await fill(field(T['prop.text']), S.cards[0][2], { tab: false })
@@ -286,6 +370,58 @@ await r.focus(
   'left',
   { pad: 0 }
 )
+await r.focus(
+  props,
+  it
+    ? 'Nel pannello delle proprietà si imposta tutto nel dettaglio: font, colori, contorni, ombre…'
+    : 'In the properties panel you set everything in detail: fonts, colors, outlines, shadows…',
+  'left',
+  { pad: 0, ms: 3600 }
+)
+await r.clear(200)
+await scrollProps()
+
+// i livelli
+await r.title(it ? 'I livelli' : 'The layers')
+await r.clear()
+await r.focus(
+  win.locator('aside.layers .layers-list').first(),
+  it
+    ? 'Il primo dell’elenco sta sopra a tutti; si riordinano trascinando o con le frecce'
+    : 'The first in the list is on top; reorder them by dragging or with the arrows',
+  'right',
+  { pad: 4 }
+)
+await r.click(layer(S.emblem), { after: 400 })
+const layerBtn = (key) =>
+  win
+    .locator(`aside.layers button[title="${T[key]}"], aside.layers button[data-tip="${T[key]}"]`)
+    .first()
+await r.click(layerBtn('layers.down'), { after: 800 })
+await r.focus(
+  stage,
+  it ? 'Sotto lo sfondo l’emblema non si vede più' : 'Below the background the emblem is hidden',
+  'left',
+  { pad: 0, ms: 2600 }
+)
+await r.click(layerBtn('layers.up'), { after: 800 })
+await r.click(layer(S.text), { after: 300 })
+await r.clear(150)
+await r.glide(...Object.values(await center(layer(S.emblem))), 500)
+await win.keyboard.down('Shift')
+await win.mouse.click(r.cx, r.cy)
+await win.keyboard.up('Shift')
+await r.wait(500)
+await r.click(layerBtn('layers.group'), { after: 800 })
+await r.focus(
+  win.locator('aside.layers .layers-list').first(),
+  it
+    ? 'Raggruppati: si spostano e si ridimensionano insieme'
+    : 'Grouped: they move and resize together',
+  'right',
+  { pad: 4 }
+)
+await r.click(layerBtn('layers.ungroup'), { after: 800 })
 
 // la formula
 await r.title(it ? 'Il colore, con una formula' : 'The color, with a formula')
@@ -382,6 +518,36 @@ await r.focus(
   it
     ? 'Tre carte, tre righe del foglio. Il colore segue il tipo'
     : 'Three cards, three rows of the sheet. The color follows the type',
+  'above',
+  { pad: 4 }
+)
+await r.click(saveButton())
+await r.clear(800)
+
+// una modifica al template vale per tutte le carte
+await r.title(
+  it ? 'Si cambia il template, cambiano tutte le carte' : 'Change the template, every card changes'
+)
+await r.clear()
+const editTemplate = win.getByRole('button', { name: T['preview.editTemplate'] }).first()
+await r.click(editTemplate)
+await r.clear(1200)
+await r.overlay()
+await r.click(layer(S.name), { after: 400 })
+await r.focus(
+  field(T['prop.size']),
+  it ? 'Il nome più grande e di un altro colore' : 'A bigger name, in another color',
+  'left'
+)
+await fill(field(T['prop.size']), '20')
+await fill(field(T['prop.color']), '#7A2412')
+await r.wait(600)
+await r.click(side(S.set))
+await r.clear(1200)
+await r.overlay()
+await r.focus(
+  win.locator('.card-grid').first(),
+  it ? 'Tutte e tre le carte sono già aggiornate' : 'All three cards are already updated',
   'above',
   { pad: 4 }
 )

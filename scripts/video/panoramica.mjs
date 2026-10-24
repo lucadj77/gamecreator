@@ -1,5 +1,5 @@
 // Video 1: panoramica delle funzioni di base di Stella (circa 3 minuti, senza voce).
-// Uso: xvfb-run -a -s "-screen 0 1600x1100x24" node --experimental-strip-types --no-warnings scripts/video/panoramica.mjs it|en
+// Uso: xvfb-run -a -s "-screen 0 2000x1300x24" node --experimental-strip-types --no-warnings scripts/video/panoramica.mjs it|en
 import { launch, makeProject } from './lib.mjs'
 import { mkdirSync, writeFileSync } from 'node:fs'
 const lang = process.argv[2] || 'it'

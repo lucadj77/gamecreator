@@ -215,9 +215,9 @@ function App(): React.JSX.Element {
   }, [])
   const changeChannel = (c: UpdateChannel): void => {
     if (window.api.isWeb) {
-      // la stabile sta all'indirizzo principale, la beta nella sottocartella beta/
-      const here = location.pathname.replace(/[^/]*$/, '')
-      location.href = c === 'beta' ? `${here}beta/` : here.replace(/beta\/$/, '')
+      // la stabile sta in app/, la beta in beta/, accanto al sito di presentazione
+      const here = location.pathname.replace(/[^/]*$/, '').replace(/(app|beta)\/$/, '')
+      location.href = `${here}${c === 'beta' ? 'beta' : 'app'}/`
       return
     }
     setChannel(c)

@@ -1,0 +1,17 @@
+# Il sito di presentazione
+
+<https://lucadj77.github.io/stella/>: presenta Stella, propone il download dell'ultima versione stabile (letta
+dalle release di GitHub, con il file adatto al sistema di chi visita), i video tutorial e i rimandi alla guida,
+alle novità e alla CLI. In inglese alla radice, in italiano in `it/`. La versione web dell'app sta accanto, in
+`app/` (stabile) e `beta/`.
+
+- `template.html`: la pagina, con segnaposto `{{chiave}}` presi da `texts.mjs`.
+- `texts.mjs`: tutti i testi nelle due lingue e l'elenco dei video (`videos`: titolo per lingua, minuti,
+  indirizzo YouTube per lingua; finché l'indirizzo è vuoto il video non compare).
+- `style.css`, `site.js`: stile e script del download; `img/`: logo e logo Predigarama; gli screenshot vengono
+  da `docs/guida/img` e `docs/guide/img` (elenco `shots` in `build.mjs`).
+- `build.mjs <cartella>`: costruisce il sito nella cartella data (`node site/build.mjs pages`). L'azione Web lo fa a
+  ogni tag e sulle PR che toccano `site/`, e pubblica tutto su GitHub Pages.
+
+Per vedere il sito in locale: `node site/build.mjs /tmp/pages && npx serve /tmp/pages` (o un qualsiasi server
+statico; aperto come file:// il download non legge GitHub).

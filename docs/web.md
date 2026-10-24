@@ -3,7 +3,7 @@
 La versione web è la stessa app nel browser, senza installazione: serve dove un programma non si
 può installare o avviare, per esempio sui computer aziendali che bloccano i file .exe non firmati.
 Lavora sulle cartelle dei progetti del computer come l'app desktop, e i progetti sono gli stessi
-file. È pubblicata su GitHub Pages: <https://lucadj77.github.io/stella/> è l'ultima versione
+file. È pubblicata su GitHub Pages, accanto al sito di presentazione: <https://lucadj77.github.io/stella/app/> è l'ultima versione
 ufficiale, <https://lucadj77.github.io/stella/beta/> l'ultima beta (o l'ultima ufficiale, se è più
 recente). Nel menu ⚙, **Versione** passa dall'una all'altra. Le due stanno sullo stesso sito e
 condividono ciò che il browser ricorda (progetti recenti, impostazioni).
@@ -88,9 +88,8 @@ npm run preview:web  # prova della build
 L'azione **Web** (`.github/workflows/web.yml`) costruisce la versione web sulle PR e la pubblica
 su GitHub Pages a ogni tag `v*`, insieme alla release, oppure a mano da Actions. A ogni
 pubblicazione `scripts/web-versions.mjs` sceglie due tag: l'ultima versione ufficiale per
-l'indirizzo principale e la più recente in assoluto per `beta/`; ognuna si costruisce dal suo tag.
-Finché nessuna versione ufficiale ha la versione web (la 1.1.0 non la aveva), all'indirizzo
-principale va la beta. Una volta sola
+`app/` e la più recente in assoluto per `beta/`; ognuna si costruisce dal suo tag.
+Finché nessuna versione ufficiale ha la versione web (la 1.1.0 non la aveva), in `app/` va la beta. Una volta sola
 nel repository servono **Settings → Pages → Source: GitHub Actions** e, in **Settings →
 Environments → github-pages**, una regola che permetta i tag `v*` (di base l'ambiente accetta solo
 il ramo main e rifiuta la pubblicazione dai tag).

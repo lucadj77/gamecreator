@@ -19,7 +19,7 @@ done
 
 - `lib.mjs`: lancia Electron con la registrazione di Playwright (1440×900), cursore finto (Playwright non registra il puntatore), `focus(elementi, testo, lato)` per riquadro e testo, `title(testo)` per i titoli di sezione, `click`, `type`. La durata di ogni testo dipende dalla sua lunghezza.
 - `panoramica.mjs`: video 1, panoramica delle funzioni di base (circa 3 minuti), con il progetto di esempio di `scripts/guide/crea-progetto-esempio.mjs`.
-- `copertine.mjs`: copertine iniziale e finale (logo da `build/icon.svg`, nome, sottotitolo, autore Luca, logo Predigarama).
+- `copertine.mjs`: copertine iniziale e finale (logo da `build/icon.svg`, nome, sottotitolo, autore Luca Di Gialleonardo, logo Predigarama).
 - `musica.py`: brano d'ambiente generato (accordi tenuti e arpeggio in Do maggiore); nessun campione, nessun diritto di terzi.
 - `monta.sh`: copertine + registrazione con il logo in basso a destra + musica a volume basso, in un mp4 H.264/AAC.
 - `assets/predigarama-logo.png`: il logo ritagliato al cerchio, con sfondo trasparente.

@@ -5,6 +5,44 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.3.0
+
+### English
+
+#### New
+
+- **Open the example project** in the start screen: the project of the guide and the videos, in the interface language, copied into Documents/Stella/Example the first time and opened from there.
+- **Website**: <https://stella.lucadj.eu/> presents Stella, with the download of the latest stable version for the visitor's system, the video tutorials and the links to the guide and the news. The web version moves to <https://stella.lucadj.eu/app/> (the beta stays in `/beta/`); the old addresses redirect.
+- **Video tutorials** (overview and first component, in English and Italian), linked from the website and the guide.
+- **Support Stella**: a link to free donations (PayPal) in the start screen, in Help (F1) and on the website. No reminders, no pop-ups.
+
+#### Changed
+
+- The app presents itself as **Stella Game Center** (start screen, window title, website); file and command names stay `Stella` and `stella`.
+- **Skill for AI agents**: it explains how to add an export profile (PDF, images, Tabletop Simulator) to a project that has none, and how to take icons from Iconify, recording origin and licence in `assets/sources.json` so that the credits stay complete.
+
+#### Fixed
+
+- **Help (F1)** on Windows and Linux shows the shortcuts with Ctrl instead of ⌘. The user guide writes every shortcut in both forms (⌘S / Ctrl+S).
+
+### Italiano
+
+#### Novità
+
+- **Apri il progetto di esempio** nella schermata iniziale: il progetto della guida e dei video, nella lingua dell'interfaccia, copiato in Documenti/Stella/Esempio la prima volta e aperto da lì.
+- **Sito**: <https://stella.lucadj.eu/> presenta Stella, con il download dell'ultima versione stabile per il sistema di chi visita, i video tutorial e i rimandi alla guida e alle novità. La versione web si sposta in <https://stella.lucadj.eu/app/> (la beta resta in `/beta/`); i vecchi indirizzi rimandano a quelli nuovi.
+- **Video tutorial** (panoramica e primo componente, in italiano e in inglese), collegati dal sito e dalla guida.
+- **Sostieni Stella**: un collegamento per le donazioni libere (PayPal) nella schermata iniziale, nell'Aiuto (F1) e sul sito. Nessun promemoria, nessuna finestra.
+
+#### Modifiche
+
+- L'app si presenta come **Stella Game Center** (schermata iniziale, titolo della finestra, sito); i nomi dei file e del comando restano `Stella` e `stella`.
+- **Skill per gli agenti IA**: spiega come aggiungere un profilo di esportazione (PDF, immagini, Tabletop Simulator) a un progetto che non ne ha e come prendere icone da Iconify, annotando origine e licenza in `assets/sources.json` perché i crediti restino completi.
+
+#### Correzioni
+
+- **Aiuto (F1)** su Windows e Linux mostra le scorciatoie con Ctrl al posto di ⌘. La guida scrive ogni scorciatoia in entrambe le forme (⌘S / Ctrl+S).
+
 ## 1.3.0-beta.1
 
 ### English

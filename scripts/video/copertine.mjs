@@ -6,7 +6,9 @@ const [dir, lang, video = 'panoramica'] = process.argv.slice(2)
 const it = lang === 'it'
 const SUBTITLES = {
   panoramica: ['Una panoramica delle funzioni di base', 'An overview of the basic functions'],
-  'primo-componente': ['Il tuo primo componente da zero', 'Your first component from scratch']
+  'primo-componente': ['Il tuo primo componente da zero', 'Your first component from scratch'],
+  'formule-testo': ['Testo, icone, stili e formule', 'Text, icons, styles and formulas'],
+  documenti: ['Il regolamento e gli altri documenti', 'The rulebook and other documents']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]

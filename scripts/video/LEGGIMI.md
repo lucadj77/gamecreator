@@ -8,7 +8,7 @@ Predigarama Games (non durante la registrazione, dove coprirebbe l'app), musica 
 A=/tmp/stella-guide/video/assets && mkdir -p $A
 python3 scripts/video/musica.py $A/musica.wav 300 && ffmpeg -y -i $A/musica.wav -b:a 160k $A/musica.m4a
 cp scripts/video/assets/predigarama-logo.png $A/
-V=panoramica   # oppure primo-componente, tabletop, formule-testo, documenti
+V=panoramica   # oppure primo-componente, tabletop, formule-testo, documenti (agente: vedi sotto)
 for l in it en; do
   node scripts/video/copertine.mjs $A $l $V
   rm -rf /tmp/stella-guide/video-ud-$l
@@ -24,6 +24,7 @@ done
 - `tabletop.mjs`: video 3, da Stella a Tabletop Simulator (parte nell'app): il progetto di esempio con in più monete, terreni, una plancia e un dado (`progetto-tts.mjs`), un oggetto diverso per ogni set ed esportazione. Il filmato dentro Tabletop Simulator, registrato da Luca sul Mac, si aggiunge al montaggio.
 - `formule-testo.mjs`: video 4, testo, icone, stili e formule (circa 5 minuti e mezzo) sul progetto di esempio: markup con i suggerimenti, errori, «Formatta», una variabile icona e le ripetizioni, uno stile, una formula IF, il colore dal foglio, le variabili di sistema, il livello valore e l'aiuto.
 - `documenti.mjs`: video 5, il regolamento (circa 5 minuti): testo, grassetto dalla barra, una carta, una tabella, un riquadro, l'anatomia della carta, lo schema del tavolo, la pagina e il PDF.
+- `agente.mjs`: video 6, Stella con un agente IA (circa 4 minuti). Registra insieme l'app e un terminale (pagina Chromium) dove l'agente lavora: i comandi `stella` sono veri e lavorano sul progetto aperto nell'app (`begin` la blocca, `end` la sblocca e la fa ricaricare), i file che l'agente scrive (il gioco «Elementi», 24 creature e un segnalino, il regolamento, i profili di esportazione) vengono da `progetto-ia.mjs`, le icone da game-icons.net. Lo script scrive l'elenco dei pezzi (`agente-<lingua>.json`); `componi.sh <elenco> <uscita.mp4>` alterna le due registrazioni e taglia le attese, poi l'uscita va a `monta.sh` come le altre.
 - Nei video 3, 4 e 5 `SHOT=<file.png>` salva una schermata quando un elemento non si trova. La registrazione usa l'app compilata in `out/`: va ricompilata se i testi dell'interfaccia sono cambiati.
 - `copertine.mjs`: copertine iniziale e finale (logo da `build/icon.svg`, nome, sottotitolo del video scelto con il terzo argomento, autore Luca Di Gialleonardo, logo Predigarama).
 - `musica.py`: brano d'ambiente generato (accordi tenuti e arpeggio in Do maggiore); nessun campione, nessun diritto di terzi.

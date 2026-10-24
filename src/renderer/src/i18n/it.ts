@@ -1679,7 +1679,7 @@ export const it: Record<MessageKey, string> = {
   'ai.step2':
     'Incollala nel tuo agente e chiedigli di installarla come skill (o come istruzioni del progetto, se non gestisce le skill).',
   'ai.step3':
-    'Poi chiedigli quello che ti serve, indicando la cartella del progetto. Quando ha finito, premi Ricarica in Stella per vedere le modifiche.',
+    'Poi chiedigli quello che ti serve, indicando la cartella del progetto. Mentre lavora Stella resta bloccata; quando ha finito, Stella si sblocca e ricarica il progetto da sola.',
   'ai.saveHint':
     'Puoi anche salvarla come file: Claude Code legge le skill dalla cartella .claude/skills della tua cartella utente o di un progetto. La skill è in inglese, la lingua che gli agenti seguono meglio.',
   'ai.webHint':

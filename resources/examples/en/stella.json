@@ -1,0 +1,71 @@
+{
+  "formatVersion": 1,
+  "name": "Example",
+  "dataFile": "data/cards.xlsx",
+  "sets": [
+    {
+      "name": "Characters",
+      "template": "character"
+    },
+    {
+      "name": "Items",
+      "template": "item"
+    },
+    {
+      "name": "Market",
+      "template": "market"
+    }
+  ],
+  "styles": {
+    "keyword": "weight=800 color=#7A3FA0 smallcaps",
+    "flavor": "italic size=90% color=#6B6255 center"
+  },
+  "variables": {
+    "sword": {
+      "type": "image",
+      "src": "sword",
+      "tint": "ruby"
+    },
+    "shield": {
+      "type": "image",
+      "src": "shield",
+      "tint": "#2F5DA8",
+      "scale": 1.2
+    },
+    "wood": {
+      "type": "image",
+      "src": "wood",
+      "tint": "#8A5A2B",
+      "scale": 1.2
+    },
+    "stone": {
+      "type": "image",
+      "src": "stone",
+      "tint": "#6E6A64",
+      "scale": 1.2
+    },
+    "wheat": {
+      "type": "image",
+      "src": "wheat",
+      "tint": "#C49A1E",
+      "scale": 1.2
+    },
+    "coin": {
+      "type": "image",
+      "src": "coin",
+      "tint": "#B07A1E"
+    },
+    "ruby": {
+      "type": "color",
+      "color": "#A33A2A"
+    },
+    "hand": {
+      "type": "value",
+      "value": "7"
+    },
+    "quick": {
+      "type": "text",
+      "text": "[Quick]{border=#7A3FA0/0.3 radius=round color=#7A3FA0}"
+    }
+  }
+}

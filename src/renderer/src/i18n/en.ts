@@ -1472,6 +1472,9 @@ export const en = {
   'start.newProject': 'New project…',
   'start.openProject': 'Open project…',
   'start.importTtc': 'Import from Tabletop Creator…',
+  'start.example': 'Open the example project',
+  'tip.example':
+    'The project of the guide and the videos, copied into Documents/Stella/Example the first time',
   'start.recent': 'Recent projects',
   'start.noRecent':
     'No recent projects yet. Create a new one, open a project folder or import one from Tabletop Creator.',
@@ -1531,6 +1534,8 @@ export const en = {
   'tip.help': 'Text markup, system variables, formulas and keyboard shortcuts (F1)',
   'help.title': 'Help',
   'help.guide': 'Open the complete user guide (online)',
+  'help.support': 'Stella is free. If it is useful to you, you can buy me a coffee (PayPal)',
+  'start.support': 'Support Stella',
   'help.tab.text': 'Text',
   'help.tab.variables': 'Fields and variables',
   'help.tab.formulas': 'Formulas',

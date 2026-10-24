@@ -112,6 +112,8 @@ export const webApi: Api = {
   chooseProjectFolder: () => pickFolder('stella-project'),
   recentProjects: () => listRecent(),
   removeRecentProject: (f) => removeRecent(f),
+  // l'esempio incluso c'è solo nell'app desktop: la schermata iniziale non mostra il tasto
+  prepareExampleProject: () => Promise.reject(new Error('desktop only')),
   saveThumbnail: async (template, context, onlyIfMissing) => {
     const f = folder
     if (!f || (onlyIfMissing && (await hasThumbnail(f)))) return

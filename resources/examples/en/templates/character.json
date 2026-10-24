@@ -1,0 +1,192 @@
+{
+  "name": "character",
+  "width": 63,
+  "height": 88,
+  "bleed": 3,
+  "safeMargin": 3,
+  "cornerRadius": 3,
+  "front": [
+    {
+      "type": "text",
+      "name": "name",
+      "x": 6,
+      "y": 4.5,
+      "w": 51,
+      "h": 9.5,
+      "text": "Name",
+      "weight": 800,
+      "size": 14,
+      "color": "#FFFFFF",
+      "valign": "middle",
+      "fit": "shrink"
+    },
+    {
+      "type": "text",
+      "name": "strength",
+      "x": 7,
+      "y": 48.5,
+      "w": 10,
+      "h": 10,
+      "text": "1",
+      "weight": 800,
+      "size": 13,
+      "color": "#FFFFFF",
+      "align": "center",
+      "valign": "middle"
+    },
+    {
+      "type": "shape",
+      "name": "strength_bg",
+      "shape": "ellipse",
+      "x": 7,
+      "y": 48.5,
+      "w": 10,
+      "h": 10,
+      "fill": "ruby",
+      "stroke": {
+        "color": "#FFFFFF",
+        "width": 0.5
+      }
+    },
+    {
+      "type": "text",
+      "name": "rank",
+      "x": 19,
+      "y": 48.5,
+      "w": 38,
+      "h": 10,
+      "text": "",
+      "weight": 700,
+      "size": 8,
+      "color": "#5E5446",
+      "valign": "middle",
+      "transform": "upper",
+      "letterSpacing": 80,
+      "source": {
+        "kind": "formula",
+        "expr": "=IF({strength}>=4; \"Hero\"; \"Follower\")"
+      }
+    },
+    {
+      "type": "text",
+      "name": "text",
+      "x": 6,
+      "y": 61,
+      "w": 51,
+      "h": 21,
+      "text": "",
+      "weight": 600,
+      "size": 8.5,
+      "color": "#2A241C",
+      "lineHeight": 1.3,
+      "fit": "shrink"
+    },
+    {
+      "type": "shape",
+      "name": "divider",
+      "shape": "rect",
+      "x": 6,
+      "y": 59.6,
+      "w": 51,
+      "h": 0.3,
+      "fill": "#CFC4B0"
+    },
+    {
+      "type": "image",
+      "name": "portrait",
+      "x": 19,
+      "y": 17,
+      "w": 25,
+      "h": 28,
+      "src": "",
+      "fit": "contain",
+      "tint": "#FFFFFF"
+    },
+    {
+      "type": "shape",
+      "name": "panel",
+      "x": 4,
+      "y": 15.5,
+      "w": 55,
+      "h": 31,
+      "radius": 1.5,
+      "fill": "#3A3226",
+      "source": {
+        "kind": "formula",
+        "expr": "{band}"
+      }
+    },
+    {
+      "type": "shape",
+      "name": "band",
+      "x": 4,
+      "y": 4,
+      "w": 55,
+      "h": 10.5,
+      "radius": 2,
+      "fill": "#2F5DA8"
+    },
+    {
+      "type": "shape",
+      "name": "background",
+      "x": -3,
+      "y": -3,
+      "w": 69,
+      "h": 94,
+      "fill": "#F4EFE4",
+      "locked": true
+    }
+  ],
+  "back": [
+    {
+      "type": "text",
+      "name": "back_title",
+      "x": 4,
+      "y": 62,
+      "w": 55,
+      "h": 10,
+      "text": "STELLA",
+      "weight": 800,
+      "size": 16,
+      "color": "#E8C26A",
+      "align": "center",
+      "valign": "middle",
+      "letterSpacing": 300
+    },
+    {
+      "type": "shape",
+      "name": "back_star",
+      "shape": "star",
+      "sides": 8,
+      "innerRatio": 0.55,
+      "x": 16.5,
+      "y": 24,
+      "w": 30,
+      "h": 30,
+      "fill": "#E8C26A"
+    },
+    {
+      "type": "shape",
+      "name": "back_frame",
+      "x": 4,
+      "y": 4,
+      "w": 55,
+      "h": 80,
+      "radius": 2,
+      "fill": null,
+      "stroke": {
+        "color": "#E8C26A",
+        "width": 0.6
+      }
+    },
+    {
+      "type": "shape",
+      "name": "back_background",
+      "x": -3,
+      "y": -3,
+      "w": 69,
+      "h": 94,
+      "fill": "#2A3550"
+    }
+  ]
+}

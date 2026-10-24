@@ -1,0 +1,71 @@
+{
+  "formatVersion": 1,
+  "name": "Esempio",
+  "dataFile": "data/carte.xlsx",
+  "sets": [
+    {
+      "name": "Personaggi",
+      "template": "personaggio"
+    },
+    {
+      "name": "Oggetti",
+      "template": "oggetto"
+    },
+    {
+      "name": "Mercato",
+      "template": "mercato"
+    }
+  ],
+  "styles": {
+    "keyword": "weight=800 color=#7A3FA0 smallcaps",
+    "flavor": "italic size=90% color=#6B6255 center"
+  },
+  "variables": {
+    "spada": {
+      "type": "image",
+      "src": "spada",
+      "tint": "rosso"
+    },
+    "scudo": {
+      "type": "image",
+      "src": "scudo",
+      "tint": "#2F5DA8",
+      "scale": 1.2
+    },
+    "legno": {
+      "type": "image",
+      "src": "legno",
+      "tint": "#8A5A2B",
+      "scale": 1.2
+    },
+    "pietra": {
+      "type": "image",
+      "src": "pietra",
+      "tint": "#6E6A64",
+      "scale": 1.2
+    },
+    "grano": {
+      "type": "image",
+      "src": "grano",
+      "tint": "#C49A1E",
+      "scale": 1.2
+    },
+    "moneta": {
+      "type": "image",
+      "src": "moneta",
+      "tint": "#B07A1E"
+    },
+    "rosso": {
+      "type": "color",
+      "color": "#A33A2A"
+    },
+    "mano": {
+      "type": "value",
+      "value": "7"
+    },
+    "rapida": {
+      "type": "text",
+      "text": "[Rapida]{border=#7A3FA0/0.3 radius=round color=#7A3FA0}"
+    }
+  }
+}

@@ -3926,6 +3926,11 @@ select.from-template {
   font-weight: 600;
 }
 
+.help-support {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+
 .help-body {
   max-height: 62vh;
   overflow-y: auto;

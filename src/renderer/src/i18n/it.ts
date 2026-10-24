@@ -1495,6 +1495,9 @@ export const it: Record<MessageKey, string> = {
   'start.newProject': 'Nuovo progetto…',
   'start.openProject': 'Apri progetto…',
   'start.importTtc': 'Importa da Tabletop Creator…',
+  'start.example': 'Apri il progetto di esempio',
+  'tip.example':
+    'Il progetto della guida e dei video, copiato in Documenti/Stella/Esempio la prima volta',
   'start.recent': 'Progetti recenti',
   'start.noRecent':
     'Ancora nessun progetto recente. Creane uno nuovo, apri la cartella di un progetto o importane uno da Tabletop Creator.',
@@ -1555,6 +1558,8 @@ export const it: Record<MessageKey, string> = {
   'tip.help': 'Markup del testo, variabili di sistema, formule e scorciatoie da tastiera (F1)',
   'help.title': 'Aiuto',
   'help.guide': 'Apri la guida completa (online)',
+  'help.support': 'Stella è gratuita. Se ti è utile, puoi offrirmi un caffè (PayPal)',
+  'start.support': 'Sostieni Stella',
   'help.tab.text': 'Testo',
   'help.tab.variables': 'Campi e variabili',
   'help.tab.formulas': 'Formule',

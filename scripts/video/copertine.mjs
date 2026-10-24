@@ -26,14 +26,14 @@ const intro = page(`<div class="wrap">
   <div class="logo">${logo}</div>
   <h1>Stella</h1>
   <h2>${it ? 'Una panoramica delle funzioni di base' : 'An overview of the basic functions'}</h2>
-  <div class="by">${it ? 'di Luca' : 'by Luca'}</div>
+  <div class="by">${it ? 'di Luca Di Gialleonardo' : 'by Luca Di Gialleonardo'}</div>
 </div>`)
 const outro = page(`<div class="wrap">
   <div class="logo">${logo}</div>
   <h1>Stella</h1>
   <p class="small">${it ? 'La guida completa e i download:' : 'Full guide and downloads:'}</p>
   <div class="url">lucadj77.github.io/stella</div>
-  <div class="by">${it ? 'Un video di Luca · Predigarama Games' : 'A video by Luca · Predigarama Games'}</div>
+  <div class="by">${it ? 'Un video di Luca Di Gialleonardo · Predigarama Games' : 'A video by Luca Di Gialleonardo · Predigarama Games'}</div>
 </div>`)
 const b = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium',

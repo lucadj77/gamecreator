@@ -1,5 +1,7 @@
 # Comando stella e strumenti per gli agenti IA
 
+_English: [cli.en.md](cli.en.md)._
+
 Il comando `stella` permette a un agente IA (Claude Code, Codex, Cursor…) o a uno script di lavorare su un progetto senza aprire l'app: legge i dati, segnala i problemi e disegna le carte in PNG. È lo stesso programma dell'app avviato con `--cli`: nessuna finestra, stesso rendering delle esportazioni.
 
 ## Comandi

@@ -264,7 +264,7 @@ export const webApi: Api = {
   stellaCommand: async () => ({ command: '', ready: true }),
   // chi apre il sito ha sempre l'ultima versione
   checkForUpdate: async () => null,
-  // la versione web stabile sta all'indirizzo principale, la beta in /beta/
+  // la versione web stabile sta in /app/, la beta in /beta/
   updateChannel: async () =>
     /\/beta\/?$/.test(location.pathname.replace(/[^/]*$/, '')) ? 'beta' : 'stable',
   setUpdateChannel: async () => {},

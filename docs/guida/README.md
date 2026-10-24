@@ -720,7 +720,7 @@ Tutti i dettagli, le opzioni e come lanciare il comando su ogni sistema sono in 
 
 ## 16. La versione web
 
-Stella funziona anche nel browser, senza installare nulla, all'indirizzo <https://lucadj77.github.io/stella/> (la versione beta in `/beta/`). Serve dove un programma non si può installare, per esempio sui computer di lavoro che bloccano i programmi non firmati. Lavora sulle cartelle dei progetti del tuo computer: i progetti sono gli stessi file dell'app, e si possono aprire ora con l'una ora con l'altra.
+Stella funziona anche nel browser, senza installare nulla, all'indirizzo <https://lucadj77.github.io/stella/app/> (la versione beta in `/beta/`). Serve dove un programma non si può installare, per esempio sui computer di lavoro che bloccano i programmi non firmati. Lavora sulle cartelle dei progetti del tuo computer: i progetti sono gli stessi file dell'app, e si possono aprire ora con l'una ora con l'altra.
 
 Servono Chrome, Edge o Opera (Brave solo dopo aver attivato `brave://flags/#file-system-access-api`); Firefox e Safari non hanno l'accesso alle cartelle che serve. A ogni sessione il browser chiede il permesso sulla cartella del progetto, quando lo apri.
 

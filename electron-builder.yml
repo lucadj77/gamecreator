@@ -1,6 +1,6 @@
 appId: com.naibi.app
 productName: Stella
-copyright: Copyright © 2026 Luca
+copyright: Copyright © 2026 Luca Di Gialleonardo
 directories:
   buildResources: build
   output: dist

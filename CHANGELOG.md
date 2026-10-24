@@ -5,6 +5,20 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 `1.2.0-beta.1`, sono beta. Come si prepara una versione è spiegato in
 [docs/rilascio.md](docs/rilascio.md).
 
+## 1.3.0-beta.1
+
+### English
+
+#### New
+
+- **Website**: <https://lucadj77.github.io/stella/> now presents Stella, with the download of the latest stable version for the visitor's system, the tutorial videos and the links to the guide and the news. The web version moves to <https://lucadj77.github.io/stella/app/> (the beta stays in `/beta/`); the old addresses redirect.
+
+### Italiano
+
+#### Novità
+
+- **Sito**: <https://lucadj77.github.io/stella/> ora presenta Stella, con il download dell'ultima versione stabile per il sistema di chi visita, i video tutorial e i rimandi alla guida e alle novità. La versione web si sposta in <https://lucadj77.github.io/stella/app/> (la beta resta in `/beta/`); i vecchi indirizzi rimandano a quelli nuovi.
+
 ## 1.2.1
 
 ### English

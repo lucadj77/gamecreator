@@ -720,7 +720,7 @@ All the details, the options and how to launch the command on each system are in
 
 ## 16. The web version
 
-Stella also runs in the browser, with nothing to install, at <https://lucadj77.github.io/stella/> (the beta version in `/beta/`). It is for places where a program cannot be installed, for example work computers that block unsigned programs. It works on the project folders of your computer: the projects are the same files as the app's, and you can open them with one or the other.
+Stella also runs in the browser, with nothing to install, at <https://lucadj77.github.io/stella/app/> (the beta version in `/beta/`). It is for places where a program cannot be installed, for example work computers that block unsigned programs. It works on the project folders of your computer: the projects are the same files as the app's, and you can open them with one or the other.
 
 It needs Chrome, Edge or Opera (Brave only after turning on `brave://flags/#file-system-access-api`); Firefox and Safari lack the folder access it needs. In every session the browser asks for permission on the project folder when you open it.
 

@@ -38,8 +38,8 @@ await r.overlay()
 // schermata di ingresso
 await r.title(
   it
-    ? 'Stella: carte, plance e regolamenti per i tuoi prototipi'
-    : 'Stella: cards, boards and rulebooks for your prototypes'
+    ? 'Stella Game Center: carte, plance, segnalini, tessere, dadi e regolamenti per i tuoi prototipi'
+    : 'Stella Game Center: cards, boards, tokens, tiles, dice and rulebooks for your prototypes'
 )
 await r.clear()
 await r.focus(
@@ -99,7 +99,9 @@ await r.focus(
 )
 await r.focus(
   topButton('app.export'),
-  it ? 'Esporta: PDF, immagini, Tabletop Simulator' : 'Export: PDF, images, Tabletop Simulator',
+  it
+    ? 'Esporta: PDF, immagini e oggetti per Tabletop Simulator'
+    : 'Export: PDFs, images and Tabletop Simulator objects',
   'below'
 )
 await r.focus(
@@ -237,11 +239,25 @@ await r.clear(800)
 await r.focus(
   dialog(),
   it
-    ? 'PDF per la stampa, immagini singole, Tabletop Simulator…'
-    : 'PDF for printing, single images, Tabletop Simulator…',
+    ? 'PDF per la stampa, immagini singole e Tabletop Simulator'
+    : 'PDFs for printing, single images and Tabletop Simulator',
   'none',
   { pad: 0, dim: false }
 )
+// Tabletop Simulator: non immagini, ma oggetti pronti da caricare nel gioco
+await r.click(dialog().getByRole('button', { name: T['export.tts'], exact: true }))
+await r.clear(800)
+await r.focus(
+  dialog(),
+  it
+    ? 'Per Tabletop Simulator escono oggetti pronti: mazzi, segnalini, tessere, plance e dadi'
+    : 'For Tabletop Simulator it makes ready objects: decks, tokens, tiles, boards and dice',
+  'none',
+  { pad: 0, dim: false }
+)
+await r.clear(400)
+await r.click(dialog().getByRole('button', { name: T['export.pdf'], exact: true }))
+await r.clear(600)
 await r.focus(
   dialog().locator('select').first(),
   it

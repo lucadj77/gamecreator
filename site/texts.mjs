@@ -7,7 +7,7 @@ export const texts = {
     otherLangHref: '../',
     root: '../',
     img: '../img/it/',
-    title: 'Stella – carte, plance e regolamenti per i tuoi prototipi',
+    title: 'Stella Game Center – carte, plance e regolamenti per i tuoi prototipi',
     description:
       'Stella è un programma libero per Mac, Windows e Linux che disegna carte, plance, segnalini, dadi e gli altri componenti di un gioco a partire da un foglio di calcolo.',
     nav: {
@@ -132,7 +132,7 @@ export const texts = {
     otherLangHref: 'it/',
     root: './',
     img: 'img/en/',
-    title: 'Stella – cards, boards and rulebooks for your prototypes',
+    title: 'Stella Game Center – cards, boards and rulebooks for your prototypes',
     description:
       'Stella is a free program for Mac, Windows and Linux that draws cards, boards, tokens, dice and the other components of a game from a spreadsheet.',
     nav: {

@@ -13,7 +13,8 @@ const page = (body) => `<!doctype html><html><head><meta charset="utf-8"><style>
   html,body{margin:0;width:1440px;height:900px;background:#F8F6F1;color:#2A241C;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   .wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
   .logo svg{width:260px;height:260px;border-radius:58px;box-shadow:0 18px 50px rgba(42,36,28,.18)}
-  h1{font-size:110px;font-weight:800;letter-spacing:.04em;margin:0}
+  h1{font-size:92px;font-weight:800;letter-spacing:.03em;margin:0}
+  h1 span{font-weight:600;color:#4A4238}
   h2{font-size:44px;font-weight:500;margin:0;color:#4A4238}
   .by{font-size:30px;color:#6B6257;margin-top:28px}
   .small{font-size:30px;color:#4A4238;margin:0}
@@ -24,13 +25,13 @@ const page = (body) => `<!doctype html><html><head><meta charset="utf-8"><style>
 <div class="pg"><img src="data:image/png;base64,${pg}"></div></body></html>`
 const intro = page(`<div class="wrap">
   <div class="logo">${logo}</div>
-  <h1>Stella</h1>
+  <h1>Stella <span>Game Center</span></h1>
   <h2>${it ? 'Una panoramica delle funzioni di base' : 'An overview of the basic functions'}</h2>
   <div class="by">${it ? 'di Luca Di Gialleonardo' : 'by Luca Di Gialleonardo'}</div>
 </div>`)
 const outro = page(`<div class="wrap">
   <div class="logo">${logo}</div>
-  <h1>Stella</h1>
+  <h1>Stella <span>Game Center</span></h1>
   <p class="small">${it ? 'La guida completa e i download:' : 'Full guide and downloads:'}</p>
   <div class="url">stella.lucadj.eu</div>
   <div class="by">${it ? 'Un video di Luca Di Gialleonardo · Predigarama Games' : 'A video by Luca Di Gialleonardo · Predigarama Games'}</div>

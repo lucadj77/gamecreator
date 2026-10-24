@@ -43,6 +43,19 @@ r.focus = async (locs, ...rest) => {
   return focus0(locs, ...rest)
 }
 
+const title0 = r.title.bind(r)
+r.title = async (...a) => {
+  await r.unzoom(700)
+  return title0(...a)
+}
+/** zoom sui campi e riquadro con il testo sotto (o sopra, se il campo è in basso) */
+async function zf(locs, text) {
+  await r.zoom(locs, { max: 1.7 })
+  const b = await [].concat(locs)[0].first().boundingBox()
+  const H = await win.evaluate(() => innerHeight)
+  await r.focus(locs, text, b.y + b.height / 2 > H * 0.55 ? 'above' : 'below')
+}
+
 const cards = it ? 'Personaggi' : 'Characters'
 const items = it ? 'Oggetti' : 'Items'
 const market = it ? 'Mercato' : 'Market'
@@ -58,14 +71,14 @@ const check = (key) => exp().locator('label.check', { hasText: T[key] }).first()
 const button = (key, scope = exp()) => scope.getByRole('button', { name: T[key], exact: true })
 
 async function choose(loc, value) {
-  await loc.scrollIntoViewIfNeeded()
+  await r.zoom(loc, { max: 1.7 })
   await r.click(loc, { after: 200, before: 200, ms: 450 })
   await win.keyboard.press('Escape')
   await loc.selectOption(value)
   await r.wait(600)
 }
 async function fill(loc, text) {
-  await loc.scrollIntoViewIfNeeded()
+  await r.zoom(loc, { max: 1.7 })
   await r.click(loc, { after: 250, before: 200, ms: 450 })
   await win.keyboard.press('Control+A')
   await r.type(text)
@@ -74,7 +87,7 @@ async function fill(loc, text) {
 }
 async function tick(key, on = true) {
   const box = check(key).locator('input')
-  await check(key).scrollIntoViewIfNeeded()
+  await r.zoom(check(key), { max: 1.7 })
   if ((await box.isChecked()) !== on) await r.click(check(key), { after: 600 })
 }
 /** lascia selezionati solo questi set: prima si aggiungono, poi si tolgono gli altri (nessuno scelto vale tutti) */
@@ -91,6 +104,7 @@ async function only(...names) {
 }
 /** apre l'anteprima, mostra le pagine con un testo e la chiude */
 async function preview(text, { pages = 0, side = 'left' } = {}) {
+  await r.unzoom(600)
   await r.click(button('export.preview'))
   await r.clear(1200)
   const stage = dialog().locator('.export-preview-stage').first()
@@ -124,38 +138,34 @@ await r.clear()
 await r.click(button('export.images'))
 await r.wait(600)
 await only(cards)
-await r.focus(
+await zf(
   efield('export.format'),
   t(
     'Un file per carta: PNG, JPG, WebP o SVG, che si apre nei programmi di grafica',
     'One file per card: PNG, JPG, WebP or SVG, which opens in graphics programs'
-  ),
-  'left'
+  )
 )
-await r.focus(
+await zf(
   efield('export.resolution'),
   t(
     'La risoluzione: 300 DPI per la stampa, 150 per lo schermo',
     'The resolution: 300 DPI for print, 150 for the screen'
-  ),
-  'left'
+  )
 )
-await r.focus(
+await zf(
   [efield('export.bleed'), efield('export.sides')],
   t(
     'Con o senza abbondanza, solo fronte, solo retro o tutti e due',
     'With or without bleed, front only, back only or both'
-  ),
-  'left'
+  )
 )
 await fill(control('export.pattern', 'input'), '%set/%side/%n')
-await r.focus(
+await zf(
   efield('export.pattern'),
   t(
     'Il nome dei file: %set, %n, %side e i campi tra graffe. La / crea le cartelle',
     'File names: %set, %n, %side and fields in braces. The / makes folders'
-  ),
-  'left'
+  )
 )
 await preview(
   t(
@@ -171,18 +181,16 @@ await r.clear()
 await r.click(button('export.pdf'))
 await r.wait(600)
 await only(cards, items)
-await r.focus(
+await zf(
   [efield('export.page'), efield('export.margin')],
-  t('Pagina, orientamento e margini', 'Page, orientation and margins'),
-  'left'
+  t('Pagina, orientamento e margini', 'Page, orientation and margins')
 )
-await r.focus(
+await zf(
   efield('export.layout'),
   t(
     'Quante carte entrano: Stella le conta da sola, oppure righe × colonne',
     'How many cards fit: Stella counts them, or rows × columns'
-  ),
-  'left'
+  )
 )
 await preview(
   t(
@@ -192,13 +200,12 @@ await preview(
 )
 await tick('export.bleedTouch')
 await choose(control('export.marks'), 'lines')
-await r.focus(
+await zf(
   [efield('export.bleed'), efield('export.marks')],
   t(
     'Con l’abbondanza le carte si toccano: i segni di taglio, qui a linee intere, restano fuori',
     'With bleed the cards touch: the crop marks, here full lines, stay outside'
-  ),
-  'left'
+  )
 )
 await preview(
   t(
@@ -207,35 +214,32 @@ await preview(
   )
 )
 await tick('export.autoRotate')
-await r.focus(
+await zf(
   check('export.autoRotate'),
   t(
     'Rotazione: le carte si girano se così ne entrano di più',
     'Rotation: cards are turned when more of them fit that way'
-  ),
-  'left'
+  )
 )
 await tick('export.continuousCheck')
-await r.focus(
+await zf(
   check('export.continuousCheck'),
   t(
     'Uno dopo l’altro: un set comincia subito dopo il precedente, senza pagine mezze vuote',
     'One after another: a set starts right after the previous one, no half-empty pages'
-  ),
-  'left'
+  )
 )
 
 // ---- 3. fronte e retro
 await r.title(t('Fronte e retro', 'Front and back'))
 await r.clear()
 await choose(control('export.duplex'), 'long')
-await r.focus(
+await zf(
   efield('export.duplex'),
   t(
     'Fronte-retro: i retri vanno sulle pagine pari, specchiati per il lato lungo o corto del foglio',
     'Double-sided: backs go on the even pages, mirrored for the long or short edge'
-  ),
-  'left'
+  )
 )
 await preview(
   t(
@@ -244,22 +248,15 @@ await preview(
   ),
   { pages: 1 }
 )
-await r.focus(
+await zf(
   efield('export.offset'),
   t(
     'Molte stampanti non allineano bene i due lati: lo spostamento dei retri lo corregge',
     'Many printers don’t align both sides well: the back offset fixes it'
-  ),
-  'left'
+  )
 )
 for (const [line, ms] of [
-  [
-    t(
-      '1. Stampa una sola pagina fronte-retro',
-      '1. Print a single double-sided page'
-    ),
-    3200
-  ],
+  [t('1. Stampa una sola pagina fronte-retro', '1. Print a single double-sided page'), 3200],
   [
     t(
       '2. Guarda il foglio controluce e misura di quanto il retro è spostato rispetto al fronte',
@@ -280,13 +277,12 @@ await r.clear()
 await fill(control('export.offset', 'input'), '1.5')
 await r.wait(400)
 await tick('export.foldPairs')
-await r.focus(
+await zf(
   efield('export.fold'),
   t(
     'Senza stampante fronte-retro: la piegatura mette fronte e retro affiancati',
     'Without a duplex printer: folding puts front and back side by side'
-  ),
-  'left'
+  )
 )
 await preview(
   t(
@@ -305,13 +301,12 @@ await tick('export.bleedTouch', false)
 // ruotata, la plancia entra in un A4: senza rotazione si divide
 await tick('export.autoRotate', false)
 await tick('export.posterSplit')
-await r.focus(
+await zf(
   efield('export.poster'),
   t(
     'Poster: una plancia più grande della pagina si divide su più A4, con un po’ di sovrapposizione',
     'Poster: a board bigger than the page is split over several A4 sheets, with some overlap'
-  ),
-  'left'
+  )
 )
 await preview(
   t(
@@ -327,15 +322,15 @@ await tick('export.autoRotate')
 await r.title(t('Per la tipografia', 'For a print shop'))
 await r.clear()
 const profile = exp().locator('.profile-bar select').first()
-await r.focus(
+await zf(
   profile,
   t(
     'I preset: MakePlayingCards, The Game Crafter, stampa in casa su A4 o Letter',
     'Presets: MakePlayingCards, The Game Crafter, home printing on A4 or Letter'
-  ),
-  'below'
+  )
 )
 await choose(profile, T['preset.mpc'])
+await r.unzoom(600)
 await r.focus(
   exp(),
   t(
@@ -359,46 +354,41 @@ await r.click(button('export.profileSaveAs'))
 await r.clear(300)
 await r.type(t('Stampa di prova', 'Test print'))
 await r.wait(400)
-await r.focus(
+await zf(
   exp().locator('.profile-bar').first(),
   t(
     'Salva come…: le opzioni diventano un profilo del progetto, da rilanciare con un clic',
     'Save as…: the options become a project profile, to run again with one click'
-  ),
-  'below'
+  )
 )
 await r.click(exp().locator('.profile-bar button.primary').first())
 await r.wait(600)
 await tick('export.proof')
-await r.focus(
+await zf(
   efield('export.extras'),
   t(
     'Il foglio di prova: tutte le carte in piccolo, per controllarle prima di consumare carta',
     'The proof sheet: every card small, to check them before using up paper'
-  ),
-  'left'
+  )
 )
-await r.focus(
+await zf(
   check('export.cmyk'),
   t(
     'Se la tipografia vuole il CMYK, Stella converte il PDF (serve Ghostscript sul computer)',
     'If the print shop wants CMYK, Stella converts the PDF (it needs Ghostscript on the computer)'
-  ),
-  'left'
+  )
 )
 const run = button('export.run')
 await r.click(run)
 await win.waitForTimeout(1000)
 for (let i = 0; i < 240 && !(await run.isEnabled()); i++) await win.waitForTimeout(500)
 await r.wait(800)
-await r.focus(
+await zf(
   exp().locator('.export-result').first(),
   t(
     'Fatto: il PDF e il foglio di prova sono nella cartella export del progetto',
     'Done: the PDF and the proof sheet are in the project’s export folder'
-  ),
-  'above',
-  { pad: 4 }
+  )
 )
 
 // ---- 6. i crediti
@@ -412,9 +402,13 @@ await r.focus(
     'Icone e font usati, con fonte, licenza e autore: da mettere nel regolamento o sulla scatola',
     'Icons and fonts used, with source, license and author: for the rulebook or the box'
   ),
-  'none',
-  { pad: 0, dim: false }
+  'left',
+  { pad: 0 }
 )
+await r.clear(300)
+await r.zoom(dialog().locator('textarea, pre').first(), { max: 1.8, fill: 0.85 })
+await r.wait(3500)
+await r.unzoom()
 await r.click(dialog().getByRole('button', { name: T['dialog.close'], exact: true }).last())
 await r.wait(500)
 await r.click(button('export.close'))

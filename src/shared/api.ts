@@ -151,6 +151,11 @@ export interface Api {
   /** Toglie un progetto dall'elenco dei recenti; la cartella non si tocca */
   removeRecentProject(folder: string): Promise<void>
   /**
+   * Copia il progetto di esempio della guida in Documenti/Stella (se non c'è già) e ne
+   * restituisce la cartella, da aprire con loadProject. Solo nell'app desktop.
+   */
+  prepareExampleProject(lang: string): Promise<string>
+  /**
    * Salva la miniatura del progetto aperto disegnando il template dato (già legato ai valori
    * della carta); con onlyIfMissing non ridisegna una miniatura che esiste già
    */

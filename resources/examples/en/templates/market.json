@@ -1,0 +1,103 @@
+{
+  "name": "market",
+  "width": 44,
+  "height": 63,
+  "bleed": 3,
+  "safeMargin": 2.5,
+  "cornerRadius": 3,
+  "front": [
+    {
+      "type": "value",
+      "name": "points",
+      "value": "0",
+      "source": {
+        "kind": "formula",
+        "expr": "=COUNTIN({resources}; \"stone\")*2 + COUNTIN({resources}; \"wood\") + COUNTIN({resources}; \"wheat\")"
+      }
+    },
+    {
+      "type": "text",
+      "name": "points_text",
+      "x": 14,
+      "y": 40,
+      "w": 16,
+      "h": 16,
+      "text": "",
+      "weight": 900,
+      "size": 20,
+      "color": "#FFFFFF",
+      "align": "center",
+      "valign": "middle",
+      "source": {
+        "kind": "formula",
+        "expr": "{points}"
+      }
+    },
+    {
+      "type": "shape",
+      "name": "points_bg",
+      "shape": "polygon",
+      "sides": 6,
+      "x": 13,
+      "y": 39,
+      "w": 18,
+      "h": 18,
+      "fill": "#3C7A3E",
+      "stroke": {
+        "color": "#FFFFFF",
+        "width": 0.6
+      }
+    },
+    {
+      "type": "text",
+      "name": "resources",
+      "x": 3,
+      "y": 12,
+      "w": 38,
+      "h": 22,
+      "text": "",
+      "size": 22,
+      "color": "#2A241C",
+      "align": "center",
+      "valign": "middle",
+      "lineHeight": 1
+    },
+    {
+      "type": "text",
+      "name": "title",
+      "x": 3,
+      "y": 3.5,
+      "w": 38,
+      "h": 6,
+      "text": "Market",
+      "weight": 800,
+      "size": 9,
+      "color": "#5E5446",
+      "align": "center",
+      "valign": "middle",
+      "transform": "upper",
+      "letterSpacing": 150
+    },
+    {
+      "type": "shape",
+      "name": "background",
+      "x": -3,
+      "y": -3,
+      "w": 50,
+      "h": 69,
+      "fill": "#EDE4D3",
+      "locked": true
+    }
+  ],
+  "back": [
+    {
+      "type": "shape",
+      "name": "back_background",
+      "x": -3,
+      "y": -3,
+      "w": 50,
+      "h": 69,
+      "fill": "#3C7A3E"
+    }
+  ]
+}

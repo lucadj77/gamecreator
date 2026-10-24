@@ -370,6 +370,10 @@ a:focus-visible {
   align-items: center;
   color: var(--fg-2);
 }
+.support {
+  margin-top: 20px;
+  color: var(--fg-2);
+}
 .dl .btn {
   border-color: var(--line);
   color: var(--fg);

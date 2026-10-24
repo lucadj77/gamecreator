@@ -1,0 +1,152 @@
+{
+  "icons/cavaliere.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "lorc/visored-helm",
+    "title": "visored-helm",
+    "author": "Lorc",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/lorc/visored-helm.html",
+    "imported": "2026-10-19"
+  },
+  "icons/arciere.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "delapouite/archer",
+    "title": "archer",
+    "author": "Delapouite",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/delapouite/archer.html",
+    "imported": "2026-10-19"
+  },
+  "icons/strega.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "cathelineau/witch-face",
+    "title": "witch-face",
+    "author": "Cathelineau",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/cathelineau/witch-face.html",
+    "imported": "2026-10-19"
+  },
+  "icons/drago.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "lorc/dragon-head",
+    "title": "dragon-head",
+    "author": "Lorc",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/lorc/dragon-head.html",
+    "imported": "2026-10-19"
+  },
+  "icons/monaco.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "delapouite/monk-face",
+    "title": "monk-face",
+    "author": "Delapouite",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/delapouite/monk-face.html",
+    "imported": "2026-10-19"
+  },
+  "icons/ladro.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "darkzaitzev/hooded-figure",
+    "title": "hooded-figure",
+    "author": "DarkZaitzev",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/darkzaitzev/hooded-figure.html",
+    "imported": "2026-10-19"
+  },
+  "icons/spada.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "lorc/broadsword",
+    "title": "broadsword",
+    "author": "Lorc",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/lorc/broadsword.html",
+    "imported": "2026-10-19"
+  },
+  "icons/scudo.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "delapouite/cross-shield",
+    "title": "cross-shield",
+    "author": "Delapouite",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/delapouite/cross-shield.html",
+    "imported": "2026-10-19"
+  },
+  "icons/pozione.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "delapouite/health-potion",
+    "title": "health-potion",
+    "author": "Delapouite",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/delapouite/health-potion.html",
+    "imported": "2026-10-19"
+  },
+  "icons/moneta.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "delapouite/two-coins",
+    "title": "two-coins",
+    "author": "Delapouite",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/delapouite/two-coins.html",
+    "imported": "2026-10-19"
+  },
+  "icons/legno.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "delapouite/log",
+    "title": "log",
+    "author": "Delapouite",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/delapouite/log.html",
+    "imported": "2026-10-19"
+  },
+  "icons/pietra.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "delapouite/stone-pile",
+    "title": "stone-pile",
+    "author": "Delapouite",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/delapouite/stone-pile.html",
+    "imported": "2026-10-19"
+  },
+  "icons/grano.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "lorc/wheat",
+    "title": "wheat",
+    "author": "Lorc",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/lorc/wheat.html",
+    "imported": "2026-10-19"
+  },
+  "icons/lanterna.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "lorc/lantern-flame",
+    "title": "lantern-flame",
+    "author": "Lorc",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/lorc/lantern-flame.html",
+    "imported": "2026-10-19"
+  },
+  "icons/chiave.svg": {
+    "kind": "icon",
+    "source": "game-icons.net",
+    "id": "delapouite/boss-key",
+    "title": "boss-key",
+    "author": "Delapouite",
+    "license": "CC-BY-3.0",
+    "url": "https://game-icons.net/1x1/delapouite/boss-key.html",
+    "imported": "2026-10-19"
+  }
+}

@@ -22,6 +22,7 @@ import {
 } from './updater'
 import { createProject } from './project/create'
 import { addRecent, hasThumbnail, listRecent, removeRecent, saveThumbnail } from './project/recent'
+import { prepareExample } from './project/example'
 import { saveData, type DataChanges } from './project/save'
 import { markDataWritten, watchDataFile } from './project/watchData'
 import { inspectDataFile } from './project/inspect'
@@ -234,6 +235,7 @@ function registerIpc(): void {
 
   ipcMain.handle('recent:list', () => listRecent())
   ipcMain.handle('recent:remove', (_, folder: string) => removeRecent(folder))
+  ipcMain.handle('example:prepare', (_, lang: string) => prepareExample(lang))
 
   // la miniatura è sempre quella del progetto aperto: le immagini arrivano da lì
   ipcMain.handle(

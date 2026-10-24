@@ -13,6 +13,9 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 - **Website**: <https://stella.lucadj.eu/> now presents Stella, with the download of the latest stable version for the visitor's system, the tutorial videos and the links to the guide and the news. The web version moves to <https://stella.lucadj.eu/app/> (the beta stays in `/beta/`); the old addresses redirect.
 
+- **Open the example project** in the start screen: the project of the guide and the videos, in the interface language, copied into Documents/Stella/Example the first time and opened from there.
+- **Support Stella**: a link to free donations (PayPal) in the start screen, in Help (F1) and on the website. No reminders, no pop-ups.
+
 #### Fixed
 
 - **Help (F1)** on Windows and Linux shows the shortcuts with Ctrl instead of ⌘. The user guide writes every shortcut in both forms (⌘S / Ctrl+S).
@@ -22,6 +25,9 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 #### Novità
 
 - **Sito**: <https://stella.lucadj.eu/> ora presenta Stella, con il download dell'ultima versione stabile per il sistema di chi visita, i video tutorial e i rimandi alla guida e alle novità. La versione web si sposta in <https://stella.lucadj.eu/app/> (la beta resta in `/beta/`); i vecchi indirizzi rimandano a quelli nuovi.
+
+- **Apri il progetto di esempio** nella schermata iniziale: il progetto della guida e dei video, nella lingua dell'interfaccia, copiato in Documenti/Stella/Esempio la prima volta e aperto da lì.
+- **Sostieni Stella**: un collegamento per le donazioni libere (PayPal) nella schermata iniziale, nell'Aiuto (F1) e sul sito. Nessun promemoria, nessuna finestra.
 
 #### Correzioni
 

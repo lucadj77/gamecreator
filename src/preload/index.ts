@@ -8,6 +8,7 @@ const api: Api = {
   loadProject: (folder) => ipcRenderer.invoke('project:load', folder),
   recentProjects: () => ipcRenderer.invoke('recent:list'),
   removeRecentProject: (folder) => ipcRenderer.invoke('recent:remove', folder),
+  prepareExampleProject: (lang) => ipcRenderer.invoke('example:prepare', lang),
   saveThumbnail: (template, context, onlyIfMissing) =>
     ipcRenderer.invoke('project:thumbnail', template, context, onlyIfMissing),
   defaultProjectsFolder: () => ipcRenderer.invoke('project:default-parent'),

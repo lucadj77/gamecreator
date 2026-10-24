@@ -1,6 +1,6 @@
 # Guida all'uso di Stella
 
-Stella è un'app per creare carte e altri elementi di gioco stampati a partire da un foglio di calcolo. Si disegna una volta il modello della carta, il **template**, e ogni riga del foglio diventa una carta. Le carte si esportano come immagini, come PDF da stampare o come mazzi per Tabletop Simulator.
+Stella è un'app per creare carte e altri elementi di gioco stampati a partire da un foglio di calcolo. Si disegna una volta il modello della carta, il **template**, e ogni riga del foglio diventa una carta. Le carte si esportano come immagini, come PDF da stampare o come oggetti per Tabletop Simulator: mazzi, segnalini, tessere, plance e dadi, pronti da caricare nel gioco.
 
 Questa guida segue l'ordine in cui di solito si lavora: creare un progetto, disegnare un template, inserire le carte, rifinire testi e immagini, esportare. Gli esempi vengono da un piccolo progetto con tre set: personaggi, oggetti e carte mercato.
 
@@ -52,6 +52,7 @@ All'avvio Stella mostra la schermata di ingresso.
 - **Nuovo progetto…** crea una cartella vuota con la struttura di un progetto.
 - **Apri progetto…** apre una cartella che contiene `stella.json`. Si aprono anche i progetti creati quando l'app si chiamava Naibi (`naibi.json`) o GameCreator (`gamecreator.json`).
 - **Importa da Tabletop Creator…** converte un progetto di Tabletop Creator ([capitolo 14](#14-importare-da-tabletop-creator)).
+- **Apri il progetto di esempio** apre il progetto usato in questa guida e nei video: tre set (Personaggi, Oggetti, Mercato), icone, variabili e stili. La prima volta lo copia in Documenti/Stella/Esempio, dove si può modificare liberamente; poi apre quella copia. Non c'è nella versione web.
 - **Progetti recenti** mostra fino a 24 progetti, con la prima carta come miniatura. La × toglie un progetto dall'elenco senza cancellare la cartella.
 
 Il pulsante ⚙ in alto a destra, in ogni schermata, apre le impostazioni: la dimensione dell'interfaccia, il tema (chiaro, scuro o quello del sistema), la lingua (inglese o italiano) e **Strumenti IA…**, che prepara un agente IA a lavorare sui progetti ([capitolo 15](#15-lavorare-con-un-agente-ia)).

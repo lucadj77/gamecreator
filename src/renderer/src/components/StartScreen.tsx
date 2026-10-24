@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { RecentProject } from '../../../shared/api'
 import { projectFolderName } from '../../../shared/model/projectName'
 import { isPrerelease } from '../../../shared/update'
+import { DONATE_URL } from '../../../shared/donate'
 import { messageFromError, type Message } from '../../../shared/messages'
 import { Dialog } from '../editor/dialogs'
 import { useI18n } from '../i18n/context'
@@ -93,6 +94,17 @@ export default function StartScreen({
           <button onClick={onImport} title={t('tip.importTtc')}>
             {t('start.importTtc')}
           </button>
+          {!window.api.isWeb && (
+            <button
+              disabled={loading}
+              title={t('tip.example')}
+              onClick={() => {
+                window.api.prepareExampleProject(lang).then(onOpen, (e) => console.error(e))
+              }}
+            >
+              {t('start.example')}
+            </button>
+          )}
           <button onClick={onHelp} title={t('tip.help')}>
             {t('app.help')}
           </button>
@@ -134,6 +146,9 @@ export default function StartScreen({
         </ul>
       </div>
       <footer className="start-footer">
+        <a className="about-link" href={DONATE_URL} target="_blank" rel="noreferrer">
+          {t('start.support')}
+        </a>
         {version && (
           <button className="about-link" onClick={() => setWhatsNew(true)}>
             {t('update.whatsNew')}

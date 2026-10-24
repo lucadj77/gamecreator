@@ -19,7 +19,7 @@ export const texts = {
     },
     hero: {
       claim: 'Carte, plance, segnalini e dadi del tuo gioco, da un foglio di calcolo',
-      text: 'Disegni il template una volta, scrivi i dati in un foglio di calcolo e Stella disegna tutti i componenti: anteprime, PDF per la stampa, immagini per Tabletop Simulator, e il regolamento con le carte vere dentro. Software libero, per Mac, Windows e Linux.',
+      text: 'Disegni il template una volta, scrivi i dati in un foglio di calcolo e Stella disegna tutti i componenti: anteprime, PDF per la stampa, mazzi, segnalini, tessere, plance e dadi pronti da caricare in Tabletop Simulator, e il regolamento con le carte vere dentro. Software libero, per Mac, Windows e Linux.',
       download: 'Scarica per',
       downloadGeneric: 'Scarica',
       version: 'versione stabile',
@@ -44,7 +44,7 @@ export const texts = {
         ],
         [
           'Stampa e Tabletop Simulator',
-          'PDF con crocini e fronte-retro, immagini singole, e per Tabletop Simulator mazzi, segnalini, tessere, plance e dadi a sei facce.'
+          'PDF con crocini e fronte-retro, immagini singole, e oggetti pronti per Tabletop Simulator: mazzi, segnalini, tessere, plance e dadi a sei facce, da caricare nel gioco così come sono.'
         ],
         [
           'Regolamento con le carte',
@@ -84,6 +84,7 @@ export const texts = {
       linuxNote: 'L’AppImage va reso eseguibile (chmod +x) e richiede libfuse2.',
       all: 'Tutte le versioni su GitHub',
       beta: 'Le versioni beta si attivano dall’app, in ⚙ Aggiornamenti.',
+      support: 'Stella è gratuita: se ti è utile, puoi offrirmi un caffè con PayPal.',
       failed: 'Non riesco a leggere l’ultima versione: scaricala dalla pagina delle release.'
     },
     web: {
@@ -120,6 +121,7 @@ export const texts = {
       license:
         'Stella è software libero, licenza GNU GPL 3 o successive. Le carte che crei sono tue.',
       source: 'Codice sorgente su GitHub',
+      support: 'Offrimi un caffè',
       by: 'Un progetto di Luca Di Gialleonardo · Predigarama Games'
     }
   },
@@ -142,7 +144,7 @@ export const texts = {
     },
     hero: {
       claim: 'Your game’s cards, boards, tokens and dice, from a spreadsheet',
-      text: 'Draw the template once, write the data in a spreadsheet and Stella draws every component: previews, PDFs for printing, images for Tabletop Simulator, and the rulebook with the real cards inside. Free software, for Mac, Windows and Linux.',
+      text: 'Draw the template once, write the data in a spreadsheet and Stella draws every component: previews, PDFs for printing, decks, tokens, tiles, boards and dice ready to load into Tabletop Simulator, and the rulebook with the real cards inside. Free software, for Mac, Windows and Linux.',
       download: 'Download for',
       downloadGeneric: 'Download',
       version: 'stable version',
@@ -167,7 +169,7 @@ export const texts = {
         ],
         [
           'Print and Tabletop Simulator',
-          'PDFs with crop marks and duplex, single images, and for Tabletop Simulator decks, tokens, tiles, boards and six-sided dice.'
+          'PDFs with crop marks and duplex, single images, and ready-made Tabletop Simulator objects: decks, tokens, tiles, boards and six-sided dice, loaded into the game as they are.'
         ],
         [
           'Rulebook with the cards',
@@ -206,6 +208,7 @@ export const texts = {
       linuxNote: 'Make the AppImage executable (chmod +x); it needs libfuse2.',
       all: 'All versions on GitHub',
       beta: 'Beta versions are enabled in the app, under ⚙ Updates.',
+      support: 'Stella is free: if you find it useful, you can buy me a coffee with PayPal.',
       failed: 'The latest version could not be read: download it from the releases page.'
     },
     web: {
@@ -240,6 +243,7 @@ export const texts = {
     footer: {
       license: 'Stella is free software, GNU GPL 3 or later. The cards you make are yours.',
       source: 'Source code on GitHub',
+      support: 'Buy me a coffee',
       by: 'A project by Luca Di Gialleonardo · Predigarama Games'
     }
   }

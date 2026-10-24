@@ -55,7 +55,7 @@ Il backup fatto da `set-rows`, `pull-sheets`, `rename-set` e `rename-template` v
 
 ## Skill per gli agenti
 
-La skill è in [skill/stella/SKILL.md](../skill/stella/SKILL.md), in inglese: spiega il formato del progetto, il markup, le formule e il modo di lavorare (`info`, poi le modifiche, poi `check` e `render` per controllare). Il segnaposto `{{STELLA_COMMAND}}` indica come lanciare il comando.
+La skill è in [skill/stella/SKILL.md](../skill/stella/SKILL.md), in inglese: spiega il formato del progetto, il markup, le formule e il modo di lavorare (`info`, poi le modifiche, poi `check` e `render` per controllare). Spiega anche come aggiungere un profilo di esportazione a un progetto che non ne ha (per eseguirlo con `export --profile`) e come prendere icone da Iconify, annotando origine e licenza in `assets/sources.json` come fa **Importa icone** nell'app, così i crediti restano completi. Il segnaposto `{{STELLA_COMMAND}}` indica come lanciare il comando.
 
 Nell'app **Strumenti IA…** (nel menu ⚙ di ogni schermata) mostra la skill con il comando di questo computer già inserito. Si può copiare e incollare nell'agente, chiedendogli di installarla, oppure salvare come file in `<cartella>/stella/SKILL.md`; Claude Code legge le skill da `~/.claude/skills` o da `.claude/skills` dentro un progetto. Solo le istruzioni intorno alla skill sono tradotte.
 

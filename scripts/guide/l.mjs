@@ -7,6 +7,7 @@ const { app, win, T } = await launch({ lang, open: false })
 const project = makeProject(lang)
 
 // due template in più nel progetto di esempio: una plancia esagonale e un tracciato del punteggio
+// (il primo livello dell'elenco è quello in cima: lo sfondo va per ultimo)
 const board = {
   name: it ? 'plancia' : 'board',
   width: 120,
@@ -15,18 +16,6 @@ const board = {
   safeMargin: 3,
   cornerRadius: 3,
   front: [
-    {
-      type: 'shape',
-      name: it ? 'sfondo' : 'background',
-      shape: 'rect',
-      x: -3,
-      y: -3,
-      w: 126,
-      h: 126,
-      fill: '#E9E3D5',
-      stroke: null,
-      locked: true
-    },
     {
       type: 'grid',
       name: it ? 'mappa' : 'map',
@@ -53,6 +42,18 @@ const board = {
       alignY: 'center',
       clip: false,
       content: ''
+    },
+    {
+      type: 'shape',
+      name: it ? 'sfondo' : 'background',
+      shape: 'rect',
+      x: -3,
+      y: -3,
+      w: 126,
+      h: 126,
+      fill: '#E9E3D5',
+      stroke: null,
+      locked: true
     }
   ],
   back: []
@@ -67,18 +68,6 @@ const track = {
   safeMargin: 3,
   cornerRadius: 3,
   front: [
-    {
-      type: 'shape',
-      name: it ? 'sfondo' : 'background',
-      shape: 'rect',
-      x: -3,
-      y: -3,
-      w: 126,
-      h: 76,
-      fill: '#F6F2E8',
-      stroke: null,
-      locked: true
-    },
     {
       type: 'text',
       name: it ? 'titolo' : 'title',
@@ -121,23 +110,18 @@ const track = {
     {
       type: 'group',
       name: it ? 'casella' : 'cell',
-      x: 7.5,
-      y: 15.5,
-      w: 9.6,
-      h: 9.6,
       layout: 'none',
       gap: 0,
       columns: 1,
       justify: 'center',
       alignItems: 'center',
-      repeat: '',
       clip: false,
       children: [
         {
           type: 'text',
           name: numName,
-          x: 0,
-          y: 0,
+          x: 7.5,
+          y: 19.3,
           w: 9.6,
           h: 9.6,
           text: '1',
@@ -152,6 +136,18 @@ const track = {
           }
         }
       ]
+    },
+    {
+      type: 'shape',
+      name: it ? 'sfondo' : 'background',
+      shape: 'rect',
+      x: -3,
+      y: -3,
+      w: 126,
+      h: 76,
+      fill: '#F6F2E8',
+      stroke: null,
+      locked: true
     }
   ],
   back: []

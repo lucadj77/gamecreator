@@ -1,5 +1,7 @@
 # Formato di progetto
 
+La versione inglese è [format.md](format.md).
+
 Un progetto Stella è una cartella:
 
 ```

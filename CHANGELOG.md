@@ -13,11 +13,19 @@ nella lingua dell'interfaccia quando segnala un aggiornamento. Le versioni con u
 
 - **Website**: <https://stella.lucadj.eu/> now presents Stella, with the download of the latest stable version for the visitor's system, the tutorial videos and the links to the guide and the news. The web version moves to <https://stella.lucadj.eu/app/> (the beta stays in `/beta/`); the old addresses redirect.
 
+#### Fixed
+
+- **Help (F1)** on Windows and Linux shows the shortcuts with Ctrl instead of ⌘. The user guide writes every shortcut in both forms (⌘S / Ctrl+S).
+
 ### Italiano
 
 #### Novità
 
 - **Sito**: <https://stella.lucadj.eu/> ora presenta Stella, con il download dell'ultima versione stabile per il sistema di chi visita, i video tutorial e i rimandi alla guida e alle novità. La versione web si sposta in <https://stella.lucadj.eu/app/> (la beta resta in `/beta/`); i vecchi indirizzi rimandano a quelli nuovi.
+
+#### Correzioni
+
+- **Aiuto (F1)** su Windows e Linux mostra le scorciatoie con Ctrl al posto di ⌘. La guida scrive ogni scorciatoia in entrambe le forme (⌘S / Ctrl+S).
 
 ## 1.2.1
 

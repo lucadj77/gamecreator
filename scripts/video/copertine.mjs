@@ -32,7 +32,7 @@ const outro = page(`<div class="wrap">
   <div class="logo">${logo}</div>
   <h1>Stella</h1>
   <p class="small">${it ? 'La guida completa e i download:' : 'Full guide and downloads:'}</p>
-  <div class="url">lucadj77.github.io/stella</div>
+  <div class="url">stella.lucadj.eu</div>
   <div class="by">${it ? 'Un video di Luca Di Gialleonardo · Predigarama Games' : 'A video by Luca Di Gialleonardo · Predigarama Games'}</div>
 </div>`)
 const b = await chromium.launch({

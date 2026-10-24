@@ -13,7 +13,7 @@ Prossimi passi:
 3. esportazione PNG e PDF di stampa;
 4. import dei progetti Tabletop Creator.
 
-La guida all'uso è in [docs/guida](docs/guida/README.md) (in inglese in [docs/guide](docs/guide/README.md)). Il sito di presentazione, con i download e i tutorial, è <https://lucadj77.github.io/stella/> (sorgente in [site/](site/LEGGIMI.md)).
+La guida all'uso è in [docs/guida](docs/guida/README.md) (in inglese in [docs/guide](docs/guide/README.md)). Il sito di presentazione, con i download e i tutorial, è <https://stella.lucadj.eu/> (sorgente in [site/](site/LEGGIMI.md)).
 
 I requisiti sono in [docs/requisiti.md](docs/requisiti.md), la specifica funzionale in [docs/specifica.md](docs/specifica.md).
 
@@ -35,7 +35,7 @@ I pacchetti si scaricano dalla pagina [Releases](https://github.com/lucadj77/ste
 - **Windows**: `Stella-<versione>-windows-setup.exe`. Senza firma, Windows SmartScreen mostra "Windows ha protetto il PC": si preme **Ulteriori informazioni** e poi **Esegui comunque**. Per la versione portable, che non si installa, c'è `Stella-<versione>-windows-portable.exe`: si avvia direttamente, anche da una chiavetta, e tiene i suoi dati (progetti recenti, preferenze) nella cartella `Stella data` accanto al file.
 - **Linux**: `Stella-<versione>-linux-x86_64.AppImage`, da rendere eseguibile (`chmod +x`) e avviare, oppure `Stella-<versione>-linux-amd64.deb` per Debian e Ubuntu (per esempio `sudo apt install ./Stella-1.0.0-linux-amd64.deb`). L'AppImage richiede libfuse2 (su Ubuntu `sudo apt install libfuse2t64`).
 
-Dove non si può installare nulla c'è la **versione web**, da aprire con Chrome, Edge o Opera (in Brave va attivata `brave://flags/#file-system-access-api`): <https://lucadj77.github.io/stella/app/>. Lavora sugli stessi progetti, con alcune funzioni in meno; vedi [docs/web.md](docs/web.md).
+Dove non si può installare nulla c'è la **versione web**, da aprire con Chrome, Edge o Opera (in Brave va attivata `brave://flags/#file-system-access-api`): <https://stella.lucadj.eu/app/>. Lavora sugli stessi progetti, con alcune funzioni in meno; vedi [docs/web.md](docs/web.md).
 
 ## Build
 

@@ -4,7 +4,7 @@ Stella is an app for making cards and other printed game components from a sprea
 
 This guide follows the usual order of work: create a project, design a template, enter the cards, refine texts and images, export. The examples come from a small project with three sets: characters, items and market cards.
 
-Video tutorials on YouTube: [an overview of the basic functions](https://www.youtube.com/watch?v=-sKpQE61xB0) (3 minutes) and [your first component from scratch](https://www.youtube.com/watch?v=_sPWwTv96P0) (8 minutes), no voice.
+Video tutorials on YouTube: [an overview of the basic functions](https://www.youtube.com/watch?v=JOD09G8No_c) (3 minutes) and [your first component from scratch](https://www.youtube.com/watch?v=_sPWwTv96P0) (8 minutes), no voice.
 
 Versione italiana: [../guida/README.md](../guida/README.md).
 

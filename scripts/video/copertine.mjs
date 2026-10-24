@@ -1,9 +1,15 @@
 // Copertine iniziale e finale dei video (1440x900) disegnate in HTML e fotografate con Chromium.
-// Uso: node copertine.mjs <cartella assets> <it|en>
+// Uso: node copertine.mjs <cartella assets> <it|en> [video]; video: panoramica (predefinito), primo-componente
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
-const [dir, lang] = process.argv.slice(2)
+const [dir, lang, video = 'panoramica'] = process.argv.slice(2)
 const it = lang === 'it'
+const SUBTITLES = {
+  panoramica: ['Una panoramica delle funzioni di base', 'An overview of the basic functions'],
+  'primo-componente': ['Il tuo primo componente da zero', 'Your first component from scratch']
+}
+if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
+const subtitle = SUBTITLES[video][it ? 0 : 1]
 const logo = readFileSync(new URL('../../build/icon.svg', import.meta.url), 'utf8').replace(
   /<metadata>[\s\S]*?<\/metadata>/,
   ''
@@ -26,7 +32,7 @@ const page = (body) => `<!doctype html><html><head><meta charset="utf-8"><style>
 const intro = page(`<div class="wrap">
   <div class="logo">${logo}</div>
   <h1>Stella <span>Game Center</span></h1>
-  <h2>${it ? 'Una panoramica delle funzioni di base' : 'An overview of the basic functions'}</h2>
+  <h2>${subtitle}</h2>
   <div class="by">${it ? 'di Luca Di Gialleonardo' : 'by Luca Di Gialleonardo'}</div>
 </div>`)
 const outro = page(`<div class="wrap">

@@ -1534,7 +1534,8 @@ export const en = {
   'tip.help': 'Text markup, system variables, formulas and keyboard shortcuts (F1)',
   'help.title': 'Help',
   'help.guide': 'Open the complete user guide (online)',
-  'help.support': 'Stella is free. If it is useful to you, you can buy me a coffee (PayPal)',
+  'help.support':
+    'Stella Game Center is a free app. If it is useful to you, you can buy me a coffee (PayPal)',
   'start.support': 'Support Stella',
   'help.tab.text': 'Text',
   'help.tab.variables': 'Fields and variables',

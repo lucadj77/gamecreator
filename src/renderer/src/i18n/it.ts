@@ -1558,7 +1558,8 @@ export const it: Record<MessageKey, string> = {
   'tip.help': 'Markup del testo, variabili di sistema, formule e scorciatoie da tastiera (F1)',
   'help.title': 'Aiuto',
   'help.guide': 'Apri la guida completa (online)',
-  'help.support': 'Stella è gratuita. Se ti è utile, puoi offrirmi un caffè (PayPal)',
+  'help.support':
+    "Stella Game Center è un'app gratuita. Se ti è utile, puoi offrirmi un caffè (PayPal)",
   'start.support': 'Sostieni Stella',
   'help.tab.text': 'Testo',
   'help.tab.variables': 'Campi e variabili',

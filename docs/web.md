@@ -3,8 +3,8 @@
 La versione web è la stessa app nel browser, senza installazione: serve dove un programma non si
 può installare o avviare, per esempio sui computer aziendali che bloccano i file .exe non firmati.
 Lavora sulle cartelle dei progetti del computer come l'app desktop, e i progetti sono gli stessi
-file. È pubblicata su GitHub Pages, accanto al sito di presentazione: <https://lucadj77.github.io/stella/app/> è l'ultima versione
-ufficiale, <https://lucadj77.github.io/stella/beta/> l'ultima beta (o l'ultima ufficiale, se è più
+file. È pubblicata su GitHub Pages, accanto al sito di presentazione: <https://stella.lucadj.eu/app/> è l'ultima versione
+ufficiale, <https://stella.lucadj.eu/beta/> l'ultima beta (o l'ultima ufficiale, se è più
 recente). Nel menu ⚙, **Versione** passa dall'una all'altra. Le due stanno sullo stesso sito e
 condividono ciò che il browser ricorda (progetti recenti, impostazioni).
 

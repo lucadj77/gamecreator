@@ -275,8 +275,8 @@ await r.focus(
 await r.clear()
 await r.title(
   it
-    ? 'Tutto il resto è nella guida: lucadj77.github.io/stella'
-    : 'Everything else is in the guide: lucadj77.github.io/stella',
+    ? 'Tutto il resto è nella guida: stella.lucadj.eu'
+    : 'Everything else is in the guide: stella.lucadj.eu',
   3800
 )
 await r.clear(600)

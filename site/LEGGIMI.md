@@ -1,6 +1,6 @@
 # Il sito di presentazione
 
-<https://lucadj77.github.io/stella/>: presenta Stella, propone il download dell'ultima versione stabile (letta
+<https://stella.lucadj.eu/>: presenta Stella, propone il download dell'ultima versione stabile (letta
 dalle release di GitHub, con il file adatto al sistema di chi visita), i video tutorial e i rimandi alla guida,
 alle novità e alla CLI. In inglese alla radice, in italiano in `it/`. La versione web dell'app sta accanto, in
 `app/` (stabile) e `beta/`.
@@ -15,3 +15,7 @@ alle novità e alla CLI. In inglese alla radice, in italiano in `it/`. La versio
 
 Per vedere il sito in locale: `node site/build.mjs /tmp/pages && npx serve /tmp/pages` (o un qualsiasi server
 statico; aperto come file:// il download non legge GitHub).
+
+## Dominio
+
+Il sito risponde a `stella.lucadj.eu`: un record CNAME `stella` → `lucadj77.github.io` nel DNS di `lucadj.eu` (Hostinger) e il dominio personalizzato nelle impostazioni Pages del repo (Settings → Pages → Custom domain, con «Enforce HTTPS»). Con la pubblicazione tramite GitHub Actions il file `CNAME` non serve. Il vecchio indirizzo `lucadj77.github.io/stella/` rimanda a quello nuovo, sottocartelle comprese.

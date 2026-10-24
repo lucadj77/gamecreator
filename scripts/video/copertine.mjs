@@ -1,4 +1,4 @@
-// Copertine iniziale e finale dei video (1440x900) disegnate in HTML e fotografate con Chromium.
+// Copertine iniziale e finale dei video (1440x900 punti, 1728x1080 pixel) disegnate in HTML e fotografate con Chromium.
 // Uso: node copertine.mjs <cartella assets> <it|en> [video]; video: panoramica (predefinito), primo-componente
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
@@ -46,7 +46,11 @@ const b = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium',
   args: ['--no-sandbox']
 })
-const p = await b.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })
+// come le registrazioni (lib.mjs): 1440×900 punti, 1728×1080 pixel
+const p = await b.newPage({
+  viewport: { width: 1440, height: 900 },
+  deviceScaleFactor: Number(process.env.SCALE || 1.2)
+})
 for (const [name, html] of [
   ['intro', intro],
   ['outro', outro]

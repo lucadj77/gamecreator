@@ -11,6 +11,8 @@ export async function launch({
   lang = 'it',
   w = 1440,
   h = 900,
+  // interfaccia ingrandita: 1440×900 punti diventano 1728×1080 pixel, un video a 1080p
+  scale = Number(process.env.SCALE || 1.2),
   ud = `/tmp/stella-guide/video-ud-${lang}`
 } = {}) {
   const H = home(lang)
@@ -24,8 +26,17 @@ export async function launch({
   const app = await _electron.launch({
     env: { ...process.env, HOME: H, LANG: lang === 'it' ? 'it_IT.UTF-8' : 'en_US.UTF-8' },
     executablePath: `${REPO}/node_modules/electron/dist/electron`,
-    args: [`${REPO}/out/main/index.js`, '--user-data-dir=' + ud, '--no-sandbox', '--lang=' + lang],
-    recordVideo: { dir: `${OUT}/raw`, size: { width: w, height: h } }
+    args: [
+      `${REPO}/out/main/index.js`,
+      '--user-data-dir=' + ud,
+      '--no-sandbox',
+      '--lang=' + lang,
+      '--force-device-scale-factor=' + scale
+    ],
+    recordVideo: {
+      dir: `${OUT}/raw`,
+      size: { width: Math.round(w * scale), height: Math.round(h * scale) }
+    }
   })
   const version = JSON.parse(readFileSync(`${REPO}/package.json`, 'utf8')).version
   await app.evaluate(({ app }, v) => {

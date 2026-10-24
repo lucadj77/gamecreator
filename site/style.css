@@ -533,3 +533,50 @@ footer .by img {
     font-size: 0.95rem;
   }
 }
+
+/* immagini ingrandite */
+img.zoomable {
+  cursor: zoom-in;
+}
+.zoom {
+  max-width: min(92vw, 1600px);
+  max-height: 90vh;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+  cursor: zoom-out;
+}
+.zoom::backdrop {
+  background: rgba(20, 17, 13, 0.78);
+}
+.zoom img {
+  max-width: 100%;
+  max-height: calc(90vh - 90px);
+  margin: 0 auto;
+  border-radius: 8px;
+  object-fit: contain;
+}
+.zoom-caption {
+  margin-top: 10px;
+  color: var(--fg-2);
+  font-size: 0.95rem;
+  text-align: center;
+}
+.zoom-close {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top, 0px));
+  right: max(14px, env(safe-area-inset-right, 0px));
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-fg);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}

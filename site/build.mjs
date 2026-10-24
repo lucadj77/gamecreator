@@ -77,6 +77,7 @@ for (const lang of ['it', 'en']) {
     ...t,
     flag: FLAGS[t.otherLang],
     toTop: lang === 'it' ? 'Torna a inizio pagina' : 'Back to top',
+    zoomClose: lang === 'it' ? 'Chiudi' : 'Close',
     guideDir: lang === 'it' ? 'guida' : 'guide',
     guideDirOther: lang === 'it' ? 'guide' : 'guida',
     ornament: ORNAMENT,
@@ -89,7 +90,7 @@ for (const lang of ['it', 'en']) {
     'shots.items': t.shots.items
       .map(
         ([f, c]) =>
-          `<figure><img src="${t.img}${f}" alt="${esc(c)}" loading="lazy"><figcaption>${esc(c)}</figcaption></figure>`
+          `<figure><img class="zoomable" src="${t.img}${f}" alt="${esc(c)}" loading="lazy"><figcaption>${esc(c)}</figcaption></figure>`
       )
       .join('\n'),
     videos:
@@ -106,6 +107,7 @@ for (const lang of ['it', 'en']) {
             .join('\n')
         : `<p>${esc(t.tutorial.soon)}</p>`,
     downloadJson: JSON.stringify({
+      zoomOpen: lang === 'it' ? 'Clic per ingrandire' : 'Click to enlarge',
       ...t.download,
       download: t.hero.download,
       downloadGeneric: t.hero.downloadGeneric,

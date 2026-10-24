@@ -1,4 +1,39 @@
 // Scarica: legge l'ultima release stabile da GitHub e propone il file giusto per il sistema di chi visita.
+// Immagini ingrandite: clic (o Invio) su una schermata la apre in una finestra a tutto schermo
+;(function () {
+  var dlg = document.getElementById('zoom')
+  if (!dlg || !dlg.showModal) return
+  var big = dlg.querySelector('img')
+  var caption = dlg.querySelector('.zoom-caption')
+  var hint = window.SITE_TEXTS && window.SITE_TEXTS.zoomOpen
+  function open(img) {
+    var fig = img.closest('figure')
+    var text = fig && fig.querySelector('figcaption')
+    big.src = img.currentSrc || img.src
+    big.alt = img.alt
+    caption.textContent = text ? text.textContent : img.alt
+    dlg.showModal()
+  }
+  document.querySelectorAll('img.zoomable').forEach(function (img) {
+    img.tabIndex = 0
+    img.setAttribute('role', 'button')
+    if (hint) img.title = hint
+    img.addEventListener('click', function () {
+      open(img)
+    })
+    img.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        open(img)
+      }
+    })
+  })
+  // un clic ovunque chiude: sull'immagine, sullo sfondo o sul tasto
+  dlg.addEventListener('click', function () {
+    dlg.close()
+  })
+})()
+
 // Tasto «torna su»: compare dopo una schermata di scorrimento
 ;(function () {
   var b = document.getElementById('to-top')

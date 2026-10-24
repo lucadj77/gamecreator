@@ -9,7 +9,8 @@ const SUBTITLES = {
   'primo-componente': ['Il tuo primo componente da zero', 'Your first component from scratch'],
   'formule-testo': ['Testo, icone, stili e formule', 'Text, icons, styles and formulas'],
   documenti: ['Il regolamento e gli altri documenti', 'The rulebook and other documents'],
-  tabletop: ['Da Stella a Tabletop Simulator', 'From Stella to Tabletop Simulator']
+  tabletop: ['Da Stella a Tabletop Simulator', 'From Stella to Tabletop Simulator'],
+  agente: ['Stella con un agente IA', 'Stella with an AI agent']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]

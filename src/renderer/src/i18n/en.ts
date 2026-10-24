@@ -1655,7 +1655,7 @@ export const en = {
   'ai.step2':
     'Paste it into your agent and ask it to install it as a skill (or as project instructions, if it has no skills).',
   'ai.step3':
-    'Then ask it what you need, naming the project folder. When it has finished, press Reload in Stella to see the changes.',
+    'Then ask it what you need, naming the project folder. While it works Stella stays locked; when it has finished, Stella unlocks and reloads the project by itself.',
   'ai.saveHint':
     'You can also save it as a file: Claude Code reads skills from the .claude/skills folder of your home folder or of a project. The skill is in English, which agents follow best.',
   'ai.webHint':

@@ -749,7 +749,7 @@ Example/
   deleted/              deleted templates and sheets of deleted sets, which can be recovered
 ```
 
-A project is self-contained: copying the folder to another computer gives the same result, except for fonts installed only on the first one. The format is described in [docs/formato.md](../formato.md) (in Italian).
+A project is self-contained: copying the folder to another computer gives the same result, except for fonts installed only on the first one. The format is described in [docs/format.md](../format.md).
 
 ## 18. Keyboard shortcuts
 

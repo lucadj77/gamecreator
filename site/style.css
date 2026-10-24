@@ -137,6 +137,10 @@ section + section {
   font-weight: 800;
   font-size: 1.3rem;
 }
+.brand span {
+  font-weight: 600;
+  color: var(--fg-2);
+}
 .brand img {
   width: 36px;
   height: 36px;

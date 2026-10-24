@@ -68,7 +68,7 @@ export default function StartScreen({
     <div className="start">
       <header className="start-header">
         <img className="start-logo" src={appIcon} alt="" draggable={false} />
-        <h1>Stella</h1>
+        <h1>Stella Game Center</h1>
         {version && (
           <button
             className="start-version"

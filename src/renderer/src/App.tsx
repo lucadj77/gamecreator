@@ -250,7 +250,9 @@ function App(): React.JSX.Element {
   // la versione installata resta visibile nel titolo della finestra
   const projectName = project?.file.name
   useEffect(() => {
-    document.title = [projectName, `Stella ${__APP_VERSION__}`].filter(Boolean).join(' — ')
+    document.title = [projectName, `Stella Game Center ${__APP_VERSION__}`]
+      .filter(Boolean)
+      .join(' — ')
   }, [projectName])
   // icone e font importati: gli asset cambiano senza ricaricare il progetto
   useEffect(() => onAssetsUpdate((u) => setProject((p) => p && { ...p, ...u })), [setProject])

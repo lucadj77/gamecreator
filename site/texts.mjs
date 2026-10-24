@@ -259,5 +259,14 @@ export const videos = [
       it: 'https://www.youtube.com/watch?v=xi0mTWMXBxk',
       en: 'https://www.youtube.com/watch?v=-sKpQE61xB0'
     }
+  },
+  {
+    it: 'Il tuo primo componente da zero',
+    en: 'Your first component from scratch',
+    minutes: 8,
+    url: {
+      it: 'https://www.youtube.com/watch?v=Lqd52U51KVk',
+      en: 'https://www.youtube.com/watch?v=_sPWwTv96P0'
+    }
   }
 ]

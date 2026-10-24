@@ -256,8 +256,8 @@ export const videos = [
     en: 'An overview of the basic functions',
     minutes: 3,
     url: {
-      it: 'https://www.youtube.com/watch?v=xi0mTWMXBxk',
-      en: 'https://www.youtube.com/watch?v=-sKpQE61xB0'
+      it: 'https://www.youtube.com/watch?v=7d_1IyStpQg',
+      en: 'https://www.youtube.com/watch?v=JOD09G8No_c'
     }
   },
   {

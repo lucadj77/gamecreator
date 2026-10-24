@@ -4,7 +4,7 @@ Stella è un'app per creare carte e altri elementi di gioco stampati a partire d
 
 Questa guida segue l'ordine in cui di solito si lavora: creare un progetto, disegnare un template, inserire le carte, rifinire testi e immagini, esportare. Gli esempi vengono da un piccolo progetto con tre set: personaggi, oggetti e carte mercato.
 
-Video tutorial su YouTube: [panoramica delle funzioni di base](https://www.youtube.com/watch?v=xi0mTWMXBxk) (3 minuti) e [il tuo primo componente da zero](https://www.youtube.com/watch?v=Lqd52U51KVk) (8 minuti), senza voce.
+Video tutorial su YouTube: [panoramica delle funzioni di base](https://www.youtube.com/watch?v=7d_1IyStpQg) (3 minuti) e [il tuo primo componente da zero](https://www.youtube.com/watch?v=Lqd52U51KVk) (8 minuti), senza voce.
 
 English version: [../guide/README.md](../guide/README.md).
 

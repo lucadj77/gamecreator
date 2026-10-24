@@ -11,7 +11,8 @@ const SUBTITLES = {
   documenti: ['Il regolamento e gli altri documenti', 'The rulebook and other documents'],
   tabletop: ['Da Stella a Tabletop Simulator', 'From Stella to Tabletop Simulator'],
   agente: ['Stella con un agente IA', 'Stella with an AI agent'],
-  plance: ['Plance, tessere, segnalini e dadi', 'Boards, tiles, tokens and dice']
+  plance: ['Plance, tessere, segnalini e dadi', 'Boards, tiles, tokens and dice'],
+  stampa: ['Stampare i componenti', 'Printing your components'],
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]

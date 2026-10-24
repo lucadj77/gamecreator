@@ -80,7 +80,11 @@ export function names(lang) {
   }
 }
 
-export async function extend(dest, lang) {
+/**
+ * final: i componenti come sono alla fine del video 7 (tessere esagonali con l'icona grande,
+ * segnalini rotondi, il tracciato del punteggio con il fondo colorato), per il video sulla stampa
+ */
+export async function extend(dest, lang, { final = false } = {}) {
   const it = lang === 'it'
   const N = names(lang)
   const g = gridGeometry({ ...MAP })
@@ -289,6 +293,26 @@ export async function extend(dest, lang) {
     join(dest, 'assets', 'images', N.shield + '.svg'),
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 20c-64 96-128 88-192 104 0 256 64 320 192 368 128-48 192-112 192-368-64-16-128-8-192-104z"/></svg>\n'
   )
+  if (final) {
+    const [land, token, board] = templates
+    Object.assign(land, { shape: 'hexagon', height: 39.8 })
+    Object.assign(land.front[0], box(10, 6, 26, 26))
+    token.shape = 'ellipse'
+    const cell = board.front.find((l) => l.name === N.cell)
+    // dove «Porta nella prima casella» mette il gruppo: la prima casella del tracciato
+    for (const l of cell.children) Object.assign(l, { x: TRACK.x, y: TRACK.y + 1.25 })
+    Object.assign(
+      cell.children.find((l) => l.name === N.cellBg),
+      formula('=IF(MOD({cell.index}; 10) = 0; "#F2C9BC"; "#FFFFFF")')
+    )
+    board.front.splice(1, 0, {
+      type: 'grid',
+      name: it ? 'tracciato' : 'track',
+      ...TRACK,
+      cell: 'square',
+      content: N.cell
+    })
+  }
   for (const t of templates)
     writeFileSync(join(dest, 'templates', t.name + '.json'), JSON.stringify(t, null, 2) + '\n')
 

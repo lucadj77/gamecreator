@@ -51,6 +51,18 @@ const FUNCTIONS = [
   'COUNTIN'
 ] as const
 
+const isMac = navigator.userAgent.includes('Mac')
+
+/** Le scorciatoie sono scritte con ⌘; su Windows e Linux diventano Ctrl */
+function keysFor(code: string): string {
+  if (isMac) return code
+  return code
+    .replace(/⇧⌘/g, 'Ctrl+Shift+')
+    .replace(/⌘ \+/g, 'Ctrl +')
+    .replace(/⌘(?=[A-Z])/g, 'Ctrl+')
+    .replace(/⌘/g, 'Ctrl')
+}
+
 const KEYS: [string, MessageKey][] = [
   ['⌘S', 'help.keys.save'],
   ['⌘Z  ⇧⌘Z', 'help.keys.undo'],
@@ -197,7 +209,7 @@ export default function HelpDialog({ onClose }: { onClose(): void }): React.JSX.
           {tab === 'keys' && (
             <>
               <p>{t('help.keysIntro')}</p>
-              <Table rows={KEYS.map(([c, k]) => [c, t(k)])} />
+              <Table rows={KEYS.map(([c, k]) => [keysFor(c), t(k)])} />
             </>
           )}
         </div>

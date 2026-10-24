@@ -72,7 +72,7 @@ A new project is empty: the app suggests creating a template first, then a set t
 
 ![The project window, with numbered parts](img/progetto.png)
 
-1. **Top bar.** Project name (hover it to see the folder), undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), the card language menu (only in projects with several languages), **Save** (⌘S), **Export…**, the **Project** menu, **Help** (F1, [chapter 6](#6-text-and-markup)) and ⚙ for the settings. The **Project** menu holds the commands used less often: **Backup…**, **Trash…**, **Google Sheets…**, **Languages…** ([5.7](#57-cards-in-several-languages)), **Reload from disk** (reads the project again, losing unsaved changes) and **Close project**.
+1. **Top bar.** Project name (hover it to see the folder), undo and redo (they apply to what is open: the cards, styles and variables, or the template in the editor), the card language menu (only in projects with several languages), **Save** (⌘S / Ctrl+S), **Export…**, the **Project** menu, **Help** (F1, [chapter 6](#6-text-and-markup)) and ⚙ for the settings. The **Project** menu holds the commands used less often: **Backup…**, **Trash…**, **Google Sheets…**, **Languages…** ([5.7](#57-cards-in-several-languages)), **Reload from disk** (reads the project again, losing unsaved changes) and **Close project**.
 2. **Sets.** A click opens the cards of the set; the number is the total of cards, copies included.
 3. **Templates.** A click opens the template in the editor; next to it is the format in millimeters.
 4. Project text **styles** ([chapter 7](#7-variables-and-styles)).
@@ -85,7 +85,7 @@ The ⋯ button next to the name of the open set or template opens a menu to rena
 
 Changes stay in memory until you save. The **Save** button reads **Saved** when there is nothing to write.
 
-In the desktop app the same commands are also in the app menu (on the Mac in the bar at the top of the screen, on Windows and Linux with the Alt key): **File** (open, save, export, backup, trash, Google Sheets, reload, close), **Edit**, **View** (interface size with ⌘+, ⌘− and ⌘0, full screen) and **Help**.
+In the desktop app the same commands are also in the app menu (on the Mac in the bar at the top of the screen, on Windows and Linux with the Alt key): **File** (open, save, export, backup, trash, Google Sheets, reload, close), **Edit**, **View** (interface size with ⌘+, ⌘− and ⌘0 / Ctrl+, Ctrl− and Ctrl+0, full screen) and **Help**.
 
 ## 4. Designing a template
 
@@ -106,11 +106,11 @@ The + next to **Templates** opens the new template window: name, format (poker, 
 5. **Canvas bar**: shows or hides bleed, safe area and grid, chooses what to snap to (grid, objects) and sets the zoom.
 6. **Data**: draws the canvas with the values of a card from a set, instead of the template values.
 
-On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). Holding Shift while moving, the layer moves only horizontally, vertically or at 45°, whichever direction is closest. While resizing, Shift switches the proportion lock (keeps proportions when they are free, frees them when they are locked) and ⌘ (Ctrl on Windows) resizes from the center; the two can be combined. While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. A layer that is already selected, also when chosen this way or in the layer list, can be dragged even where another layer covers it; a click without dragging selects the one on top instead. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
+On the canvas you move layers by dragging them, resize them with the handles and rotate them with the round handle at the top (Shift for 15° steps). Holding Shift while moving, the layer moves only horizontally, vertically or at 45°, whichever direction is closest. While resizing, Shift switches the proportion lock (keeps proportions when they are free, frees them when they are locked) and ⌘ / Ctrl resizes from the center; the two can be combined. While dragging, edges snap to the grid, to other layers and to guides; holding Alt drags freely. Alt+click selects the layer underneath the selected one at the same spot: useful when a larger layer covers others. A layer that is already selected, also when chosen this way or in the layer list, can be dragged even where another layer covers it; a click without dragging selects the one on top instead. The arrow keys move the layer by 0.5 mm, with Shift by 5 mm.
 
-In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ selects several layers; ⌘G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
+In the layer list you drag a layer to change its order, or onto the middle of a group to move it inside. Shift or ⌘ / Ctrl selects several layers; ⌘G / Ctrl+G groups them. With several layers selected the properties panel shows what they have in common (opacity, rotation, visibility, and the type's own properties when they are all of the same type, for example text color and size): a change applies to all of them. The fields show the values of the first selected layer.
 
-Selected layers are copied with ⌘C (⌘X to cut them) and pasted with ⌘V into another template, of another project too, or into the same one. They arrive with all their properties, above the selected layer. If the template already has a layer with the same name, the pasted one gets a new name (for example `nome_2`) but keeps reading the same column. In the same template the copy is moved by 2 mm so it does not cover the original.
+Selected layers are copied with ⌘C / Ctrl+C (⌘X / Ctrl+X to cut them) and pasted with ⌘V / Ctrl+V into another template, of another project too, or into the same one. They arrive with all their properties, above the selected layer. If the template already has a layer with the same name, the pasted one gets a new name (for example `nome_2`) but keeps reading the same column. In the same template the copy is moved by 2 mm so it does not cover the original.
 
 ### 4.3 Template properties
 
@@ -218,7 +218,7 @@ The sheet can also be one already used by another set: the two sets share the ro
 
 A set opens in the **grid**, with the cards drawn; **Table** shows it as a spreadsheet.
 
-The **table** works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a card. **+ Card**, **Duplicate** and **Delete** act on the selected rows (Shift or ⌘ to select more than one, in the grid too). With several cards selected the form on the right edits them in bulk: what you type in a field goes into all of them, while fields with different values stay empty and do not change until you touch them.
+The **table** works like a spreadsheet: double-click or type to edit a cell, Alt+Enter for a new line inside the cell, drag the row number to move a card. **+ Card**, **Duplicate** and **Delete** act on the selected rows (Shift or ⌘ / Ctrl to select more than one, in the grid too). With several cards selected the form on the right edits them in bulk: what you type in a field goes into all of them, while fields with different values stay empty and do not change until you touch them.
 
 The `amount` column says how many copies of each card to print; empty means 1.
 
@@ -226,11 +226,11 @@ The table and the form show every column you can edit: the sheet's columns and t
 
 True/false columns (properties such as `crest.visible` or `name.italic`, and columns where every cell is `true` or `false`) have a checkbox: a click, or the space bar on the cell, ticks or clears it. A faded checkbox means an empty cell: the template value applies.
 
-The **grid** shows the cards as they will be printed. The slider at the top changes the thumbnail size (also with ⌘ and the mouse wheel); dragging a card moves it.
+The **grid** shows the cards as they will be printed. The slider at the top changes the thumbnail size (also with ⌘ / Ctrl and the mouse wheel); dragging a card moves it.
 
 ![The card grid](img/griglia.png)
 
-To select several cards in the grid, drag on the empty space around the cards: the rectangle selects the cards it touches, and with Shift or ⌘ adds them to the ones already selected. ⌘A selects all the cards shown (with a filter, only the ones that pass it), Esc goes back to the card in the preview. Above the grid a bar shows how many cards are selected, with **Select all** and **Keep only one**. Dragging one of the selected cards moves all of them.
+To select several cards in the grid, drag on the empty space around the cards: the rectangle selects the cards it touches, and with Shift or ⌘ / Ctrl adds them to the ones already selected. ⌘A / Ctrl+A selects all the cards shown (with a filter, only the ones that pass it), Esc goes back to the card in the preview. Above the grid a bar shows how many cards are selected, with **Select all** and **Keep only one**. Dragging one of the selected cards moves all of them.
 
 ![Several cards selected in the grid](img/griglia-selezione.png)
 
@@ -264,11 +264,11 @@ The **Template** field, at the top of the card form, picks the template of a sin
 
 ### 5.5 Editing the file in Excel
 
-The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, even with the project open: when you save the file, Stella reads it again by itself. If Stella has unsaved changes to the data, a notice with **Reload** and **Ignore** appears instead. To edit the data only outside Stella, tick **read-only** next to the file name at the bottom of the sidebar and save: Stella no longer writes to the data file, changes to the data in the grid and in the card panel are refused and _read-only_ appears next to the card count. Templates, previews and exports work as usual. **Check data file…**, under the checkbox, shows how Stella reads each sheet: the sets that use it, the columns their templates read and the sheet lacks, and problems (titles above the headings, merged cells, Excel errors, formulas without a saved result, empty rows); it does not change the file. From the same window, **Import a sheet from another file…** puts the rows of a sheet of another file (.xlsx, .ods, .csv) in place of those of a set: first it shows the new, removed and changed rows (matched by a column with all different values, such as the name) and lets you keep the columns the file does not have; then it makes a backup of the project. The change can be undone with ⌘Z. When saving, Stella rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change. If you start from an Excel file you already have, with formulas and analysis sheets, read [Using an Excel file you already have](existing-excel.md).
+The data file is an ordinary spreadsheet and can also be edited with Excel, LibreOffice or Numbers, even with the project open: when you save the file, Stella reads it again by itself. If Stella has unsaved changes to the data, a notice with **Reload** and **Ignore** appears instead. To edit the data only outside Stella, tick **read-only** next to the file name at the bottom of the sidebar and save: Stella no longer writes to the data file, changes to the data in the grid and in the card panel are refused and _read-only_ appears next to the card count. Templates, previews and exports work as usual. **Check data file…**, under the checkbox, shows how Stella reads each sheet: the sets that use it, the columns their templates read and the sheet lacks, and problems (titles above the headings, merged cells, Excel errors, formulas without a saved result, empty rows); it does not change the file. From the same window, **Import a sheet from another file…** puts the rows of a sheet of another file (.xlsx, .ods, .csv) in place of those of a set: first it shows the new, removed and changed rows (matched by a column with all different values, such as the name) and lets you keep the columns the file does not have; then it makes a backup of the project. The change can be undone with ⌘Z / Ctrl+Z. When saving, Stella rewrites only the columns that have a heading: cell formatting, other sheets and columns without a heading stay as they are. A cell with an Excel formula stays a formula as long as its result does not change. If you start from an Excel file you already have, with formulas and analysis sheets, read [Using an Excel file you already have](existing-excel.md).
 
 ### 5.6 Data from Google Sheets
 
-If you keep the data in a Google sheet, **Google Sheets…**, in the **Project** menu, brings it into the project. In the Google sheet choose **Share** → **Anyone with the link** (viewer), copy the link and paste it; **Download** reads all the tabs. Each tab goes to the set with the same name (ignoring case); from the menu you can pick another one or **do not import** the tab. If a tab lacks some columns of the set, the window lists them: after the import those columns are gone. **Import** replaces the data of the chosen sets (⌘Z undoes it) and **Save** writes them to the project's data file, which stays the local copy: Stella works without a network too.
+If you keep the data in a Google sheet, **Google Sheets…**, in the **Project** menu, brings it into the project. In the Google sheet choose **Share** → **Anyone with the link** (viewer), copy the link and paste it; **Download** reads all the tabs. Each tab goes to the set with the same name (ignoring case); from the menu you can pick another one or **do not import** the tab. If a tab lacks some columns of the set, the window lists them: after the import those columns are gone. **Import** replaces the data of the chosen sets (⌘Z / Ctrl+Z undoes it) and **Save** writes them to the project's data file, which stays the local copy: Stella works without a network too.
 
 The link stays in the project: next time just open the window and press **Download**. A sheet not shared by link cannot be downloaded, and Stella says so. An AI can do the same with `stella pull-sheets`.
 
@@ -501,7 +501,7 @@ A field's value is, in order of precedence: the calculated value layer, the non-
 - **As icon** writes each value as `{value}`, so the text shows the icon with that name.
 - **Filter** keeps only the cards for which an expression is true, for example `COUNTIN({cost}; "gold") <= 1`.
 
-The preview shows how many cards will be created and the first rows. **Add at the end** appends the cards, **Replace the cards** takes the place of the existing ones. **Update the cards** writes only the generated columns into the existing cards, one per row, leaving the other columns as they are: for example, first generate 30 cards from 6 suits and the numbers 1-5, then use **From a folder…** to assign 30 portraits to the portrait column. If more cards are generated, the extra ones are added at the end. ⌘Z undoes.
+The preview shows how many cards will be created and the first rows. **Add at the end** appends the cards, **Replace the cards** takes the place of the existing ones. **Update the cards** writes only the generated columns into the existing cards, one per row, leaving the other columns as they are: for example, first generate 30 cards from 6 suits and the numbers 1-5, then use **From a folder…** to assign 30 portraits to the portrait column. If more cards are generated, the extra ones are added at the end. ⌘Z / Ctrl+Z undoes.
 
 ![The generator: three resources, two per card, with repetition](img/genera.png)
 
@@ -583,7 +583,7 @@ The **Documents** section of the sidebar holds the texts that go with the game: 
 
 ### 12.1 Writing and formatting
 
-Above the text is the formatting bar: the **Text** menu turns the line into a first, second or third level heading, or back into a paragraph; **B**, _I_, U and S add or remove bold, italic, underline and strikethrough on the selected text (with no selection they leave the cursor between the two marks); the next three buttons turn the chosen lines into a bulleted list, a numbered list or a quote, and a second click removes them. **Style** applies a style of the project to the selected text and ends with **Aa Format…**, the advanced formatting of [chapter 6](#6-text-and-markup). The last buttons insert an image of the assets, a table, a card, an anatomy or a table setup. The bar writes in the text the markup you would write by hand, and ⌘Z (Ctrl+Z) undoes it.
+Above the text is the formatting bar: the **Text** menu turns the line into a first, second or third level heading, or back into a paragraph; **B**, _I_, U and S add or remove bold, italic, underline and strikethrough on the selected text (with no selection they leave the cursor between the two marks); the next three buttons turn the chosen lines into a bulleted list, a numbered list or a quote, and a second click removes them. **Style** applies a style of the project to the selected text and ends with **Aa Format…**, the advanced formatting of [chapter 6](#6-text-and-markup). The last buttons insert an image of the assets, a table, a card, an anatomy or a table setup. The bar writes in the text the markup you would write by hand, and ⌘Z / Ctrl+Z undoes it.
 
 The text is Markdown, with Stella's markup from [chapter 6](#6-text-and-markup) inside the lines:
 
@@ -753,29 +753,29 @@ A project is self-contained: copying the folder to another computer gives the sa
 
 ## 18. Keyboard shortcuts
 
-On Windows and Linux ⌘ is Ctrl.
+Every shortcut is written first with the Mac ⌘ key and then, after the slash, with Ctrl for Windows and Linux.
 
-| Where        | Keys                          | Action                                                                                        |
-| ------------ | ----------------------------- | --------------------------------------------------------------------------------------------- |
-| anywhere     | ⌘S                            | save templates, data and settings                                                             |
-| set          | ⌘Z, ⇧⌘Z                       | undo and redo data changes                                                                    |
-| anywhere     | ⌘+, ⌘−, ⌘0                    | enlarge, shrink and reset the interface (desktop app)                                         |
-| set          | ⌘A, Esc                       | select all cards, go back to one                                                              |
-| table        | Alt+Enter                     | new line inside a cell                                                                        |
-| text         | `{`, then ↑ ↓, Enter          | field and variable suggestions                                                                |
-| editor       | ⌘Z, ⇧⌘Z (or ⌘Y)               | undo and redo                                                                                 |
-| editor       | T, R, E                       | new text, rectangle, ellipse                                                                  |
-| editor       | ⌘D                            | duplicate the selected layers                                                                 |
-| editor       | ⌘C, ⌘X, ⌘V                    | copy, cut and paste layers                                                                    |
-| editor       | ⌘G, ⇧⌘G                       | group and ungroup                                                                             |
-| editor       | ⌘A                            | select all layers                                                                             |
-| editor       | Delete                        | delete the selected layers                                                                    |
-| editor       | arrows, ⇧ + arrows            | move by 0.5 mm or 5 mm                                                                        |
-| editor       | Esc                           | clear the selection or leave the group                                                        |
-| canvas       | Shift while dragging          | move only horizontally, vertically or at 45°; switch the proportion lock; rotate in 15° steps |
-| canvas       | ⌘ while resizing              | resize from the center                                                                        |
-| canvas       | Alt while dragging            | move without snapping                                                                         |
-| canvas, grid | ⌘ + mouse wheel               | zoom                                                                                          |
-| set          | PgUp, PgDn                    | previous or next card, even while typing in the form                                          |
-| card         | double click, Ctrl+Enter, Esc | edit a layer on the card, close the edit, cancel it                                           |
-| card, editor | Alt+click                     | selects the layer underneath                                                                  |
+| Where        | Keys                                             | Action                                                                                        |
+| ------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| anywhere     | ⌘S / Ctrl+S                                      | save templates, data and settings                                                             |
+| set          | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z                  | undo and redo data changes                                                                    |
+| anywhere     | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | enlarge, shrink and reset the interface (desktop app)                                         |
+| set          | ⌘A / Ctrl+A, Esc                                 | select all cards, go back to one                                                              |
+| table        | Alt+Enter                                        | new line inside a cell                                                                        |
+| text         | `{`, then ↑ ↓, Enter                             | field and variable suggestions                                                                |
+| editor       | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Shift+Z (or ⌘Y / Ctrl+Y) | undo and redo                                                                                 |
+| editor       | T, R, E                                          | new text, rectangle, ellipse                                                                  |
+| editor       | ⌘D / Ctrl+D                                      | duplicate the selected layers                                                                 |
+| editor       | ⌘C / Ctrl+C, ⌘X / Ctrl+X, ⌘V / Ctrl+V            | copy, cut and paste layers                                                                    |
+| editor       | ⌘G / Ctrl+G, ⇧⌘G / Ctrl+Shift+G                  | group and ungroup                                                                             |
+| editor       | ⌘A / Ctrl+A                                      | select all layers                                                                             |
+| editor       | Delete                                           | delete the selected layers                                                                    |
+| editor       | arrows, ⇧ + arrows                               | move by 0.5 mm or 5 mm                                                                        |
+| editor       | Esc                                              | clear the selection or leave the group                                                        |
+| canvas       | Shift while dragging                             | move only horizontally, vertically or at 45°; switch the proportion lock; rotate in 15° steps |
+| canvas       | ⌘ / Ctrl while resizing                          | resize from the center                                                                        |
+| canvas       | Alt while dragging                               | move without snapping                                                                         |
+| canvas, grid | ⌘ / Ctrl + mouse wheel                           | zoom                                                                                          |
+| set          | PgUp, PgDn                                       | previous or next card, even while typing in the form                                          |
+| card         | double click, Ctrl+Enter, Esc                    | edit a layer on the card, close the edit, cancel it                                           |
+| card, editor | Alt+click                                        | selects the layer underneath                                                                  |

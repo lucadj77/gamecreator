@@ -72,7 +72,7 @@ Un progetto nuovo è vuoto: l'app suggerisce di creare prima un template e poi u
 
 ![La finestra del progetto, con le parti numerate](img/progetto.png)
 
-1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), il menu della lingua delle carte (solo nei progetti con più lingue), **Salva** (⌘S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Lingue…** ([5.7](#57-carte-in-più-lingue)), **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**.
+1. **Barra in alto.** Nome del progetto (passando col mouse si vede la cartella), annulla e ripristina (valgono per ciò che è aperto: le carte, stili e variabili, o il template nell'editor), il menu della lingua delle carte (solo nei progetti con più lingue), **Salva** (⌘S / Ctrl+S), **Esporta…**, il menu **Progetto**, **Aiuto** (F1, [capitolo 6](#6-testo-e-markup)) e ⚙ per le impostazioni. Il menu **Progetto** raccoglie i comandi usati di rado: **Backup…**, **Cestino…**, **Google Sheets…**, **Lingue…** ([5.7](#57-carte-in-più-lingue)), **Ricarica dal disco** (rilegge il progetto, perdendo le modifiche non salvate) e **Chiudi progetto**.
 2. **Set.** Un clic apre le carte del set; il numero è il totale delle carte, copie comprese.
 3. **Template.** Un clic apre il template nell'editor; accanto c'è il formato in millimetri.
 4. **Stili** di testo del progetto ([capitolo 7](#7-variabili-e-stili)).
@@ -85,7 +85,7 @@ Il pulsante ⋯ accanto al nome del set o del template aperto apre un menu per r
 
 Le modifiche restano in memoria finché non si salva. Il pulsante **Salva** diventa **Salvato** quando non c'è nulla da scrivere.
 
-Nell'app per computer gli stessi comandi stanno anche nel menu dell'app (sul Mac nella barra in cima allo schermo, su Windows e Linux con il tasto Alt): **File** (apri, salva, esporta, backup, cestino, Google Sheets, ricarica, chiudi), **Modifica**, **Vista** (dimensione dell'interfaccia con ⌘+, ⌘− e ⌘0, schermo intero) e **Aiuto**.
+Nell'app per computer gli stessi comandi stanno anche nel menu dell'app (sul Mac nella barra in cima allo schermo, su Windows e Linux con il tasto Alt): **File** (apri, salva, esporta, backup, cestino, Google Sheets, ricarica, chiudi), **Modifica**, **Vista** (dimensione dell'interfaccia con ⌘+, ⌘− e ⌘0 / Ctrl+, Ctrl− e Ctrl+0, schermo intero) e **Aiuto**.
 
 ## 4. Disegnare un template
 
@@ -106,11 +106,11 @@ Il + accanto a **Template** apre la finestra del nuovo template: nome, formato (
 5. **Barra della tela**: mostra o nasconde abbondanza, area sicura e griglia, sceglie a cosa agganciarsi (griglia, oggetti) e regola lo zoom.
 6. **Dati**: disegna la tela con i valori di una carta di un set, invece dei valori del template.
 
-Sulla tela i livelli si spostano trascinandoli, si ridimensionano con le maniglie e si ruotano con la maniglia rotonda in alto (Maiuscolo per scatti di 15°). Tenendo premuto Maiuscolo mentre si sposta, il livello si muove solo in orizzontale, in verticale o a 45°, secondo la direzione più vicina. Ridimensionando, Maiuscolo inverte il blocco delle proporzioni (le mantiene se sono libere, le libera se sono bloccate) e ⌘ (Ctrl su Windows) ridimensiona dal centro; i due si possono combinare. Durante il trascinamento i bordi si agganciano alla griglia, agli altri livelli e alle guide; tenendo premuto Alt si trascina liberamente. Alt+clic seleziona il livello che sta sotto quello selezionato, nello stesso punto: serve quando un livello più grande ne copre altri. Un livello già selezionato, anche scelto così o nell'elenco dei livelli, si trascina pure dove un altro lo copre; un clic senza trascinare seleziona invece quello in cima. Le frecce della tastiera spostano il livello di 0,5 mm, con Maiuscolo di 5 mm.
+Sulla tela i livelli si spostano trascinandoli, si ridimensionano con le maniglie e si ruotano con la maniglia rotonda in alto (Maiuscolo per scatti di 15°). Tenendo premuto Maiuscolo mentre si sposta, il livello si muove solo in orizzontale, in verticale o a 45°, secondo la direzione più vicina. Ridimensionando, Maiuscolo inverte il blocco delle proporzioni (le mantiene se sono libere, le libera se sono bloccate) e ⌘ / Ctrl ridimensiona dal centro; i due si possono combinare. Durante il trascinamento i bordi si agganciano alla griglia, agli altri livelli e alle guide; tenendo premuto Alt si trascina liberamente. Alt+clic seleziona il livello che sta sotto quello selezionato, nello stesso punto: serve quando un livello più grande ne copre altri. Un livello già selezionato, anche scelto così o nell'elenco dei livelli, si trascina pure dove un altro lo copre; un clic senza trascinare seleziona invece quello in cima. Le frecce della tastiera spostano il livello di 0,5 mm, con Maiuscolo di 5 mm.
 
-Nell'elenco dei livelli si trascina un livello per cambiarne l'ordine, o sul centro di un gruppo per metterlo dentro. Con Maiuscolo o ⌘ si selezionano più livelli; ⌘G li raggruppa. Con più livelli selezionati il pannello delle proprietà mostra le voci che hanno in comune (opacità, rotazione, visibilità, e quelle del tipo se sono tutti dello stesso tipo, per esempio colore e dimensione del testo): una modifica vale per tutti. I campi mostrano i valori del primo livello selezionato.
+Nell'elenco dei livelli si trascina un livello per cambiarne l'ordine, o sul centro di un gruppo per metterlo dentro. Con Maiuscolo o ⌘ / Ctrl si selezionano più livelli; ⌘G / Ctrl+G li raggruppa. Con più livelli selezionati il pannello delle proprietà mostra le voci che hanno in comune (opacità, rotazione, visibilità, e quelle del tipo se sono tutti dello stesso tipo, per esempio colore e dimensione del testo): una modifica vale per tutti. I campi mostrano i valori del primo livello selezionato.
 
-I livelli selezionati si copiano con ⌘C (⌘X per tagliarli) e si incollano con ⌘V in un altro template, anche di un altro progetto, o nello stesso. Arrivano con tutte le proprietà, sopra al livello selezionato. Se il template ha già un livello con lo stesso nome, quello incollato prende un nome nuovo (per esempio `nome_2`) ma continua a leggere la colonna di prima. Nello stesso template la copia è spostata di 2 mm per non coprire l'originale.
+I livelli selezionati si copiano con ⌘C / Ctrl+C (⌘X / Ctrl+X per tagliarli) e si incollano con ⌘V / Ctrl+V in un altro template, anche di un altro progetto, o nello stesso. Arrivano con tutte le proprietà, sopra al livello selezionato. Se il template ha già un livello con lo stesso nome, quello incollato prende un nome nuovo (per esempio `nome_2`) ma continua a leggere la colonna di prima. Nello stesso template la copia è spostata di 2 mm per non coprire l'originale.
 
 ### 4.3 Le proprietà del template
 
@@ -218,7 +218,7 @@ Il foglio può essere anche uno già usato da un altro set: i due set condividon
 
 Un set si apre nella **griglia**, con le carte disegnate; **Tabella** lo mostra come foglio di calcolo.
 
-La **tabella** funziona come un foglio di calcolo: doppio clic o digitazione per modificare una cella, Alt+Invio per andare a capo dentro la cella, trascinamento del numero di riga per spostare una carta. **+ Carta**, **Duplica** ed **Elimina** agiscono sulle righe selezionate (Maiuscolo o ⌘ per selezionarne più di una, anche nella griglia). Con più carte selezionate il modulo a destra le modifica in blocco: ciò che si scrive in un campo va in tutte, mentre i campi con valori diversi restano vuoti e non cambiano finché non li si tocca.
+La **tabella** funziona come un foglio di calcolo: doppio clic o digitazione per modificare una cella, Alt+Invio per andare a capo dentro la cella, trascinamento del numero di riga per spostare una carta. **+ Carta**, **Duplica** ed **Elimina** agiscono sulle righe selezionate (Maiuscolo o ⌘ / Ctrl per selezionarne più di una, anche nella griglia). Con più carte selezionate il modulo a destra le modifica in blocco: ciò che si scrive in un campo va in tutte, mentre i campi con valori diversi restano vuoti e non cambiano finché non li si tocca.
 
 La colonna `amount` indica quante copie stampare di ogni carta; vuota vale 1.
 
@@ -226,11 +226,11 @@ Tabella e modulo mostrano tutte le colonne che si possono modificare: quelle del
 
 Le colonne vero/falso (le proprietà come `stemma.visible` o `nome.italic`, e le colonne in cui ogni cella vale `true` o `false`) hanno una casella: un clic, o la barra spaziatrice sulla cella, la spunta o la toglie. Una casella chiara vuol dire cella vuota: vale il valore del template.
 
-La **griglia** mostra le carte come verranno stampate. Il cursore in alto cambia la dimensione delle miniature (anche con ⌘ e la rotella del mouse); trascinando una carta se ne cambia la posizione.
+La **griglia** mostra le carte come verranno stampate. Il cursore in alto cambia la dimensione delle miniature (anche con ⌘ / Ctrl e la rotella del mouse); trascinando una carta se ne cambia la posizione.
 
 ![La griglia delle carte](img/griglia.png)
 
-Per selezionare più carte nella griglia si trascina sullo spazio vuoto intorno alle carte: il rettangolo seleziona quelle che tocca, e con Maiuscolo o ⌘ le aggiunge a quelle già selezionate. ⌘A seleziona tutte le carte mostrate (anche con un filtro attivo, solo quelle che passano il filtro), Esc torna alla sola carta in anteprima. Sopra la griglia una barra dice quante carte sono selezionate, con **Seleziona tutte** e **Tieni solo una**. Trascinando una delle carte selezionate si spostano tutte insieme.
+Per selezionare più carte nella griglia si trascina sullo spazio vuoto intorno alle carte: il rettangolo seleziona quelle che tocca, e con Maiuscolo o ⌘ / Ctrl le aggiunge a quelle già selezionate. ⌘A / Ctrl+A seleziona tutte le carte mostrate (anche con un filtro attivo, solo quelle che passano il filtro), Esc torna alla sola carta in anteprima. Sopra la griglia una barra dice quante carte sono selezionate, con **Seleziona tutte** e **Tieni solo una**. Trascinando una delle carte selezionate si spostano tutte insieme.
 
 ![Più carte selezionate nella griglia](img/griglia-selezione.png)
 
@@ -264,11 +264,11 @@ Il campo **Template**, in cima al modulo della carta, sceglie il template di una
 
 ### 5.5 Modificare il file in Excel
 
-Il file dei dati è un normale foglio di calcolo e si può modificare anche con Excel, LibreOffice o Numbers, anche con il progetto aperto: quando salvi il file, Stella lo rilegge da sola. Se in Stella ci sono modifiche ai dati non ancora salvate, invece, compare un avviso con **Ricarica** e **Ignora**. Per modificare i dati solo fuori da Stella, spunta **in sola lettura** accanto al nome del file, in fondo alla barra laterale, e salva: Stella non scrive più nel file dei dati, le modifiche ai dati nella griglia e nella scheda della carta vengono rifiutate e accanto al conteggio delle carte compare _sola lettura_. Template, anteprime ed esportazioni funzionano come sempre. **Controlla file dati…**, sotto la casella, mostra come Stella legge ogni foglio: i set che lo usano, le colonne che i loro template leggono e il foglio non ha, e le anomalie (titoli sopra le intestazioni, celle unite, errori di Excel, formule senza risultato salvato, righe vuote); non modifica il file. Dalla stessa finestra, **Importa un foglio da un altro file…** mette le righe di un foglio di un altro file (.xlsx, .ods, .csv) al posto di quelle di un set: prima mostra le righe nuove, tolte e cambiate (riconosciute da una colonna con valori tutti diversi, come il nome) e permette di tenere le colonne che il file non ha; poi fa un backup del progetto. La modifica si annulla con ⌘Z. Al salvataggio Stella riscrive solo le colonne con un'intestazione: formattazione delle celle, altri fogli e colonne senza intestazione restano come sono. Una cella con una formula di Excel resta una formula finché il risultato non cambia. Se parti da un file Excel che hai già, con formule e fogli di analisi, leggi [Usare un file Excel che hai già](excel-esistente.md).
+Il file dei dati è un normale foglio di calcolo e si può modificare anche con Excel, LibreOffice o Numbers, anche con il progetto aperto: quando salvi il file, Stella lo rilegge da sola. Se in Stella ci sono modifiche ai dati non ancora salvate, invece, compare un avviso con **Ricarica** e **Ignora**. Per modificare i dati solo fuori da Stella, spunta **in sola lettura** accanto al nome del file, in fondo alla barra laterale, e salva: Stella non scrive più nel file dei dati, le modifiche ai dati nella griglia e nella scheda della carta vengono rifiutate e accanto al conteggio delle carte compare _sola lettura_. Template, anteprime ed esportazioni funzionano come sempre. **Controlla file dati…**, sotto la casella, mostra come Stella legge ogni foglio: i set che lo usano, le colonne che i loro template leggono e il foglio non ha, e le anomalie (titoli sopra le intestazioni, celle unite, errori di Excel, formule senza risultato salvato, righe vuote); non modifica il file. Dalla stessa finestra, **Importa un foglio da un altro file…** mette le righe di un foglio di un altro file (.xlsx, .ods, .csv) al posto di quelle di un set: prima mostra le righe nuove, tolte e cambiate (riconosciute da una colonna con valori tutti diversi, come il nome) e permette di tenere le colonne che il file non ha; poi fa un backup del progetto. La modifica si annulla con ⌘Z / Ctrl+Z. Al salvataggio Stella riscrive solo le colonne con un'intestazione: formattazione delle celle, altri fogli e colonne senza intestazione restano come sono. Una cella con una formula di Excel resta una formula finché il risultato non cambia. Se parti da un file Excel che hai già, con formule e fogli di analisi, leggi [Usare un file Excel che hai già](excel-esistente.md).
 
 ### 5.6 Dati da Google Sheets
 
-Se tieni i dati in un foglio Google, **Google Sheets…**, nel menu **Progetto**, li porta nel progetto. Nel foglio Google scegli **Condividi** → **Chiunque abbia il link** (lettore), copia il link e incollalo; **Scarica** legge tutte le schede. Ogni scheda va al set con lo stesso nome (senza badare a maiuscole); dal menu puoi sceglierne un altro o **non importare** la scheda. Se una scheda non ha alcune colonne del set, la finestra le elenca: dopo l'importazione quelle colonne non ci sono più. **Importa** sostituisce i dati dei set scelti (⌘Z annulla) e **Salva** li scrive nel file dei dati del progetto, che resta la copia locale: Stella funziona anche senza rete.
+Se tieni i dati in un foglio Google, **Google Sheets…**, nel menu **Progetto**, li porta nel progetto. Nel foglio Google scegli **Condividi** → **Chiunque abbia il link** (lettore), copia il link e incollalo; **Scarica** legge tutte le schede. Ogni scheda va al set con lo stesso nome (senza badare a maiuscole); dal menu puoi sceglierne un altro o **non importare** la scheda. Se una scheda non ha alcune colonne del set, la finestra le elenca: dopo l'importazione quelle colonne non ci sono più. **Importa** sostituisce i dati dei set scelti (⌘Z / Ctrl+Z annulla) e **Salva** li scrive nel file dei dati del progetto, che resta la copia locale: Stella funziona anche senza rete.
 
 Il link resta nel progetto: la volta dopo basta aprire la finestra e premere **Scarica**. Un foglio non condiviso con il link non si può scaricare, e Stella lo dice. Un'IA può fare lo stesso con `stella pull-sheets`.
 
@@ -501,7 +501,7 @@ Un campo vale, in ordine di precedenza: il livello valore calcolato, la cella no
 - **Come icona** scrive ogni valore come `{valore}`, così il testo mostra l'icona con quel nome.
 - **Filtro** tiene solo le carte per cui un'espressione è vera, per esempio `COUNTIN({costo}; "oro") <= 1`.
 
-L'anteprima mostra quante carte nasceranno e le prime righe. **Aggiungi in fondo** accoda le carte, **Sostituisci le carte** prende il posto di quelle esistenti. **Aggiorna le carte** scrive solo le colonne generate nelle carte già presenti, una per riga, lasciando le altre colonne come sono: per esempio si generano prima 30 carte da 6 semi e i numeri 1-5, poi con **Da una cartella…** si assegnano 30 ritratti alla colonna del ritratto. Se le carte generate sono di più, quelle in più si aggiungono in fondo. ⌘Z annulla.
+L'anteprima mostra quante carte nasceranno e le prime righe. **Aggiungi in fondo** accoda le carte, **Sostituisci le carte** prende il posto di quelle esistenti. **Aggiorna le carte** scrive solo le colonne generate nelle carte già presenti, una per riga, lasciando le altre colonne come sono: per esempio si generano prima 30 carte da 6 semi e i numeri 1-5, poi con **Da una cartella…** si assegnano 30 ritratti alla colonna del ritratto. Se le carte generate sono di più, quelle in più si aggiungono in fondo. ⌘Z / Ctrl+Z annulla.
 
 ![Il generatore: tre risorse, due per carta, con ripetizioni](img/genera.png)
 
@@ -583,7 +583,7 @@ Nella sezione **Documenti** della barra laterale si scrivono i testi che accompa
 
 ### 12.1 Scrivere e formattare
 
-Sopra il testo c'è la barra di formattazione: il menu **Testo** fa della riga un titolo di primo, secondo o terzo livello o la riporta a paragrafo; **B**, _I_, U e S mettono o tolgono grassetto, corsivo, sottolineato e barrato al testo selezionato (senza selezione lasciano il cursore tra i due segni); i tre tasti successivi fanno delle righe scelte un elenco puntato, un elenco numerato o una citazione, e un secondo clic li toglie. **Stile** applica al testo selezionato uno stile del progetto e ha in fondo **Aa Formatta…**, la formattazione avanzata del [capitolo 6](#6-testo-e-markup). Gli ultimi tasti inseriscono un'immagine degli asset, una tabella, una carta, un'anatomia o uno schema del tavolo. La barra scrive nel testo il markup che si scriverebbe a mano, e ⌘Z (Ctrl+Z) lo annulla.
+Sopra il testo c'è la barra di formattazione: il menu **Testo** fa della riga un titolo di primo, secondo o terzo livello o la riporta a paragrafo; **B**, _I_, U e S mettono o tolgono grassetto, corsivo, sottolineato e barrato al testo selezionato (senza selezione lasciano il cursore tra i due segni); i tre tasti successivi fanno delle righe scelte un elenco puntato, un elenco numerato o una citazione, e un secondo clic li toglie. **Stile** applica al testo selezionato uno stile del progetto e ha in fondo **Aa Formatta…**, la formattazione avanzata del [capitolo 6](#6-testo-e-markup). Gli ultimi tasti inseriscono un'immagine degli asset, una tabella, una carta, un'anatomia o uno schema del tavolo. La barra scrive nel testo il markup che si scriverebbe a mano, e ⌘Z / Ctrl+Z lo annulla.
 
 Il testo è Markdown, con il markup di Stella del [capitolo 6](#6-testo-e-markup) dentro le righe:
 
@@ -753,29 +753,29 @@ Il progetto è autonomo: copiando la cartella su un altro computer si vede ugual
 
 ## 18. Scorciatoie da tastiera
 
-Su Windows e Linux ⌘ è Ctrl.
+Ogni scorciatoia è scritta prima con il tasto ⌘ del Mac e poi, dopo la barra, con Ctrl per Windows e Linux.
 
-| Dove          | Tasti                        | Azione                                                                                                       |
-| ------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| ovunque       | ⌘S                           | salva template, dati e impostazioni                                                                          |
-| set           | ⌘Z, ⇧⌘Z                      | annulla e ripete le modifiche ai dati                                                                        |
-| ovunque       | ⌘+, ⌘−, ⌘0                   | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
-| set           | ⌘A, Esc                      | seleziona tutte le carte, torna a una sola                                                                   |
-| tabella       | Alt+Invio                    | a capo dentro una cella                                                                                      |
-| testo         | `{`, poi ↑ ↓, Invio          | suggerimenti di campi e variabili                                                                            |
-| editor        | ⌘Z, ⇧⌘Z (o ⌘Y)               | annulla e ripete                                                                                             |
-| editor        | T, R, E                      | nuovo testo, rettangolo, ellisse                                                                             |
-| editor        | ⌘D                           | duplica i livelli selezionati                                                                                |
-| editor        | ⌘C, ⌘X, ⌘V                   | copia, taglia e incolla livelli tra template                                                                 |
-| editor        | ⌘G, ⇧⌘G                      | raggruppa e separa                                                                                           |
-| editor        | ⌘A                           | seleziona tutti i livelli                                                                                    |
-| editor        | Canc                         | elimina i livelli selezionati                                                                                |
-| editor        | frecce, ⇧ + frecce           | sposta di 0,5 mm o di 5 mm                                                                                   |
-| editor        | Esc                          | toglie la selezione o esce dal gruppo                                                                        |
-| tela          | Maiuscolo trascinando        | sposta solo in orizzontale, in verticale o a 45°; inverte il blocco delle proporzioni; ruota a scatti di 15° |
-| tela          | ⌘ ridimensionando            | ridimensiona dal centro                                                                                      |
-| tela          | Alt trascinando              | sposta senza agganciarsi                                                                                     |
-| tela, griglia | ⌘ + rotella                  | zoom                                                                                                         |
-| set           | PagSu, PagGiù                | carta precedente o successiva, anche mentre si scrive nel modulo                                             |
-| carta         | doppio clic, Ctrl+Invio, Esc | modifica un livello sulla carta, chiude la modifica, la annulla                                              |
-| carta, editor | Alt+clic                     | seleziona il livello che sta sotto                                                                           |
+| Dove          | Tasti                                            | Azione                                                                                                       |
+| ------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| ovunque       | ⌘S / Ctrl+S                                      | salva template, dati e impostazioni                                                                          |
+| set           | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Maiusc+Z                 | annulla e ripete le modifiche ai dati                                                                        |
+| ovunque       | ⌘+, ⌘−, ⌘0 / Ctrl+, Ctrl−, Ctrl+0                | ingrandisce, riduce e riporta normale l'interfaccia (app per computer)                                       |
+| set           | ⌘A / Ctrl+A, Esc                                 | seleziona tutte le carte, torna a una sola                                                                   |
+| tabella       | Alt+Invio                                        | a capo dentro una cella                                                                                      |
+| testo         | `{`, poi ↑ ↓, Invio                              | suggerimenti di campi e variabili                                                                            |
+| editor        | ⌘Z / Ctrl+Z, ⇧⌘Z / Ctrl+Maiusc+Z (o ⌘Y / Ctrl+Y) | annulla e ripete                                                                                             |
+| editor        | T, R, E                                          | nuovo testo, rettangolo, ellisse                                                                             |
+| editor        | ⌘D / Ctrl+D                                      | duplica i livelli selezionati                                                                                |
+| editor        | ⌘C / Ctrl+C, ⌘X / Ctrl+X, ⌘V / Ctrl+V            | copia, taglia e incolla livelli tra template                                                                 |
+| editor        | ⌘G / Ctrl+G, ⇧⌘G / Ctrl+Maiusc+G                 | raggruppa e separa                                                                                           |
+| editor        | ⌘A / Ctrl+A                                      | seleziona tutti i livelli                                                                                    |
+| editor        | Canc                                             | elimina i livelli selezionati                                                                                |
+| editor        | frecce, ⇧ + frecce                               | sposta di 0,5 mm o di 5 mm                                                                                   |
+| editor        | Esc                                              | toglie la selezione o esce dal gruppo                                                                        |
+| tela          | Maiuscolo trascinando                            | sposta solo in orizzontale, in verticale o a 45°; inverte il blocco delle proporzioni; ruota a scatti di 15° |
+| tela          | ⌘ / Ctrl ridimensionando                         | ridimensiona dal centro                                                                                      |
+| tela          | Alt trascinando                                  | sposta senza agganciarsi                                                                                     |
+| tela, griglia | ⌘ / Ctrl + rotella                               | zoom                                                                                                         |
+| set           | PagSu, PagGiù                                    | carta precedente o successiva, anche mentre si scrive nel modulo                                             |
+| carta         | doppio clic, Ctrl+Invio, Esc                     | modifica un livello sulla carta, chiude la modifica, la annulla                                              |
+| carta, editor | Alt+clic                                         | seleziona il livello che sta sotto                                                                           |

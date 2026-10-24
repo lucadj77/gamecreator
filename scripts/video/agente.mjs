@@ -58,6 +58,20 @@ function show(src) {
   if (cur && cur.src) edl.push({ src: cur.src, from: cur.at, to: now })
   cur = { src, at: now }
 }
+/** segnale di sincronia: un lampo magenta a tutto schermo in entrambe le registrazioni. componi.sh
+ * lo ritrova nei due video, all'inizio e alla fine, e da lì calcola dove cade ogni pezzo */
+const marks = { app: [], term: [] }
+const FLASH = `(() => { const d = document.createElement('div'); d.id = 'v-sync'; d.style.cssText = 'position:fixed;inset:0;background:#f0f;z-index:2147483647'; document.body.appendChild(d) })()`
+async function sync() {
+  await Promise.all([
+    win.evaluate(FLASH).then(() => marks.app.push(Date.now())),
+    page.evaluate(FLASH).then(() => marks.term.push(Date.now()))
+  ])
+  await new Promise((ok) => setTimeout(ok, 700))
+  const off = `document.getElementById('v-sync').remove()`
+  await Promise.all([win.evaluate(off), page.evaluate(off)])
+  await new Promise((ok) => setTimeout(ok, 400))
+}
 const pause = (ms) => new Promise((ok) => setTimeout(ok, FAST ? Math.min(ms, 100) : ms))
 
 // ---- il terminale
@@ -68,7 +82,8 @@ const term = {
   out: (lines, more) => page.evaluate(([l, m]) => window.T.out(l, m), [lines, more]),
   caption: (text) => page.evaluate(([x]) => window.T.caption(x), [text]),
   images: (srcs, label) => page.evaluate(([s, l]) => window.T.images(s, l), [srcs, label]),
-  hideImages: () => page.evaluate(() => window.T.hideImages())
+  hideImages: () => page.evaluate(() => window.T.hideImages()),
+  paste: (label) => page.evaluate(([x]) => window.T.paste(x), [label])
 }
 /** lettura di un testo: tempo in base alla lunghezza */
 const read = (text, min = 1800) => pause(Math.max(min, 900 + 45 * text.length))
@@ -115,6 +130,9 @@ async function write(file, content, { n = 3, label } = {}) {
   await pause(1300)
 }
 const proj = tilde(P)
+const SKILL_LINES = readFileSync(`${REPO}/skill/stella/SKILL.md`, 'utf8').split('\n').length
+
+await sync()
 
 // ---- 1. Stella: gli strumenti IA
 show('app')
@@ -142,17 +160,61 @@ await r.focus(
   'left',
   { pad: 4 }
 )
+const copyBtn = aiDialog.getByRole('button', { name: T['ai.copy'], exact: true })
+await r.click(copyBtn)
 await r.focus(
-  aiDialog,
+  copyBtn,
   t(
-    'Si installa una volta sola: quando aggiorni Stella, la prima volta che l’agente la usa si aggiorna da sola',
-    'You install it once: when you update Stella, it updates itself the first time the agent uses it'
+    'Per installarla: copiala e incollala nel tuo agente, chiedendogli di installarla',
+    'To install it: copy it and paste it into your agent, asking it to install it'
   ),
-  'left',
-  { pad: 4 }
+  'below'
+)
+await r.focus(
+  aiDialog.getByRole('button', { name: T['ai.save'], exact: true }),
+  t(
+    'Oppure salvala come file: Claude Code legge le skill da ~/.claude/skills',
+    'Or save it as a file: Claude Code reads skills from ~/.claude/skills'
+  ),
+  'below'
 )
 await r.click(aiDialog.getByRole('button', { name: T['dialog.close'], exact: true }).last())
 await r.wait(600)
+
+// ---- 1b. il terminale: l'agente installa la skill
+show('term')
+await pause(600)
+await term.caption(t('Una volta sola: installa la skill', 'Once only: install the skill'))
+await term.user(t('Installa questa skill di Stella: ', 'Install this Stella skill: '))
+await term.paste(
+  t(`[testo incollato, ${SKILL_LINES} righe]`, `[pasted text, ${SKILL_LINES} lines]`)
+)
+await pause(1400)
+const inst = t(
+  'Installo la skill nella mia cartella delle skill, così la trovo in ogni progetto.',
+  'I’m installing the skill in my skills folder, so I can find it in every project.'
+)
+await term.agent(inst)
+await read(inst, 1600)
+await term.tool(it ? 'Scrive' : 'Write', '~/.claude/skills/stella/SKILL.md')
+await term.out([t(`${SKILL_LINES} righe scritte`, `${SKILL_LINES} lines written`)], 0)
+await pause(1200)
+const done0 = t(
+  'Fatto. Quando mi chiedi qualcosa su Stella la uso da sola.',
+  'Done. When you ask me something about Stella I’ll use it automatically.'
+)
+await term.agent(done0)
+await read(done0, 1600)
+await term.caption(
+  t(
+    'Quando aggiorni Stella, la skill si aggiorna da sola la prima volta che l’agente la usa',
+    'When you update Stella, the skill updates itself the first time the agent uses it'
+  )
+)
+await pause(FAST ? 100 : 4200)
+show(null)
+await page.evaluate(() => window.T.reset())
+await pause(300)
 
 // ---- 2. il terminale: l'agente crea il gioco
 show('term')
@@ -566,10 +628,11 @@ await r.title(
     'L’agente propone, tu decidi: tutto resta nei file del progetto, con i backup',
     'The agent proposes, you decide: everything stays in the project files, with backups'
   ),
-  4200
+  6500
 )
-await r.clear(500)
 show(null)
+await r.clear(500)
+await sync()
 
 // ---- fine: chiude le registrazioni e scrive l'elenco dei pezzi
 const termVideo = page.video()
@@ -579,8 +642,8 @@ await browser.close()
 const appEnd = Date.now()
 const appVideo = await r.finish()
 const out = {
-  term: { file: await termVideo.path(), end: termEnd },
-  app: { file: appVideo, end: appEnd },
+  term: { file: await termVideo.path(), end: termEnd, marks: marks.term },
+  app: { file: appVideo, end: appEnd, marks: marks.app },
   edl
 }
 const edlFile = `${OUT}/agente-${lang}.json`
@@ -598,6 +661,7 @@ function terminalHtml() {
   #log { position: absolute; top: 150px; bottom: 0; left: 0; right: 0; padding: 22px 34px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end }
   .user { color: var(--you); margin: 18px 0 10px; white-space: pre-wrap }
   .user::before { content: '> '; color: var(--accent); font-weight: 700 }
+  .pasted { color: var(--dim); background: #2f2a23; border-radius: 6px; padding: 1px 8px }
   .agent { margin: 10px 0; white-space: pre-wrap }
   .agent::before { content: '● '; color: var(--fg) }
   .tool { margin: 8px 0 0; white-space: pre-wrap }
@@ -621,6 +685,7 @@ function terminalHtml() {
   const sleep = (ms) => new Promise((ok) => setTimeout(ok, ms))
   window.T = {
     async user(text, fast) { const d = add('user', ''); for (const ch of text) { d.textContent += ch; if (!fast) await sleep(28) } },
+    paste(label) { const s = document.createElement('span'); s.className = 'pasted'; s.textContent = label; log.lastElementChild.appendChild(s) },
     agent(text) { add('agent', esc(text)) },
     tool(name, arg) { const lines = arg.split('\\n'); const shown = lines.length > 3 ? [...lines.slice(0, 2), '… +' + (lines.length - 2) + ' ${t('righe', 'lines')}'] : lines; add('tool', '<b>' + esc(name) + '</b>(' + esc(shown.join('\\n')) + ')') },
     out(lines, more) { if (!lines.length && !more) lines = ['${t('fatto', 'done')}']; const d = add('out', lines.map((l) => '<div>' + esc(l.length > 110 ? l.slice(0, 107) + '…' : l) + '</div>').join('') + (more ? '<div>… +' + more + ' ${t('righe', 'lines')}</div>' : '')) },

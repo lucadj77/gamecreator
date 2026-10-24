@@ -10,7 +10,8 @@ const SUBTITLES = {
   'formule-testo': ['Testo, icone, stili e formule', 'Text, icons, styles and formulas'],
   documenti: ['Il regolamento e gli altri documenti', 'The rulebook and other documents'],
   tabletop: ['Da Stella a Tabletop Simulator', 'From Stella to Tabletop Simulator'],
-  agente: ['Stella con un agente IA', 'Stella with an AI agent']
+  agente: ['Stella con un agente IA', 'Stella with an AI agent'],
+  plance: ['Plance, tessere, segnalini e dadi', 'Boards, tiles, tokens and dice']
 }
 if (!SUBTITLES[video]) throw new Error('video sconosciuto: ' + video)
 const subtitle = SUBTITLES[video][it ? 0 : 1]

@@ -255,6 +255,9 @@ export const videos = [
     it: 'Panoramica delle funzioni di base',
     en: 'An overview of the basic functions',
     minutes: 3,
-    url: { it: '', en: '' }
+    url: {
+      it: 'https://www.youtube.com/watch?v=xi0mTWMXBxk',
+      en: 'https://www.youtube.com/watch?v=-sKpQE61xB0'
+    }
   }
 ]

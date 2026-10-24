@@ -1,6 +1,6 @@
 // Video 1: panoramica delle funzioni di base di Stella (circa 3 minuti, senza voce).
 // Uso: xvfb-run -a -s "-screen 0 1600x1100x24" node --experimental-strip-types --no-warnings scripts/video/panoramica.mjs it|en
-import { launch, makeProject, mockOpen } from './lib.mjs'
+import { launch, makeProject } from './lib.mjs'
 import { mkdirSync, writeFileSync } from 'node:fs'
 const lang = process.argv[2] || 'it'
 const it = lang === 'it'
@@ -56,11 +56,19 @@ await r.focus(
 )
 await r.focus(
   win.getByText(T['start.openProject']),
-  it ? 'Apriamo il progetto di esempio' : 'Let’s open the example project',
+  it ? 'Apri un progetto che hai già' : 'Open a project you already have',
   'right'
 )
-await mockOpen(r.app, project)
-await r.click(win.getByText(T['start.openProject']))
+// il tasto copia l'esempio in Documenti/Stella; makeProject l'ha già preparato con il regolamento
+const example = win.getByRole('button', { name: T['start.example'], exact: true })
+await r.focus(
+  example,
+  it ? 'Apriamo il progetto di esempio' : 'Let’s open the example project',
+  'below'
+)
+// riquadro e testo via prima del clic: la finestra del progetto si apre senza ricaricare la pagina
+await r.clear(200)
+await r.click(example)
 await r.clear(2000)
 await r.overlay()
 

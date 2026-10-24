@@ -261,11 +261,32 @@ a:focus-visible {
   color: var(--fg-2);
 }
 .hero-shot {
+  position: relative;
+  isolation: isolate;
   border-radius: 14px;
-  overflow: hidden;
   box-shadow: var(--shadow);
   border: 1px solid var(--line);
   background: var(--card);
+}
+/* una seconda carta dietro la schermata, come nel logo */
+.hero-shot::before,
+.hero-shot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  z-index: -1;
+}
+.hero-shot::before {
+  background: var(--lavender);
+  transform: translate(16px, 16px) rotate(2deg);
+}
+.hero-shot::after {
+  background: var(--yellow);
+  transform: translate(-14px, 12px) rotate(-2.5deg);
+}
+.hero-shot img {
+  border-radius: 13px;
 }
 .hero-shot img {
   width: 100%;
@@ -289,14 +310,20 @@ a:focus-visible {
   gap: 8px;
   min-width: 0;
 }
-.feature::before {
-  content: '';
+.feature .icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--c);
+  background: var(--bg-2);
+  border: 1.5px solid var(--c);
+  margin-bottom: 8px;
+}
+.ornament {
   display: block;
-  width: 44px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--c);
-  margin-bottom: 6px;
+  margin-bottom: 14px;
 }
 .feature:nth-child(1) {
   --c: var(--red);
